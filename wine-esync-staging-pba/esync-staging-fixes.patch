@@ -1,0 +1,578 @@
+From ace6e15507243357277f8003f4238d460da785ee Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Thu, 28 Jun 2018 14:15:15 +0200
+Subject: Create rejects on patch application failure with 1 line context
+
+
+diff --git a/patches/patchinstall.sh b/patches/patchinstall.sh
+index e8ff5a6b..9eea9c3b 100755
+--- a/patches/patchinstall.sh
++++ b/patches/patchinstall.sh
+@@ -1759,9 +1759,7 @@ elif test "$backend" = "git-apply"; then
+ 	patch_apply_file()
+ 	{
+ 		printf '%s\n' "Applying $1"
+-		if ! git apply "$1"; then
+-			abort "Failed to apply patch, aborting!"
+-		fi
++        git apply -C1 --reject --whitespace=fix "$1"
+ 	}
+ 
+ # Stacked GIT backend - import the patches (mainly for developers)
+
+
+From f8475bd4180b15f2e60a2d4eece5e40d2144db2d Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Thu, 28 Jun 2018 16:13:26 +0200
+Subject: Fix staging patches not playing nice with esync
+
+diff --git a/patches/advapi32-Token_Integrity_Level/0013-server-Correctly-assign-security-labels-for-tokens.patch b/patches/advapi32-Token_Integrity_Level/0013-server-Correctly-assign-security-labels-for-tokens.patch
+index 6ca64505..ca7a1deb 100644
+--- a/patches/advapi32-Token_Integrity_Level/0013-server-Correctly-assign-security-labels-for-tokens.patch
++++ b/patches/advapi32-Token_Integrity_Level/0013-server-Correctly-assign-security-labels-for-tokens.patch
+@@ -104,9 +104,9 @@ index ef2452fb8fb..ae998ab80b9 100644
+ -    if (!token_assign_label( process->token, security_high_label_sid ))
+ -        goto error;
+ -
+-     /* create the main thread */
+-     if (pipe( request_pipe ) == -1)
+-     {
++     if (do_esync())
++         process->esync_fd = esync_create_fd( 0, 0 );
++ 
+ diff --git a/server/security.h b/server/security.h
+ index 32dfe5f8db9..87377ccd673 100644
+ --- a/server/security.h
+
+diff --git a/patches/kernel32-K32GetPerformanceInfo/0001-kernel32-Make-K32GetPerformanceInfo-faster.patch b/patches/kernel32-K32GetPerformanceInfo/0001-kernel32-Make-K32GetPerformanceInfo-faster.patch
+index b163eb3e..af02c6e4 100644
+--- a/patches/kernel32-K32GetPerformanceInfo/0001-kernel32-Make-K32GetPerformanceInfo-faster.patch
++++ b/patches/kernel32-K32GetPerformanceInfo/0001-kernel32-Make-K32GetPerformanceInfo-faster.patch
+@@ -134,15 +134,13 @@ index eaf61eaea99..a59be6cfad7 100644
+ +    }
+ +}
+ diff --git a/server/protocol.def b/server/protocol.def
+-index c26b24edc5f..85137ab3b52 100644
++index 5f5fdb4511..ca7fc1b510 100644
+ --- a/server/protocol.def
+ +++ b/server/protocol.def
+-@@ -3866,3 +3866,12 @@ struct handle_info
+-     obj_handle_t handle;          /* handle to the job */
+-     int          status;          /* process exit code */
++@@ -3449,6 +3449,15 @@ struct handle_info
+  @END
+-+
+-+
++ 
++ 
+ +/* Return system information values */
+ +@REQ(get_system_info)
+ +@REPLY
+@@ -150,6 +148,12 @@ index c26b24edc5f..85137ab3b52 100644
+ +    unsigned int threads;     /* number of threads */
+ +    unsigned int handles;     /* number of handles */
+ +@END
+++
+++
++ /* Set mailslot information */
++ @REQ(set_mailslot_info)
++     obj_handle_t   handle;        /* handle to the mailslot */
++
+ -- 
+ 2.11.0
+ 
+
+diff --git a/patches/ntdll-Dealloc_Thread_Stack/0001-ntdll-Do-not-allow-to-allocate-thread-stack-for-curr.patch b/patches/ntdll-Dealloc_Thread_Stack/0001-ntdll-Do-not-allow-to-allocate-thread-stack-for-curr.patch
+index 36be7a76..63035c42 100644
+--- a/patches/ntdll-Dealloc_Thread_Stack/0001-ntdll-Do-not-allow-to-allocate-thread-stack-for-curr.patch
++++ b/patches/ntdll-Dealloc_Thread_Stack/0001-ntdll-Do-not-allow-to-allocate-thread-stack-for-curr.patch
+@@ -10,17 +10,17 @@ Subject: ntdll: Do not allow to deallocate thread stack for current thread.
+  3 files changed, 19 insertions(+)
+ 
+ diff --git a/dlls/ntdll/ntdll_misc.h b/dlls/ntdll/ntdll_misc.h
+-index ba296d25c3c..faa258a27f4 100644
++index a58d8fff8b..e97193d664 100644
+ --- a/dlls/ntdll/ntdll_misc.h
+ +++ b/dlls/ntdll/ntdll_misc.h
+-@@ -224,6 +224,7 @@ struct ntdll_thread_data
++@@ -283,6 +283,7 @@ struct ntdll_thread_data
+      int                wait_fd[2];    /* fd for sleeping server requests */
+      BOOL               wow64_redir;   /* Wow64 filesystem redirection flag */
+      pthread_t          pthread_id;    /* pthread thread id */
+ +    void              *pthread_stack; /* pthread stack */
++     int                esync_queue_fd;/* fd to wait on for driver events */
++     int                esync_apc_fd;  /* fd to wait on for user APCs */
+  };
+- 
+- C_ASSERT( sizeof(struct ntdll_thread_data) <= sizeof(((TEB *)0)->GdiTebBatch) );
+ diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
+ index 4aeb282adf7..68c0148fbb5 100644
+ --- a/dlls/ntdll/virtual.c
+ 
+
+diff --git a/patches/ntdll-NtSuspendProcess/0001-ntdll-Implement-NtSuspendProcess-and-NtResumeProcess.patch b/patches/ntdll-NtSuspendProcess/0001-ntdll-Implement-NtSuspendProcess-and-NtResumeProcess.patch
+index 12085bee..2fda183d 100644
+--- a/patches/ntdll-NtSuspendProcess/0001-ntdll-Implement-NtSuspendProcess-and-NtResumeProcess.patch
++++ b/patches/ntdll-NtSuspendProcess/0001-ntdll-Implement-NtSuspendProcess-and-NtResumeProcess.patch
+@@ -282,15 +282,13 @@ index 0000000000..41303b7e9a
+ +    test_NtSuspendProcess(argv[0]);
+ +}
+ diff --git a/server/protocol.def b/server/protocol.def
+-index 04377e16c5..f886d958d8 100644
++index 1d5671af62..72e2e5477a 100644
+ --- a/server/protocol.def
+ +++ b/server/protocol.def
+-@@ -3887,3 +3887,15 @@ struct handle_info
+-     unsigned int threads;     /* number of threads */
+-     unsigned int handles;     /* number of handles */
++@@ -3513,6 +3513,18 @@ struct handle_info
+  @END
+-+
+-+
++ 
++ 
+ +/* Suspend a process */
+ +@REQ(suspend_process)
+ +    obj_handle_t handle;       /* process handle */
+@@ -301,6 +299,11 @@ index 04377e16c5..f886d958d8 100644
+ +@REQ(resume_process)
+ +    obj_handle_t handle;       /* process handle */
+ +@END
+++
+++
++ /* Create a mailslot */
++ @REQ(create_mailslot)
++     unsigned int   access;        /* wanted access rights */
+ diff --git a/server/thread.c b/server/thread.c
+ index 108444ebc5..5b9b80d303 100644
+ --- a/server/thread.c
+ 
+
+diff --git a/patches/ntdll-SystemRoot_Symlink/0001-ntdll-Add-special-handling-for-SystemRoot-to-satisfy.patch b/patches/ntdll-SystemRoot_Symlink/0001-ntdll-Add-special-handling-for-SystemRoot-to-satisfy.patch
+index 54738529..7ce530d8 100644
+--- a/patches/ntdll-SystemRoot_Symlink/0001-ntdll-Add-special-handling-for-SystemRoot-to-satisfy.patch
++++ b/patches/ntdll-SystemRoot_Symlink/0001-ntdll-Add-special-handling-for-SystemRoot-to-satisfy.patch
+@@ -12,8 +12,8 @@ diff --git a/dlls/ntdll/om.c b/dlls/ntdll/om.c
+ index 35c3672..9a2539c 100644
+ --- a/dlls/ntdll/om.c
+ +++ b/dlls/ntdll/om.c
+-@@ -39,6 +39,7 @@
+- #include "ntdll_misc.h"
++@@ -40,6 +40,7 @@
++ #include "esync.h"
+  #include "wine/server.h"
+  #include "wine/exception.h"
+ +#include "wine/unicode.h"
+
+diff --git a/patches/ntdll-User_Shared_Data/0001-ntdll-Move-code-to-update-user-shared-data-into-a-se.patch b/patches/ntdll-User_Shared_Data/0001-ntdll-Move-code-to-update-user-shared-data-into-a-se.patch
+index c3313283..bd6c1804 100644
+--- a/patches/ntdll-User_Shared_Data/0001-ntdll-Move-code-to-update-user-shared-data-into-a-se.patch
++++ b/patches/ntdll-User_Shared_Data/0001-ntdll-Move-code-to-update-user-shared-data-into-a-se.patch
+@@ -10,16 +10,17 @@ Subject: [PATCH] ntdll: Move code to update user shared data into a separate
+  2 files changed, 25 insertions(+), 10 deletions(-)
+ 
+ diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
+-index 3855347..c223f45 100644
++index 53011a3129..8b92f1cb49 100644
+ --- a/dlls/ntdll/ntdll.spec
+ +++ b/dlls/ntdll/ntdll.spec
+-@@ -1501,3 +1501,6 @@
+- # Filesystem
++@@ -1513,4 +1513,7 @@
+  @ cdecl wine_nt_to_unix_file_name(ptr ptr long long)
+  @ cdecl wine_unix_to_nt_file_name(ptr ptr)
+-+
++ 
+ +# User shared data
+ +@ cdecl __wine_user_shared_data()
+++
++ @ cdecl __wine_esync_set_queue_fd(long)
+ diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
+ index b1d04ab..ff14a5e 100644
+ --- a/dlls/ntdll/thread.c
+@@ -59,7 +60,7 @@ index b1d04ab..ff14a5e 100644
+      NTSTATUS status;
+      struct ntdll_thread_data *thread_data;
+      static struct debug_info debug_info;  /* debug info for initial thread */
+-@@ -479,15 +498,8 @@ HANDLE thread_init(void)
++@@ -563,15 +563,8 @@ HANDLE thread_init(void)
+              wine_server_fd_to_handle( 2, GENERIC_WRITE|SYNCHRONIZE, OBJ_INHERIT, &params.hStdError );
+      }
+  
+@@ -76,7 +77,7 @@ index b1d04ab..ff14a5e 100644
+ +    __wine_user_shared_data();
+      fill_cpu_info();
+  
+-     NtCreateKeyedEvent( &keyed_event, GENERIC_READ | GENERIC_WRITE, NULL, 0 );
++     if (do_esync())
+ -- 
+ 1.9.1
+ 
+
+diff --git a/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch b/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
+index 13828324..2a1c062d 100644
+--- a/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
++++ b/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
+@@ -214,18 +214,18 @@ index 7ffaedc4623..d903ff283c0 100644
+      directory_destroy             /* destroy */
+  };
+ diff --git a/server/event.c b/server/event.c
+-index cfc0f6afc0d..608fafb94d7 100644
++index 153578a67b..ccd00d7f30 100644
+ --- a/server/event.c
+ +++ b/server/event.c
+-@@ -68,6 +68,7 @@ static const struct object_ops event_ops =
++@@ -73,6 +73,7 @@ static const struct object_ops event_ops =
+      directory_link_name,       /* link_name */
+      default_unlink_name,       /* unlink_name */
+      no_open_file,              /* open_file */
+ +    no_alloc_handle,           /* alloc_handle */
+      no_close_handle,           /* close_handle */
+-     no_destroy                 /* destroy */
++     event_destroy              /* destroy */
+  };
+-@@ -101,6 +102,7 @@ static const struct object_ops keyed_event_ops =
++@@ -107,6 +108,7 @@ static const struct object_ops keyed_event_ops =
+      directory_link_name,         /* link_name */
+      default_unlink_name,         /* unlink_name */
+      no_open_file,                /* open_file */
+@@ -233,6 +233,7 @@ index cfc0f6afc0d..608fafb94d7 100644
+      no_close_handle,             /* close_handle */
+      no_destroy                   /* destroy */
+  };
++
+ diff --git a/server/fd.c b/server/fd.c
+ index fa2b18a46b1..9dbf481259c 100644
+ --- a/server/fd.c
+
+diff --git a/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch b/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
+index 13828324..0cee603a 100644
+--- a/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
++++ b/patches/server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
+@@ -530,17 +530,18 @@ index c479b388bd6..382f14f12d1 100644
+      thread_input_destroy          /* destroy */
+  };
+ diff --git a/server/registry.c b/server/registry.c
+-index 734a1115b21..6294aa36f03 100644
++index bd7ccc8bf1..3b80f2502b 100644
+ --- a/server/registry.c
+ +++ b/server/registry.c
+-@@ -170,6 +170,7 @@ static const struct object_ops key_ops =
+-     no_link_name,            /* link_name */
+-     NULL,                    /* unlink_name */
++@@ -177,6 +177,7 @@ static const struct object_ops key_ops =
++     key_link_name,           /* link_name */
++     key_unlink_name,         /* unlink_name */
+      no_open_file,            /* open_file */
+ +    no_alloc_handle,         /* alloc_handle */
+      key_close_handle,        /* close_handle */
+      key_destroy              /* destroy */
+  };
++
+ diff --git a/server/request.c b/server/request.c
+ index 6120bc550ff..83e608917f8 100644
+ --- a/server/request.c
+
+diff --git a/patches/server-Misc_ACL/0001-server-Add-default-security-descriptor-ownership-for.patch b/patches/server-Misc_ACL/0001-server-Add-default-security-descriptor-ownership-for.patch
+index 8b4f248d..30f9d9eb 100644
+--- a/patches/server-Misc_ACL/0001-server-Add-default-security-descriptor-ownership-for.patch
++++ b/patches/server-Misc_ACL/0001-server-Add-default-security-descriptor-ownership-for.patch
+@@ -73,14 +73,14 @@ diff --git a/server/process.c b/server/process.c
+ index 651ecdf..9a11e0a 100644
+ --- a/server/process.c
+ +++ b/server/process.c
+-@@ -62,6 +62,7 @@ static int shutdown_stage;  /* current stage in the shutdown process */
++@@ -63,6 +63,7 @@ static int shutdown_stage;  /* current stage in the shutdown process */
+  static void process_dump( struct object *obj, int verbose );
+  static int process_signaled( struct object *obj, struct wait_queue_entry *entry );
+  static unsigned int process_map_access( struct object *obj, unsigned int access );
+ +static struct security_descriptor *process_get_sd( struct object *obj );
+  static void process_poll_event( struct fd *fd, int event );
+  static void process_destroy( struct object *obj );
+- static void terminate_process( struct process *process, struct thread *skip, int exit_code );
++ static int process_get_esync_fd( struct object *obj, enum esync_type *type );
+ @@ -78,7 +79,7 @@ static const struct object_ops process_ops =
+      no_signal,                   /* signal */
+      no_get_fd,                   /* get_fd */
+
+diff --git a/patches/server-Object_Types/0007-server-Add-type-Thread.patch b/patches/server-Object_Types/0007-server-Add-type-Thread.patch
+index 52e7d062..dfe4f754 100644
+--- a/patches/server-Object_Types/0007-server-Add-type-Thread.patch
++++ b/patches/server-Object_Types/0007-server-Add-type-Thread.patch
+@@ -38,14 +38,14 @@ diff --git a/server/thread.c b/server/thread.c
+ index 53e94fda42..108444ebc5 100644
+ --- a/server/thread.c
+ +++ b/server/thread.c
+-@@ -129,6 +129,7 @@ static const struct object_ops thread_apc_ops =
++@@ -131,6 +131,7 @@ static const struct object_ops thread_apc_ops =
+  /* thread operations */
+  
+  static void dump_thread( struct object *obj, int verbose );
+ +static struct object_type *thread_get_type( struct object *obj );
+  static int thread_signaled( struct object *obj, struct wait_queue_entry *entry );
++ static int thread_get_esync_fd( struct object *obj, enum esync_type *type );
+  static unsigned int thread_map_access( struct object *obj, unsigned int access );
+- static void thread_poll_event( struct fd *fd, int event );
+ @@ -138,7 +139,7 @@ static const struct object_ops thread_ops =
+  {
+      sizeof(struct thread),      /* size */
+
+diff --git a/patches/server-PeekMessage/0001-server-Fix-handling-of-GetMessage-after-previous-Pee.patch b/patches/server-PeekMessage/0001-server-Fix-handling-of-GetMessage-after-previous-Pee.patch
+index c1f1af9a..0590da78 100644
+--- a/patches/server-PeekMessage/0001-server-Fix-handling-of-GetMessage-after-previous-Pee.patch
++++ b/patches/server-PeekMessage/0001-server-Fix-handling-of-GetMessage-after-previous-Pee.patch
+@@ -93,22 +93,22 @@ diff --git a/server/queue.c b/server/queue.c
+ index c479b388bd6..fdb09d93238 100644
+ --- a/server/queue.c
+ +++ b/server/queue.c
+-@@ -140,6 +140,7 @@ struct msg_queue
++@@ -141,6 +141,7 @@ struct msg_queue
+      struct thread_input   *input;           /* thread input descriptor */
+      struct hook_table     *hooks;           /* hook table */
+      timeout_t              last_get_msg;    /* time of last get message call */
+ +    unsigned int           ignore_post_msg; /* ignore post messages newer than this unique id */
++     int                    esync_fd;        /* esync file descriptor (signalled on message) */
+  };
+  
+- struct hotkey
+ @@ -298,6 +299,7 @@ static struct msg_queue *create_msg_queue( struct thread *thread, struct thread_
+          queue->input           = (struct thread_input *)grab_object( input );
+          queue->hooks           = NULL;
+          queue->last_get_msg    = current_time;
+ +        queue->ignore_post_msg = 0;
++         queue->esync_fd        = -1;
+          list_init( &queue->send_result );
+          list_init( &queue->callback_result );
+-         list_init( &queue->pending_timers );
+ @@ -495,13 +497,21 @@ static inline struct msg_queue *get_current_queue(void)
+  }
+  
+diff --git a/patches/server-Registry_Notifications/0002-server-Introduce-refcounting-for-registry-notificati.patch b/patches/server-Registry_Notifications/0002-server-Introduce-refcounting-for-registry-notificati.patch
+index aa3f0f3b..b15f3cde 100644
+--- a/patches/server-Registry_Notifications/0002-server-Introduce-refcounting-for-registry-notificati.patch
++++ b/patches/server-Registry_Notifications/0002-server-Introduce-refcounting-for-registry-notificati.patch
+@@ -34,7 +34,7 @@ index ead9749..5c70b8d 100644
+      while ((ptr = list_head( &notify->events )))
+      {
+          struct notify_event *notify_event = LIST_ENTRY( ptr, struct notify_event, entry );
+-@@ -320,11 +329,9 @@ static void do_notification( struct key *key, struct notify *notify, int del )
++@@ -406,11 +406,9 @@ static void do_notification( struct key *key, struct notify *notify, int del )
+          free( notify_event );
+      }
+  
+@@ -47,7 +47,7 @@ index ead9749..5c70b8d 100644
+ -    }
+  }
+  
+- static inline struct notify *find_notify( struct key *key, struct process *process, obj_handle_t hkey )
++ /* go through all the notifications and send them if necessary */
+ @@ -2282,6 +2289,7 @@ DECL_HANDLER(set_registry_notification)
+              notify = find_notify( key, current->process, req->hkey );
+              if (!notify && (notify = mem_alloc( sizeof(*notify) )))
+ 
+
+diff --git a/patches/server-Signal_Thread/0001-server-Do-not-signal-thread-until-it-is-really-gone.patch b/patches/server-Signal_Thread/0001-server-Do-not-signal-thread-until-it-is-really-gone.patch
+index 7949dad3..b547a384 100644
+--- a/patches/server-Signal_Thread/0001-server-Do-not-signal-thread-until-it-is-really-gone.patch
++++ b/patches/server-Signal_Thread/0001-server-Do-not-signal-thread-until-it-is-really-gone.patch
+@@ -12,22 +12,22 @@ diff --git a/server/thread.c b/server/thread.c
+ index 5f8405b..7de022b 100644
+ --- a/server/thread.c
+ +++ b/server/thread.c
+-@@ -199,6 +199,7 @@ static inline void init_thread_structure( struct thread *thread )
++@@ -203,6 +203,7 @@ static inline void init_thread_structure( struct thread *thread )
+      thread->suspend         = 0;
+      thread->desktop_users   = 0;
+      thread->token           = NULL;
+ +    thread->exit_poll       = NULL;
++     thread->esync_fd        = -1;
++     thread->esync_apc_fd    = -1;
+  
+-     thread->creation_time = current_time;
+-     thread->exit_time     = 0;
+-@@ -320,6 +321,7 @@ static void destroy_thread( struct object *obj )
++@@ -332,6 +333,7 @@ static void destroy_thread( struct object *obj )
+      list_remove( &thread->entry );
+      cleanup_thread( thread );
+      release_object( thread->process );
+ +    if (thread->exit_poll) remove_timeout_user( thread->exit_poll );
+      if (thread->id) free_ptid( thread->id );
+      if (thread->token) release_object( thread->token );
+- }
++
+ @@ -337,7 +339,7 @@ static void dump_thread( struct object *obj, int verbose )
+  static int thread_signaled( struct object *obj, struct wait_queue_entry *entry )
+  {
+@@ -36,7 +36,7 @@ index 5f8405b..7de022b 100644
+ +    return (mythread->state == TERMINATED && !mythread->exit_poll);
+  }
+  
+- static unsigned int thread_map_access( struct object *obj, unsigned int access )
++ static int thread_get_esync_fd( struct object *obj, enum esync_type *type )
+ @@ -1095,6 +1097,25 @@ int thread_get_inflight_fd( struct thread *thread, int client )
+      return -1;
+  }
+@@ -74,17 +74,18 @@ index 5f8405b..7de022b 100644
+      remove_process_thread( thread->process, thread );
+      release_object( thread );
+ diff --git a/server/thread.h b/server/thread.h
+-index 2821991..ac9af24 100644
++index d5d33f008f..cf93c1c166 100644
+ --- a/server/thread.h
+ +++ b/server/thread.h
+-@@ -88,6 +88,7 @@ struct thread
++@@ -89,6 +89,7 @@ struct thread
+      timeout_t              creation_time; /* Thread creation time */
+      timeout_t              exit_time;     /* Thread exit time */
+      struct token          *token;         /* security token associated with this thread */
+ +    struct timeout_user   *exit_poll;     /* poll if the thread/process has exited already */
++     int                    esync_fd;      /* esync file descriptor (signalled on exit) */
++     int                    esync_apc_fd;  /* esync apc fd (signalled when APCs are present) */
+  };
+- 
+- struct thread_snapshot
++
+ -- 
+ 2.9.0
+ 
+
+diff --git a/patches/server-Shared_Memory/0002-server-Implement-support-for-global-and-local-shared.patch b/patches/server-Shared_Memory/0002-server-Implement-support-for-global-and-local-shared.patch
+index d7fa7a61..88ed9f21 100644
+--- a/patches/server-Shared_Memory/0002-server-Implement-support-for-global-and-local-shared.patch
++++ b/patches/server-Shared_Memory/0002-server-Implement-support-for-global-and-local-shared.patch
+@@ -377,15 +377,15 @@ diff --git a/server/thread.c b/server/thread.c
+ index 31b4efd51a..e9d37c2684 100644
+ --- a/server/thread.c
+ +++ b/server/thread.c
+-@@ -202,6 +202,8 @@ static inline void init_thread_structure( struct thread *thread )
++@@ -204,6 +204,8 @@ static inline void init_thread_structure( struct thread *thread )
+      thread->desktop_users   = 0;
+      thread->token           = NULL;
+      thread->exit_poll       = NULL;
+ +    thread->shm_fd          = -1;
+ +    thread->shm             = NULL;
++     thread->esync_fd        = -1;
++     thread->esync_apc_fd    = -1;
+  
+-     thread->creation_time = current_time;
+-     thread->exit_time     = 0;
+ @@ -303,6 +305,8 @@ static void cleanup_thread( struct thread *thread )
+              thread->inflight[i].client = thread->inflight[i].server = -1;
+          }
+@@ -406,7 +406,7 @@ index 31b4efd51a..e9d37c2684 100644
+  
+  /* destroy a thread when its refcount is 0 */
+ diff --git a/server/thread.h b/server/thread.h
+-index 5d6d3906a6..7351c420d6 100644
++index cf93c1c166..e6d9c40a6a 100644
+ --- a/server/thread.h
+ +++ b/server/thread.h
+ @@ -90,6 +90,8 @@ struct thread
+@@ -415,9 +415,10 @@ index 5d6d3906a6..7351c420d6 100644
+      struct timeout_user   *exit_poll;     /* poll if the thread/process has exited already */
+ +    int                    shm_fd;        /* file descriptor for thread local shared memory */
+ +    shmlocal_t            *shm;           /* thread local shared memory pointer */
++     int                    esync_fd;      /* esync file descriptor (signalled on exit) */
++     int                    esync_apc_fd;  /* esync apc fd (signalled when APCs are present) */
+  };
+- 
+- struct thread_snapshot
++
+ -- 
+ 2.16.1
+ 
+
+diff --git a/patches/server-Shared_Memory/0003-user32-Get-rid-of-wineserver-call-for-GetInputState.patch b/patches/server-Shared_Memory/0003-user32-Get-rid-of-wineserver-call-for-GetInputState.patch
+index 93f699ce..abdd1ed6 100644
+--- a/patches/server-Shared_Memory/0003-user32-Get-rid-of-wineserver-call-for-GetInputState.patch
++++ b/patches/server-Shared_Memory/0003-user32-Get-rid-of-wineserver-call-for-GetInputState.patch
+@@ -107,14 +107,15 @@ index c318fc3..3a1d2b7 100644
+      if (is_signaled( queue )) wake_up( &queue->obj, 0 );
+  }
+  
+-@@ -440,6 +453,7 @@ static inline void clear_queue_bits( struct msg_queue *queue, unsigned int bits
++@@ -457,6 +457,7 @@ static inline void clear_queue_bits( struct msg_queue *queue, unsigned int bits
+  {
+      queue->wake_bits &= ~bits;
+      queue->changed_bits &= ~bits;
+ +    update_shm_queue_bits( queue );
+- }
+  
+- /* check whether msg is a keyboard message */
++     if (do_esync() && !is_signaled( queue ))
++         esync_clear( queue->esync_fd );
++
+ -- 
+ 2.3.5
+ 
+
+diff --git a/patches/server-Shared_Memory/0006-ntdll-Only-enable-wineserver-shared-memory-communica.patch b/patches/server-Shared_Memory/0006-ntdll-Only-enable-wineserver-shared-memory-communica.patch
+index 4e7065ac..731cce5a 100644
+--- a/patches/server-Shared_Memory/0006-ntdll-Only-enable-wineserver-shared-memory-communica.patch
++++ b/patches/server-Shared_Memory/0006-ntdll-Only-enable-wineserver-shared-memory-communica.patch
+@@ -13,7 +13,7 @@ index 0b8e007..6155b6e 100644
+ --- a/dlls/ntdll/server.c
+ +++ b/dlls/ntdll/server.c
+ @@ -81,6 +81,7 @@
+- #include "ntdll_misc.h"
++ #include "esync.h"
+  
+  WINE_DEFAULT_DEBUG_CHANNEL(server);
+ +WINE_DECLARE_DEBUG_CHANNEL(winediag);
+
+
+diff --git a/patches/server-Realtime_Priority/0001-wineserver-Draft-to-implement-priority-levels-throug.patch b/patches/server-Realtime_Priority/0001-wineserver-Draft-to-implement-priority-levels-throug.patch
+index 7b28cacc..00678428 100644
+--- a/patches/server-Realtime_Priority/0001-wineserver-Draft-to-implement-priority-levels-throug.patch
++++ b/patches/server-Realtime_Priority/0001-wineserver-Draft-to-implement-priority-levels-throug.patch
+@@ -42,8 +42,8 @@ index 7aed338e96..ee8cadde5d 100644
+  /* parse-line args */
+  
+  static void usage( FILE *fh )
+-@@ -142,6 +143,7 @@ int main( int argc, char *argv[] )
+-     open_master_socket();
++@@ -146,6 +146,7 @@ int main( int argc, char *argv[] )
++         esync_init();
+  
+      if (debug_level) fprintf( stderr, "wineserver: starting (pid=%ld)\n", (long) getpid() );
+ +    init_scheduler();
+ 
+
+diff --git a/patches/server-device_manager_destroy/0001-server-Fix-crash-when-a-device-driver-segfaults-duri.patch b/patches/server-device_manager_destroy/0001-server-Fix-crash-when-a-device-driver-segfaults-duri.patch
+index c6a0eab4..a93b5ef3 100644
+--- a/patches/server-device_manager_destroy/0001-server-Fix-crash-when-a-device-driver-segfaults-duri.patch
++++ b/patches/server-device_manager_destroy/0001-server-Fix-crash-when-a-device-driver-segfaults-duri.patch
+@@ -9,10 +9,10 @@ Subject: server: Fix crash when a device driver segfaults during an open file
+  1 file changed, 6 insertions(+)
+ 
+ diff --git a/server/device.c b/server/device.c
+-index 42f3e797ab9..a5928f520a9 100644
++index c74d86b588..652571cba3 100644
+ --- a/server/device.c
+ +++ b/server/device.c
+-@@ -623,7 +623,11 @@ static void delete_device( struct device *device )
++@@ -595,7 +595,11 @@ static void delete_device( struct device *device )
+      if (!device->manager) return;  /* already deleted */
+  
+      LIST_FOR_EACH_ENTRY_SAFE( file, next, &device->files, struct device_file, entry )
+@@ -24,16 +24,17 @@ index 42f3e797ab9..a5928f520a9 100644
+  
+      unlink_named_object( &device->obj );
+      list_remove( &device->entry );
+-@@ -651,7 +655,9 @@ static void device_manager_destroy( struct object *obj )
++@@ -630,7 +634,9 @@ static void device_manager_destroy( struct object *obj )
+      while ((ptr = list_head( &manager->devices )))
+      {
+          struct device *device = LIST_ENTRY( ptr, struct device, entry );
+ +        grab_object( &device->obj );
+          delete_device( device );
+ +        release_object( &device->obj );
+-     }
+- }
+  
++         if (do_esync())
++             close( manager->esync_fd );
++
+ -- 
+ 2.12.2
+ 

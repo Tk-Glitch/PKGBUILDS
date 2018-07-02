@@ -1,0 +1,303 @@
+# Compiler - By default, GCC will be used. The compiler you want to use must be uncommented.
+COMPILEWITH='gcc' # default
+#COMPILEWITH='clang'
+#COMPILEWITH='zapcc'
+
+pkgname=wine-esync-staging.m4-pba-SMT-TkG
+pkgver=3.10.ffb5da346e
+pkgrel=1
+_winesrcdir='wine-git'
+_stgsrcdir='wine-staging-git'
+_pbasrcdir='wine-pba'
+pkgdesc='Wine esync with added staging (minus 4 patches) and PBA patches (Also includes 3.11 SMT, Path of Exile DX11 patch and others).'
+url='https://github.com/zfigura/wine/tree/esync'
+arch=('x86_64')
+options=('staticlibs')
+license=('LGPL')
+depends=(
+    'attr'                  'lib32-attr'
+    'fontconfig'            'lib32-fontconfig'
+    'lcms2'                 'lib32-lcms2'
+    'libxml2'               'lib32-libxml2'
+    'libxcursor'            'lib32-libxcursor'
+    'libxrandr'             'lib32-libxrandr'
+    'libxdamage'            'lib32-libxdamage'
+    'libxi'                 'lib32-libxi'
+    'gettext'               'lib32-gettext'
+    'freetype2'             'lib32-freetype2'
+    'glu'                   'lib32-glu'
+    'libsm'                 'lib32-libsm'
+    'gcc-libs'              'lib32-gcc-libs'
+    'libpcap'               'lib32-libpcap'
+    'desktop-file-utils'
+)
+makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
+    'gcc>=4.5.0-2'
+    'giflib'                'lib32-giflib'
+    'libpng'                'lib32-libpng'
+    'gnutls'                'lib32-gnutls'
+    'libxinerama'           'lib32-libxinerama'
+    'libxcomposite'         'lib32-libxcomposite'
+    'libxmu'                'lib32-libxmu'
+    'libxxf86vm'            'lib32-libxxf86vm'
+    'libldap'               'lib32-libldap'
+    'mpg123'                'lib32-mpg123'
+    'openal'                'lib32-openal'
+    'v4l-utils'             'lib32-v4l-utils'
+    'alsa-lib'              'lib32-alsa-lib'
+    'libxcomposite'         'lib32-libxcomposite'
+    'mesa'                  'lib32-mesa'
+    'libgl'                 'lib32-libgl'
+    'libxslt'               'lib32-libxslt'
+    'libpulse'              'lib32-libpulse'
+    'libva'                 'lib32-libva'
+    'gtk3'                  'lib32-gtk3'
+    'gst-plugins-base-libs' 'lib32-gst-plugins-base-libs'
+    'vulkan-icd-loader'     'lib32-vulkan-icd-loader'
+    'sdl2'                  'lib32-sdl2'
+    'samba'                 'schedtool'
+)
+optdepends=(
+    'giflib'                'lib32-giflib'
+    'libpng'                'lib32-libpng'
+    'libldap'               'lib32-libldap'
+    'gnutls'                'lib32-gnutls'
+    'mpg123'                'lib32-mpg123'
+    'openal'                'lib32-openal'
+    'v4l-utils'             'lib32-v4l-utils'
+    'libpulse'              'lib32-libpulse'
+    'alsa-plugins'          'lib32-alsa-plugins'
+    'alsa-lib'              'lib32-alsa-lib'
+    'libjpeg-turbo'         'lib32-libjpeg-turbo'
+    'libxcomposite'         'lib32-libxcomposite'
+    'libxinerama'           'lib32-libxinerama'
+    'ncurses'               'lib32-ncurses'
+    'libxslt'               'lib32-libxslt'
+    'libva'                 'lib32-libva'
+    'gtk3'                  'lib32-gtk3'
+    'gst-plugins-base-libs' 'lib32-gst-plugins-base-libs'
+    'vulkan-icd-loader'     'lib32-vulkan-icd-loader'
+    'sdl2'                  'lib32-sdl2'
+    'cups'                  'zapcc'
+    'samba'                 'clang'
+    'dosbox'
+)
+source=("$_winesrcdir"::'git+https://github.com/zfigura/wine.git#branch=esync'
+		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git#commit=91b1d2470aaca467aa98ec32780fba3aa63c6ac2'
+		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
+		'steam.patch'
+		'poe-fix.patch'
+		'f4skyrimse-fix.patch'
+		'harmony-fix.diff'
+		'30-win32-aliases.conf'
+		'wine-binfmt.conf'
+#		'vulkan-enable-extensions.patch'
+		'CSMT-toggle.patch'
+		'esync-staging-fixes.patch'
+		'SMT.patch')
+
+provides=(
+	"wine=$pkgver"
+	"wine-wow64=$pkgver"
+	"wine-staging=$pkgver"
+)
+
+conflicts=('wine' 'wine-wow64' 'wine-staging')
+makedepends=(${makedepends[@]} ${depends[@]})
+install=wine.install
+
+pkgver() {
+	# retrieve current wine version
+	cd "${srcdir}/${_winesrcdir}"
+	local _wineVer="$(git rev-parse --short HEAD)"
+
+	# version string
+	printf '%s.%s' "3.10" "$_wineVer"
+}
+
+prepare() {
+	cd "${srcdir}"/"${_winesrcdir}"
+	
+	# restore the wine tree to its git origin state, without wine-staging patches
+	# (necessary for reapllying wine-staging patches in succedent builds,
+	# otherwise the patches will fail to be reapplied)
+	msg2 'Cleaning wine source code tree...'
+	git reset --hard HEAD 	# restore tracked files
+	git clean -xdf 			# delete untracked files
+
+	if [ $COMPILEWITH == 'clang' ]; then
+	export CC=clang 
+	export CXX=clang
+	export CFLAGS="-std=gnu89 -g"
+	elif [ $COMPILEWITH == 'zapcc' ]; then
+	export CC=zapcc 
+	export CXX=zapcc
+	export CFLAGS="-std=gnu89 -g"
+	fi
+	
+	# workaround for FS#55128
+	# https://bugs.archlinux.org/task/55128
+	# https://bugs.winehq.org/show_bug.cgi?id=43530
+	export CFLAGS="${CFLAGS/-fno-plt/}"
+	export LDFLAGS="${LDFLAGS/,-z,now/}"
+
+	# patch for 32bit font smoothing
+	patch -Np1 < ../'harmony-fix.diff'
+
+	# Patch to allow Path of Exile to run with DirectX11
+	# https://bugs.winehq.org/show_bug.cgi?id=42695
+	patch -Np1 < ../'poe-fix.patch'
+	
+	# Workaround for F4SE/SkyrimSE Script Extender
+	patch -Np1 < ../'f4skyrimse-fix.patch'
+	
+	# steam crossover hack for store/web functionality
+	# https://bugs.winehq.org/show_bug.cgi?id=39403
+	patch -Np1 < ../'steam.patch'
+	
+    # SMT - Hyperthreading patch from wine 3.11
+	patch -Np1 < ../'SMT.patch'
+	
+	# CSMT toggle - Corrects the CSMT toggle to be more logical
+	cd "${srcdir}"/"${_stgsrcdir}"
+	patch -Np1 < ../'CSMT-toggle.patch'
+	
+	# Fixes for staging patches to apply to esync
+	PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync for now in the process
+	patch -Np1 < ../'esync-staging-fixes.patch'
+	
+	cd "${srcdir}"/"${_winesrcdir}"
+    
+	# apply all wine-staging patches
+	msg2 'Applying wine-staging patches...'
+    if [ $PATCHDEBUG == 1 ]; then
+	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --backend=git-apply --all -W msvfw32-ICGetDisplayFormat
+    else
+	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all -W msvfw32-ICGetDisplayFormat \
+	-W server-Desktop_Refcount \
+	-W ws2_32-WSACleanup \
+	-W ws2_32-TransmitFile \
+	-W server-Pipe_ObjectName
+	fi
+
+#   esync "staging patchsets"
+
+#   msvfw32-ICGetDisplayFormat # requires to be disabled on esync - already has its own implementation
+
+#   server-Misc_ACL # Can be enabled
+#	server-Object_Types # Can be enabled
+#	advapi32-Token_Integrity_Level # Can be enabled
+#	advapi32-LsaLookupSids # Can be enabled
+#	kernel32-K32GetPerformanceInfo # Can be enabled
+#	ntdll-NtSuspendProcess # Can be enabled
+#	ntdll-User_Shared_Data # Can be enabled
+#	winebuild-Fake_Dlls # Can be enabled
+#	ntdll-WRITECOPY # Can be enabled
+#	ntdll-Signal_Handler # Can be enabled
+#	ntdll-Builtin_Prot # Can be enabled
+#	ntdll-Dealloc_Thread_Stack # Can be enabled
+#	ntdll-SystemRoot_Symlink # Can be enabled
+
+#	-server-Desktop_Refcount # Breaks esync
+#	-ws2_32-WSACleanup # Depends on server-Desktop_Refcount
+#	-ws2_32-TransmitFile # Depends on server-Desktop_Refcount
+#	-server-Pipe_ObjectName # Depends on server-Desktop_Refcount
+
+#	server-PeekMessage # Can be enabled
+#	server-Shared_Memory # Can be enabled
+#	server-Signal_Thread # Can be enabled
+#	server-Realtime_Priority # Can be enabled
+#	server-Registry_Notifications # Can be enabled
+#	server-device_manager_destroy # Can be enabled
+
+	# apply wine-pba patches
+	for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
+		patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
+	done
+
+	# fix path of opencl headers
+	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
+	
+	# delete old build dirs (from previous builds) and make new ones
+	rm	-rf "${srcdir}"/"${pkgname}"-{32,64}-build
+	mkdir -p "${srcdir}"/"${pkgname}"-64-build
+	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
+
+}
+
+build() {
+	cd "${srcdir}"
+
+	# build wine-staging 64-bit
+	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
+	msg2 'Building Wine-64...'
+	cd  "${srcdir}"/"${pkgname}"-64-build
+	../${_winesrcdir}/configure \
+		--prefix='/usr' \
+		--libdir='/usr/lib' \
+		--with-x \
+		--with-gstreamer \
+		--enable-win64 \
+		--with-xattr \
+		#--disable-tests
+		# Gstreamer was disabled for FS#33655
+
+    # make using all available threads
+	schedtool -B -n 1 -e ionice -n 1 make -j `cat /proc/cpuinfo | grep "^processor" | wc -l` "$@"
+
+	# build wine-staging 32-bit
+	export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
+	msg2 'Building Wine-32...'
+	cd "${srcdir}/${pkgname}"-32-build
+	../${_winesrcdir}/configure \
+		--prefix='/usr' \
+		--libdir='/usr/lib32' \
+		--with-x \
+		--with-gstreamer \
+		--with-xattr \
+		--with-wine64="${srcdir}/${pkgname}"-64-build \
+		#--disable-tests 
+
+    # make using all available threads
+	schedtool -B -n 1 -e ionice -n 1 make -j `cat /proc/cpuinfo | grep "^processor" | wc -l` "$@"
+}
+
+package() {
+	
+	# package wine-staging 32-bit
+	# (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
+	msg2 'Packaging Wine-32...'
+	cd "${srcdir}/${pkgname}"-32-build
+	make 	prefix="${pkgdir}/usr" \
+			libdir="${pkgdir}/usr/lib32" \
+			dlldir="${pkgdir}/usr/lib32/wine" install
+	
+	# package wine-staging 64-bit
+	msg2 'Packaging Wine-64...'
+	cd "${srcdir}/${pkgname}"-64-build
+	make 	prefix="${pkgdir}/usr" \
+			libdir="${pkgdir}/usr/lib" \
+			dlldir="${pkgdir}/usr/lib/wine" install
+	
+	# freetype font smoothing for win32 applications
+	install -d "$pkgdir"/etc/fonts/conf.{avail,d}
+	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail"
+	ln -s ../conf.avail/30-win32-aliases.conf "${pkgdir}/etc/fonts/conf.d/30-win32-aliases.conf"
+
+	# wine binfmt
+	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
+	
+	msg2 'Remember to export WINEESYNC=1 to use ESYNC goodness, and increase file descriptors limits in /etc/security/limits.conf ;)'
+}
+md5sums=('SKIP'
+         'SKIP'
+         'SKIP'
+         'f58a4e17b33bd96ce0d6e8325cad7f76'
+         '108d1a6f71bde6431bece05e98ea31db'
+         'ecada2fc8abda49c6bb788c25f05a822'
+         '608cbfa520e154687dcd62cbdb6db82b'
+         '1ff4e467f59409272088d92173a0f801'
+         'cff441678d798466a13a0d03b01e23d7'
+         '830a78ea35e124536cdbc8291102ffaa'
+         '775548a4967ad2fa6533f8ae4cf923df'
+         '278df69162b860fb692f74e58d29e206')
