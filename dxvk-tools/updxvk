@@ -22,7 +22,7 @@ DXVK_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
 PATCHIN=1 # Enables auto-application of all patches present in ./BUILD/patches - It WILL make your tree dirty if any patch is applied
 DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Always clear source dir and redownload from git - 2: Always ignore source dir removal even if dirty
 
-PREFIXES_ROOT=/home/tk/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
+PREFIXES_ROOT=$HOME/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
 
 build() {
 mkdir -p BUILD
@@ -237,12 +237,12 @@ else
 
 . ./BUILD/$DXVK_BRANCH/last-HEAD
 
-rm -rv /home/tk/.local/share/lutris/runtime/dxvk/TkG/x64/*
-rm -rv /home/tk/.local/share/lutris/runtime/dxvk/TkG/x32/*
-mkdir -p /home/tk/.local/share/lutris/runtime/dxvk/TkG/x64
-mkdir -p /home/tk/.local/share/lutris/runtime/dxvk/TkG/x32
-cp -rv ./BUILD/$DXVK_BRANCH/$CURRENT_HEAD/win64/* /home/tk/.local/share/lutris/runtime/dxvk/TkG/x64
-cp -rv ./BUILD/$DXVK_BRANCH/$CURRENT_HEAD/win32/* /home/tk/.local/share/lutris/runtime/dxvk/TkG/x32
+rm -rv $HOME/.local/share/lutris/runtime/dxvk/TkG/x64/*
+rm -rv $HOME/.local/share/lutris/runtime/dxvk/TkG/x32/*
+mkdir -p $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
+mkdir -p $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
+cp -rv ./BUILD/$DXVK_BRANCH/$CURRENT_HEAD/win64/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
+cp -rv ./BUILD/$DXVK_BRANCH/$CURRENT_HEAD/win32/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
 
 echo ""
 echo "###########################################################"
