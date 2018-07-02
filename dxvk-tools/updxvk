@@ -1,0 +1,265 @@
+#!/bin/bash
+
+# TkGlitch's DXVK Updater - ti3nou@gmail.com
+
+# BUILD HEAD OF THE CHOSEN BRANCH WITH : ./updxvk build - (Edit DXVK_BRANCH to point to the branch you want)
+
+# UPDATE WITH : ./updxvk /path/to/wine/prefix - (WINEARCH will be autodetected) - Adding "vulkansdk" after your path will also install vulkansdk to this prefix
+
+# BATCH UPDATE WITH : ./updxvk batch - (Edit PREFIXES_ROOT variable to point to your prefixes dir)
+
+# LUTRIS UPDATE WITH : ./updxvk lutris - (Put 'TkG' as DXVK version in lutris afterwards to use your fresh build)
+
+# FOR BOTH UPDATE AND BATCH UPDATE : optional - build number of the build you want to install
+# ex for UPDATE: ./updxvk /home/user/WinePrefixes/DEBUG f4a92a685f8b2f135dc6fe493ea9ce726aa79a52-2018-05-05-16:14:00
+# ex for BATCH UPDATE: ./updxvk batch f4a92a685f8b2f135dc6fe493ea9ce726aa79a52-2018-05-05-16:14:00
+
+# Putting patch files in BUILD/patches will auto-apply them if the extension is .patch, auto-revert them if the extension is .revert, or ignore them if any other extension (or none) is used
+
+DXVK_BRANCH=master # DXVK branch to use
+DXVK_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
+
+PATCHIN=1 # Enables auto-application of all patches present in ./BUILD/patches - It WILL make your tree dirty if any patch is applied
+DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Always clear source dir and redownload from git - 2: Always ignore source dir removal even if dirty
+
+PREFIXES_ROOT=/home/tk/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
+
+build() {
+mkdir -p BUILD
+mkdir -p BUILD/patches
+
+if [ "$DIRTYIN" != "2" ]; then
+  if [ -e "$DXVK_BRANCH.dirty" ] || [ "$DIRTYIN" == "1" ]; then
+  rm -R -f $DXVK_BRANCH
+  echo "#################"
+  echo ""
+  echo "YOUR TREE WAS CONSIDERED DIRTY AND HAS BEEN CLEARED"
+  echo ""
+  echo "#################"
+  rm $DXVK_BRANCH.dirty
+  fi
+else
+echo "#################"
+echo ""
+echo "YOU DIRTY BOI.."
+echo ""
+echo "#################"
+fi
+
+mkdir $DXVK_BRANCH
+
+cd $DXVK_BRANCH
+
+if [ ! -e package-release.sh ]; then
+git init .
+git remote add -t \* -f origin https://github.com/doitsujin/dxvk.git
+git checkout $DXVK_BRANCH
+fi
+
+if [ "$DXVK_AUTOUPDATE" == "1" ]; then
+git pull
+fi
+
+GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`
+
+if [ "$PATCHIN" == "1" ]; then
+for F in ../BUILD/patches/*.revert; do
+    if [ -e "${F}" ]; then
+    echo "#################"
+    echo ""
+    echo "REVERTING PATCH ${F}"
+    echo ""
+    echo "#################"
+    patch -Np1 -R < ${F} && echo "This means that branch $DXVK_BRANCH was altered by patching and will be cleared next time you build" >> ../$DXVK_BRANCH.dirty
+    else
+    echo "#################"
+    echo ""
+    echo "NO REVERT PATCH DETECTED - MOVING ON"
+    echo ""
+    echo "#################"
+    fi
+done
+for F in ../BUILD/patches/*.patch; do
+    if [ -e "${F}" ]; then
+    echo "#################"
+    echo ""
+    echo "APPLYING PATCH ${F}"
+    echo ""
+    echo "#################"
+    patch -Np1 < ${F} && echo "This means that branch $DXVK_BRANCH was altered by patching and will be cleared next time you build" >> ../$DXVK_BRANCH.dirty
+    else
+    echo "#################"
+    echo ""
+    echo "NO PATCH DETECTED - MOVING ON"
+    echo ""
+    echo "#################"
+    fi
+done
+fi
+
+echo "#################"
+echo ""
+echo "BUILDING"
+echo ""
+echo "#################"
+./package-release.sh $DXVK_BRANCH ../BUILD --no-package
+
+if [ -d ../BUILD/dxvk-$DXVK_BRANCH/x32 ] && [ -d ../BUILD/dxvk-$DXVK_BRANCH/x64 ]; then
+mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/x32 ../BUILD/dxvk-$DXVK_BRANCH/win32
+mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/x64 ../BUILD/dxvk-$DXVK_BRANCH/win64
+mkdir -p ../BUILD/$DXVK_BRANCH/$GIT_HEAD
+mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/win32 ../BUILD/$DXVK_BRANCH/$GIT_HEAD/win32
+mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/win64 ../BUILD/$DXVK_BRANCH/$GIT_HEAD/win64
+rm -R -f ../BUILD/dxvk-$DXVK_BRANCH
+echo "Your files were built in the ../BUILD/$DXVK_BRANCH/$GIT_HEAD directory"
+rm ../BUILD/$DXVK_BRANCH/last-HEAD
+echo "CURRENT_HEAD=$GIT_HEAD" >> ../BUILD/$DXVK_BRANCH/last-HEAD
+fi
+
+}
+
+update() {
+
+if [ -d $ROOT/BUILD ]; then
+
+. $ROOT/BUILD/$DXVK_BRANCH/last-HEAD
+
+# kill wineserver before installation to make sure correct wine version is used
+wineserver -k
+
+WINECMD=${WINE-wine}
+
+if [ $WINECMD = "wine" ]; then
+    if [ $WINEARCH = "win64" ]; then
+        WINECMD="wine64"
+    else
+        WINECMD="wine"
+    fi
+fi
+
+if [ -z $2 ]; then
+cd $ROOT/BUILD/$DXVK_BRANCH/$CURRENT_HEAD
+elif [ -d $ROOT/BUILD/$2 ];then
+cd $ROOT/BUILD/$2
+else
+    echo "#################################"
+    echo ""
+    echo "  BUILD/$2 directory not found !!"
+    echo ""
+    echo "#################################"
+fi
+
+if [ -d "win32" ] && [ -d "win64" ]; then    
+    WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $WINEARCH/setup_dxvk.sh
+    
+    if [ $WINEARCH = "win64" ]; then
+        WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash win32/setup_dxvk.sh
+    fi
+    echo "#########################################"
+    echo ""
+    echo "  DXVK updated in $WINEPREFIX - $WINEARCH"
+    echo ""
+    echo "#########################################"
+fi
+
+wineserver -k
+
+else
+    echo "################################################################"
+    echo ""
+    echo "You need to build before you can update ! Run updxvk build first"
+    echo ""
+    echo "################################################################"
+fi
+}
+
+# External / Dynamic
+if [ ! -z $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ]; then
+    if [ -d $1 ]; then
+    WINEPREFIX="$1"
+        if [ "$2" == "32" ]; then
+        echo "x86 prefix"
+        WINEARCH="win32"
+        elif [ "$2" == "64" ]; then
+        echo "x64 prefix"
+        WINEARCH="win64"
+        elif [ -d "$1/drive_c/Program Files (x86)" ]; then
+        echo "assuming x64 prefix"
+        WINEARCH="win64"
+        else
+        echo "assuming x86 prefix"
+        WINEARCH="win32"
+        fi
+            if [ "$2" == "vulkansdk" ]; then
+            WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" $WINECMD regedit /S $ROOT/BUILD/vulkansdk/vulkan.reg
+
+            if [ ! -f $ROOT/BUILD/vulkansdk/VulkanSDK-1.1.77.0-Installer.exe ]; then
+            wget https://sdk.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe?Human=true -O $ROOT/BUILD/vulkansdk/VulkanSDK-1.1.77.0-Installer.exe
+            fi
+
+            WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" "$WINECMD" $ROOT/BUILD/vulkansdk/VulkanSDK-1.0.51.0-Installer.exe /S
+            cp $ROOT/BUILD/vulkansdk/winevulkan.json "$WINEPREFIX"/drive_c/windows/winevulkan.json
+            echo "Vulkan SDK installation completed."
+            fi
+    fi
+update
+fi
+
+# Batch
+if [ "$1" == "batch" ] && [ ! -z $PREFIXES_ROOT ]; then
+ROOT=$PWD
+for D in $PREFIXES_ROOT/*; do
+    if [ -d "${D}" ]; then
+    echo "${D}"
+        if [ -d "${D}/drive_c" ]; then
+        WINEPREFIX="${D}"
+            if [ -d "${D}/drive_c/Program Files (x86)" ]; then
+            WINEARCH="win64"
+            else
+            WINEARCH="win32"
+            fi
+        update
+        fi
+    fi
+done
+fi
+
+# Lutris
+if [ "$1" == "lutris" ]; then
+
+wineserver -k
+
+if [ ! -f ./BUILD/$DXVK_BRANCH/last-HEAD ]; then
+
+echo "You need to build before you can update ! Run updxvk build first"
+
+else
+
+. ./BUILD/$DXVK_BRANCH/last-HEAD
+
+rm -rv /home/tk/.local/share/lutris/runtime/dxvk/TkG/x64/*
+rm -rv /home/tk/.local/share/lutris/runtime/dxvk/TkG/x32/*
+mkdir -p /home/tk/.local/share/lutris/runtime/dxvk/TkG/x64
+mkdir -p /home/tk/.local/share/lutris/runtime/dxvk/TkG/x32
+cp -rv ./BUILD/$DXVK_BRANCH/$CURRENT_HEAD/win64/* /home/tk/.local/share/lutris/runtime/dxvk/TkG/x64
+cp -rv ./BUILD/$DXVK_BRANCH/$CURRENT_HEAD/win32/* /home/tk/.local/share/lutris/runtime/dxvk/TkG/x32
+
+echo ""
+echo "###########################################################"
+echo ""
+echo "Put 'TkG' as DXVK version in lutris to use your fresh build"
+echo ""
+echo "###########################################################"
+
+fi
+
+fi
+
+# Build from latest master branch
+if [ "$1" == "build" ]; then
+
+time build
+
+fi
+
+exit
