@@ -197,7 +197,7 @@ if [ ! -z $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutri
             wget https://sdk.lunarg.com/sdk/download/1.1.77.0/windows/VulkanSDK-1.1.77.0-Installer.exe?Human=true -O $ROOT/BUILD/vulkansdk/VulkanSDK-1.1.77.0-Installer.exe
             fi
 
-            WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" "$WINECMD" $ROOT/BUILD/vulkansdk/VulkanSDK-1.0.51.0-Installer.exe /S
+            WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" "$WINECMD" $ROOT/BUILD/vulkansdk/VulkanSDK-1.1.77.0-Installer.exe /S
             cp $ROOT/BUILD/vulkansdk/winevulkan.json "$WINEPREFIX"/drive_c/windows/winevulkan.json
             echo "Vulkan SDK installation completed."
             fi
