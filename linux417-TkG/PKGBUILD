@@ -1,0 +1,352 @@
+# Based on the file created for Arch Linux by:
+# Tobias Powalowski <tpowa@archlinux.org>
+# Thomas Baechler <thomas@archlinux.org>
+
+# Contributor: Tk-Glitch <ti3nou at gmail dot com>
+
+use_modprobed=0 # 1 to enable modprobed
+
+# CPU SCHED selector
+source counter # We have to reread variable
+if [ -e cpuschedset ] && [ $counter -eq 3 ]; then
+  echo "counter=0" > counter
+  rm -v cpuschedset
+fi
+
+source counter # We have to reread variable
+if [ -e cpuschedset ] && [ $counter -le 2 ]; then
+  source cpuschedset
+fi
+
+source counter # We have to reread variable
+if [ $counter -eq 0 ]; then
+  read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.MUQSS\n  3.CFS\nchoice[1-3?]: '`" CONDITION;
+  if [ "$CONDITION" == "2" ]; then
+    echo "TkGExt=\"-TkG-MUQSS\"" > cpuschedset
+    echo "counter=0" > counter
+  elif [ "$CONDITION" == "3" ]; then
+    echo "TkGExt=\"-TkG-CFS\"" > cpuschedset
+    echo "counter=0" > counter
+  else
+    echo "TkGExt=\"-TkG-PDS\"" > cpuschedset
+    echo "counter=0" > counter
+  fi
+  source cpuschedset
+fi
+
+_basever=417
+pkgbase=linux${_basever}${TkGExt}
+pkgname=("${pkgbase}" "${pkgbase}-headers")
+_basekernel=4.17
+_sub=4
+pkgver=${_basekernel}.${_sub}
+pkgrel=1
+arch=('x86_64') # no i686 in here
+url="http://www.kernel.org/"
+license=('GPL2')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils')
+options=('!strip')
+source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
+        "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
+        # the main kernel config files
+        'config.x86_64.arch' #'arch config'
+        'config.x86_64.muqss' #'muqss config'
+        'config.x86_64.pds' #'pds config'
+        'linux417-TkG.preset' # standard config files for mkinitcpio ramdisk
+        '60-linux.hook'     # pacman hook for depmod
+        '90-linux.hook'     # pacman hook for initramfs regeneration
+        # ARCH Patches
+        0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+        0002-Partially-revert-swiotlb-remove-various-exports.patch
+        0003-Revert-drm-i915-edp-Allow-alternate-fixed-mode-for-e.patch
+        0004-ACPI-watchdog-Prefer-iTCO_wdt-always-when-WDAT-table.patch
+        # TkG
+        0005-pci-pme-wakeups.patch
+        0006-intel_idle-tweak-cpuidle-cstates.patch
+        0007-smpboot-reuse-timer-calibration.patch
+        0008-perf.patch
+        0009-glitched-base.patch
+        0010-glitched-muqss.patch
+        0010-patch-4.17-ck1
+        0011-glitched-pds.patch
+        0011-v4.17_pds098r.patch
+)
+
+sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
+            'b4b4b60d2f20f9b84ba8e55e2099102ad5b9460115bf31f4bab5c161451c0e3d'
+            'cc0197db63a845e91c2309aadbe5de35ec7f9b7dfcba5dd973a338e9bc57c1f2'
+            'a20a51909757dc07efe2eec6a6d4b0ed1aebb48ed2b3c500a3eb92d1f06b77b3'
+            '730493b360bc6cb7fe89c04485b90b9de2a385f3a93cf18b420611465bcfaef1'
+            'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
+            'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
+            '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
+            '37b86ca3de148a34258e3176dbf41488d9dbd19e93adbd22a062b3c41332ce85'
+            'd365ce80dab359d5277bd2f8568cad50a30ab269f222ed1bb12b8d74571e24a6'
+            '5403dead9161344b2c01027526146a250147680f4a2d32a54d40c55fc1becc8a'
+            'd55e7de60b12bca26ded4c1bb8eb5860a9092374914a201a0f6a0ed2849d099f'
+            '83973dac77c6442530416c028373e01815541f694da5e7ed64b3fc8ff594268d'
+            '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
+            '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
+            '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
+            '6e500148b2e6905ed8b78358f793ba596a5226fbf8a04f48dee0c7232bcf1451'
+            'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
+            'b90690440a7505882b55ce7b49a5d7871500f768b04fb7986d4b0ffdda0ca055'
+            '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
+            '1d1230e083e7d43aa4a2e3be3e29af38abfdb6c7c4f1b18e1ae3d617c05cdca2')
+            
+prepare() {
+  cd "${srcdir}/linux-${_basekernel}"
+  
+  # add upstream patch
+  patch -p1 -i ../patch-${pkgver}
+
+  # ARCH Patches
+  patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  patch -Np1 -i ../0003-Revert-drm-i915-edp-Allow-alternate-fixed-mode-for-e.patch
+  patch -Np1 -i ../0004-ACPI-watchdog-Prefer-iTCO_wdt-always-when-WDAT-table.patch
+
+  # TkG
+  patch -Np1 -i ../0005-pci-pme-wakeups.patch
+  patch -Np1 -i ../0006-intel_idle-tweak-cpuidle-cstates.patch
+  patch -Np1 -i ../0007-smpboot-reuse-timer-calibration.patch
+  patch -Np1 -i ../0008-perf.patch
+  
+  patch -Np1 -i ../0009-glitched-base.patch
+
+  if [ "${TkGExt}" == "-TkG-MUQSS" ]; then
+    # MuQSS
+    echo "MuQSS CPU sched"
+    patch -Np1 -i ../0010-patch-4.17-ck1
+    patch -Np1 -i ../0010-glitched-muqss.patch
+  elif [ "${TkGExt}" == "-TkG-PDS" ]; then
+    patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
+    # PDS-mq
+    echo "PDS CPU sched"
+    patch -Np1 -i ../0011-v4.17_pds098r.patch
+    patch -Np1 -i ../0011-glitched-pds.patch
+  else
+    patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
+  fi
+
+  if [ "$(whoami)" == "tk" ]; then # You are me, you have custom configs
+    if [ "${TkGExt}" == "-TkG-PDS" ]; then
+      cat "${srcdir}/config.x86_64.pds" > ./.config
+    elif [ "${TkGExt}" == "-TkG-MUQSS" ]; then
+      cat "${srcdir}/config.x86_64.muqss" > ./.config
+    else
+      cat "${srcdir}/config.x86_64.arch" > ./.config
+    fi
+  else # You have stock arch config as base, so you have a working kernel
+    cat "${srcdir}/config.x86_64.arch" > ./.config
+  fi
+  
+  # LOCALVERSION
+  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${TkGExt}\"|g" ./.config
+  sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
+
+  # set extraversion to pkgrel
+  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+  
+  # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
+  # see, https://bugs.archlinux.org/task/31187
+  sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
+      -i -e '/CONFIG_AMD_NUMA=y/d' \
+      -i -e '/CONFIG_X86_64_ACPI_NUMA=y/d' \
+      -i -e '/CONFIG_NODES_SPAN_OTHER_NODES=y/d' \
+      -i -e '/# CONFIG_NUMA_EMU is not set/d' \
+      -i -e '/CONFIG_NODES_SHIFT=6/d' \
+      -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
+      -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
+      -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
+
+  # don't run depmod on 'make install'. We'll do this ourselves in packaging
+  sed -i '2iexit 0' scripts/depmod.sh
+
+  # get kernel version
+  make prepare
+
+  if [ "${use_modprobed}" == "1" ]; then
+    # Use modprobed db to clean config from unneeded modules
+    make LSMOD=$HOME/.config/modprobed.db localmodconfig
+  fi
+
+  # load configuration
+  # Configure the kernel. Replace the line below with one of your choice.
+  #make menuconfig # CLI menu for configuration
+  #make nconfig # new CLI menu for configuration
+  #make xconfig # X-based configuration
+  #make oldconfig # using old config from previous kernel version
+  # ... or manually edit .config
+
+  # rewrite configuration
+  yes "" | make config >/dev/null
+}
+
+build() {
+  cd "${srcdir}/linux-${_basekernel}"
+
+  # build!
+  time make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+  
+  # hack
+  counter=$((counter + 1))
+  echo counter=$counter > ../../../counter
+}
+
+hackbase() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
+  optdepends=('linux-docs: Kernel hackers manual - HTML documentation that comes with the Linux kernel.'
+              'crda: to set the correct wireless channels of your country.'
+              'modprobed-db: Keeps track of EVERY kernel module that has ever been probed. Useful for make localmodconfig.'
+              'nvidia-dev-TkG: NVIDIA Vulkan Developer drivers for all installed kernels - non-dkms version.'
+              'nvidia-dkms-dev-TkG: NVIDIA Vulkan Developer drivers for all installed kernels - dkms version.'
+              'update-grub: Simple wrapper around grub-mkconfig.')
+  provides=("linux=${pkgver}" "${pkgbase}")
+  backup=("etc/mkinitcpio.d/${pkgbase}.preset")
+  install=linux${_basever}-TkG.install
+
+  cd "${srcdir}/linux-${_basekernel}"
+  
+  # get kernel version
+  _kernver="$(make LOCALVERSION= kernelrelease)"
+
+  mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
+  make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
+  cp arch/x86/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgbase}"
+  
+  # make room for external modules
+  local _extramodules="extramodules-${_basekernel}${TkGExt}"
+  ln -s "../${_extramodules}" "${pkgdir}/usr/lib/modules/${_kernver}/extramodules"
+
+  # add real version for building modules and running depmod from hook
+  echo "${_kernver}" |
+    install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_extramodules}/version"
+
+  # remove build and source links
+  rm "${pkgdir}"/usr/lib/modules/${_kernver}/{source,build}
+
+  # now we call depmod...
+  depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
+
+  # add vmlinux
+  install -Dt "${pkgdir}/usr/lib/modules/${_kernver}/build" -m644 vmlinux
+
+  # sed expression for following substitutions
+  local _subst="
+    s|%PKGBASE%|${pkgbase}|g
+    s|%KERNVER%|${_kernver}|g
+    s|%EXTRAMODULES%|${_extramodules}|g
+  "
+
+  # hack to allow specifying an initially nonexisting install file
+  sed "${_subst}" "${startdir}/${install}" > "${startdir}/${install}.pkg"
+  true && install=${install}.pkg
+
+  # install mkinitcpio preset file
+  sed "${_subst}" ${srcdir}/linux${_basever}-TkG.preset |
+    install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
+
+  # install pacman hooks
+  sed "${_subst}" ${srcdir}/60-linux.hook |
+    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
+  sed "${_subst}" ${srcdir}/90-linux.hook |
+    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
+    
+  # hack
+  counter=$((counter + 1))
+  echo counter=$counter > ../../../counter
+}
+
+hackheaders() {
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  provides=("linux-headers=${pkgver}" "${pkgbase}-headers=${pkgver}")
+
+  cd "${srcdir}/linux-${_basekernel}"
+  local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
+  install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
+
+  mkdir "${_builddir}/.tmp_versions"
+
+  cp -t "${_builddir}" -a include scripts
+
+  install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
+  install -Dt "${_builddir}/arch/x86/kernel" -m644 "arch/x86/kernel/asm-offsets.s"
+
+  cp -t "${_builddir}/arch/x86" -a "arch/x86/include"
+
+  install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # http://bugs.archlinux.org/task/13146
+  install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+  # http://bugs.archlinux.org/task/20402
+  install -Dt "${_builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${_builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${_builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${_builddir}"/{fs/xfs,mm}
+
+  # copy in Kconfig files
+  find . -name Kconfig\* -exec install -Dm644 {} "${_builddir}/{}" \;
+
+  # add objtool for external module building and enabled VALIDATION_STACK option
+  install -Dt "${_builddir}/tools/objtool" tools/objtool/objtool
+
+  # remove unneeded architectures
+  local _arch
+  for _arch in "${_builddir}"/arch/*/; do
+    [[ ${_arch} == */x86/ ]] && continue
+    rm -r "${_arch}"
+  done
+
+  # remove files already in linux-docs package
+  rm -r "${_builddir}/Documentation"
+
+  # Fix permissions
+  chmod -R u=rwX,go=rX "${_builddir}"
+
+  # strip scripts directory
+  local _binary _strip
+  while read -rd '' _binary; do
+    case "$(file -bi "${_binary}")" in
+      *application/x-sharedlib*)  _strip="${STRIP_SHARED}"   ;; # Libraries (.so)
+      *application/x-archive*)    _strip="${STRIP_STATIC}"   ;; # Libraries (.a)
+      *application/x-executable*) _strip="${STRIP_BINARIES}" ;; # Binaries
+      *) continue ;;
+    esac
+    /usr/bin/strip ${_strip} "${_binary}"
+  done < <(find "${_builddir}/scripts" -type f -perm -u+w -print0 2>/dev/null)
+  
+  # hack
+  counter=$((counter + 1))
+  echo counter=$counter > ../../../counter
+}
+
+package_linux417-TkG-PDS() {
+hackbase
+}
+
+package_linux417-TkG-MUQSS() {
+hackbase
+}
+
+package_linux417-TkG-CFS() {
+hackbase
+}
+
+package_linux417-TkG-PDS-headers() {
+hackheaders
+}
+
+package_linux417-TkG-MUQSS-headers() {
+hackheaders
+}
+
+package_linux417-TkG-CFS-headers() {
+hackheaders
+}
