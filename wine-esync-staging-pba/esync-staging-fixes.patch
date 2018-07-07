@@ -81,6 +81,39 @@ index b163eb3e..af02c6e4 100644
  -- 
  2.11.0
  
+diff --git a/patches/kernel32-SetFileCompletionNotificationModes/0001-ntdll-Implement-FileIoCompletionNotificationInformat.patch b/patches/kernel32-SetFileCompletionNotificationModes/0001-ntdll-Implement-FileIoCompletionNotificationInformat.patch
+index bbee3983..e076aa9b 100644
+--- a/patches/kernel32-SetFileCompletionNotificationModes/0001-ntdll-Implement-FileIoCompletionNotificationInformat.patch
++++ b/patches/kernel32-SetFileCompletionNotificationModes/0001-ntdll-Implement-FileIoCompletionNotificationInformat.patch
+@@ -97,25 +97,25 @@ index 9322e2c1c15..4cb46058b64 100644
+      struct completion   *completion;  /* completion object attached to this fd */
+      apc_param_t          comp_key;    /* completion key to set in completion events */
+ +    unsigned int         comp_flags;  /* completion flags */
++     int                  esync_fd;    /* esync file descriptor */
+  };
+  
+- static void fd_dump( struct object *obj, int verbose );
+ @@ -1604,6 +1605,7 @@ static struct fd *alloc_fd_object(void)
+      fd->fs_locks   = 1;
+      fd->poll_index = -1;
+      fd->completion = NULL;
+ +    fd->comp_flags = 0;
++     fd->esync_fd   = -1;
+      init_async_queue( &fd->read_q );
+      init_async_queue( &fd->write_q );
+-     init_async_queue( &fd->wait_q );
+ @@ -1639,6 +1641,7 @@ struct fd *alloc_pseudo_fd( const struct fd_ops *fd_user_ops, struct object *use
+      fd->fs_locks   = 0;
+      fd->poll_index = -1;
+      fd->completion = NULL;
+ +    fd->comp_flags = 0;
+      fd->no_fd_status = STATUS_BAD_DEVICE_TYPE;
++     fd->esync_fd   = -1;
+      init_async_queue( &fd->read_q );
+-     init_async_queue( &fd->write_q );
+ @@ -2360,6 +2363,7 @@ void fd_copy_completion( struct fd *src, struct fd *dst )
+  {
+      assert( !dst->completion );
 
 diff --git a/patches/ntdll-Dealloc_Thread_Stack/0001-ntdll-Do-not-allow-to-allocate-thread-stack-for-curr.patch b/patches/ntdll-Dealloc_Thread_Stack/0001-ntdll-Do-not-allow-to-allocate-thread-stack-for-curr.patch
 index 36be7a76..63035c42 100644

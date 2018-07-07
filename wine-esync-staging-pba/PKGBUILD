@@ -4,8 +4,8 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='zapcc'
 
 pkgname=wine-esync-staging.m4-pba-SMT-TkG
-pkgver=3.10.ffb5da346e
-pkgrel=1
+pkgver=3.10.02f7a52d9f
+pkgrel=2
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -299,5 +299,5 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         '775548a4967ad2fa6533f8ae4cf923df'
+         '94d5556e83f9fa4865534b9f0710fdc2'
          '278df69162b860fb692f74e58d29e206')
