@@ -3,14 +3,14 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='clang'
 #COMPILEWITH='zapcc'
 
-pkgname=wine-esync.staging.pba.TkG-git
+pkgname=wine-staging.esync.pba.tkg-git
 pkgver=3.11.r150.g80205232d3
-pkgrel=1
+pkgrel=2
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
-pkgdesc='Wine-git with added esync, staging (minus 4 patches) and PBA patches (also includes Path of Exile DX11 patch and others).'
+pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
 url='https://github.com/zfigura/wine/tree/esync'
 arch=('x86_64')
 options=('staticlibs')
@@ -118,7 +118,7 @@ pkgver() {
 
 	# retrieve current wine version
 	cd "${srcdir}/${_winesrcdir}"
-	local _wineVer="$(git rev-parse --short HEAD)"
+	local _wineVer="$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/')"
 
 	# retrieve current wine-pba version
 	cd "${srcdir}/${_pbasrcdir}"
@@ -126,7 +126,7 @@ pkgver() {
 	local _pbaVer=$( printf "%s.r%s.%s" "$_pbaTag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" )
 
 	# version string
-	printf '%s' "$_wineVer"
+	printf '%s' "${_wineVer#wine.}"
 }
 
 prepare() {

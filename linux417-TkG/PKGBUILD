@@ -22,13 +22,13 @@ source counter # We have to reread variable
 if [ $counter -eq 0 ]; then
   read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.MUQSS\n  3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "TkGExt=\"-TkG-MUQSS\"" > cpuschedset
+    echo "TkGExt=\"-tkg-muqss\"" > cpuschedset
     echo "counter=0" > counter
   elif [ "$CONDITION" == "3" ]; then
-    echo "TkGExt=\"-TkG-CFS\"" > cpuschedset
+    echo "TkGExt=\"-tkg-cfs\"" > cpuschedset
     echo "counter=0" > counter
   else
-    echo "TkGExt=\"-TkG-PDS\"" > cpuschedset
+    echo "TkGExt=\"-tkg-pds\"" > cpuschedset
     echo "counter=0" > counter
   fi
   source cpuschedset
@@ -52,7 +52,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         'config.x86_64.arch' #'arch config'
         'config.x86_64.muqss' #'muqss config'
         'config.x86_64.pds' #'pds config'
-        'linux417-TkG.preset' # standard config files for mkinitcpio ramdisk
+        'linux417-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
         '90-linux.hook'     # pacman hook for initramfs regeneration
         # ARCH Patches
@@ -73,7 +73,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
 )
 
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
-            'b4b4b60d2f20f9b84ba8e55e2099102ad5b9460115bf31f4bab5c161451c0e3d'
+            'cc18fcf14df25f0bab047aa180b9362bd4f3ce96f1b05e1f7764cfcc0e271bbd'
             'cc0197db63a845e91c2309aadbe5de35ec7f9b7dfcba5dd973a338e9bc57c1f2'
             'a20a51909757dc07efe2eec6a6d4b0ed1aebb48ed2b3c500a3eb92d1f06b77b3'
             '730493b360bc6cb7fe89c04485b90b9de2a385f3a93cf18b420611465bcfaef1'
@@ -113,15 +113,13 @@ prepare() {
   
   patch -Np1 -i ../0009-glitched-base.patch
 
-  if [ "${TkGExt}" == "-TkG-MUQSS" ]; then
+  if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
-    echo "MuQSS CPU sched"
     patch -Np1 -i ../0010-patch-4.17-ck1
     patch -Np1 -i ../0010-glitched-muqss.patch
-  elif [ "${TkGExt}" == "-TkG-PDS" ]; then
+  elif [ "${TkGExt}" == "-tkg-pds" ]; then
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
     # PDS-mq
-    echo "PDS CPU sched"
     patch -Np1 -i ../0011-v4.17_pds098r.patch
     patch -Np1 -i ../0011-glitched-pds.patch
   else
@@ -129,9 +127,9 @@ prepare() {
   fi
 
   if [ "$(whoami)" == "tk" ]; then # You are me, you have custom configs
-    if [ "${TkGExt}" == "-TkG-PDS" ]; then
+    if [ "${TkGExt}" == "-tkg-pds" ]; then
       cat "${srcdir}/config.x86_64.pds" > ./.config
-    elif [ "${TkGExt}" == "-TkG-MUQSS" ]; then
+    elif [ "${TkGExt}" == "-tkg-muqss" ]; then
       cat "${srcdir}/config.x86_64.muqss" > ./.config
     else
       cat "${srcdir}/config.x86_64.arch" > ./.config
@@ -199,12 +197,12 @@ hackbase() {
   optdepends=('linux-docs: Kernel hackers manual - HTML documentation that comes with the Linux kernel.'
               'crda: to set the correct wireless channels of your country.'
               'modprobed-db: Keeps track of EVERY kernel module that has ever been probed. Useful for make localmodconfig.'
-              'nvidia-dev-TkG: NVIDIA Vulkan Developer drivers for all installed kernels - non-dkms version.'
-              'nvidia-dkms-dev-TkG: NVIDIA Vulkan Developer drivers for all installed kernels - dkms version.'
+              'nvidia-dev-tkg: NVIDIA Vulkan Developer drivers for all installed kernels - non-dkms version.'
+              'nvidia-dkms-dev-tkg: NVIDIA Vulkan Developer drivers for all installed kernels - dkms version.'
               'update-grub: Simple wrapper around grub-mkconfig.')
   provides=("linux=${pkgver}" "${pkgbase}")
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
-  install=linux${_basever}-TkG.install
+  install=linux${_basever}-tkg.install
 
   cd "${srcdir}/linux-${_basekernel}"
   
@@ -244,7 +242,7 @@ hackbase() {
   true && install=${install}.pkg
 
   # install mkinitcpio preset file
-  sed "${_subst}" ${srcdir}/linux${_basever}-TkG.preset |
+  sed "${_subst}" ${srcdir}/linux${_basever}-tkg.preset |
     install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 
   # install pacman hooks
@@ -327,26 +325,26 @@ hackheaders() {
   echo counter=$counter > ../../../counter
 }
 
-package_linux417-TkG-PDS() {
+package_linux417-tkg-pds() {
 hackbase
 }
 
-package_linux417-TkG-MUQSS() {
+package_linux417-tkg-muqss() {
 hackbase
 }
 
-package_linux417-TkG-CFS() {
+package_linux417-tkg-cfs() {
 hackbase
 }
 
-package_linux417-TkG-PDS-headers() {
+package_linux417-tkg-pds-headers() {
 hackheaders
 }
 
-package_linux417-TkG-MUQSS-headers() {
+package_linux417-tkg-muqss-headers() {
 hackheaders
 }
 
-package_linux417-TkG-CFS-headers() {
+package_linux417-tkg-cfs-headers() {
 hackheaders
 }

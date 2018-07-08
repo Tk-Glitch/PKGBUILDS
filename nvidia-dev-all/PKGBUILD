@@ -13,9 +13,9 @@ _lib32=1
 _dkms=1
 
 if [[ $_dkms = 1 ]]; then
-pkgname=('nvidia-utils-dev-TkG' 'nvidia-egl-wayland-dev-TkG' 'opencl-nvidia-dev-TkG' 'nvidia-dkms-dev-TkG')
+pkgname=('nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg' 'nvidia-dkms-dev-tkg')
 else
-pkgname=('nvidia-dev-TkG' 'nvidia-utils-dev-TkG' 'nvidia-egl-wayland-dev-TkG' 'opencl-nvidia-dev-TkG')
+pkgname=('nvidia-dev-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg')
 fi
 
 pkgver=396.24.02
@@ -28,8 +28,8 @@ options=('!strip')
 
 # Installer name
 _pkg="NVIDIA-Linux-x86_64-$pkgver-no-compat32"
-if [[ $_lib32 = 1 ]] || pacman -Q lib32-nvidia-utils-dev-TkG &>/dev/null; then
-  pkgname+=('lib32-nvidia-utils-dev-TkG' 'lib32-opencl-nvidia-dev-TkG')
+if [[ $_lib32 = 1 ]] || pacman -Q lib32-nvidia-utils-dev-tkg &>/dev/null; then
+  pkgname+=('lib32-nvidia-utils-dev-tkg' 'lib32-opencl-nvidia-dev-tkg')
   _pkg="NVIDIA-Linux-x86_64-$pkgver"
 fi
 
@@ -118,8 +118,8 @@ build() {
   done
 }
 
-package_opencl-nvidia-dev-TkG() {
-  pkgdesc="NVIDIA's OpenCL implemention for 'nvidia-utils-dev-TkG'"
+package_opencl-nvidia-dev-tkg() {
+  pkgdesc="NVIDIA's OpenCL implemention for 'nvidia-utils-dev-tkg'"
   depends=('zlib')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
   provides=("opencl-nvidia=$pkgver" 'opencl-driver')
@@ -139,9 +139,9 @@ package_opencl-nvidia-dev-TkG() {
   ln -s nvidia/ "$pkgdir"/usr/share/licenses/opencl-nvidia
 }
 
-package_nvidia-egl-wayland-dev-TkG() {
-  pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.1.0.3) for 'nvidia-utils-dev-TkG'"
-  depends=('nvidia-utils-dev-TkG')
+package_nvidia-egl-wayland-dev-tkg() {
+  pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.1.0.3) for 'nvidia-utils-dev-tkg'"
+  depends=('nvidia-utils-dev-tkg')
   provides=('egl-wayland')
   conflicts=('egl-wayland')
   cd $_pkg
@@ -150,12 +150,12 @@ package_nvidia-egl-wayland-dev-TkG() {
   ln -s libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
 }
 
-package_nvidia-utils-dev-TkG() {
-  pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-dev-TkG'"
+package_nvidia-utils-dev-tkg() {
+  pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-dev-tkg'"
   depends=('xorg-server' 'libglvnd' 'mesa>=17.0.2-2')
   optdepends=('gtk2: nvidia-settings (GTK+ v2)'
               'gtk3: nvidia-settings (GTK+ v3)'
-              'opencl-nvidia-dev-TkG: OpenCL support'
+              'opencl-nvidia-dev-tkg: OpenCL support'
               'xorg-server-devel: nvidia-xconfig'
               'egl-wayland-git: for alternative, more advanced Wayland library (libnvidia-egl-wayland.so.1.0.3)')
   provides=("nvidia-utils=$pkgver" "nvidia-settings=$pkgver" 'vulkan-driver' 'opengl-driver' 'nvidia-libgl')
@@ -329,9 +329,9 @@ package_nvidia-utils-dev-TkG() {
 }
 
 if [[ $_dkms = 0 ]]; then
-package_nvidia-dev-TkG() {
+package_nvidia-dev-tkg() {
   pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries) (dev version)"
-  depends=("nvidia-utils-dev-TkG>=$pkgver" 'libglvnd')
+  depends=("nvidia-utils-dev-tkg>=$pkgver" 'libglvnd')
   provides=("nvidia=$pkgver")
   conflicts=('nvidia-96xx' 'nvidia-173xx' 'nvidia')
   install=$pkgname.install
@@ -375,8 +375,8 @@ package_nvidia-dev-TkG() {
 }
 fi
 
-package_lib32-opencl-nvidia-dev-TkG() {
-  pkgdesc="NVIDIA's OpenCL implemention for 'lib32-nvidia-utils-dev-TkG' "
+package_lib32-opencl-nvidia-dev-tkg() {
+  pkgdesc="NVIDIA's OpenCL implemention for 'lib32-nvidia-utils-dev-tkg' "
   depends=('lib32-zlib' 'lib32-gcc-libs')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
   provides=("lib32-opencl-nvidia=$pkgver" 'lib32-opencl-driver')
@@ -395,10 +395,10 @@ package_lib32-opencl-nvidia-dev-TkG() {
   ln -s nvidia-utils/ "$pkgdir"/usr/share/licenses/lib32-opencl-nvidia
 }
 
-package_lib32-nvidia-utils-dev-TkG() {
-  pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-dev-TkG' (32-bit)"
-  depends=('lib32-zlib' 'lib32-gcc-libs' 'nvidia-utils-dev-TkG' 'lib32-libglvnd' 'lib32-mesa>=17.0.2-1')
-  optdepends=('lib32-opencl-nvidia-dev-TkG: OpenCL support')
+package_lib32-nvidia-utils-dev-tkg() {
+  pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-dev-tkg' (32-bit)"
+  depends=('lib32-zlib' 'lib32-gcc-libs' 'nvidia-utils-dev-tkg' 'lib32-libglvnd' 'lib32-mesa>=17.0.2-1')
+  optdepends=('lib32-opencl-nvidia-dev-tkg: OpenCL support')
   provides=("lib32-nvidia-utils=$pkgver" 'lib32-vulkan-driver' 'lib32-opengl-driver' 'lib32-nvidia-libgl')
   conflicts=('lib32-nvidia-utils' 'lib32-nvidia-libgl')
   cd $_pkg/32
@@ -447,9 +447,9 @@ package_lib32-nvidia-utils-dev-TkG() {
 }
 
 if [[ $_dkms = 1 ]]; then
-package_nvidia-dkms-dev-TkG() {
+package_nvidia-dkms-dev-tkg() {
   pkgdesc="NVIDIA kernel module sources (DKMS) - Dev version"
-  depends=('dkms' 'linux' "nvidia-utils-dev-TkG>=${pkgver}" 'nvidia-libgl')
+  depends=('dkms' 'linux' "nvidia-utils-dev-tkg>=${pkgver}" 'nvidia-libgl')
   optdepends=('linux-headers: Build the module for Arch kernel'
             'linux-lts-headers: Build the module for LTS Arch kernel')
   provides=("nvidia=${pkgver}" 'nvidia-dkms')
