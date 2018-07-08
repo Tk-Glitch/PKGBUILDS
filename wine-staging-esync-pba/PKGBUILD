@@ -3,7 +3,7 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='clang'
 #COMPILEWITH='zapcc'
 
-pkgname=wine-staging.esync.pba.tkg-git
+pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.11.r150.g80205232d3
 pkgrel=2
 _winesrcdir='wine-git'
