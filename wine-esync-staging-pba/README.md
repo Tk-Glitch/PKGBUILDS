@@ -8,5 +8,4 @@
 # - Harmony fix
 # - Path of Exile fix
 # - Steam --no-sandbox auto fix
-# - Wine 3.11 SMT patch for better detection and reporting of hyperthreaded cores 
 
