@@ -3,13 +3,14 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='clang'
 #COMPILEWITH='zapcc'
 
-pkgname=wine-esync-staging.m4-pba-SMT-TkG
-pkgver=3.10.02f7a52d9f
-pkgrel=2
+pkgname=wine-esync.staging.pba.TkG-git
+pkgver=3.11.r150.g80205232d3
+pkgrel=1
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
-pkgdesc='Wine esync with added staging (minus 4 patches) and PBA patches (Also includes 3.11 SMT, Path of Exile DX11 patch and others).'
+_esyncsrcdir='esync'
+pkgdesc='Wine-git with added esync, staging (minus 4 patches) and PBA patches (also includes Path of Exile DX11 patch and others).'
 url='https://github.com/zfigura/wine/tree/esync'
 arch=('x86_64')
 options=('staticlibs')
@@ -82,9 +83,10 @@ optdepends=(
     'samba'                 'clang'
     'dosbox'
 )
-source=("$_winesrcdir"::'git+https://github.com/zfigura/wine.git#branch=esync'
-		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git#commit=91b1d2470aaca467aa98ec32780fba3aa63c6ac2'
+source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
+		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git'
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
+		'https://github.com/zfigura/wine/releases/download/esync02f7a52/esync.tgz'
 		'steam.patch'
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -93,26 +95,38 @@ source=("$_winesrcdir"::'git+https://github.com/zfigura/wine.git#branch=esync'
 		'wine-binfmt.conf'
 #		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
-		'esync-staging-fixes.patch'
-		'SMT.patch')
+		'esync-staging-fixes.patch')
 
 provides=(
 	"wine=$pkgver"
 	"wine-wow64=$pkgver"
 	"wine-staging=$pkgver"
+	"wine-esync=$pkgver"
 )
 
-conflicts=('wine' 'wine-wow64' 'wine-staging')
+conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
 makedepends=(${makedepends[@]} ${depends[@]})
 install=wine.install
 
 pkgver() {
+	# retrieve current wine-staging version
+	cd "${srcdir}/${_stgsrcdir}"
+	local _stagingTag="$(git tag --sort='version:refname' | tail -n1 | sed 's/-/./g;s/^v//;s/\.rc/rc/')"
+	local _stagingVer="$(git describe --long --tags \
+								| sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/' \
+								| sed "s/^latest.release/${_stagingTag}/")"
+
 	# retrieve current wine version
 	cd "${srcdir}/${_winesrcdir}"
 	local _wineVer="$(git rev-parse --short HEAD)"
 
+	# retrieve current wine-pba version
+	cd "${srcdir}/${_pbasrcdir}"
+	local _pbaTag="$(git tag --sort='version:refname' | tail -n1 | sed 's/-/./g;s/^v//;s/\.rc/rc/')"
+	local _pbaVer=$( printf "%s.r%s.%s" "$_pbaTag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" )
+
 	# version string
-	printf '%s.%s' "3.10" "$_wineVer"
+	printf '%s' "$_wineVer"
 }
 
 prepare() {
@@ -125,16 +139,20 @@ prepare() {
 	git reset --hard HEAD 	# restore tracked files
 	git clean -xdf 			# delete untracked files
 
+	# change back to the wine upstream commit that this version of wine-staging is based in
+	msg2 'Changing wine HEAD to the wine-staging base commit...'
+	git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
+
 	if [ $COMPILEWITH == 'clang' ]; then
-	export CC=clang 
-	export CXX=clang
+	export CC="clang"
+	export CXX="clang++"
 	export CFLAGS="-std=gnu89 -g"
 	elif [ $COMPILEWITH == 'zapcc' ]; then
-	export CC=zapcc 
-	export CXX=zapcc
+	export CC="zapcc"
+	export CXX="zapcc++"
 	export CFLAGS="-std=gnu89 -g"
 	fi
-	
+
 	# workaround for FS#55128
 	# https://bugs.archlinux.org/task/55128
 	# https://bugs.winehq.org/show_bug.cgi?id=43530
@@ -150,26 +168,21 @@ prepare() {
 	
 	# Workaround for F4SE/SkyrimSE Script Extender
 	patch -Np1 < ../'f4skyrimse-fix.patch'
-	
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	patch -Np1 < ../'steam.patch'
 	
-    # SMT - Hyperthreading patch from wine 3.11
-	patch -Np1 < ../'SMT.patch'
-	
 	# CSMT toggle - Corrects the CSMT toggle to be more logical
 	cd "${srcdir}"/"${_stgsrcdir}"
 	patch -Np1 < ../'CSMT-toggle.patch'
-	
-	# Fixes for staging patches to apply to esync
-	PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync for now in the process
-	patch -Np1 < ../'esync-staging-fixes.patch'
-	
+
 	cd "${srcdir}"/"${_winesrcdir}"
-    
+
 	# apply all wine-staging patches
 	msg2 'Applying wine-staging patches...'
+
+    PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
     if [ $PATCHDEBUG == 1 ]; then
 	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --backend=git-apply --all -W msvfw32-ICGetDisplayFormat
     else
@@ -215,9 +228,19 @@ prepare() {
 		patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
 	done
 
+	cd "${srcdir}"/"${_esyncsrcdir}"
+	# Fixes for esync patches to apply to staging
+	patch -Np1 < ../'esync-staging-fixes.patch'
+	cd "${srcdir}"/"${_winesrcdir}"
+
+    # apply wine-esync patches
+	for _f in $(ls "${srcdir}"/"${_esyncsrcdir}"); do
+		patch -Np1 < "${srcdir}"/"${_esyncsrcdir}"/${_f}
+	done
+
 	# fix path of opencl headers
 	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
-	
+
 	# delete old build dirs (from previous builds) and make new ones
 	rm	-rf "${srcdir}"/"${pkgname}"-{32,64}-build
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
@@ -287,11 +310,16 @@ package() {
 	# wine binfmt
 	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 	
+	msg2 '##########################################################################################################################'
+	msg2 ''
 	msg2 'Remember to export WINEESYNC=1 to use ESYNC goodness, and increase file descriptors limits in /etc/security/limits.conf ;)'
+	msg2 ''
+	msg2 '##########################################################################################################################'
 }
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
+         '5adb3a1eeadfd23e63592749a99ac4b8'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
          'ecada2fc8abda49c6bb788c25f05a822'
@@ -299,5 +327,4 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         '94d5556e83f9fa4865534b9f0710fdc2'
-         '278df69162b860fb692f74e58d29e206')
+         'da9dc5a4eb68d0c1ecb845092a47e612')
