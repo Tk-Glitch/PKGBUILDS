@@ -5,7 +5,7 @@ COMPILEWITH='gcc' # default
 
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.11.r150.g80205232d3
-pkgrel=2
+pkgrel=3
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -95,6 +95,7 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'wine-binfmt.conf'
 #		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
+		'pulseaudio.patch'
 		'esync-staging-fixes.patch')
 
 provides=(
@@ -227,6 +228,9 @@ prepare() {
 	for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
 		patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
 	done
+
+	# https://bugs.winehq.org/show_bug.cgi?id=28282
+	patch -Np1 < ../'pulseaudio.patch'
 
 	cd "${srcdir}"/"${_esyncsrcdir}"
 	# Fixes for esync patches to apply to staging
