@@ -8,4 +8,5 @@
 # - Harmony fix
 # - Path of Exile fix
 # - Steam --no-sandbox auto fix
+# - Pulseaudio fix - https://bugs.winehq.org/show_bug.cgi?id=28282
 
