@@ -76,6 +76,25 @@ prepare() {
   msg2 "Self-Extracting $_pkg.run..."
   sh $_pkg.run -x
   cd $_pkg
+
+    cp -a kernel kernel-dkms
+    cd kernel-dkms
+    sed -i "s/__VERSION_STRING/${pkgver}/" dkms.conf
+    sed -i 's/__JOBS/`nproc`/' dkms.conf
+    sed -i 's/__DKMS_MODULES//' dkms.conf
+    sed -i '$iBUILT_MODULE_NAME[0]="nvidia"\
+DEST_MODULE_LOCATION[0]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[1]="nvidia-uvm"\
+DEST_MODULE_LOCATION[1]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[2]="nvidia-modeset"\
+DEST_MODULE_LOCATION[2]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[3]="nvidia-drm"\
+DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
+
+    # Gift for linux-rt guys
+    sed -i 's/NV_EXCLUDE_BUILD_MODULES/IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES/' dkms.conf
+
+  cd ../
   bsdtar -xf nvidia-persistenced-init.tar.bz2
   
   sed -i 's/__NV_VK_ICD__/libGLX_nvidia.so.0/' nvidia_icd.json.template
@@ -205,10 +224,6 @@ package_nvidia-utils-dev-tkg() {
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-tls.so.${pkgver}"
     install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/tls/libnvidia-tls.so.${pkgver}"
-
-    # GTK+ for nvidia-settings
-    install -D -m755 "libnvidia-gtk2.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-gtk2.so.${pkgver}"
-    install -D -m755 "libnvidia-gtk3.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-gtk3.so.${pkgver}"
     
     # CUDA
     install -D -m755 "libcuda.so.${pkgver}" "${pkgdir}/usr/lib/libcuda.so.${pkgver}"
@@ -262,70 +277,26 @@ package_nvidia-utils-dev-tkg() {
 
     #install -Dm644 "${srcdir}/nvidia-utils.sysusers" "${pkgdir}/usr/lib/sysusers.d/$pkgname.conf"
 
+    # GTK+ for nvidia-settings
+    install -D -m755 "libnvidia-gtk2.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-gtk2.so.${pkgver}"
+    install -D -m755 "libnvidia-gtk3.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-gtk3.so.${pkgver}"
+
+    # GUI for configuring the driver
+    install -Dm755 nvidia-settings "$pkgdir"/usr/bin/nvidia-settings
+    install -Dm644 nvidia-settings.1.gz "$pkgdir"/usr/share/man/man1/nvidia-settings.1.gz
+    install -Dm644 nvidia-settings.png "$pkgdir"/usr/share/pixmaps/nvidia-settings.png
+    install -Dm644 nvidia-settings.desktop "$pkgdir"/usr/share/applications/nvidia-settings.desktop
+    sed -e 's:__UTILS_PATH__:/usr/bin:' \
+        -e 's:__PIXMAP_PATH__:/usr/share/pixmaps:' \
+        -i "$pkgdir"/usr/share/applications/nvidia-settings.desktop
+
+    # Disable logo splash
+    install -Dm644 "$srcdir"/20-nvidia.conf "$pkgdir"/etc/X11/xorg.conf.d/20-nvidia.conf
+
+    # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
+    install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
+
     _create_links
-
-##### BINARIES AND MANPAGES #####
-  
-  # CUDA MPS (Multi Process Service)
-  install -Dm755 nvidia-cuda-mps-control "$pkgdir"/usr/bin/nvidia-cuda-mps-control
-  install -Dm644 nvidia-cuda-mps-control.1.gz "$pkgdir"/usr/share/man/man1/nvidia-cuda-mps-control.1.gz
-  install -Dm755 nvidia-cuda-mps-server "$pkgdir"/usr/bin/nvidia-cuda-mps-server
-
-  # For loading the kernel module and creating the character device files
-  install -Dm4755 nvidia-modprobe "$pkgdir"/usr/bin/nvidia-modprobe
-  install -Dm644 nvidia-modprobe.1.gz "$pkgdir"/usr/share/man/man1/nvidia-modprobe.1.gz
-
-  # Daemon for maintaining persistent software state in the driver
-  install -Dm755 nvidia-persistenced "$pkgdir"/usr/bin/nvidia-persistenced
-  install -Dm644 nvidia-persistenced.1.gz "$pkgdir"/usr/share/man/man1/nvidia-persistenced.1.gz
-  install -Dm644 nvidia-persistenced-init/systemd/nvidia-persistenced.service.template \
-                 "$pkgdir"/usr/lib/systemd/system/nvidia-persistenced.service
-  sed -i 's/__USER__/nvidia-persistenced/' "$pkgdir"/usr/lib/systemd/system/nvidia-persistenced.service
-
-  # GUI for configuring the driver
-  install -Dm755 nvidia-settings "$pkgdir"/usr/bin/nvidia-settings
-  install -Dm644 nvidia-settings.1.gz "$pkgdir"/usr/share/man/man1/nvidia-settings.1.gz
-  install -Dm644 nvidia-settings.png "$pkgdir"/usr/share/pixmaps/nvidia-settings.png
-  install -Dm644 nvidia-settings.desktop "$pkgdir"/usr/share/applications/nvidia-settings.desktop
-  sed -e 's:__UTILS_PATH__:/usr/bin:' \
-      -e 's:__PIXMAP_PATH__:/usr/share/pixmaps:' \
-      -i "$pkgdir"/usr/share/applications/nvidia-settings.desktop
-
-  # GPU monitoring and management (2/2)
-  install -Dm755 nvidia-smi "$pkgdir"/usr/bin/nvidia-smi
-  install -Dm644 nvidia-smi.1.gz "$pkgdir"/usr/share/man/man1/nvidia-smi.1.gz
-
-  # Basic control over configuration options in the driver
-  install -Dm755 nvidia-xconfig "$pkgdir"/usr/bin/nvidia-xconfig
-  install -Dm644 nvidia-xconfig.1.gz "$pkgdir"/usr/share/man/man1/nvidia-xconfig.1.gz
-
-  # Debugging and bug reporting
-  install -Dm755 nvidia-bug-report.sh "$pkgdir"/usr/bin/nvidia-bug-report.sh
-  install -Dm755 nvidia-debugdump "$pkgdir"/usr/bin/nvidia-debugdump
-
-##### MISCELLANEOUS #####
-
-  # Vendor profiles
-  install -Dm644 nvidia-application-profiles-$pkgver-rc \
-                 "$pkgdir"/usr/share/nvidia/nvidia-application-profiles-$pkgver-rc
-  install -Dm644 nvidia-application-profiles-$pkgver-key-documentation \
-                 "$pkgdir"/usr/share/nvidia/nvidia-application-profiles-$pkgver-key-documentation
-
-  # Documentation
-  install -Dm644 README.txt "$pkgdir"/usr/share/doc/nvidia/README
-  install -Dm644 NVIDIA_Changelog "$pkgdir"/usr/share/doc/nvidia/NVIDIA_Changelog
-  cp -r html "$pkgdir"/usr/share/doc/nvidia/
-  ln -s nvidia/ "$pkgdir"/usr/share/doc/nvidia-utils
-
-  # Licenses
-  install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/nvidia/LICENSE
-  ln -s nvidia/ "$pkgdir"/usr/share/licenses/nvidia-utils
-
-  # Disable logo splash
-  install -Dm644 "$srcdir"/20-nvidia.conf "$pkgdir"/etc/X11/xorg.conf.d/20-nvidia.conf
-
-  # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
-  install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
 }
 
 if [[ $_dkms = 0 ]]; then
@@ -457,37 +428,14 @@ package_nvidia-dkms-dev-tkg() {
   options=('!strip')
   install=${pkgname}.install
 
-  cd $_pkg/kernel
-
-  # Update dkms.conf
-  sed -e "s/__VERSION_STRING/${pkgver}/" \
-      -e 's/__JOBS/${&}/' \
-      -e 's/__DKMS_MODULES//' \
-      -e '4iBUILT_MODULE_NAME[0]="nvidia"\
-DEST_MODULE_LOCATION[0]="/kernel/drivers/video"\
-BUILT_MODULE_NAME[1]="nvidia-uvm"\
-DEST_MODULE_LOCATION[1]="/kernel/drivers/video"\
-BUILT_MODULE_NAME[2]="nvidia-modeset"\
-DEST_MODULE_LOCATION[2]="/kernel/drivers/video"\
-BUILT_MODULE_NAME[3]="nvidia-drm"\
-DEST_MODULE_LOCATION[3]="/kernel/drivers/video"\
-__JOBS=`nproc`'\
-    -i dkms.conf
-
-
-  # Create directory structure
-  install -d "${pkgdir}"/usr/lib/modprobe.d/
-  install -d "${pkgdir}"/usr/share/licenses/
-  install -d "${pkgdir}"/usr/src/nvidia-${pkgver}/
-
-  # Install
-  cp -dr --no-preserve=ownership * "${pkgdir}"/usr/src/nvidia-${pkgver}/
-
-  # Link license
-  ln -s /usr/share/licenses/nvidia "${pkgdir}"/usr/share/licenses/${pkgname}
+    cd ${_pkg}
+    install -dm 755 "${pkgdir}"/usr/{lib/modprobe.d,src}
+    cp -dr --no-preserve='ownership' kernel-dkms "${pkgdir}/usr/src/nvidia-${pkgver}"
 
   # Blacklist Nouveau
-  echo "blacklist nouveau" > "${pkgdir}"/usr/lib/modprobe.d/nvidia.conf
+    echo "blacklist nouveau" |
+        install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
+    install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
 }
 fi
