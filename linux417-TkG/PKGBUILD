@@ -69,7 +69,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0010-glitched-muqss.patch
         0010-patch-4.17-ck1
         0011-glitched-pds.patch
-        0011-v4.17_pds098r.patch
+        0011-v4.17_pds098s.patch
 )
 
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
@@ -92,7 +92,7 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             'b90690440a7505882b55ce7b49a5d7871500f768b04fb7986d4b0ffdda0ca055'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            '1d1230e083e7d43aa4a2e3be3e29af38abfdb6c7c4f1b18e1ae3d617c05cdca2')
+            'a4715bee381764eaee9cb3595a5c45c563c764047d6d36c973f60f611b0744c5')
             
 prepare() {
   cd "${srcdir}/linux-${_basekernel}"
@@ -120,7 +120,7 @@ prepare() {
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
     # PDS-mq
-    patch -Np1 -i ../0011-v4.17_pds098r.patch
+    patch -Np1 -i ../0011-v4.17_pds098s.patch
     patch -Np1 -i ../0011-glitched-pds.patch
   else
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch

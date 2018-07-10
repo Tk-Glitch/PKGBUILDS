@@ -1245,10 +1245,10 @@ index 1a3e9bddd17b..542f4823b262 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..af5c2d99c079
+index 000000000000..ce1f2b300514
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6373 @@
+@@ -0,0 +1,6348 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1275,13 +1275,13 @@ index 000000000000..af5c2d99c079
 +#include <linux/kprobes.h>
 +#include <linux/mmu_context.h>
 +#include <linux/nmi.h>
++#include <linux/profile.h>
 +#include <linux/rcupdate_wait.h>
 +#include <linux/security.h>
 +#include <linux/syscalls.h>
 +#include <linux/wait_bit.h>
 +
 +#include <asm/switch_to.h>
-+#include <asm/tlb.h>
 +
 +#include "../workqueue_internal.h"
 +#include "../smpboot.h"
@@ -1345,7 +1345,7 @@ index 000000000000..af5c2d99c079
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.98r by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.98s by Alfred Chen.\n");
 +}
 +
 +/* task_struct::on_rq states: */
@@ -1447,7 +1447,6 @@ index 000000000000..af5c2d99c079
 +____cacheline_aligned_in_smp;
 +
 +static cpumask_t sched_rq_pending_mask ____cacheline_aligned_in_smp;
-+static unsigned int sched_nr_rq_pending ____cacheline_aligned_in_smp;
 +
 +DEFINE_PER_CPU(cpumask_t [NR_CPU_AFFINITY_CHK_LEVEL], sched_cpu_affinity_chk_masks);
 +DEFINE_PER_CPU(cpumask_t *, sched_cpu_affinity_chk_end_masks);
@@ -1456,7 +1455,6 @@ index 000000000000..af5c2d99c079
 +DEFINE_PER_CPU(unsigned int, cpu_has_smt_sibling);
 +
 +static cpumask_t sched_cpu_sg_idle_mask ____cacheline_aligned_in_smp;
-+static cpumask_t sched_cpu_sb_suppress_mask ____cacheline_aligned_in_smp;
 +#endif
 +
 +static int sched_rq_prio[NR_CPUS] ____cacheline_aligned;
@@ -1806,10 +1804,8 @@ index 000000000000..af5c2d99c079
 +		update_sched_rq_queued_masks(rq);
 +	rq->nr_running--;
 +#ifdef CONFIG_SMP
-+	if (1 == rq->nr_running) {
++	if (1 == rq->nr_running)
 +		cpumask_clear_cpu(cpu_of(rq), &sched_rq_pending_mask);
-+		sched_nr_rq_pending = cpumask_weight(&sched_rq_pending_mask);
-+	}
 +#endif
 +
 +	sched_update_tick_dependency(rq);
@@ -1911,10 +1907,8 @@ index 000000000000..af5c2d99c079
 +		update_sched_rq_queued_masks(rq);
 +	rq->nr_running++;
 +#ifdef CONFIG_SMP
-+	if (2 == rq->nr_running) {
++	if (2 == rq->nr_running)
 +		cpumask_set_cpu(cpu_of(rq), &sched_rq_pending_mask);
-+		sched_nr_rq_pending = cpumask_weight(&sched_rq_pending_mask);
-+	}
 +#endif
 +
 +	sched_update_tick_dependency(rq);
@@ -4133,32 +4127,25 @@ index 000000000000..af5c2d99c079
 +		return false;
 +
 +	/*
-+	 * Exit if any idle cpu in this smt group
++	 * First cpu in smt group does not do smt balance
 +	 */
 +	cpu = cpu_of(rq);
++	if (cpu == per_cpu(sd_llc_id, cpu))
++		return false;
++
++	/*
++	 * Exit if any idle cpu in this smt group
++	 */
 +	if (cpumask_intersects(cpu_smt_mask(cpu),
 +			       &sched_rq_queued_masks[SCHED_RQ_EMPTY]))
 +		return false;
 +
-+	/*
-+	 * First cpu in smt group does not do smt balance, unless
-+	 * other cpu is smt balance suppressed.
-+	 */
-+	if (cpu == per_cpu(sd_llc_id, cpu) &&
-+	    !cpumask_intersects(cpu_smt_mask(cpu), &sched_cpu_sb_suppress_mask))
-+		return false;
-+
 +	p = rq->curr;
 +	if (cpumask_intersects(&p->cpus_allowed, &sched_cpu_sg_idle_mask)) {
-+		cpumask_andnot(&sched_cpu_sb_suppress_mask,
-+			       &sched_cpu_sb_suppress_mask,
-+			       cpu_smt_mask(cpu));
 +		raise_softirq(SCHED_SOFTIRQ);
-+
 +		return true;
 +	}
 +
-+	cpumask_set_cpu(cpu, &sched_cpu_sb_suppress_mask);
 +	return false;
 +}
 +#endif /* CONFIG_SCHED_SMT */
@@ -4183,9 +4170,7 @@ index 000000000000..af5c2d99c079
 +	/*
 +	 * this function is called when rq is locked and nr_running >= 2
 +	 */
-+	if (unlikely((node = rq->sl_header.next[0]->next[0]) == &rq->sl_header))
-+		return false;
-+
++	node = rq->sl_header.next[0]->next[0];
 +	p = skiplist_entry(node, struct task_struct, sl_node);
 +
 +	/*
@@ -4506,7 +4491,7 @@ index 000000000000..af5c2d99c079
 +static inline int migrate_pending_tasks(struct rq *rq, int dest_cpu)
 +{
 +	int nr_migrated = 0;
-+	int nr_max_tries = min(rq->nr_running, SCHED_RQ_NR_MIGRATION);
++	int nr_max_tries = min(rq->nr_running / 2, SCHED_RQ_NR_MIGRATION);
 +	struct skiplist_node *node = rq->sl_header.next[0];
 +
 +	while (nr_max_tries && node != &rq->sl_header) {
@@ -4558,11 +4543,8 @@ index 000000000000..af5c2d99c079
 +	struct cpumask tmp;
 +	struct cpumask *affinity_mask, *end;
 +
-+	if (0 == sched_nr_rq_pending)
++	if (cpumask_empty(&sched_rq_pending_mask))
 +		return NULL;
-+
-+	if (1 == sched_nr_rq_pending)
-+		return take_queued_task_cpumask(cpu, &sched_rq_pending_mask);
 +
 +	affinity_mask = &(per_cpu(sched_cpu_affinity_chk_masks, cpu)[0]);
 +	end = per_cpu(sched_cpu_affinity_chk_end_masks, cpu);
@@ -4775,9 +4757,6 @@ index 000000000000..af5c2d99c079
 +	set_rq_task(rq, next);
 +
 +	if (prev != next) {
-+#ifdef CONFIG_SCHED_SMT
-+		cpumask_clear_cpu(cpu, &sched_cpu_sb_suppress_mask);
-+#endif
 +		if (next->prio == PRIO_LIMIT)
 +			schedstat_inc(rq->sched_goidle);
 +
@@ -7352,10 +7331,6 @@ index 000000000000..af5c2d99c079
 +	if (set_cpus_allowed_ptr(current, housekeeping_cpumask(HK_FLAG_DOMAIN)) < 0)
 +		BUG();
 +
-+#ifdef CONFIG_SCHED_SMT
-+	cpumask_clear(&sched_cpu_sb_suppress_mask);
-+#endif
-+
 +	cpumask_copy(&sched_rq_queued_masks[SCHED_RQ_EMPTY], cpu_online_mask);
 +
 +	sched_init_topology_cpumask();
@@ -7624,10 +7599,10 @@ index 000000000000..af5c2d99c079
 +#undef CREATE_TRACE_POINTS
 diff --git a/kernel/sched/pds_sched.h b/kernel/sched/pds_sched.h
 new file mode 100644
-index 000000000000..732635b433e9
+index 000000000000..4beb8de22112
 --- /dev/null
 +++ b/kernel/sched/pds_sched.h
-@@ -0,0 +1,359 @@
+@@ -0,0 +1,353 @@
 +#ifndef PDS_SCHED_H
 +#define PDS_SCHED_H
 +
@@ -7651,31 +7626,25 @@ index 000000000000..732635b433e9
 +
 +#include <uapi/linux/sched/types.h>
 +
-+#include <linux/cgroup.h>
 +#include <linux/cpufreq.h>
 +#include <linux/cpuidle.h>
 +#include <linux/ctype.h>
-+#include <linux/binfmts.h>
-+#include <linux/irq_work.h>
-+#include <linux/kernel_stat.h>
 +#include <linux/kthread.h>
 +#include <linux/livepatch.h>
 +#include <linux/membarrier.h>
-+#include <linux/mutex.h>
 +#include <linux/proc_fs.h>
-+#include <linux/skip_list.h>
 +#include <linux/slab.h>
-+#include <linux/spinlock.h>
 +#include <linux/stackprotector.h>
 +#include <linux/stop_machine.h>
 +#include <linux/suspend.h>
 +#include <linux/swait.h>
 +#include <linux/syscalls.h>
-+#include <linux/tick.h>
 +#include <linux/tsacct_kern.h>
 +
++#include <asm/tlb.h>
++
 +#ifdef CONFIG_PARAVIRT
-+#include <asm/paravirt.h>
++# include <asm/paravirt.h>
 +#endif
 +
 +#include "cpupri.h"
