@@ -4,8 +4,8 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='zapcc'
 
 pkgname=wine-staging-esync-pba-tkg-git
-pkgver=3.11.r150.g80205232d3
-pkgrel=3
+pkgver=3.12.r0.g8ef224fa43
+pkgrel=4
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -95,7 +95,7 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'wine-binfmt.conf'
 #		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
-		'pulseaudio.patch'
+#		'pulseaudio.patch'
 		'esync-staging-fixes.patch')
 
 provides=(
@@ -242,7 +242,7 @@ prepare() {
 	done
 
 	# https://bugs.winehq.org/show_bug.cgi?id=28282
-	patch -Np1 < ../'pulseaudio.patch'
+#	patch -Np1 < ../'pulseaudio.patch'
 
 	cd "${srcdir}"/"${_esyncsrcdir}"
 	# Fixes for esync patches to apply to staging
@@ -343,5 +343,4 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         '03ad4cf5117ce7629f5b0dd2aa156e46'
          'da9dc5a4eb68d0c1ecb845092a47e612')
