@@ -175,16 +175,18 @@ prepare() {
 	patch -Np1 < ../'steam.patch'
 
 	# Applying user patches
-	for F in ../../../*.mypatch; do
-	if [ -e "${F}" ]; then
-	msg2 "######################################################"
-	msg2 ""
-	msg2 "Applying your own patch ${F} - Be careful with that ;)"
-	msg2 ""
-	msg2 "######################################################"
-	patch -Np1 < ${F}
+	if [ -e ../../../*.mypatch ]; then # ??????
+	  for F in ../../../*.mypatch; do
+	    if [ -e "${F}" ]; then
+	      msg2 "######################################################"
+	      msg2 ""
+	      msg2 "Applying your own patch ${F} - Be careful with that ;)"
+	      msg2 ""
+	      msg2 "######################################################"
+	      patch -Np1 < ${F}
+	    fi
+	  done
 	fi
-	done
 
 	# CSMT toggle - Corrects the CSMT toggle to be more logical
 	cd "${srcdir}"/"${_stgsrcdir}"
