@@ -18,8 +18,8 @@ else
 pkgname=('nvidia-dev-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg')
 fi
 
-pkgver=396.24.02
-pkgrel=4
+pkgver=396.24.10
+pkgrel=5
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -34,13 +34,13 @@ if [[ $_lib32 = 1 ]] || pacman -Q lib32-nvidia-utils-dev-tkg &>/dev/null; then
 fi
 
 # Source
-source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-3962402"
+source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-3962410"
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf')
-md5sums=('2beac36fcc0e5ad7138a980395ab2f4e'
+md5sums=('1e4e50fc8216f9f60d05adf58eeeef2f'
          '4f5562ee8f3171769e4638b35396c55d'
          '2640eac092c220073f0668a7aaff61f7')
-[[ $_pkg = NVIDIA-Linux-x86_64-$pkgver ]] && md5sums[0]='2beac36fcc0e5ad7138a980395ab2f4e'
+[[ $_pkg = NVIDIA-Linux-x86_64-$pkgver ]] && md5sums[0]='1e4e50fc8216f9f60d05adf58eeeef2f'
 
 # Patch
 #source+=('linux-4.11.patch')
