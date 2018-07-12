@@ -4,8 +4,8 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='zapcc'
 
 pkgname=wine-staging-esync-pba-tkg-git
-pkgver=3.12.r0.g8ef224fa43
-pkgrel=4
+pkgver=3.12.r45.gacb879c9d2
+pkgrel=5
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -95,8 +95,9 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'wine-binfmt.conf'
 #		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
-#		'pulseaudio.patch'
-		'esync-staging-fixes.patch')
+		'pulseaudio.patch'
+		'esync-staging-fixes.patch'
+		'cv_futex.diff')
 
 provides=(
 	"wine=$pkgver"
@@ -166,35 +167,45 @@ prepare() {
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
 	patch -Np1 < ../'poe-fix.patch'
-	
+
 	# Workaround for F4SE/SkyrimSE Script Extender
-	patch -Np1 < ../'f4skyrimse-fix.patch'
+	# https://github.com/hdmap/wine-hackery/tree/master/f4se
+	read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	  patch -Np1 < ../'f4skyrimse-fix.patch'
+	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	patch -Np1 < ../'steam.patch'
 
-	# Applying user patches
-	if [ -e ../../../*.mypatch ]; then # ??????
-	  for F in ../../../*.mypatch; do
-	    if [ -e "${F}" ]; then
-	      msg2 "######################################################"
-	      msg2 ""
-	      msg2 "Applying your own patch ${F} - Be careful with that ;)"
-	      msg2 ""
-	      msg2 "######################################################"
-	      patch -Np1 < ${F}
+	# esync additional patch
+	patch -Np1 < ../'cv_futex.diff'
+
+	# user patches
+	if [ -e ../../../*.mypatch ]; then
+	  read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
+	    if [ "$CONDITION" == "y" ]; then
+	    for F in ../../../*.mypatch; do
+	      if [ -e "${F}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Applying your own patch ${F}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 < ${F}
+	      fi
+	    done
 	    fi
-	  done
 	fi
 
-	# CSMT toggle - Corrects the CSMT toggle to be more logical
+	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
 	cd "${srcdir}"/"${_stgsrcdir}"
 	patch -Np1 < ../'CSMT-toggle.patch'
 
 	cd "${srcdir}"/"${_winesrcdir}"
 
-	# apply all wine-staging patches
+	# wine-staging patches
 	msg2 'Applying wine-staging patches...'
 
     PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
@@ -243,15 +254,19 @@ prepare() {
 		patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
 	done
 
+	# pulseaudio patch
 	# https://bugs.winehq.org/show_bug.cgi?id=28282
-#	patch -Np1 < ../'pulseaudio.patch'
+	read -p "Do you want to install the pulseaudio patch (https://bugs.winehq.org/show_bug.cgi?id=28282)? - note: You may not need that. Can break stuff`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	  patch -Np1 < ../'pulseaudio.patch'
+	fi
 
 	cd "${srcdir}"/"${_esyncsrcdir}"
-	# Fixes for esync patches to apply to staging
+	# fixes for esync patches to apply to staging
 	patch -Np1 < ../'esync-staging-fixes.patch'
 	cd "${srcdir}"/"${_winesrcdir}"
 
-    # apply wine-esync patches
+    # wine-esync patches
 	for _f in $(ls "${srcdir}"/"${_esyncsrcdir}"); do
 		patch -Np1 < "${srcdir}"/"${_esyncsrcdir}"/${_f}
 	done
@@ -345,4 +360,6 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         'da9dc5a4eb68d0c1ecb845092a47e612')
+         '03ad4cf5117ce7629f5b0dd2aa156e46'
+         'da9dc5a4eb68d0c1ecb845092a47e612'
+         '0123d0e86b8e0950a159c968f2335ef5')
