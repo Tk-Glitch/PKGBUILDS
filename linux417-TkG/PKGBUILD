@@ -10,7 +10,7 @@ use_modprobed=0 # 1 to enable modprobed
 source counter # We have to reread variable
 if [ -e cpuschedset ] && [ $counter -eq 3 ]; then
   echo "counter=0" > counter
-  rm -v cpuschedset
+  rm cpuschedset
 fi
 
 source counter # We have to reread variable
@@ -40,7 +40,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
 _sub=6
 pkgver=${_basekernel}.${_sub}
-pkgrel=3
+pkgrel=4
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -69,14 +69,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0010-glitched-muqss.patch
         0010-patch-4.17-ck1
         0011-glitched-pds.patch
-        0011-v4.17_pds098s.patch
+        0011-v4.17_pds098t.patch
 )
-
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '7699b2246e4ed1e284f2947d5e0b66653c27574995caf6a02a3280bd055cfedf'
             'cc0197db63a845e91c2309aadbe5de35ec7f9b7dfcba5dd973a338e9bc57c1f2'
-            'a20a51909757dc07efe2eec6a6d4b0ed1aebb48ed2b3c500a3eb92d1f06b77b3'
-            '730493b360bc6cb7fe89c04485b90b9de2a385f3a93cf18b420611465bcfaef1'
+            '938e622f700cf7d0ceeee7a4eb0f1b6096ab58ca78c152758501b4c86d99ae96'
+            '0fc9e117bec8a46d925b60d069199a4d27212ef5b086587728c1ad163ecde7c2'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -92,7 +91,7 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             'b90690440a7505882b55ce7b49a5d7871500f768b04fb7986d4b0ffdda0ca055'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            'a4715bee381764eaee9cb3595a5c45c563c764047d6d36c973f60f611b0744c5')
+            '8719a4f387943527d0ba4471ebf7fc79b0812e2bf209b846588abe7e96118123')
             
 prepare() {
   cd "${srcdir}/linux-${_basekernel}"
@@ -120,7 +119,7 @@ prepare() {
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
     # PDS-mq
-    patch -Np1 -i ../0011-v4.17_pds098s.patch
+    patch -Np1 -i ../0011-v4.17_pds098t.patch
     patch -Np1 -i ../0011-glitched-pds.patch
   else
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch

@@ -1245,10 +1245,10 @@ index 1a3e9bddd17b..542f4823b262 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..ce1f2b300514
+index 000000000000..7cde0d7f58a3
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6348 @@
+@@ -0,0 +1,6350 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1327,10 +1327,10 @@ index 000000000000..ce1f2b300514
 +#define MIN_VISIBLE_DEADLINE	(1 << 8)
 +
 +/*
-+ * BALANCE_INTERVAL should be power of 2 for quick calculation
++ * RQ balance mask and shift
 + */
-+#define BALANCE_INTERVAL	(MS_TO_NS(32ULL))
-+#define BALANCE_INTERVAL_MASK	(~(BALANCE_INTERVAL - 1ULL))
++static u64 sched_balance_mask ____cacheline_aligned_in_smp = (8ULL - 1);
++static u64 sched_balance_shift ____cacheline_aligned_in_smp = 0UL;
 +
 +enum {
 +	BASE_CPU_AFFINITY_CHK_LEVEL = 1,
@@ -1345,7 +1345,7 @@ index 000000000000..ce1f2b300514
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.98s by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.98t by Alfred Chen.\n");
 +}
 +
 +/* task_struct::on_rq states: */
@@ -2742,21 +2742,14 @@ index 000000000000..ce1f2b300514
 +	cpumask_t tmp;
 +	int level, preempt_level;
 +
++#ifdef CONFIG_SCHED_SMT
++	if (cpumask_and(&tmp, chk_mask, &sched_cpu_sg_idle_mask))
++		return best_mask_cpu(task_cpu(p), &tmp);
++#endif
++
 +	preempt_level = task_running_policy_level(p, this_rq());
 +	level = find_first_bit(sched_rq_queued_masks_bitmap,
 +			       NR_SCHED_RQ_QUEUED_LEVEL);
-+
-+#ifdef CONFIG_SCHED_SMT
-+	if (SCHED_RQ_EMPTY == level) {
-+		if (cpumask_and(&tmp, chk_mask, &sched_cpu_sg_idle_mask) ||
-+		    cpumask_and(&tmp, chk_mask, &sched_rq_queued_masks[level]))
-+			return best_mask_cpu(task_cpu(p), &tmp);
-+
-+		level = find_next_bit(sched_rq_queued_masks_bitmap,
-+				      NR_SCHED_RQ_QUEUED_LEVEL,
-+				      level + 1);
-+	}
-+#endif
 +
 +	while (level < preempt_level) {
 +		if (cpumask_and(&tmp, chk_mask, &sched_rq_queued_masks[level]))
@@ -4158,14 +4151,14 @@ index 000000000000..ce1f2b300514
 + */
 +static inline bool pds_load_balance(struct rq *rq)
 +{
-+	int level, preempt_level;
++	int level, pending_level, cpu = cpu_of(rq);
 +	struct skiplist_node *node;
 +	struct task_struct *p;
++	cpumask_t check;
 +
-+	if (rq->clock < rq->next_balance)
++	if (cpu !=
++	    ((NS_TO_MS(rq->clock) & sched_balance_mask) >> sched_balance_shift))
 +		return false;
-+
-+	rq->next_balance = (rq->clock & BALANCE_INTERVAL_MASK) + rq->balance_inc;
 +
 +	/*
 +	 * this function is called when rq is locked and nr_running >= 2
@@ -4179,40 +4172,37 @@ index 000000000000..ce1f2b300514
 +	 */
 +	level = find_next_bit(sched_rq_queued_masks_bitmap,
 +			      NR_SCHED_RQ_QUEUED_LEVEL, SCHED_RQ_IDLE);
-+	preempt_level = task_running_policy_level(p, rq);
++	pending_level = task_running_policy_level(p, rq);
 +
-+	while (level < preempt_level) {
-+		cpumask_t check;
++	if (level >= pending_level)
++		return false;
 +
-+		if (cpumask_and(&check, &sched_rq_queued_masks[level],
-+				&p->cpus_allowed)) {
-+			WARN_ONCE(cpumask_test_cpu(cpu_of(rq), &check),
-+				  "pds: %d - %d, %d, %llu %d, %d, %llu",
-+				  level,
-+				  preempt_level, p->prio, p->deadline,
-+				  task_running_policy_level(rq->curr, rq),
-+				  rq->curr->prio, rq->curr->deadline);
++	if (cpumask_and(&check, &sched_rq_queued_masks[level],
++			&p->cpus_allowed)) {
++		WARN_ONCE(cpumask_test_cpu(cpu_of(rq), &check),
++			  "pds: %d - %d, %d, %llu %d, %d, %llu",
++			  level,
++			  pending_level, p->prio, p->deadline,
++			  task_running_policy_level(rq->curr, rq),
++			  rq->curr->prio, rq->curr->deadline);
 +
-+			raw_spin_unlock(&rq->lock);
-+			raw_spin_lock(&p->pi_lock);
-+			raw_spin_lock(&rq->lock);
++		raw_spin_unlock(&rq->lock);
++		raw_spin_lock(&p->pi_lock);
++		raw_spin_lock(&rq->lock);
 +
-+			/*
-+			 * _something_ may have changed the task,
-+			 * double check again
-+			 */
-+			if (likely(!p->on_cpu && task_on_rq_queued(p) &&
-+				   rq == task_rq(p)))
-+				rq = __migrate_task(rq, p, cpumask_any(&check));
-+
-+			raw_spin_unlock(&rq->lock);
-+			raw_spin_unlock(&p->pi_lock);
-+
-+			return true;
++		/*
++		 * _something_ may have changed the task, double check again
++		 */
++		if (likely(!p->on_cpu && task_on_rq_queued(p) &&
++			   rq == task_rq(p))) {
++			rq = __migrate_task(rq, p, best_mask_cpu(cpu, &check));
++			resched_curr(rq);
 +		}
 +
-+		level = find_next_bit(sched_rq_queued_masks_bitmap,
-+				      NR_SCHED_RQ_QUEUED_LEVEL, ++level);
++		raw_spin_unlock(&rq->lock);
++		raw_spin_unlock(&p->pi_lock);
++
++		return true;
 +	}
 +
 +	return false;
@@ -7283,9 +7273,6 @@ index 000000000000..ce1f2b300514
 +	cpumask_t *chk;
 +
 +	for_each_online_cpu(cpu) {
-+		cpu_rq(cpu)->balance_inc = BALANCE_INTERVAL +
-+			BALANCE_INTERVAL / num_online_cpus() * cpu;
-+
 +		chk = &(per_cpu(sched_cpu_affinity_chk_masks, cpu)[0]);
 +
 +		cpumask_setall(chk);
@@ -7325,6 +7312,20 @@ index 000000000000..ce1f2b300514
 +}
 +#endif
 +
++static inline void sched_init_rq_balance(void)
++{
++	unsigned long shift;
++	unsigned long x;
++
++	x = num_possible_cpus();
++	x = max((unsigned long)SCHED_DEFAULT_RR, x) - 1;
++	shift = find_last_bit(&x, sizeof(x) * 8);
++	x = num_possible_cpus() - 1;
++
++	sched_balance_mask = (1UL << (shift + 1)) - 1;
++	sched_balance_shift = shift - find_last_bit(&x, sizeof(x) * 8);
++}
++
 +void __init sched_init_smp(void)
 +{
 +	/* Move init over to a non-isolated CPU */
@@ -7334,6 +7335,8 @@ index 000000000000..ce1f2b300514
 +	cpumask_copy(&sched_rq_queued_masks[SCHED_RQ_EMPTY], cpu_online_mask);
 +
 +	sched_init_topology_cpumask();
++
++	sched_init_rq_balance();
 +
 +	sched_smp_initialized = true;
 +}
@@ -7382,7 +7385,6 @@ index 000000000000..ce1f2b300514
 +#ifdef CONFIG_SMP
 +		rq->online = false;
 +		rq->cpu = i;
-+		rq->next_balance = 0UL;
 +
 +		rq->queued_level = SCHED_RQ_EMPTY;
 +
@@ -7599,10 +7601,10 @@ index 000000000000..ce1f2b300514
 +#undef CREATE_TRACE_POINTS
 diff --git a/kernel/sched/pds_sched.h b/kernel/sched/pds_sched.h
 new file mode 100644
-index 000000000000..4beb8de22112
+index 000000000000..aa68c917b568
 --- /dev/null
 +++ b/kernel/sched/pds_sched.h
-@@ -0,0 +1,353 @@
+@@ -0,0 +1,351 @@
 +#ifndef PDS_SCHED_H
 +#define PDS_SCHED_H
 +
@@ -7673,8 +7675,6 @@ index 000000000000..4beb8de22112
 +#ifdef CONFIG_SMP
 +	int cpu;		/* cpu of this runqueue */
 +	bool online;
-+	u64 next_balance;
-+	u64 balance_inc;
 +
 +#ifdef CONFIG_SCHED_SMT
 +	int active_balance;
