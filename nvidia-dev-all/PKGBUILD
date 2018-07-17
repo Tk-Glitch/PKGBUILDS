@@ -5,21 +5,17 @@
 # Includes DKMS support, libglvnd compat and building for all kernels currently installed
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
-# Build the lib32 packages too? This only needs to be defined once and will
-# remain until the packages are removed. "1" to enable.
-_lib32=1
-
 # Build the dkms package or the regular one? "1" for dkms, "0" for regular.
 _dkms=1
 
 if [[ $_dkms = 1 ]]; then
-pkgname=('nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg' 'nvidia-dkms-dev-tkg')
+pkgname=('nvidia-dev-dkms-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg' 'lib32-nvidia-utils-dev-tkg' 'lib32-opencl-nvidia-dev-tkg')
 else
-pkgname=('nvidia-dev-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg')
+pkgname=('nvidia-dev-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg' 'lib32-nvidia-utils-dev-tkg' 'lib32-opencl-nvidia-dev-tkg')
 fi
 
 pkgver=396.24.10
-pkgrel=5
+pkgrel=6
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -27,11 +23,7 @@ makedepends=('linux-headers')
 options=('!strip')
 
 # Installer name
-_pkg="NVIDIA-Linux-x86_64-$pkgver-no-compat32"
-if [[ $_lib32 = 1 ]] || pacman -Q lib32-nvidia-utils-dev-tkg &>/dev/null; then
-  pkgname+=('lib32-nvidia-utils-dev-tkg' 'lib32-opencl-nvidia-dev-tkg')
-  _pkg="NVIDIA-Linux-x86_64-$pkgver"
-fi
+_pkg="NVIDIA-Linux-x86_64-$pkgver"
 
 # Source
 source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-3962410"
@@ -41,10 +33,6 @@ md5sums=('1e4e50fc8216f9f60d05adf58eeeef2f'
          '4f5562ee8f3171769e4638b35396c55d'
          '2640eac092c220073f0668a7aaff61f7')
 [[ $_pkg = NVIDIA-Linux-x86_64-$pkgver ]] && md5sums[0]='1e4e50fc8216f9f60d05adf58eeeef2f'
-
-# Patch
-#source+=('linux-4.11.patch')
-#md5sums+=('cc8941b6898d9daa0fb67371f57a56b6')
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
@@ -341,8 +329,8 @@ package_nvidia-dev-tkg() {
   done
 
   # Blacklist Nouveau
-  install -d "$pkgdir"/usr/lib/modprobe.d/
-  echo "blacklist nouveau" >> "$pkgdir"/usr/lib/modprobe.d/nvidia.conf
+    echo "blacklist nouveau" |
+        install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 }
 fi
 
@@ -418,7 +406,7 @@ package_lib32-nvidia-utils-dev-tkg() {
 }
 
 if [[ $_dkms = 1 ]]; then
-package_nvidia-dkms-dev-tkg() {
+package_nvidia-dev-dkms-tkg() {
   pkgdesc="NVIDIA kernel module sources (DKMS) - Dev version"
   depends=('dkms' 'linux' "nvidia-utils-dev-tkg>=${pkgver}" 'nvidia-libgl')
   optdepends=('linux-headers: Build the module for Arch kernel'
