@@ -10,6 +10,7 @@ _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
+where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
 url='https://github.com/zfigura/wine/tree/esync'
 arch=('x86_64')
@@ -183,10 +184,10 @@ prepare() {
 	patch -Np1 < ../'cv_futex.diff'
 
 	# user patches
-	if [ -e ../../../*.mypatch ]; then
+	if [ -e $where/*.mypatch ]; then
 	  read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
 	    if [ "$CONDITION" == "y" ]; then
-	    for F in ../../../*.mypatch; do
+	    for F in $where/*.mypatch; do
 	      if [ -e "${F}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
