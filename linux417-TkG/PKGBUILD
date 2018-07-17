@@ -6,6 +6,8 @@
 
 use_modprobed=0 # 1 to enable modprobed
 
+disable_numa=true # If you have a numa system, set to "false". If you don't know what it is, keep it to "true".
+
 # CPU SCHED selector
 source counter # We have to reread variable
 if [ -e cpuschedset ] && [ $counter -eq 3 ]; then
@@ -34,24 +36,22 @@ if [ $counter -eq 0 ]; then
   source cpuschedset
 fi
 
+where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _basever=417
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
-_sub=6
+_sub=7
 pkgver=${_basekernel}.${_sub}
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
-makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils')
-options=('!strip')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool')
+options=('!strip' 'ccache' 'makeflags')
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
-        # the main kernel config files
-        'config.x86_64.arch' #'arch config'
-        'config.x86_64.muqss' #'muqss config'
-        'config.x86_64.pds' #'pds config'
+        'config.x86_64' # arch config with minor tweaks
         'linux417-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
         '90-linux.hook'     # pacman hook for initramfs regeneration
@@ -72,10 +72,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0011-v4.17_pds098t.patch
 )
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
-            '7699b2246e4ed1e284f2947d5e0b66653c27574995caf6a02a3280bd055cfedf'
-            '1dfaf8aed29188b5a338b480eeffd9a97163589701ac9e382c640c6476a587eb'
-            '938e622f700cf7d0ceeee7a4eb0f1b6096ab58ca78c152758501b4c86d99ae96'
-            '0fc9e117bec8a46d925b60d069199a4d27212ef5b086587728c1ad163ecde7c2'
+            '7f96003274d45fabda457951919c68a5856c7b40e4ee230baa0492dd8caf2e97'
+            '218e07bbe85d1e3dcfeaf38659752b2abf033f4aeb783d1161ca97ea4e0bc481'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -92,8 +90,11 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             'b90690440a7505882b55ce7b49a5d7871500f768b04fb7986d4b0ffdda0ca055'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
             '8719a4f387943527d0ba4471ebf7fc79b0812e2bf209b846588abe7e96118123')
-            
+
 prepare() {
+  ln -s $where/counter "${srcdir}" # workaround for non-pure Arch
+  ln -s $where/cpuschedset "${srcdir}" # workaround for non-pure Arch
+
   cd "${srcdir}/linux-${_basekernel}"
   
   # add upstream patch
@@ -125,17 +126,7 @@ prepare() {
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
   fi
 
-  if [ "$(whoami)" == "tk" ]; then # You are me, you have custom configs
-    if [ "${TkGExt}" == "-tkg-pds" ]; then
-      cat "${srcdir}/config.x86_64.pds" > ./.config
-    elif [ "${TkGExt}" == "-tkg-muqss" ]; then
-      cat "${srcdir}/config.x86_64.muqss" > ./.config
-    else
-      cat "${srcdir}/config.x86_64.arch" > ./.config
-    fi
-  else # You have stock arch config as base, so you have a working kernel
-    cat "${srcdir}/config.x86_64.arch" > ./.config
-  fi
+  cat "${srcdir}/config.x86_64" > ./.config
   
   # LOCALVERSION
   sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${TkGExt}\"|g" ./.config
@@ -143,7 +134,19 @@ prepare() {
 
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  if [ "${TkGExt}" == "-tkg-muqss" ]; then
+  # MuQSS default config
+  sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_MUQSS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
+  sed -i -e 's/# CONFIG_HZ_100 is not set/CONFIG_HZ_100=y/' ./.config
+  sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set/' ./.config
+  elif [ "${TkGExt}" == "-tkg-pds" ]; then
+  # PDS default config
+  sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_PDS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
+  sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set\nCONFIG_HZ_500=y/' ./.config
+  fi
   
+  if [ "${disable_numa}" == "true" ]; then
   # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
   # see, https://bugs.archlinux.org/task/31187
   sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
@@ -155,6 +158,7 @@ prepare() {
       -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
       -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
       -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
+  fi
 
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
@@ -183,11 +187,11 @@ build() {
   cd "${srcdir}/linux-${_basekernel}"
 
   # build!
-  time make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+  time schedtool -B -n 1 -e ionice -n 1 make ${MAKEFLAGS} LOCALVERSION= bzImage modules
   
   # hack
   counter=$((counter + 1))
-  echo counter=$counter > ../../../counter
+  echo counter=$counter > ${srcdir}/counter
 }
 
 hackbase() {
@@ -252,7 +256,7 @@ hackbase() {
     
   # hack
   counter=$((counter + 1))
-  echo counter=$counter > ../../../counter
+  echo counter=$counter > ${srcdir}/counter
 }
 
 hackheaders() {
@@ -321,7 +325,7 @@ hackheaders() {
   
   # hack
   counter=$((counter + 1))
-  echo counter=$counter > ../../../counter
+  echo counter=$counter > ${srcdir}/counter
 }
 
 package_linux417-tkg-pds() {
