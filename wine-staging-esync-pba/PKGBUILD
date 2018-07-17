@@ -3,9 +3,11 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='clang'
 #COMPILEWITH='zapcc'
 
+OPTIMIZED='false' # true to build optimized but non-shareable binaries
+
 pkgname=wine-staging-esync-pba-tkg-git
-pkgver=3.12.r45.gacb879c9d2
-pkgrel=5
+pkgver=3.12.r154.gadb926d5a5
+pkgrel=6
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -14,7 +16,7 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
 url='https://github.com/zfigura/wine/tree/esync'
 arch=('x86_64')
-options=('staticlibs')
+options=('staticlibs' 'ccache' 'makeflags')
 license=('LGPL')
 depends=(
     'attr'                  'lib32-attr'
@@ -146,14 +148,31 @@ prepare() {
 	msg2 'Changing wine HEAD to the wine-staging base commit...'
 	git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
 
+	# Compiler choice and optimizations
 	if [ $COMPILEWITH == 'clang' ]; then
 	export CC="clang"
 	export CXX="clang++"
-	export CFLAGS="-std=gnu89 -g"
+	  if [ $OPTIMIZED == 'true' ]; then
+	  export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
+	  export LDFLAGS="-O3"
+	  fi
 	elif [ $COMPILEWITH == 'zapcc' ]; then
 	export CC="zapcc"
 	export CXX="zapcc++"
-	export CFLAGS="-std=gnu89 -g"
+	  if [ $OPTIMIZED == 'true' ]; then
+	  export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
+	  export LDFLAGS="-O3"
+	  fi
+	else
+	  if [ $OPTIMIZED == 'true' ]; then
+	  export COMMON_FLAGS="-march=native -pipe -O2"
+	  export LDFLAGS="-O2"
+	  fi
+	fi
+
+	if [ $OPTIMIZED == 'true' ]; then
+	export CFLAGS="${COMMON_FLAGS}"
+	export CXXFLAGS="${COMMON_FLAGS}"
 	fi
 
 	# workaround for FS#55128
@@ -257,7 +276,7 @@ prepare() {
 
 	# pulseaudio patch
 	# https://bugs.winehq.org/show_bug.cgi?id=28282
-	read -p "Do you want to install the pulseaudio patch (https://bugs.winehq.org/show_bug.cgi?id=28282)? - note: You may not need that. Can break stuff`echo $'\n> N/y : '`" CONDITION;
+	read -p "Do you want to install the pulseaudio patch ( https://bugs.winehq.org/show_bug.cgi?id=28282 )? - note: You may not need that. Can break stuff`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'pulseaudio.patch'
 	fi
