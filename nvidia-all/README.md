@@ -1,4 +1,4 @@
-# Nvidia Vulkan Developer Beta driver
+# Nvidia driver
 
 LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (can be disabled in the PKGBUILD file if necessary).
 

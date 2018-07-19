@@ -1,0 +1,10 @@
+post_upgrade() {
+  echo ":: If CUDA is unavailable, run 'nvidia-modprobe'."
+}
+
+post_install() {
+  getent group nvidia-persistenced &>/dev/null || groupadd -g 143 nvidia-persistenced
+  getent passwd nvidia-persistenced &>/dev/null || useradd -c 'NVIDIA Persistence Daemon' -u 143 -g nvidia-persistenced -d '/' -s /sbin/nologin nvidia-persistenced
+
+  post_upgrade
+}
