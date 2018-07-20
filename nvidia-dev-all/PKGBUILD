@@ -8,7 +8,7 @@
 # Build the dkms package or the regular one? "1" for dkms, "0" for regular.
 _dkms=1
 
-if [[ $_dkms = 1 ]]; then
+if [ "$_dkms" == "1" ]; then
 pkgname=('nvidia-dev-dkms-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg' 'lib32-nvidia-utils-dev-tkg' 'lib32-opencl-nvidia-dev-tkg')
 else
 pkgname=('nvidia-dev-tkg' 'nvidia-utils-dev-tkg' 'nvidia-egl-wayland-dev-tkg' 'opencl-nvidia-dev-tkg' 'lib32-nvidia-utils-dev-tkg' 'lib32-opencl-nvidia-dev-tkg')
@@ -32,7 +32,7 @@ source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-396
 md5sums=('1e4e50fc8216f9f60d05adf58eeeef2f'
          '4f5562ee8f3171769e4638b35396c55d'
          '2640eac092c220073f0668a7aaff61f7')
-[[ $_pkg = NVIDIA-Linux-x86_64-$pkgver ]] && md5sums[0]='1e4e50fc8216f9f60d05adf58eeeef2f'
+[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='1e4e50fc8216f9f60d05adf58eeeef2f'
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
@@ -51,14 +51,14 @@ _create_links() {
     _base=$(echo "$_soname" | sed -r 's/(.*).so.*/\1.so/')
 
     # Create missing links
-    [[ -e $_soname ]] || ln -s $(basename "$_lib") "$_soname"
-    [[ -e $_base ]] || ln -s $(basename "$_soname") "$_base"
+    [ -e "$_soname" ] || ln -s $(basename "$_lib") "$_soname"
+    [ -e "$_base" ] || ln -s $(basename "$_soname") "$_base"
   done
 }
 
 prepare() {
   # Remove previous builds
-  [[ -d $_pkg ]] && rm -rf $_pkg
+  [ -d "$_pkg" ] && rm -rf $_pkg
 
   # Extract
   msg2 "Self-Extracting $_pkg.run..."
@@ -121,7 +121,7 @@ build() {
 
     # Build module
     msg2 "Building Nvidia module for $_kernel..."
-    make SYSSRC=/usr/lib/modules/$_kernel/build module
+    make SYSSRC=/usr/lib/modules/$_kernel/build modules
   done
 }
 
@@ -287,7 +287,7 @@ package_nvidia-utils-dev-tkg() {
     _create_links
 }
 
-if [[ $_dkms = 0 ]]; then
+if [ "$_dkms" == "0" ]; then
 package_nvidia-dev-tkg() {
   pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries) (dev version)"
   depends=("nvidia-utils-dev-tkg>=$pkgver" 'libglvnd')
@@ -405,7 +405,7 @@ package_lib32-nvidia-utils-dev-tkg() {
     ln -s $_pkgbasename "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 
-if [[ $_dkms = 1 ]]; then
+if [ "$_dkms" == "1" ]; then
 package_nvidia-dev-dkms-tkg() {
   pkgdesc="NVIDIA kernel module sources (DKMS) - Dev version"
   depends=('dkms' 'linux' "nvidia-utils-dev-tkg>=${pkgver}" 'nvidia-libgl')

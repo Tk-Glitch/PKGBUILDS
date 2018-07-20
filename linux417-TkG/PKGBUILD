@@ -202,6 +202,8 @@ hackbase() {
               'modprobed-db: Keeps track of EVERY kernel module that has ever been probed. Useful for make localmodconfig.'
               'nvidia-dev-tkg: NVIDIA Vulkan Developer drivers for all installed kernels - non-dkms version.'
               'nvidia-dkms-dev-tkg: NVIDIA Vulkan Developer drivers for all installed kernels - dkms version.'
+              'nvidia-tkg: NVIDIA drivers for all installed kernels - non-dkms version.'
+              'nvidia-dkms-tkg: NVIDIA drivers for all installed kernels - dkms version.'
               'update-grub: Simple wrapper around grub-mkconfig.')
   provides=("linux=${pkgver}" "${pkgbase}")
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
