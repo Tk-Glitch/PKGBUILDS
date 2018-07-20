@@ -99,7 +99,8 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 #		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
-		'cv_futex.diff')
+		'cv_futex.diff'
+		'fallout4.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -192,6 +193,13 @@ prepare() {
 	read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch'
+	fi
+
+	# Fallout 4 dsound workaround
+	# https://bugs.winehq.org/show_bug.cgi?id=41271
+	read -p "Do you want to install the Fallout 4 Dsound workaround? - note: Hack. Could break stuff`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	  patch -Np1 < ../'fallout4.patch'
 	fi
 
 	# steam crossover hack for store/web functionality
@@ -373,4 +381,5 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          'da9dc5a4eb68d0c1ecb845092a47e612'
-         '0123d0e86b8e0950a159c968f2335ef5')
+         '0123d0e86b8e0950a159c968f2335ef5'
+         '7416ca33d6d86e3eab3f4faff105f850')
