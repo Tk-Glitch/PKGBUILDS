@@ -210,7 +210,7 @@ prepare() {
 	patch -Np1 < ../'cv_futex.diff'
 
 	# user patches
-	if [ -e $where/*.mypatch ]; then
+	if [[ $(find $where -name "*.mypatch") ]]; then
 	  read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
 	    if [ "$CONDITION" == "y" ]; then
 	    for F in $where/*.mypatch; do
