@@ -291,6 +291,17 @@ prepare() {
 		patch -Np1 < "${srcdir}"/"${_esyncsrcdir}"/${_f}
 	done
 
+	# d3d9 patches
+	read -p "Do you want to install d3d9 (gallium nine) patches?`echo $'\n> N/y : '`" CONDITION;
+	if [ "$CONDITION" == "y" ]; then
+	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
+	  patch -Np1 < $where/staging-helper.patch
+	  patch -Np1 < $where/wine-d3d9.patch
+	  autoreconf -f
+	  withd3d9nine='--with-d3d9-nine'
+	fi
+
 	# fix path of opencl headers
 	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
 
@@ -315,6 +326,7 @@ build() {
 		--with-gstreamer \
 		--enable-win64 \
 		--with-xattr \
+		$withd3d9nine \
 		#--disable-tests
 		# Gstreamer was disabled for FS#33655
 
@@ -331,6 +343,7 @@ build() {
 		--with-x \
 		--with-gstreamer \
 		--with-xattr \
+		$withd3d9nine \
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
 		#--disable-tests 
 
