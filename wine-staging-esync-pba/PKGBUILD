@@ -6,8 +6,8 @@ COMPILEWITH='gcc' # default
 OPTIMIZED='false' # true to build optimized but non-shareable binaries
 
 pkgname=wine-staging-esync-pba-tkg-git
-pkgver=3.12.r187.gd265dd88cd
-pkgrel=7
+pkgver=3.13.r0.g25cc380b8e
+pkgrel=8
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
