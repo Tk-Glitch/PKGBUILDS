@@ -425,5 +425,11 @@ package_nvidia-dev-dkms-tkg() {
         install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
+
+	msg2 '#####################################################################################################'
+	msg2 ''
+	msg2 'It is recommended to run mkinitcpio -P after installation to prevent wrong module versioning remnants'
+	msg2 ''
+	msg2 '#####################################################################################################'
 }
 fi
