@@ -100,7 +100,9 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
 		'cv_futex.diff'
-		'fallout4.patch')
+		'fallout4.patch'
+		'PA2.revert'
+		'PA1.revert')
 
 provides=(
 	"wine=$pkgver"
@@ -193,14 +195,14 @@ prepare() {
 	read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch'
-	fi
+	  fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
 	read -p "Do you want to install the Fallout 4 Dsound workaround? - note: Hack. Could break stuff`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'fallout4.patch'
-	fi
+	  fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
@@ -229,6 +231,13 @@ prepare() {
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
 	cd "${srcdir}"/"${_stgsrcdir}"
 	patch -Np1 < ../'CSMT-toggle.patch'
+
+	# Revert broken PA patches
+	read -p "Do you want to revert some potentially problematic PulseAudio staging patches? - note: Testing purpose`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	  patch -Np1 -R < ../'PA1.revert'
+	  patch -Np1 -R < ../'PA2.revert'
+	  fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
 
@@ -382,4 +391,6 @@ md5sums=('SKIP'
          '830a78ea35e124536cdbc8291102ffaa'
          'da9dc5a4eb68d0c1ecb845092a47e612'
          '0123d0e86b8e0950a159c968f2335ef5'
-         '7416ca33d6d86e3eab3f4faff105f850')
+         '7416ca33d6d86e3eab3f4faff105f850'
+         '82cc067987c8104a963dcc8e17fe0dd7'
+         '1c4c8e66543e7020290ff2029a981eee')
