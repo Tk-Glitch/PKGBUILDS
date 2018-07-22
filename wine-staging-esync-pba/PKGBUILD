@@ -3,7 +3,7 @@ COMPILEWITH='gcc' # default
 #COMPILEWITH='clang'
 #COMPILEWITH='zapcc'
 
-OPTIMIZED='false' # true to build optimized but non-shareable binaries
+OPTIMIZED='true' # true to build optimized but non-shareable (-march=native will be used) binaries
 
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.13.r0.g25cc380b8e
