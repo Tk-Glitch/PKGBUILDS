@@ -5,8 +5,13 @@
 # Includes DKMS support, libglvnd compat and building for all kernels currently installed
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
-# Build the dkms package or the regular one? "1" for dkms, "0" for regular.
-_dkms=1
+# Package type selector
+read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
+  if [ "$CONDITION" == "2" ]; then
+  _dkms="0"
+  else
+  _dkms="1"
+  fi
 
 if [ "$_dkms" == "1" ]; then
 pkgname=('nvidia-dkms-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
@@ -331,6 +336,12 @@ package_nvidia-tkg() {
   # Blacklist Nouveau
     echo "blacklist nouveau" |
         install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
+
+	msg2 '#####################################################################################################'
+	msg2 ''
+	msg2 'It is recommended to run mkinitcpio -P after installation to prevent wrong module versioning remnants'
+	msg2 ''
+	msg2 '#####################################################################################################'
 }
 fi
 

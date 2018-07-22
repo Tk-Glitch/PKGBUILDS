@@ -1,10 +1,3 @@
-# Compiler - By default, GCC will be used. The compiler you want to use must be uncommented.
-COMPILEWITH='gcc' # default
-#COMPILEWITH='clang'
-#COMPILEWITH='zapcc'
-
-OPTIMIZED='true' # 'true' to build optimized but non-shareable (-march=native will be used) binaries. Set to 'false' if you're planning to share the resulting package.
-
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.13.r0.g25cc380b8e
 pkgrel=8
@@ -150,7 +143,25 @@ prepare() {
 	msg2 'Changing wine HEAD to the wine-staging base commit...'
 	git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
 
-	# Compiler choice and optimizations
+	# compiler selector
+	read -p "What compiler do you want to use?`echo $'\n> 1.gcc\n  2.clang\n  3.zapcc\nchoice[1-3?]: '`" CONDITION;
+	  if [ "$CONDITION" == "2" ]; then
+	  COMPILEWITH='clang'
+	  elif [ "$CONDITION" == "3" ]; then
+	  COMPILEWITH='zapcc'
+	  else
+	  COMPILEWITH='gcc'
+	  fi
+
+	# optimizations prompt
+	read -p "Do you want to build optimized binaries? If you're planning to share the resulting package, say no (as -march=native will be used)`echo $'\n> Y/n : '`" CONDITION;
+	  if [ "$CONDITION" == "n" ]; then
+	  OPTIMIZED='false'
+	  else
+	  OPTIMIZED='true'
+	  fi
+
+	# apply compiler choice and optimizations
 	if [ $COMPILEWITH == 'clang' ]; then
 	export CC="clang"
 	export CXX="clang++"
