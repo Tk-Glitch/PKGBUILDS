@@ -140,7 +140,7 @@ prepare() {
 	cd "${srcdir}"/"${_winesrcdir}"
 	
 	# restore the wine tree to its git origin state, without wine-staging patches
-	# (necessary for reapllying wine-staging patches in succedent builds,
+	# (necessary for reapplying wine-staging patches in succedent builds,
 	# otherwise the patches will fail to be reapplied)
 	msg2 'Cleaning wine source code tree...'
 	git reset --hard HEAD 	# restore tracked files
