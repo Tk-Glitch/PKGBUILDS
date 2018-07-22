@@ -16,7 +16,7 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
 url='https://github.com/zfigura/wine/tree/esync'
 arch=('x86_64')
-options=('staticlibs' 'ccache' 'makeflags')
+options=('staticlibs' 'ccache')
 license=('LGPL')
 depends=(
     'attr'                  'lib32-attr'
