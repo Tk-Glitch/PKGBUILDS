@@ -145,47 +145,47 @@ prepare() {
 
 	# compiler selector
 	read -p "What compiler do you want to use?`echo $'\n> 1.gcc\n  2.clang\n  3.zapcc\nchoice[1-3?]: '`" CONDITION;
-	  if [ "$CONDITION" == "2" ]; then
+	if [ "$CONDITION" == "2" ]; then
 	  COMPILEWITH='clang'
-	  elif [ "$CONDITION" == "3" ]; then
+	elif [ "$CONDITION" == "3" ]; then
 	  COMPILEWITH='zapcc'
-	  else
+	else
 	  COMPILEWITH='gcc'
-	  fi
+	fi
 
 	# optimizations prompt
 	read -p "Do you want to build optimized binaries? If you're planning to share the resulting package, say no (as -march=native will be used)`echo $'\n> Y/n : '`" CONDITION;
-	  if [ "$CONDITION" == "n" ]; then
+	if [ "$CONDITION" == "n" ]; then
 	  OPTIMIZED='false'
-	  else
+	else
 	  OPTIMIZED='true'
-	  fi
+	fi
 
 	# apply compiler choice and optimizations
 	if [ $COMPILEWITH == 'clang' ]; then
-	export CC="clang"
-	export CXX="clang++"
+	  export CC="clang"
+	  export CXX="clang++"
 	  if [ $OPTIMIZED == 'true' ]; then
-	  export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
-	  export LDFLAGS="-O3"
-	  fi
+	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
+	    export LDFLAGS="-O3"
+      fi
 	elif [ $COMPILEWITH == 'zapcc' ]; then
-	export CC="zapcc"
-	export CXX="zapcc++"
-	  if [ $OPTIMIZED == 'true' ]; then
-	  export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
-	  export LDFLAGS="-O3"
+	  export CC="zapcc"
+	  export CXX="zapcc++"
+      if [ $OPTIMIZED == 'true' ]; then
+	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
+	    export LDFLAGS="-O3"
 	  fi
 	else
 	  if [ $OPTIMIZED == 'true' ]; then
-	  export COMMON_FLAGS="-march=native -pipe -O2"
-	  export LDFLAGS="-O2"
+	    export COMMON_FLAGS="-march=native -pipe -O2"
+	    export LDFLAGS="-O2"
 	  fi
 	fi
 
 	if [ $OPTIMIZED == 'true' ]; then
-	export CFLAGS="${COMMON_FLAGS}"
-	export CXXFLAGS="${COMMON_FLAGS}"
+	  export CFLAGS="${COMMON_FLAGS}"
+	  export CXXFLAGS="${COMMON_FLAGS}"
 	fi
 
 	# workaround for FS#55128
@@ -204,16 +204,16 @@ prepare() {
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
+	if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch'
-	  fi
+	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
 	read -p "Do you want to install the Fallout 4 Dsound workaround? - note: Hack. Could break stuff`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
+	if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'fallout4.patch'
-	  fi
+	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
@@ -221,25 +221,25 @@ prepare() {
 
 	# esync additional patch
 	read -p "Do you want to install the cv futex patch for esync? - note: Lowers wineserver overhead further in some cases but will break some games`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
+	if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 < ../'cv_futex.diff'
-	  fi
+	fi
 
 	# user patches
 	if [[ $(find $where -name "*.mypatch") ]]; then
 	  read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
-	    if [ "$CONDITION" == "y" ]; then
+	  if [ "$CONDITION" == "y" ]; then
 	    for F in $where/*.mypatch; do
-	      if [ -e "${F}" ]; then
-	        msg2 "######################################################"
-	        msg2 ""
-	        msg2 "Applying your own patch ${F}"
-	        msg2 ""
-	        msg2 "######################################################"
-	        patch -Np1 < ${F}
-	      fi
-	    done
+	    if [ -e "${F}" ]; then
+	      msg2 "######################################################"
+	      msg2 ""
+	      msg2 "Applying your own patch ${F}"
+	      msg2 ""
+	      msg2 "######################################################"
+	      patch -Np1 < ${F}
 	    fi
+	    done
+	  fi
 	fi
 
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
@@ -248,25 +248,26 @@ prepare() {
 
 	# Revert broken PA patches
 	read -p "Do you want to revert some potentially problematic PulseAudio staging patches? - note: Testing purpose`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
+	if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 -R < ../'PA1.revert'
 	  patch -Np1 -R < ../'PA2.revert'
-	  fi
+	fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
 
 	# wine-staging patches
 	msg2 'Applying wine-staging patches...'
 
-    PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
-    if [ $PATCHDEBUG == 1 ]; then
-	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --backend=git-apply --all -W msvfw32-ICGetDisplayFormat
-    else
-	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all -W msvfw32-ICGetDisplayFormat \
-	-W server-Desktop_Refcount \
-	-W ws2_32-WSACleanup \
-	-W ws2_32-TransmitFile \
-	-W server-Pipe_ObjectName
+	PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
+
+	if [ $PATCHDEBUG == 1 ]; then
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --backend=git-apply --all -W msvfw32-ICGetDisplayFormat
+	else
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all -W msvfw32-ICGetDisplayFormat \
+	  -W server-Desktop_Refcount \
+	  -W ws2_32-WSACleanup \
+	  -W ws2_32-TransmitFile \
+	  -W server-Pipe_ObjectName
 	fi
 
 #   esync "staging patchsets"
@@ -301,7 +302,7 @@ prepare() {
 
 	# apply wine-pba patches
 	for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
-		patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
+	  patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
 	done
 
 	cd "${srcdir}"/"${_esyncsrcdir}"
@@ -311,7 +312,7 @@ prepare() {
 
     # wine-esync patches
 	for _f in $(ls "${srcdir}"/"${_esyncsrcdir}"); do
-		patch -Np1 < "${srcdir}"/"${_esyncsrcdir}"/${_f}
+	  patch -Np1 < "${srcdir}"/"${_esyncsrcdir}"/${_f}
 	done
 
 	# d3d9 patches
