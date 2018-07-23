@@ -247,7 +247,7 @@ prepare() {
 	patch -Np1 < ../'CSMT-toggle.patch'
 
 	# Revert broken PA patches
-	read -p "Do you want to revert some potentially problematic PulseAudio staging patches? - note: Testing purpose`echo $'\n> N/y : '`" CONDITION;
+	read -p "Do you want to revert some problematic PulseAudio staging patches? - note: To fix GTA V hanging after intro video, say y`echo $'\n> N/y : '`" CONDITION;
 	if [ "$CONDITION" == "y" ]; then
 	  patch -Np1 -R < ../'PA1.revert'
 	  patch -Np1 -R < ../'PA2.revert'
