@@ -1,6 +1,6 @@
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.13.r0.g25cc380b8e
-pkgrel=9
+pkgrel=10
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -213,6 +213,12 @@ prepare() {
 	  patch -Np1 < ../'fallout4.patch'
 	fi
 
+	# FFXIV mouse jitter fix
+	read -p "Do you want to use the FFXIV mouse jitter fix? - note: Disables server-send_hardware_message staging patchset`echo $'\n> N/y : '`" CONDITION;
+	if [ "$CONDITION" == "y" ]; then
+	  ffxiv_mouse_fix="-W server-send_hardware_message"
+	fi
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	patch -Np1 < ../'steam.patch'
@@ -246,50 +252,24 @@ prepare() {
 
 	cd "${srcdir}"/"${_winesrcdir}"
 
-	# wine-staging patches
-	msg2 'Applying wine-staging patches...'
+	# wine-staging patches and exclusions for esync
 
-	PATCHDEBUG=0 # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
+	# msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
+	# server-Desktop_Refcount # Breaks esync
+	# ws2_32-WSACleanup # Depends on server-Desktop_Refcount
+	# ws2_32-TransmitFile # Depends on server-Desktop_Refcount
+	# server-Pipe_ObjectName # Depends on server-Desktop_Refcount
 
-	if [ $PATCHDEBUG == 1 ]; then
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --backend=git-apply --all -W msvfw32-ICGetDisplayFormat
+	PATCHDEBUG="0" # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
+
+	if [ $PATCHDEBUG == "1" ]; then
+	  esync_staging_debug="--backend=git-apply"
 	else
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all -W msvfw32-ICGetDisplayFormat \
-	  -W server-Desktop_Refcount \
-	  -W ws2_32-WSACleanup \
-	  -W ws2_32-TransmitFile \
-	  -W server-Pipe_ObjectName
+	  esync_exclusions="-W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
 	fi
 
-#   esync "staging patchsets"
-
-#   msvfw32-ICGetDisplayFormat # requires to be disabled on esync - already has its own implementation
-
-#   server-Misc_ACL # Can be enabled
-#	server-Object_Types # Can be enabled
-#	advapi32-Token_Integrity_Level # Can be enabled
-#	advapi32-LsaLookupSids # Can be enabled
-#	kernel32-K32GetPerformanceInfo # Can be enabled
-#	ntdll-NtSuspendProcess # Can be enabled
-#	ntdll-User_Shared_Data # Can be enabled
-#	winebuild-Fake_Dlls # Can be enabled
-#	ntdll-WRITECOPY # Can be enabled
-#	ntdll-Signal_Handler # Can be enabled
-#	ntdll-Builtin_Prot # Can be enabled
-#	ntdll-Dealloc_Thread_Stack # Can be enabled
-#	ntdll-SystemRoot_Symlink # Can be enabled
-
-#	-server-Desktop_Refcount # Breaks esync
-#	-ws2_32-WSACleanup # Depends on server-Desktop_Refcount
-#	-ws2_32-TransmitFile # Depends on server-Desktop_Refcount
-#	-server-Pipe_ObjectName # Depends on server-Desktop_Refcount
-
-#	server-PeekMessage # Can be enabled
-#	server-Shared_Memory # Can be enabled
-#	server-Signal_Thread # Can be enabled
-#	server-Realtime_Priority # Can be enabled
-#	server-Registry_Notifications # Can be enabled
-#	server-device_manager_destroy # Can be enabled
+	msg2 'Applying wine-staging patches...'
+	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all -W msvfw32-ICGetDisplayFormat $esync_exclusions $ffxiv_mouse_fix
 
 	# apply wine-pba patches
 	for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
