@@ -1,6 +1,6 @@
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.13.r0.g25cc380b8e
-pkgrel=8
+pkgrel=9
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
