@@ -93,9 +93,7 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
 		'cv_futex.diff'
-		'fallout4.patch'
-		'PA2.revert'
-		'PA1.revert')
+		'fallout4.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -245,13 +243,6 @@ prepare() {
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
 	cd "${srcdir}"/"${_stgsrcdir}"
 	patch -Np1 < ../'CSMT-toggle.patch'
-
-	# Revert broken PA patches
-	read -p "Do you want to revert some problematic PulseAudio staging patches? - note: To fix GTA V hanging after intro video, say y`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  patch -Np1 -R < ../'PA1.revert'
-	  patch -Np1 -R < ../'PA2.revert'
-	fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
 
@@ -419,6 +410,4 @@ md5sums=('SKIP'
          '830a78ea35e124536cdbc8291102ffaa'
          'da9dc5a4eb68d0c1ecb845092a47e612'
          '0123d0e86b8e0950a159c968f2335ef5'
-         '7416ca33d6d86e3eab3f4faff105f850'
-         '82cc067987c8104a963dcc8e17fe0dd7'
-         '1c4c8e66543e7020290ff2029a981eee')
+         '7416ca33d6d86e3eab3f4faff105f850')
