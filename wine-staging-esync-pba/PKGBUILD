@@ -223,11 +223,8 @@ prepare() {
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	patch -Np1 < ../'steam.patch'
 
-	# esync additional patch
-	read -p "Do you want to install the cv futex patch for esync? - note: Lowers wineserver overhead further in some cases but will break some games`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  patch -Np1 < ../'cv_futex.diff'
-	fi
+	# Add the futex-based condition variable implementation from Zebediah Figura - soon to be mainlined
+	patch -Np1 < ../'cv_futex.diff'
 
 	# user patches
 	if [[ $(find $where -name "*.mypatch") ]]; then
@@ -389,5 +386,5 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          'da9dc5a4eb68d0c1ecb845092a47e612'
-         '0123d0e86b8e0950a159c968f2335ef5'
+         '00e525e9f69e78bc80f5bcac057a3672'
          '7416ca33d6d86e3eab3f4faff105f850')
