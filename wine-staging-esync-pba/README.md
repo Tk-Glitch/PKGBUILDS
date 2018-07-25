@@ -2,7 +2,9 @@ Wine esync : https://github.com/zfigura/wine/tree/esync
 - https://github.com/zfigura/wine/blob/esync/README.esync
 
 Wine : https://github.com/wine-mirror/wine
+
 Wine-staging : https://github.com/wine-staging/wine-staging
+
 Wine-pba : https://github.com/Firerat/wine-pba
 
 With added staging and pba patches as well as :
