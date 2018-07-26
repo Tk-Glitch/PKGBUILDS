@@ -1,0 +1,49 @@
+# Maintainer: robertfoster
+# Contributor: Eschwartz <eschwartz93@gmail.com>
+
+# Contributor: Tk-Glitch <ti3nou@gmail.com>
+
+pkgname=winetricks-git-TkG
+pkgver=20180603.r36.g4dd2bfd
+pkgrel=1
+pkgdesc='Script to install various redistributable runtime libraries in Wine.'
+url='http://wiki.winehq.org/winetricks'
+license=('LGPL')
+arch=('any')
+depends=('wine' 'curl' 'cabextract' 'unrar' 'unzip' 'p7zip')
+makedepends=('git')
+optdepends=('zenity: For the GTK3 GUI.'
+	'kdebase-kdialog: For the KDE GUI (less capable).'
+	'sudo: For automatically mounting ISO images.'
+	'xdg-utils: For opening manual download pages.'
+'perl: For installing Steam.')
+conflicts=('winetricks' 'bin32-winetricks')
+provides=('winetricks')
+source=('git+https://github.com/Winetricks/winetricks.git'
+        'xact.revert.patch'
+        'dotnet471.patch')
+
+pkgver() {
+	cd winetricks
+	git describe --long --tags | sed -r 's/-([0-9]+)-/.r\1./'
+}
+
+package() {
+
+	# Fix language bug on unattended dotnet462 install
+	sed -i 's/WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" ${W_OPT_UNATTENDED:+$unattended_args}/WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" \/sfxlang:1027 ${W_OPT_UNATTENDED:+$unattended_args}/g' $srcdir/winetricks/src/winetricks
+
+	cd winetricks
+
+	# xact 64 bit is required for various games to not have broken audio (i.e. UT, hellblade etc.), so revert this commit https://github.com/Winetricks/winetricks/commit/f2b3d268d941120d13b4c3c3960b78a879d37761
+	patch -Np1 -R < ../'xact.revert.patch'
+
+	# dotnet471 support, 64-bit mostly working
+	patch -Np1 < ../'dotnet471.patch'
+
+	make DESTDIR="$pkgdir" install
+}
+
+md5sums=('SKIP'
+         '88d731e3e0eb9d699d6d2dc40996819d'
+         '46310a39cade20e0715d75a4985c1495')
