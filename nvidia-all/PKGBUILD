@@ -6,25 +6,31 @@
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
 # Package type selector
-read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
-  if [ "$CONDITION" == "2" ]; then
-  _dkms="0"
-  else
-  _dkms="1"
-  fi
-
-if [ "$_dkms" == "1" ]; then
-pkgname=('nvidia-dkms-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
-else
-pkgname=('nvidia-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
+if [ ! -e options ]; then
+  read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
+    if [ "$CONDITION" == "2" ]; then
+      echo '_dkms="0"' > options
+    else
+      echo '_dkms="1"' > options
+    fi
 fi
 
+source options
+
+if [ "$_dkms" == "1" ]; then
+  pkgname=('nvidia-dkms-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
+else
+  pkgname=('nvidia-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
+fi
+
+where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=396.45
-pkgrel=1
+pkgrel=2
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
 makedepends=('linux-headers')
+optdepends=('linux-lts-headers: Build the module for LTS Arch kernel')
 options=('!strip')
 
 # Installer name
@@ -342,6 +348,8 @@ package_nvidia-tkg() {
 	msg2 'It is recommended to run mkinitcpio -P after installation to prevent wrong module versioning remnants'
 	msg2 ''
 	msg2 '#####################################################################################################'
+
+	rm -v ${where}/options
 }
 fi
 
@@ -419,9 +427,7 @@ package_lib32-nvidia-utils-tkg() {
 if [ "$_dkms" == "1" ]; then
 package_nvidia-dkms-tkg() {
   pkgdesc="NVIDIA kernel module sources (DKMS)"
-  depends=('dkms' 'linux' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
-  optdepends=('linux-headers: Build the module for Arch kernel'
-            'linux-lts-headers: Build the module for LTS Arch kernel')
+  depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
   provides=("nvidia=${pkgver}" 'nvidia-dkms')
   conflicts=('nvidia')
   options=('!strip')
@@ -442,5 +448,7 @@ package_nvidia-dkms-tkg() {
 	msg2 'It is recommended to run mkinitcpio -P after installation to prevent wrong module versioning remnants'
 	msg2 ''
 	msg2 '#####################################################################################################'
+
+	rm -v ${where}/options
 }
 fi
