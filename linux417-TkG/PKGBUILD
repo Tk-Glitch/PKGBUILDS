@@ -4,10 +4,6 @@
 
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
-use_modprobed=0 # 1 to enable modprobed
-
-disable_numa=true # If you have a numa system, set to "false". If you don't know what it is, keep it to "true".
-
 # CPU SCHED selector
 source counter # We have to reread variable
 if [ -e cpuschedset ] && [ $counter -eq 3 ]; then
@@ -43,7 +39,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
 _sub=10
 pkgver=${_basekernel}.${_sub}
-pkgrel=8
+pkgrel=9
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -145,10 +141,10 @@ prepare() {
   sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_PDS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
   sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set\nCONFIG_HZ_500=y/' ./.config
   fi
-  
-  if [ "${disable_numa}" == "true" ]; then
+
+  read -p "Disable NUMA? Only say n if you actually own a NUMA system - https://bugs.archlinux.org/task/31187`echo $'\n> Y/n : '`" CONDITION;
+  if [ "$CONDITION" != "n" ]; then
   # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
-  # see, https://bugs.archlinux.org/task/31187
   sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
       -i -e '/CONFIG_AMD_NUMA=y/d' \
       -i -e '/CONFIG_X86_64_ACPI_NUMA=y/d' \
@@ -166,8 +162,8 @@ prepare() {
   # get kernel version
   make prepare
 
-  if [ "${use_modprobed}" == "1" ]; then
-    # Use modprobed db to clean config from unneeded modules
+  read -p "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Make sure to have a well populated db !!!! - https://wiki.archlinux.org/index.php/Modprobed-db`echo $'\n> N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
     make LSMOD=$HOME/.config/modprobed.db localmodconfig
   fi
 
