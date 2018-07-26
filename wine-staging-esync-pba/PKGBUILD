@@ -285,7 +285,10 @@ prepare() {
 	done
 
 	# Fortnite Fix
-	patch -Np1 < ../'fortnite.patch'
+	read -p "Do you want to install the fortnite fix? - Can break some other games`echo $'\n> N/y : '`" CONDITION;
+	if [ "$CONDITION" == "y" ]; then
+	  patch -Np1 < ../'fortnite.patch'
+	fi
 
 	# d3d9 patches
 	read -p "Do you want to install d3d9 (gallium nine) patches?`echo $'\n> N/y : '`" CONDITION;
