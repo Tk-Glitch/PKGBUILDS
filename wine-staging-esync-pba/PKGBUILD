@@ -1,6 +1,6 @@
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.13.r0.g25cc380b8e
-pkgrel=13
+pkgrel=14
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -82,7 +82,7 @@ optdepends=(
 source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git'
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
-		'https://github.com/zfigura/wine/releases/download/esync0d2041a/esync.tgz'
+		'https://github.com/zfigura/wine/releases/download/esync02f7a52/esync.tgz'
 		'steam.patch'
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -381,7 +381,7 @@ package() {
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
-         '8945bd21b1622122ec8c3e6e93f73ab4'
+         '5adb3a1eeadfd23e63592749a99ac4b8'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
          'ecada2fc8abda49c6bb788c25f05a822'
