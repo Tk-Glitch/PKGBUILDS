@@ -1,16 +1,28 @@
+if [ ! -e BIG_UGLY_COINMINER ]; then
+msg2 '#################################################################'
+msg2 ''
+msg2 'You can configure your wine build flavour (right now for example)'
+msg2 'by editing the customization.cfg file next to this PKGBUILD.'
+msg2 ''
+msg2 '#################################################################'
+
+read -p "When you are ready, press enter to continue."
+touch BIG_UGLY_COINMINER
+fi
+
 source customization.cfg
 
-pkgname=wine-staging-esync-pba-tkg-git
-pkgver=3.13.r0.g25cc380b8e
-pkgrel=15
+pkgname=wine-tkg-git
+pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
+pkgrel=16
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
-url='https://github.com/zfigura/wine/tree/esync'
+pkgdesc='This "Wine to rule them all" package is the result of a custom wine build made with some random pkgbuild found online. Some variants of it can be found in lutris runners.'
+url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-staging-esync-pba'
 arch=('x86_64')
 options=('staticlibs' 'ccache')
 license=('LGPL')
@@ -127,8 +139,24 @@ pkgver() {
 	local _pbaTag="$(git tag --sort='version:refname' | tail -n1 | sed 's/-/./g;s/^v//;s/\.rc/rc/')"
 	local _pbaVer=$( printf "%s.r%s.%s" "$_pbaTag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" )
 
+	if [ $use_staging == "true" ]; then
+	 stg=".staging"
+	fi
+	
+	if [ $use_esync == "true" ]; then
+	 zf=".esync"
+	fi
+	
+	if [ $use_pba == "true" ]; then
+	 firerat=".pba"
+	fi
+	
+	if [ $use_gallium_nine == "true" ]; then
+	 nine=".nine"
+	fi
+
 	# version string
-	printf '%s' "${_wineVer#wine.}"
+	printf '%s%s%s%s%s' "${_wineVer#wine.}" "$stg" "$zf" "$firerat" "$nine"
 }
 
 prepare() {
@@ -211,29 +239,20 @@ prepare() {
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
-#	if [ $f4skyrimse_fix == "true" ]; then
-	  read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
-	    patch -Np1 < ../'f4skyrimse-fix.patch'
-	  fi
-#	fi
+	if [ $f4skyrimse_fix == "true" ]; then
+	  patch -Np1 < ../'f4skyrimse-fix.patch'
+	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
-#	if [ $fallout4dsound_fix == "true" ]; then
-	  read -p "Do you want to install the Fallout 4 Dsound workaround? - note: Hack. Could break stuff`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
-	    patch -Np1 < ../'fallout4.patch'
-	  fi
-#	fi
+	if [ $fallout4dsound_fix == "true" ]; then
+	  patch -Np1 < ../'fallout4.patch'
+	fi
 
 	# FFXIV mouse jitter fix
-#	if [ $ffxiv_mouse_patch == "true" ]; then
-	  read -p "Do you want to use the FFXIV mouse jitter fix? - note: Disables server-send_hardware_message staging patchset`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
-	    ffxiv_mouse_fix="-W server-send_hardware_message"
-	  fi
-#	fi
+	if [ $ffxiv_mouse_patch == "true" ]; then
+	  ffxiv_mouse_fix="-W server-send_hardware_message"
+	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
@@ -315,25 +334,19 @@ prepare() {
 	  done
 	fi
 
-	# Fortnite Fix
-#	if [ $fortnite_fix == "true" ]; then
-	  read -p "Do you want to install the fortnite fix? - Can break some other games`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
-	    patch -Np1 < ../'fortnite.patch'
-	  fi
-#	fi
+	# Fortnite Fix - Currently not working anymore
+	if [ $fortnite_fix == "true" ]; then
+	  patch -Np1 < ../'fortnite.patch'
+	fi
 
 	# d3d9 patches
 	if [ $use_gallium_nine == "true" ]; then
-	  read -p "Do you want to install d3d9 (gallium nine) patches?`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
-	    wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
-	    wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
-	    patch -Np1 < $where/staging-helper.patch
-	    patch -Np1 < $where/wine-d3d9.patch
-	    autoreconf -f
-	    withd3d9nine='--with-d3d9-nine'
-	  fi
+	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
+	  patch -Np1 < $where/staging-helper.patch
+	  patch -Np1 < $where/wine-d3d9.patch
+	  autoreconf -f
+	  withd3d9nine='--with-d3d9-nine'
 	fi
 
 	# fix path of opencl headers
@@ -417,6 +430,8 @@ package() {
 	  msg2 ''
 	  msg2 '##########################################################################################################################'
 	fi
+	
+	rm -v $where/BIG_UGLY_COINMINER
 }
 md5sums=('SKIP'
          'SKIP'
