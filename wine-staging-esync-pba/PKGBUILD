@@ -282,10 +282,12 @@ prepare() {
 	PATCHDEBUG="0" # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
 
 	if [ $use_staging == "true" ]; then
-	  if [ $PATCHDEBUG == "1" ]; then
-	    esync_staging_debug="--backend=git-apply"
-	  else
-	    esync_exclusions="-W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
+	  if [ $use_esync == "true" ]; then
+	    if [ $PATCHDEBUG == "1" ]; then
+	      esync_staging_debug="--backend=git-apply"
+	    else
+	      esync_exclusions="-W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
+	    fi
 	  fi
 	  msg2 'Applying wine-staging patches...'
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all -W msvfw32-ICGetDisplayFormat $esync_exclusions $ffxiv_mouse_fix
