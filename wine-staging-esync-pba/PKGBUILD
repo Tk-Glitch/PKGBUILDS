@@ -4,24 +4,26 @@ msg2 ''
 msg2 'You can configure your wine build flavour (right now for example)'
 msg2 'by editing the customization.cfg file next to this PKGBUILD.'
 msg2 ''
-msg2 '#################################################################'
-
+msg2 'If you are rebuilding using the same configuration, you may want'
+msg2 'to delete/move previously built package and clear src dir.'
+msg2 ''
+msg2 '###################################TkG##########was##########here'
 read -p "When you are ready, press enter to continue."
-touch BIG_UGLY_COINMINER
+touch BIG_UGLY_COINMINER # state tracker start
 fi
 
 source customization.cfg
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=16
+pkgrel=17
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgdesc='This "Wine to rule them all" package is the result of a custom wine build made with some random pkgbuild found online. Some variants of it can be found in lutris runners.'
+pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amiright? Some variants of it can be found in lutris runners.'
 url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-staging-esync-pba'
 arch=('x86_64')
 options=('staticlibs' 'ccache')
@@ -175,24 +177,6 @@ prepare() {
 	  git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
 	fi
 
-	# compiler selector
-	read -p "What compiler do you want to use?`echo $'\n> 1.gcc\n  2.clang\n  3.zapcc\nchoice[1-3?]: '`" CONDITION;
-	if [ "$CONDITION" == "2" ]; then
-	  COMPILEWITH='clang'
-	elif [ "$CONDITION" == "3" ]; then
-	  COMPILEWITH='zapcc'
-	else
-	  COMPILEWITH='gcc'
-	fi
-
-	# optimizations prompt
-	read -p "Do you want to build optimized binaries? If you're planning to share the resulting package, say no (as -march=native will be used)`echo $'\n> Y/n : '`" CONDITION;
-	if [ "$CONDITION" == "n" ]; then
-	  OPTIMIZED='false'
-	else
-	  OPTIMIZED='true'
-	fi
-
 	# apply compiler choice and optimizations
 	if [ $COMPILEWITH == 'clang' ]; then
 	  export CC="clang"
@@ -266,19 +250,21 @@ prepare() {
 	fi
 
 	# user patches
-	if [[ $(find $where -name "*.mypatch") ]]; then
-	  read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
-	  if [ "$CONDITION" == "y" ]; then
-	    for F in $where/*.mypatch; do
-	    if [ -e "${F}" ]; then
-	      msg2 "######################################################"
-	      msg2 ""
-	      msg2 "Applying your own patch ${F}"
-	      msg2 ""
-	      msg2 "######################################################"
-	      patch -Np1 < ${F}
+	if [ $user_patches == "true" ]; then
+	  if [[ $(find $where -name "*.mypatch") ]]; then
+	    read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
+	    if [ "$CONDITION" == "y" ]; then
+	      for F in $where/*.mypatch; do
+	      if [ -e "${F}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Applying your own patch ${F}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 < ${F}
+	      fi
+	      done
 	    fi
-	    done
 	  fi
 	fi
 
@@ -356,7 +342,6 @@ prepare() {
 	rm	-rf "${srcdir}"/"${pkgname}"-{32,64}-build
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
-
 }
 
 build() {
@@ -378,7 +363,7 @@ build() {
 		# Gstreamer was disabled for FS#33655
 
     # make using all available threads
-	schedtool -B -n 1 -e ionice -n 1 make -j `cat /proc/cpuinfo | grep "^processor" | wc -l` "$@"
+	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
 
 	# build wine 32-bit
 	export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
@@ -395,7 +380,7 @@ build() {
 		#--disable-tests 
 
     # make using all available threads
-	schedtool -B -n 1 -e ionice -n 1 make -j `cat /proc/cpuinfo | grep "^processor" | wc -l` "$@"
+	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
 }
 
 package() {
@@ -426,12 +411,18 @@ package() {
 	if [ $use_esync == "true" ]; then
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
-	  msg2 'Remember to export WINEESYNC=1 to use ESYNC goodness, and increase file descriptors limits in /etc/security/limits.conf ;)'
+	  msg2 'Remember to export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
 	  msg2 ''
 	  msg2 '##########################################################################################################################'
 	fi
-	
-	rm -v $where/BIG_UGLY_COINMINER
+
+	rm -v $where/BIG_UGLY_COINMINER # state tracker end
+
+	if [ $NUKR == "true" ]; then
+	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it so stays fresh
+	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
+	  msg2 'srcdir was nuked. See ya !'
+	fi
 }
 md5sums=('SKIP'
          'SKIP'
