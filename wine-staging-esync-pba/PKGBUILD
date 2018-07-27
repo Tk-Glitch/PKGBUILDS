@@ -1,17 +1,12 @@
+source customization.cfg
+
 pkgname=wine-staging-esync-pba-tkg-git
 pkgver=3.13.r0.g25cc380b8e
-pkgrel=14
+pkgrel=15
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
-
-# Allow fallback to previous esync release
-read -p "Do you want to use the previous esync release patchset? - note: Required for GTA V and Dauntless atm`echo $'\n> N/y : '`" CONDITION;
-if [ "$CONDITION" == "y" ]; then
-_esyncsrcdir='esync-02f7a52'
-else
-_esyncsrcdir='esync-64eea9a'
-fi
+_esyncsrcdir='esync'
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
@@ -90,8 +85,7 @@ optdepends=(
 source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git'
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
-		"esync-02f7a52.tgz::https://github.com/zfigura/wine/releases/download/esync02f7a52/esync.tgz"
-		"esync-64eea9a.tgz::https://github.com/zfigura/wine/releases/download/esync64eea9a/esync.tgz"
+		"https://github.com/zfigura/wine/releases/download/esync${esync_version}/esync.tgz"
 		'steam.patch'
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -147,9 +141,11 @@ prepare() {
 	git reset --hard HEAD 	# restore tracked files
 	git clean -xdf 			# delete untracked files
 
-	# change back to the wine upstream commit that this version of wine-staging is based in
-	msg2 'Changing wine HEAD to the wine-staging base commit...'
-	git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
+	if [ $use_staging == "true" ]; then
+	  # change back to the wine upstream commit that this version of wine-staging is based in
+	  msg2 'Changing wine HEAD to the wine-staging base commit...'
+	  git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
+	fi
 
 	# compiler selector
 	read -p "What compiler do you want to use?`echo $'\n> 1.gcc\n  2.clang\n  3.zapcc\nchoice[1-3?]: '`" CONDITION;
@@ -203,38 +199,52 @@ prepare() {
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
 
 	# patch for 32bit font smoothing
-	patch -Np1 < ../'harmony-fix.diff'
+	if [ $harmony_fix == "true" ]; then
+	  patch -Np1 < ../'harmony-fix.diff'
+	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
-	patch -Np1 < ../'poe-fix.patch'
+	if [ $poe_fix == "true" ]; then
+	  patch -Np1 < ../'poe-fix.patch'
+	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
-	read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  patch -Np1 < ../'f4skyrimse-fix.patch'
-	fi
+#	if [ $f4skyrimse_fix == "true" ]; then
+	  read -p "Do you want to install the Fallout 4/Skyrim SE Script Extender patch? - note: Can break stuff`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	    patch -Np1 < ../'f4skyrimse-fix.patch'
+	  fi
+#	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
-	read -p "Do you want to install the Fallout 4 Dsound workaround? - note: Hack. Could break stuff`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  patch -Np1 < ../'fallout4.patch'
-	fi
+#	if [ $fallout4dsound_fix == "true" ]; then
+	  read -p "Do you want to install the Fallout 4 Dsound workaround? - note: Hack. Could break stuff`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	    patch -Np1 < ../'fallout4.patch'
+	  fi
+#	fi
 
 	# FFXIV mouse jitter fix
-	read -p "Do you want to use the FFXIV mouse jitter fix? - note: Disables server-send_hardware_message staging patchset`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  ffxiv_mouse_fix="-W server-send_hardware_message"
-	fi
+#	if [ $ffxiv_mouse_patch == "true" ]; then
+	  read -p "Do you want to use the FFXIV mouse jitter fix? - note: Disables server-send_hardware_message staging patchset`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	    ffxiv_mouse_fix="-W server-send_hardware_message"
+	  fi
+#	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
-	patch -Np1 < ../'steam.patch'
+	if [ $steam_fix == "true" ]; then
+	  patch -Np1 < ../'steam.patch'
+	fi
 
 	# Add the futex-based condition variable implementation from Zebediah Figura - soon to be mainlined
-	patch -Np1 < ../'cv_futex.diff'
+	if [ $cv_futex == "true" ]; then
+	  patch -Np1 < ../'cv_futex.diff'
+	fi
 
 	# user patches
 	if [[ $(find $where -name "*.mypatch") ]]; then
@@ -254,12 +264,14 @@ prepare() {
 	fi
 
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
-	cd "${srcdir}"/"${_stgsrcdir}"
-	patch -Np1 < ../'CSMT-toggle.patch'
+	if [ $CSMT_toggle == "true" ] && [ $use_staging == "true" ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  patch -Np1 < ../'CSMT-toggle.patch'
+	fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
 
-	# wine-staging patches and exclusions for esync
+	# wine-staging patches and exclusions for esync :
 
 	# msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
 	# server-Desktop_Refcount # Breaks esync
@@ -269,45 +281,57 @@ prepare() {
 
 	PATCHDEBUG="0" # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
 
-	if [ $PATCHDEBUG == "1" ]; then
-	  esync_staging_debug="--backend=git-apply"
-	else
-	  esync_exclusions="-W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
+	if [ $use_staging == "true" ]; then
+	  if [ $PATCHDEBUG == "1" ]; then
+	    esync_staging_debug="--backend=git-apply"
+	  else
+	    esync_exclusions="-W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
+	  fi
+	  msg2 'Applying wine-staging patches...'
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all -W msvfw32-ICGetDisplayFormat $esync_exclusions $ffxiv_mouse_fix
 	fi
-
-	msg2 'Applying wine-staging patches...'
-	"${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all -W msvfw32-ICGetDisplayFormat $esync_exclusions $ffxiv_mouse_fix
 
 	# apply wine-pba patches
-	for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
-	  patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
-	done
-
-	cd "${srcdir}"/"${_esyncsrcdir}"
-	# fixes for esync patches to apply to staging
-	patch -Np1 < ../'esync-staging-fixes.patch'
-	cd "${srcdir}"/"${_winesrcdir}"
-
-    # wine-esync patches
-	for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
-	  patch -Np1 < ${_f}
-	done
-
-	# Fortnite Fix
-	read -p "Do you want to install the fortnite fix? - Can break some other games`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  patch -Np1 < ../'fortnite.patch'
+	if [ $use_pba == "true" ]; then
+	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
+	    patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
+	  done
 	fi
 
+	# esync
+	if [ $use_esync == "true" ]; then
+	  if [ $use_staging == "true" ]; then
+	    cd "${srcdir}"/"${_esyncsrcdir}"
+	    # fixes for esync patches to apply to staging
+	    patch -Np1 < ../'esync-staging-fixes.patch'
+	    cd "${srcdir}"/"${_winesrcdir}"
+	  fi
+
+	  # wine-esync patches
+	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
+	    patch -Np1 < ${_f}
+	  done
+	fi
+
+	# Fortnite Fix
+#	if [ $fortnite_fix == "true" ]; then
+	  read -p "Do you want to install the fortnite fix? - Can break some other games`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	    patch -Np1 < ../'fortnite.patch'
+	  fi
+#	fi
+
 	# d3d9 patches
-	read -p "Do you want to install d3d9 (gallium nine) patches?`echo $'\n> N/y : '`" CONDITION;
-	if [ "$CONDITION" == "y" ]; then
-	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
-	  wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
-	  patch -Np1 < $where/staging-helper.patch
-	  patch -Np1 < $where/wine-d3d9.patch
-	  autoreconf -f
-	  withd3d9nine='--with-d3d9-nine'
+	if [ $use_gallium_nine == "true" ]; then
+	  read -p "Do you want to install d3d9 (gallium nine) patches?`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	    wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	    wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
+	    patch -Np1 < $where/staging-helper.patch
+	    patch -Np1 < $where/wine-d3d9.patch
+	    autoreconf -f
+	    withd3d9nine='--with-d3d9-nine'
+	  fi
 	fi
 
 	# fix path of opencl headers
@@ -323,7 +347,7 @@ prepare() {
 build() {
 	cd "${srcdir}"
 
-	# build wine-staging 64-bit
+	# build wine 64-bit
 	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	msg2 'Building Wine-64...'
 	cd  "${srcdir}"/"${pkgname}"-64-build
@@ -341,7 +365,7 @@ build() {
     # make using all available threads
 	schedtool -B -n 1 -e ionice -n 1 make -j `cat /proc/cpuinfo | grep "^processor" | wc -l` "$@"
 
-	# build wine-staging 32-bit
+	# build wine 32-bit
 	export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
 	msg2 'Building Wine-32...'
 	cd "${srcdir}/${pkgname}"-32-build
@@ -361,7 +385,7 @@ build() {
 
 package() {
 	
-	# package wine-staging 32-bit
+	# package wine 32-bit
 	# (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
 	msg2 'Packaging Wine-32...'
 	cd "${srcdir}/${pkgname}"-32-build
@@ -369,7 +393,7 @@ package() {
 			libdir="${pkgdir}/usr/lib32" \
 			dlldir="${pkgdir}/usr/lib32/wine" install
 	
-	# package wine-staging 64-bit
+	# package wine 64-bit
 	msg2 'Packaging Wine-64...'
 	cd "${srcdir}/${pkgname}"-64-build
 	make 	prefix="${pkgdir}/usr" \
@@ -383,18 +407,19 @@ package() {
 
 	# wine binfmt
 	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
-	
-	msg2 '##########################################################################################################################'
-	msg2 ''
-	msg2 'Remember to export WINEESYNC=1 to use ESYNC goodness, and increase file descriptors limits in /etc/security/limits.conf ;)'
-	msg2 ''
-	msg2 '##########################################################################################################################'
+
+	if [ $use_esync == "true" ]; then
+	  msg2 '##########################################################################################################################'
+	  msg2 ''
+	  msg2 'Remember to export WINEESYNC=1 to use ESYNC goodness, and increase file descriptors limits in /etc/security/limits.conf ;)'
+	  msg2 ''
+	  msg2 '##########################################################################################################################'
+	fi
 }
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
-         '5adb3a1eeadfd23e63592749a99ac4b8'
-         'd89b983bb2f9a215afeb08588422f95f'
+         'SKIP'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
          'ecada2fc8abda49c6bb788c25f05a822'
