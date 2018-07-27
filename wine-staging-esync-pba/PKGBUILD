@@ -4,7 +4,15 @@ pkgrel=14
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
-_esyncsrcdir='esync'
+
+# Allow fallback to previous esync release
+read -p "Do you want to use the previous esync release patchset? - note: Required for GTA V and Dauntless atm`echo $'\n> N/y : '`" CONDITION;
+if [ "$CONDITION" == "y" ]; then
+_esyncsrcdir='esync-02f7a52'
+else
+_esyncsrcdir='esync-64eea9a'
+fi
+
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgdesc='Wine-staging-git (minus 4 patches) with added esync and PBA patches (also includes Path of Exile DX11 patch and others).'
 url='https://github.com/zfigura/wine/tree/esync'
@@ -82,7 +90,8 @@ optdepends=(
 source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git'
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
-		'https://github.com/zfigura/wine/releases/download/esync64eea9a/esync.tgz'
+		"esync-02f7a52.tgz::https://github.com/zfigura/wine/releases/download/esync02f7a52/esync.tgz"
+		"esync-64eea9a.tgz::https://github.com/zfigura/wine/releases/download/esync64eea9a/esync.tgz"
 		'steam.patch'
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -384,6 +393,7 @@ package() {
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
+         '5adb3a1eeadfd23e63592749a99ac4b8'
          'd89b983bb2f9a215afeb08588422f95f'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
