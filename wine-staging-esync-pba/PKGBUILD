@@ -260,6 +260,21 @@ prepare() {
 	      done
 	    fi
 	  fi
+	  if [[ $(find $where -name "*.mypatch.revert") ]]; then
+	    read -p "At least one of your own revert patches were found (*.mypatch.revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
+	    if [ "$CONDITION" == "y" ]; then
+	      for F in $where/*.mypatch; do
+	      if [ -e "${F}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Applying your own revert patch ${F}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 < ${F}
+	      fi
+	      done
+	    fi
+	  fi
 	fi
 
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
