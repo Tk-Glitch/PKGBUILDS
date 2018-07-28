@@ -109,7 +109,6 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 #		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
-		'cv_futex.diff'
 		'fallout4.patch'
 		'fortnite.patch')
 
@@ -242,11 +241,6 @@ prepare() {
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $steam_fix == "true" ]; then
 	  patch -Np1 < ../'steam.patch'
-	fi
-
-	# Add the futex-based condition variable implementation from Zebediah Figura - soon to be mainlined
-	if [ $cv_futex == "true" ]; then
-	  patch -Np1 < ../'cv_futex.diff'
 	fi
 
 	# user patches
@@ -436,6 +430,5 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          'da9dc5a4eb68d0c1ecb845092a47e612'
-         '00e525e9f69e78bc80f5bcac057a3672'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da')

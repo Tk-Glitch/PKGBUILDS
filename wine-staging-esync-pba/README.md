@@ -12,7 +12,6 @@ With added staging and pba patches as well as :
 - Harmony fix
 - Path of Exile DX11 fix
 - Steam --no-sandbox auto fix
-- Futex-based condition variable implementation (lowers wineserver overhead)
 - Fortnite crash fix - https://github.com/Guy1524/fortnite-wine
 
 And some other optional patches (you'll be prompted about them) :
