@@ -16,7 +16,7 @@ source customization.cfg
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=17
+pkgrel=18
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -110,7 +110,8 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
 		'fallout4.patch'
-		'fortnite.patch')
+		'fortnite.patch'
+		'origin-breakers.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -161,6 +162,11 @@ pkgver() {
 }
 
 prepare() {
+	if [ $NUKR == "true" ]; then
+	  rm -rf $pkgdir # Nuke the entire src folder so it'll get regenerated clean on next build
+	  msg2 'pkgdir was nuked. See ya !'
+	fi
+
 	cd "${srcdir}"/"${_winesrcdir}"
 	
 	# restore the wine tree to its git origin state, without wine-staging patches
@@ -283,28 +289,31 @@ prepare() {
 	  patch -Np1 < ../'CSMT-toggle.patch'
 	fi
 
+	# Revert origin breaking commits from the staging PA patchset
+	if [ $origin_fix == "true" ] && [ $use_staging == "true" ]; then
+	  patch -Np1 -R < ../'origin-breakers.patch'
+	fi
+
 	cd "${srcdir}"/"${_winesrcdir}"
-
-	# wine-staging patches and exclusions for esync :
-
-	# msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
-	# server-Desktop_Refcount # Breaks esync
-	# ws2_32-WSACleanup # Depends on server-Desktop_Refcount
-	# ws2_32-TransmitFile # Depends on server-Desktop_Refcount
-	# server-Pipe_ObjectName # Depends on server-Desktop_Refcount
-
-	PATCHDEBUG="0" # FOR DEBUGGING - Set to 1 to switch backend to git-apply with 1 line context and rejects - Will enable ALL staging patches except msvfw32-ICGetDisplayFormat, breaking esync in the process
 
 	if [ $use_staging == "true" ]; then
 	  if [ $use_esync == "true" ]; then
-	    if [ $PATCHDEBUG == "1" ]; then
+	  	# wine-staging patches and exclusions for esync :
+
+	  	# msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
+	  	# server-Desktop_Refcount # Breaks esync
+	  	# ws2_32-WSACleanup # Depends on server-Desktop_Refcount
+	  	# ws2_32-TransmitFile # Depends on server-Desktop_Refcount
+	  	# server-Pipe_ObjectName # Depends on server-Desktop_Refcount
+
+	    if [ $esync_staging_patchdebug == "true" ]; then
 	      esync_staging_debug="--backend=git-apply"
 	    else
-	      esync_exclusions="-W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
+	      esync_exclusions="-W msvfw32-ICGetDisplayFormat -W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
 	    fi
 	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all -W msvfw32-ICGetDisplayFormat $esync_exclusions $ffxiv_mouse_fix
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all $esync_exclusions $ffxiv_mouse_fix
 	fi
 
 	# apply wine-pba patches
@@ -446,4 +455,5 @@ md5sums=('SKIP'
          '830a78ea35e124536cdbc8291102ffaa'
          'da9dc5a4eb68d0c1ecb845092a47e612'
          '7416ca33d6d86e3eab3f4faff105f850'
-         'f50501943759c8731d40eb521e36e6da')
+         'f50501943759c8731d40eb521e36e6da'
+         '3fe3638e2c21b81ac0802125c0ff2de8')
