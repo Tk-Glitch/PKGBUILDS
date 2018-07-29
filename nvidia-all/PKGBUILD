@@ -39,10 +39,12 @@ _pkg="NVIDIA-Linux-x86_64-$pkgver"
 # Source
 source=("https://download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
         '10-nvidia-drm-outputclass.conf'
-        '20-nvidia.conf')
+        '20-nvidia.conf'
+        'kernel-4.16.patch')
 md5sums=('eefdcd6a242039401d7b8a7ffdab7cc6'
-         '4f5562ee8f3171769e4638b35396c55d'
-         '2640eac092c220073f0668a7aaff61f7')
+         '768a64259f7e8d8a46a13b876d6c443c'
+         '2640eac092c220073f0668a7aaff61f7'
+         '84f1f2ecdccf377fc86323f8ad7b7469')
 [ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='eefdcd6a242039401d7b8a7ffdab7cc6'
 
 # Auto-add *.patch files from $startdir to source=()
@@ -274,8 +276,6 @@ package_nvidia-utils-tkg() {
     cp -r html "${pkgdir}/usr/share/doc/nvidia/"
     ln -s nvidia "${pkgdir}/usr/share/doc/nvidia-utils"
 
-    #install -Dm644 "${srcdir}/nvidia-utils.sysusers" "${pkgdir}/usr/lib/sysusers.d/$pkgname.conf"
-
     # GTK+ for nvidia-settings
     install -D -m755 "libnvidia-gtk2.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-gtk2.so.${pkgver}"
     install -D -m755 "libnvidia-gtk3.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-gtk3.so.${pkgver}"
@@ -294,6 +294,8 @@ package_nvidia-utils-tkg() {
 
     # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
     install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
+    
+    #install -Dm644 "$srcdir"/nvidia-utils.sysusers "$pkgdir"/usr/lib/sysusers.d/$pkgname.conf
 
     _create_links
 }
