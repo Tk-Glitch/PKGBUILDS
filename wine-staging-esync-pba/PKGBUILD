@@ -1,3 +1,4 @@
+# If the state tracker isn't found, prompt the user with useful stuff
 if [ ! -e BIG_UGLY_COINMINER ]; then
 msg2 '#################################################################'
 msg2 ''
@@ -9,7 +10,7 @@ msg2 'to delete/move previously built package and clear src dir.'
 msg2 ''
 msg2 '###################################TkG##########was##########here'
 read -p "When you are ready, press enter to continue."
-touch BIG_UGLY_COINMINER # state tracker start
+touch BIG_UGLY_COINMINER # state tracker start - FEAR THE MIGHTY COIN MINER
 fi
 
 source customization.cfg
@@ -106,7 +107,6 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'harmony-fix.diff'
 		'30-win32-aliases.conf'
 		'wine-binfmt.conf'
-#		'vulkan-enable-extensions.patch'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
 		'fallout4.patch'
@@ -306,11 +306,7 @@ prepare() {
 	  	# ws2_32-TransmitFile # Depends on server-Desktop_Refcount
 	  	# server-Pipe_ObjectName # Depends on server-Desktop_Refcount
 
-	    if [ $esync_staging_patchdebug == "true" ]; then
-	      esync_staging_debug="--backend=git-apply"
-	    else
-	      esync_exclusions="-W msvfw32-ICGetDisplayFormat -W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
-	    fi
+	    esync_exclusions="-W msvfw32-ICGetDisplayFormat -W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
 	  fi
 	  msg2 'Applying wine-staging patches...'
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all $esync_exclusions $ffxiv_mouse_fix
