@@ -310,7 +310,7 @@ prepare() {
 	    esync_exclusions="-W msvfw32-ICGetDisplayFormat -W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
 	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" $esync_staging_debug --all $esync_exclusions $ffxiv_mouse_fix
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $esync_exclusions $ffxiv_mouse_fix
 	fi
 
 	# apply wine-pba patches
