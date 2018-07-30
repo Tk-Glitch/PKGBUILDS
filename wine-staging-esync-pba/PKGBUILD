@@ -17,7 +17,7 @@ source customization.cfg
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=22
+pkgrel=23
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -111,7 +111,8 @@ source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
 		'esync-staging-fixes.patch'
 		'fallout4.patch'
 		'fortnite.patch'
-		'origin-breakers.patch')
+		'origin-breakers.patch'
+		'lol-fix.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -339,6 +340,14 @@ prepare() {
 	  patch -Np1 < ../'fortnite.patch'
 	fi
 
+	# League of Legends 8.12+ crash fix
+	# https://bugs.winehq.org/show_bug.cgi?id=45327
+	if [ $use_staging == "true" ]; then
+	  if [ $lol_fix == "true" ]; then
+	    patch -Np1 < ../'lol-fix.patch'
+	  fi
+	fi
+
 	# d3d9 patches
 	if [ $use_gallium_nine == "true" ]; then
 	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
@@ -452,4 +461,5 @@ md5sums=('SKIP'
          'a0e2e1f81e2742158db6e88460e6748b'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
-         '3fe3638e2c21b81ac0802125c0ff2de8')
+         '3fe3638e2c21b81ac0802125c0ff2de8'
+         '3949494e30ea8a572c1671b2cdc638f0')
