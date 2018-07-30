@@ -16,7 +16,7 @@ source customization.cfg
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=21
+pkgrel=22
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -334,7 +334,7 @@ prepare() {
 
 	  # wine-esync patches
 	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
-	    patch -Np1 < ${_f}
+	    git apply -C1 --verbose < ${_f}
 	  done
 	fi
 
@@ -453,7 +453,7 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         'da9dc5a4eb68d0c1ecb845092a47e612'
+         'df162f722995bb5c703eb86c3d32bd33'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
          '3fe3638e2c21b81ac0802125c0ff2de8')
