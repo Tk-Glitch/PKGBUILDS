@@ -17,11 +17,17 @@ source customization.cfg
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=24
+pkgrel=25
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
+
+# custom staging commit to pass to git
+if [ -n "$staging_version" ]; then
+  staging_commit="#commit=$staging_version"
+  msg2 "Using custom staging commit $staging_version"
+fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amiright? Some variants of it can be found in lutris runners.'
@@ -98,7 +104,7 @@ optdepends=(
     'dosbox'
 )
 source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
-		"$_stgsrcdir"::'git+https://github.com/wine-staging/wine-staging.git'
+		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${staging_commit}"
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
 		"https://github.com/zfigura/wine/releases/download/esync${esync_version}/esync.tgz"
 		'steam.patch'
@@ -144,18 +150,22 @@ pkgver() {
 
 	if [ $use_staging == "true" ]; then
 	 stg=".staging"
+	 msg2 "Using staging patchset"
 	fi
 	
 	if [ $use_esync == "true" ]; then
 	 zf=".esync"
+	 msg2 "Using esync patchset"
 	fi
 	
 	if [ $use_pba == "true" ]; then
 	 firerat=".pba"
+	 msg2 "Using pba patchset"
 	fi
 	
 	if [ $use_gallium_nine == "true" ]; then
 	 nine=".nine"
+	 msg2 "Using gallium nine patchset"
 	fi
 
 	# version string
@@ -187,18 +197,21 @@ prepare() {
 	if [ $COMPILEWITH == 'clang' ]; then
 	  export CC="clang"
 	  export CXX="clang++"
+	  msg2 "Using clang compiler"
 	  if [ $OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
-      fi
+	  fi
 	elif [ $COMPILEWITH == 'zapcc' ]; then
 	  export CC="zapcc"
 	  export CXX="zapcc++"
-      if [ $OPTIMIZED == 'true' ]; then
+	  msg2 "Using zapcc compiler"
+	  if [ $OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
 	else
+	  msg2 "Using gcc compiler"
 	  if [ $OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-march=native -pipe -O2"
 	    export LDFLAGS="-O2"
@@ -208,6 +221,7 @@ prepare() {
 	if [ $OPTIMIZED == 'true' ]; then
 	  export CFLAGS="${COMMON_FLAGS}"
 	  export CXXFLAGS="${COMMON_FLAGS}"
+	  msg2 "With native optimizations"
 	fi
 
 	# workaround for FS#55128
@@ -219,35 +233,41 @@ prepare() {
 	# patch for 32bit font smoothing
 	if [ $harmony_fix == "true" ]; then
 	  patch -Np1 < ../'harmony-fix.diff'
+	  msg2 "Applied harmony fix"
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
 	if [ $poe_fix == "true" ]; then
 	  patch -Np1 < ../'poe-fix.patch'
+	  msg2 "Applied Path of Exile DX11 fix"
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ $f4skyrimse_fix == "true" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch'
+	  msg2 "Applied F4/SkyrimSE Script Extender fix"
 	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
 	if [ $fallout4dsound_fix == "true" ]; then
 	  patch -Np1 < ../'fallout4.patch'
+	  msg2 "Applied Fallout 4 Dsound workaround"
 	fi
 
 	# FFXIV mouse jitter fix
 	if [ $ffxiv_mouse_patch == "true" ]; then
 	  ffxiv_mouse_fix="-W server-send_hardware_message"
+	  msg2 "Applied FFXIV mouse jittering fix"
 	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $steam_fix == "true" ]; then
 	  patch -Np1 < ../'steam.patch'
+	  msg2 "Applied steam crossover hack"
 	fi
 
 	# user patches
@@ -288,11 +308,13 @@ prepare() {
 	if [ $CSMT_toggle == "true" ] && [ $use_staging == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  patch -Np1 < ../'CSMT-toggle.patch'
+	  msg2 "Applied CSMT toggle logic patch"
 	fi
 
 	# Revert origin breaking commits from the staging PA patchset
-	if [ $origin_fix == "true" ] && [ $use_staging == "true" ]; then
+	if [ $origin_fix == "true" ] && [ $use_staging == "true" ] && [ -z $staging_version ]; then
 	  patch -Np1 -R < ../'origin-breakers.patch'
+	  msg2 "Applied EA Origin fix"
 	fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
@@ -338,6 +360,7 @@ prepare() {
 	# Fortnite Fix - Currently not working anymore
 	if [ $fortnite_fix == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch'
+	  msg2 "Applied Fortnite crashfix"
 	fi
 
 	# League of Legends 8.12+ crash fix
@@ -345,6 +368,7 @@ prepare() {
 	if [ $use_staging == "true" ]; then
 	  if [ $lol_fix == "true" ]; then
 	    patch -Np1 < ../'lol-fix.patch'
+	    msg2 "Applied League of Legends crashfix"
 	  fi
 	fi
 
@@ -363,6 +387,14 @@ prepare() {
 
 	# delete old build dirs (from previous builds) and make new ones
 	rm	-rf "${srcdir}"/"${pkgname}"-{32,64}-build
+
+	if [ $NOCOMPILE == "true" ]; then
+	  rm -v $where/BIG_UGLY_COINMINER # state tracker end
+	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it so stays fresh
+	  msg2 'make prepare function stop using Gandalf'
+	  YOU_SHALL_NOT_PASS
+	fi
+
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
 }
@@ -431,20 +463,20 @@ package() {
 	# wine binfmt
 	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 
-	if [ $use_esync == "true" ]; then
-	  msg2 '##########################################################################################################################'
-	  msg2 ''
-	  msg2 'Remember to export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
-	  msg2 ''
-	  msg2 '##########################################################################################################################'
-	fi
-
 	rm -v $where/BIG_UGLY_COINMINER # state tracker end
 
 	if [ $NUKR == "true" ]; then
 	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it so stays fresh
 	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
 	  msg2 'srcdir was nuked. See ya !'
+	fi
+
+	if [ $use_esync == "true" ]; then
+	  msg2 '##########################################################################################################################'
+	  msg2 ''
+	  msg2 'Remember to export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
+	  msg2 ''
+	  msg2 '##########################################################################################################################'
 	fi
 }
 md5sums=('SKIP'
