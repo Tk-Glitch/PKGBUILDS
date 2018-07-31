@@ -23,3 +23,5 @@ With other patches available such as :
 - EA Origin fix for wine staging 3.13
 - League of Legends 8.12+ crash fix - Requires staging
 - Gallium 9 support
+
+Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
