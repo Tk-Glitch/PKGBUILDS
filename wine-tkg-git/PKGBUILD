@@ -28,7 +28,7 @@ if [ ! -e $where/BIG_UGLY_COINMINER ]; then
   read -p "When you are ready, press enter to continue."
 fi
 
-source customization.cfg # load configuration from file
+source $where/customization.cfg # load configuration from file
 
 # custom staging commit to pass to git
 if [ -n "$staging_version" ]; then
