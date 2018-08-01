@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=25
+pkgrel=26
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -29,11 +29,18 @@ if [ ! -e $where/BIG_UGLY_COINMINER ]; then
 fi
 
 source $where/customization.cfg # load configuration from file
+
 echo "# Last $pkgname configuration :" > $where/last_build_config.log
 echo "" >> $where/last_build_config.log
 
+# custom plain wine commit to pass to git
+if [ $use_staging == "false" ] && [ -n "$plain_version" ]; then
+  plain_commit="#commit=$plain_version"
+  echo "Using custom plain wine commit $plain_version" >> $where/last_build_config.log # output to log
+fi
+
 # custom staging commit to pass to git
-if [ -n "$staging_version" ]; then
+if [ $use_staging == "true" ] && [ -n "$staging_version" ]; then
   staging_commit="#commit=$staging_version"
   echo "Using custom staging commit $staging_version" >> $where/last_build_config.log # output to log
 fi
@@ -111,7 +118,7 @@ optdepends=(
     'samba'                 'clang'
     'dosbox'
 )
-source=("$_winesrcdir"::'git://source.winehq.org/git/wine.git'
+source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${staging_commit}"
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
 		"https://github.com/zfigura/wine/releases/download/esync${esync_version}/esync.tgz"
