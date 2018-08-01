@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=26
+pkgrel=27
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -539,7 +539,7 @@ md5sums=('SKIP'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
          '3fe3638e2c21b81ac0802125c0ff2de8'
-         '3949494e30ea8a572c1671b2cdc638f0')
+         '6108ac9f6052adb000dc45f1d833f31f')
 
 # Remove the state tracker on failed/stopped compilation
 trap "{ rm -f $where/BIG_UGLY_COINMINER; }" EXIT

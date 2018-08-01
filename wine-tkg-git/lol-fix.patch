@@ -585,3 +585,86 @@ index 48a9abe..24ea17d 100644
 -- 
 2.7.4
 
+From 52c1286b16c08484daad5422cb357f372b4ae4bf Mon Sep 17 00:00:00 2001
+From: Andrew Wesie <awesie@gmail.com>
+Date: Wed, 1 Aug 2018 15:05:13 -0500
+Subject: [PATCH 12/12] ntdll: Remove broken implementation of
+ LdrQueryProcessModuleInformation.
+
+---
+ dlls/ntdll/loader.c     | 43 ++++++-------------------------------------
+ dlls/ntdll/tests/info.c |  2 +-
+ 2 files changed, 7 insertions(+), 38 deletions(-)
+
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+index c125f96..d46de82 100644
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -3062,46 +3062,15 @@ IMAGE_BASE_RELOCATION * WINAPI LdrProcessRelocationBlock( void *page, UINT count
+ NTSTATUS WINAPI LdrQueryProcessModuleInformation(PSYSTEM_MODULE_INFORMATION smi, 
+                                                  ULONG buf_size, ULONG* req_size)
+ {
+-    SYSTEM_MODULE*      sm = &smi->Modules[0];
+-    ULONG               size = sizeof(ULONG);
+-    NTSTATUS            nts = STATUS_SUCCESS;
+-    ANSI_STRING         str;
+-    char*               ptr;
+-    PLIST_ENTRY         mark, entry;
+-    PLDR_MODULE         mod;
+-    WORD id = 0;
++    ULONG size = sizeof(ULONG);
++    NTSTATUS nts = STATUS_INFO_LENGTH_MISMATCH;
++    FIXME("(%p, %u, %p) stub!\n", smi, buf_size, req_size);
+ 
+-    smi->ModulesCount = 0;
+-
+-    RtlEnterCriticalSection( &loader_section );
+-    mark = &NtCurrentTeb()->Peb->LdrData->InLoadOrderModuleList;
+-    for (entry = mark->Flink; entry != mark; entry = entry->Flink)
++    if (buf_size >= size)
+     {
+-        mod = CONTAINING_RECORD(entry, LDR_MODULE, InLoadOrderModuleList);
+-        size += sizeof(*sm);
+-        if (size <= buf_size)
+-        {
+-            sm->Reserved1 = 0; /* FIXME */
+-            sm->Reserved2 = 0; /* FIXME */
+-            sm->ImageBaseAddress = mod->BaseAddress;
+-            sm->ImageSize = mod->SizeOfImage;
+-            sm->Flags = mod->Flags;
+-            sm->Id = id++;
+-            sm->Rank = 0; /* FIXME */
+-            sm->Unknown = 0; /* FIXME */
+-            str.Length = 0;
+-            str.MaximumLength = MAXIMUM_FILENAME_LENGTH;
+-            str.Buffer = (char*)sm->Name;
+-            RtlUnicodeStringToAnsiString(&str, &mod->FullDllName, FALSE);
+-            ptr = strrchr(str.Buffer, '\\');
+-            sm->NameOffset = (ptr != NULL) ? (ptr - str.Buffer + 1) : 0;
+-
+-            smi->ModulesCount++;
+-            sm++;
+-        }
+-        else nts = STATUS_INFO_LENGTH_MISMATCH;
++        smi->ModulesCount = 0;
++        nts = STATUS_SUCCESS;
+     }
+-    RtlLeaveCriticalSection( &loader_section );
+ 
+     if (req_size) *req_size = size;
+ 
+diff --git a/dlls/ntdll/tests/info.c b/dlls/ntdll/tests/info.c
+index 01cdd1a..5835e0c 100644
+--- a/dlls/ntdll/tests/info.c
++++ b/dlls/ntdll/tests/info.c
+@@ -484,7 +484,7 @@ static void test_query_module(void)
+     ModuleCount = smi->ModulesCount;
+     sm = &smi->Modules[0];
+     /* our implementation is a stub for now */
+-    ok( ModuleCount > 0, "Expected some modules to be loaded\n");
++    todo_wine ok( ModuleCount > 0, "Expected some modules to be loaded\n");
+ 
+     /* Loop through all the modules/drivers, Wine doesn't get here (yet) */
+     for (i = 0; i < ModuleCount ; i++)
+-- 
+2.7.4
