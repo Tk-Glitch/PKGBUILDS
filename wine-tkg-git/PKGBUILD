@@ -1,19 +1,4 @@
-# If the state tracker isn't found, prompt the user with useful stuff
-if [ ! -e BIG_UGLY_COINMINER ]; then
-msg2 '#################################################################'
-msg2 ''
-msg2 'You can configure your wine build flavour (right now for example)'
-msg2 'by editing the customization.cfg file next to this PKGBUILD.'
-msg2 ''
-msg2 'If you are rebuilding using the same configuration, you may want'
-msg2 'to delete/move previously built package and clear src dir.'
-msg2 ''
-msg2 '###################################TkG##########was##########here'
-read -p "When you are ready, press enter to continue."
-touch BIG_UGLY_COINMINER # state tracker start - FEAR THE MIGHTY COIN MINER
-fi
-
-source customization.cfg
+# Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
@@ -22,6 +7,28 @@ _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
+where=$PWD # track basedir as different Arch based distros are moving srcdir around
+
+# If the state tracker isn't found, prompt the user with useful stuff.
+# This is to prevent the prompt to come back until packaging is done
+if [ ! -e $where/BIG_UGLY_COINMINER ]; then
+  msg2 '#################################################################'
+  msg2 ''
+  msg2 'You can configure your wine build flavour (right now for example)'
+  msg2 'by editing the customization.cfg file next to this PKGBUILD.'
+  msg2 ''
+  msg2 "Current path is '$where'"
+  msg2 ''
+  msg2 'If you are rebuilding using the same configuration, you may want'
+  msg2 'to delete/move previously built package and clear src dir.'
+  msg2 ''
+  msg2 'If your previous build was stopped/crashed, clear src dir.'
+  msg2 ''
+  msg2 '###################################TkG##########was##########here'
+  read -p "When you are ready, press enter to continue."
+fi
+
+source customization.cfg # load configuration from file
 
 # custom staging commit to pass to git
 if [ -n "$staging_version" ]; then
@@ -29,8 +36,7 @@ if [ -n "$staging_version" ]; then
   msg2 "Using custom staging commit $staging_version"
 fi
 
-where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amiright? Some variants of it can be found in lutris runners.'
+pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
 url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-staging-esync-pba'
 arch=('x86_64')
 options=('staticlibs' 'ccache')
@@ -173,8 +179,11 @@ pkgver() {
 }
 
 prepare() {
+	# state tracker start - FEAR THE MIGHTY COIN MINER
+	touch $where/BIG_UGLY_COINMINER
+
 	if [ $NUKR == "true" ]; then
-	  rm -rf $pkgdir # Nuke the entire src folder so it'll get regenerated clean on next build
+	  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
 	  msg2 'pkgdir was nuked. See ya !'
 	fi
 
@@ -270,6 +279,22 @@ prepare() {
 	  msg2 "Applied steam crossover hack"
 	fi
 
+	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
+	if [ $CSMT_toggle == "true" ] && [ $use_staging == "true" ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  patch -Np1 < ../'CSMT-toggle.patch'
+	  cd "${srcdir}"/"${_winesrcdir}"
+	  msg2 "Applied CSMT toggle logic patch"
+	fi
+
+	# Revert origin breaking commits from the staging PA patchset
+	if [ $origin_fix == "true" ] && [ $use_staging == "true" ] && [ -z $staging_version ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  patch -Np1 -R < ../'origin-breakers.patch'
+	  cd "${srcdir}"/"${_winesrcdir}"
+	  msg2 "Applied EA Origin fix"
+	fi
+
 	# user patches
 	if [ $user_patches == "true" ]; then
 	  if [[ $(find $where -name "*.mypatch") ]]; then
@@ -304,21 +329,6 @@ prepare() {
 	  fi
 	fi
 
-	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
-	if [ $CSMT_toggle == "true" ] && [ $use_staging == "true" ]; then
-	  cd "${srcdir}"/"${_stgsrcdir}"
-	  patch -Np1 < ../'CSMT-toggle.patch'
-	  msg2 "Applied CSMT toggle logic patch"
-	fi
-
-	# Revert origin breaking commits from the staging PA patchset
-	if [ $origin_fix == "true" ] && [ $use_staging == "true" ] && [ -z $staging_version ]; then
-	  patch -Np1 -R < ../'origin-breakers.patch'
-	  msg2 "Applied EA Origin fix"
-	fi
-
-	cd "${srcdir}"/"${_winesrcdir}"
-
 	if [ $use_staging == "true" ]; then
 	  if [ $use_esync == "true" ]; then
 	  	# wine-staging patches and exclusions for esync :
@@ -333,13 +343,6 @@ prepare() {
 	  fi
 	  msg2 'Applying wine-staging patches...'
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $esync_exclusions $ffxiv_mouse_fix
-	fi
-
-	# apply wine-pba patches
-	if [ $use_pba == "true" ]; then
-	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
-	    patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
-	  done
 	fi
 
 	# esync
@@ -372,6 +375,13 @@ prepare() {
 	  fi
 	fi
 
+	# apply wine-pba patches
+	if [ $use_pba == "true" ]; then
+	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
+	    patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
+	  done
+	fi
+
 	# d3d9 patches
 	if [ $use_gallium_nine == "true" ]; then
 	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
@@ -385,16 +395,17 @@ prepare() {
 	# fix path of opencl headers
 	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
 
-	# delete old build dirs (from previous builds) and make new ones
+	# delete old build dirs (from previous builds)
 	rm	-rf "${srcdir}"/"${pkgname}"-{32,64}-build
 
+	# no compilation
 	if [ $NOCOMPILE == "true" ]; then
-	  rm -v $where/BIG_UGLY_COINMINER # state tracker end
-	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it so stays fresh
-	  msg2 'make prepare function stop using Gandalf'
+	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
+	  msg2 'make prepare function fail by using Gandalf'
 	  YOU_SHALL_NOT_PASS
 	fi
 
+	# create new build dirs
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
 }
@@ -466,7 +477,7 @@ package() {
 	rm -v $where/BIG_UGLY_COINMINER # state tracker end
 
 	if [ $NUKR == "true" ]; then
-	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it so stays fresh
+	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
 	  msg2 'srcdir was nuked. See ya !'
 	fi
@@ -475,6 +486,8 @@ package() {
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
 	  msg2 'Remember to export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
+	  msg2 ''
+	  msg2 'https://raw.githubusercontent.com/zfigura/wine/esync/README.esync'
 	  msg2 ''
 	  msg2 '##########################################################################################################################'
 	fi
@@ -495,3 +508,6 @@ md5sums=('SKIP'
          'f50501943759c8731d40eb521e36e6da'
          '3fe3638e2c21b81ac0802125c0ff2de8'
          '3949494e30ea8a572c1671b2cdc638f0')
+
+# Remove the state tracker on failed/stopped compilation
+trap "{ rm -f $where/BIG_UGLY_COINMINER; }" EXIT
