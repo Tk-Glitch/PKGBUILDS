@@ -21,7 +21,7 @@ With other patches available such as :
 - Fallout 4 Direct sound fix - https://bugs.winehq.org/show_bug.cgi?id=41271
 - Final Fantasy XIV mouse jitter fix
 - EA Origin fix for wine staging 3.13
-- League of Legends 8.12+ crash fix - Requires staging
+- League of Legends 8.15 crash fix - Requires staging
 - Gallium 9 support
 
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
