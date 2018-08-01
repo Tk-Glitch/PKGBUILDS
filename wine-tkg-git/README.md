@@ -1,4 +1,4 @@
-Wine to rule them all !
+# Wine to rule them all !
 
 This pkgbuild allows you to create custom wine builds using an opt-in mechanism. You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
 
