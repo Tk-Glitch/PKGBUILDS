@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=27
+pkgrel=28
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -125,6 +125,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${plain_commit}"
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
+		'esync-no_alloc_handle.patch'
 		'fallout4.patch'
 		'fortnite.patch'
 		'origin-breakers.patch'
@@ -302,17 +303,17 @@ prepare() {
 	  echo "Applied Fallout 4 Dsound workaround" >> $where/last_build_config.log
 	fi
 
-	# FFXIV mouse jitter fix
-	if [ $ffxiv_mouse_patch == "true" ]; then
-	  ffxiv_mouse_fix="-W server-send_hardware_message"
-	  echo "Applied FFXIV mouse jittering fix" >> $where/last_build_config.log
-	fi
-
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $steam_fix == "true" ]; then
 	  patch -Np1 < ../'steam.patch'
 	  echo "Applied steam crossover hack" >> $where/last_build_config.log
+	fi
+
+	# FFXIV mouse jitter fix
+	if [ $ffxiv_mouse_patch == "true" ] && [ $use_staging == "true" ]; then
+	  ffxiv_mouse_fix="-W server-send_hardware_message"
+	  echo "Applied FFXIV mouse jittering fix" >> $where/last_build_config.log
 	fi
 
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
@@ -369,15 +370,9 @@ prepare() {
 
 	if [ $use_staging == "true" ]; then
 	  if [ $use_esync == "true" ]; then
-	  	# wine-staging patches and exclusions for esync :
-
-	  	# msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
-	  	# server-Desktop_Refcount # Breaks esync
-	  	# ws2_32-WSACleanup # Depends on server-Desktop_Refcount
-	  	# ws2_32-TransmitFile # Depends on server-Desktop_Refcount
-	  	# server-Pipe_ObjectName # Depends on server-Desktop_Refcount
-
-	    esync_exclusions="-W msvfw32-ICGetDisplayFormat -W server-Desktop_Refcount -W ws2_32-WSACleanup -W ws2_32-TransmitFile -W server-Pipe_ObjectName"
+	    # msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
+	    # server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName) needs the no_alloc_handle patch to not break esync
+	    esync_exclusions="-W msvfw32-ICGetDisplayFormat"
 	  fi
 	  msg2 'Applying wine-staging patches...'
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $esync_exclusions $ffxiv_mouse_fix
@@ -396,6 +391,11 @@ prepare() {
 	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
 	    git apply -C1 --verbose < ${_f}
 	  done
+
+	  # fix for server-Desktop_Refcount on esync
+	  if [ $use_staging == "true" ]; then
+	    patch -Np1 < ../'esync-no_alloc_handle.patch'
+	  fi
 	fi
 
 	# Fortnite Fix - Currently not working anymore
@@ -551,6 +551,7 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          'a0e2e1f81e2742158db6e88460e6748b'
+         '360a9d3ca587a20e78f5373d5135b2bb'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
          '3fe3638e2c21b81ac0802125c0ff2de8'
