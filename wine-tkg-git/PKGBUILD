@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=28
+pkgrel=29
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -129,7 +129,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fallout4.patch'
 		'fortnite.patch'
 		'origin-breakers.patch'
-		'lol-fix.patch')
+		'lol-fix.patch'
+		'lowlatency_audio.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -398,6 +399,12 @@ prepare() {
 	  fi
 	fi
 
+	# Low latency alsa audio - https://blog.thepoon.fr/osuLinuxAudioLatency/
+	if [ $_lowlatency_audio == "true" ] && [ $_use_staging == "true" ]; then
+	  patch -Np1 < ../'lowlatency_audio.patch'
+	  echo "Applied low latency alsa audio patch" >> $_where/last_build_config.log
+	fi
+
 	# Fortnite Fix - Currently not working anymore
 	if [ $_fortnite_fix == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch'
@@ -553,7 +560,8 @@ md5sums=('SKIP'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
          '3fe3638e2c21b81ac0802125c0ff2de8'
-         '6108ac9f6052adb000dc45f1d833f31f')
+         '6108ac9f6052adb000dc45f1d833f31f'
+         'ed6060dc030ebd5865f1fcc40d8863be')
 
 # Remove the state tracker on failed/stopped compilation
 trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
