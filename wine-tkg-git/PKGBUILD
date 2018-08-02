@@ -30,19 +30,14 @@ fi
 
 source $where/customization.cfg # load configuration from file
 
-echo "# Last $pkgname configuration :" > $where/last_build_config.log
-echo "" >> $where/last_build_config.log
-
 # custom plain wine commit to pass to git
 if [ $use_staging == "false" ] && [ -n "$plain_version" ]; then
   plain_commit="#commit=$plain_version"
-  echo "Using custom plain wine commit $plain_version" >> $where/last_build_config.log # output to log
 fi
 
 # custom staging commit to pass to git
 if [ $use_staging == "true" ] && [ -n "$staging_version" ]; then
   staging_commit="#commit=$staging_version"
-  echo "Using custom staging commit $staging_version" >> $where/last_build_config.log # output to log
 fi
 
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
@@ -164,23 +159,23 @@ pkgver() {
 	local _pbaVer=$( printf "%s.r%s.%s" "$_pbaTag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" )
 
 	if [ $use_staging == "true" ]; then
-	 stg=".staging"
-	 msg2 "Using staging patchset"
+	  stg=".staging"
+	  msg2 "Using staging patchset"
 	fi
 	
 	if [ $use_esync == "true" ]; then
-	 zf=".esync"
-	 msg2 "Using esync patchset"
+	  zf=".esync"
+	  msg2 "Using esync patchset"
 	fi
 	
 	if [ $use_pba == "true" ]; then
-	 firerat=".pba"
-	 msg2 "Using pba patchset"
+	  firerat=".pba"
+	  msg2 "Using pba patchset"
 	fi
 	
 	if [ $use_gallium_nine == "true" ]; then
-	 nine=".nine"
-	 msg2 "Using gallium nine patchset"
+	  nine=".nine"
+	  msg2 "Using gallium nine patchset"
 	fi
 
 	# version string
@@ -211,21 +206,32 @@ prepare() {
 	  git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
 	fi
 
-	# output config to file
+	# output config to logfile
+	echo "# Last $pkgname configuration :" > $where/last_build_config.log
+	echo "" >> $where/last_build_config.log
+
+	if [ $use_staging == "false" ] && [ -n "$plain_version" ]; then
+	  echo "Using custom plain wine commit $plain_version" >> $where/last_build_config.log # output to log
+	fi
+
+	if [ $use_staging == "true" ] && [ -n "$staging_version" ]; then
+	  echo "Using custom staging commit $staging_version" >> $where/last_build_config.log # output to log
+	fi
+
 	if [ $use_staging == "true" ]; then
-	 echo "Using staging patchset" >> $where/last_build_config.log
+	  echo "Using staging patchset" >> $where/last_build_config.log
 	fi
 
 	if [ $use_esync == "true" ]; then
-	 echo "Using esync patchset" >> $where/last_build_config.log
+	  echo "Using esync patchset" >> $where/last_build_config.log
 	fi
 
 	if [ $use_pba == "true" ]; then
-	 echo "Using pba patchset" >> $where/last_build_config.log
+	  echo "Using pba patchset" >> $where/last_build_config.log
 	fi
 
 	if [ $use_gallium_nine == "true" ]; then
-	 echo "Using gallium nine patchset" >> $where/last_build_config.log
+	  echo "Using gallium nine patchset" >> $where/last_build_config.log
 	fi
 
 	echo "" >> $where/last_build_config.log
@@ -398,8 +404,8 @@ prepare() {
 	  echo "Applied Fortnite crashfix" >> $where/last_build_config.log
 	fi
 
-	# League of Legends 8.12+ crash fix
-	# https://bugs.winehq.org/show_bug.cgi?id=45327
+	# League of Legends 8.15 crash fix
+	# https://bugs.winehq.org/show_bug.cgi?id=45550
 	if [ $use_staging == "true" ]; then
 	  if [ $lol_fix == "true" ]; then
 	    patch -Np1 < ../'lol-fix.patch'
@@ -447,6 +453,8 @@ prepare() {
 	# create new build dirs
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
+
+	cd $where # this is needed on version update not to get lost in srcdir
 }
 
 build() {
