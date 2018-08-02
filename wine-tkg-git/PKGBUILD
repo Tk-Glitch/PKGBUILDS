@@ -7,17 +7,17 @@ _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
-where=$PWD # track basedir as different Arch based distros are moving srcdir around
+_where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
 # If the state tracker isn't found, prompt the user with useful stuff.
 # This is to prevent the prompt to come back until packaging is done
-if [ ! -e $where/BIG_UGLY_COINMINER ]; then
+if [ ! -e $_where/BIG_UGLY_COINMINER ]; then
   msg2 '#################################################################'
   msg2 ''
   msg2 'You can configure your wine build flavour (right now for example)'
   msg2 'by editing the customization.cfg file next to this PKGBUILD.'
   msg2 ''
-  msg2 "Current path is '$where'"
+  msg2 "Current path is '$_where'"
   msg2 ''
   msg2 'If you are rebuilding using the same configuration, you may want'
   msg2 'to delete/move previously built package and clear src dir.'
@@ -28,16 +28,16 @@ if [ ! -e $where/BIG_UGLY_COINMINER ]; then
   read -p "When you are ready, press enter to continue."
 fi
 
-source $where/customization.cfg # load configuration from file
+source $_where/customization.cfg # load configuration from file
 
 # custom plain wine commit to pass to git
-if [ $use_staging == "false" ] && [ -n "$plain_version" ]; then
-  plain_commit="#commit=$plain_version"
+if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
+  _plain_commit="#commit=$_plain_version"
 fi
 
 # custom staging commit to pass to git
-if [ $use_staging == "true" ] && [ -n "$staging_version" ]; then
-  staging_commit="#commit=$staging_version"
+if [ $_use_staging == "true" ] && [ -n "$_staging_version" ]; then
+  _staging_commit="#commit=$_staging_version"
 fi
 
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
@@ -113,10 +113,10 @@ optdepends=(
     'samba'                 'clang'
     'dosbox'
 )
-source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${plain_commit}"
-		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${staging_commit}"
+source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
+		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
-		"https://github.com/zfigura/wine/releases/download/esync${esync_version}/esync.tgz"
+		"https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		'steam.patch'
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -159,41 +159,41 @@ pkgver() {
 	local _pbaTag="$(git tag --sort='version:refname' | tail -n1 | sed 's/-/./g;s/^v//;s/\.rc/rc/')"
 	local _pbaVer=$( printf "%s.r%s.%s" "$_pbaTag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" )
 
-	if [ $use_staging == "true" ]; then
-	  stg=".staging"
+	if [ $_use_staging == "true" ]; then
+	  _stg=".staging"
 	  msg2 "Using staging patchset"
 	fi
-	
-	if [ $use_esync == "true" ]; then
-	  zf=".esync"
+
+	if [ $_use_esync == "true" ]; then
+	  _zf=".esync"
 	  msg2 "Using esync patchset"
 	fi
-	
-	if [ $use_pba == "true" ]; then
-	  firerat=".pba"
+
+	if [ $_use_pba == "true" ]; then
+	  _firerat=".pba"
 	  msg2 "Using pba patchset"
 	fi
-	
-	if [ $use_gallium_nine == "true" ]; then
-	  nine=".nine"
+
+	if [ $_use_gallium_nine == "true" ]; then
+	  _nine=".nine"
 	  msg2 "Using gallium nine patchset"
 	fi
 
 	# version string
-	printf '%s%s%s%s%s' "${_wineVer#wine.}" "$stg" "$zf" "$firerat" "$nine"
+	printf '%s%s%s%s%s' "${_wineVer#wine.}" "$_stg" "$_zf" "$_firerat" "$_nine"
 }
 
 prepare() {
 	# state tracker start - FEAR THE MIGHTY COIN MINER
-	touch $where/BIG_UGLY_COINMINER
+	touch $_where/BIG_UGLY_COINMINER
 
-	if [ $NUKR == "true" ]; then
+	if [ $_NUKR == "true" ]; then
 	  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
 	  msg2 'pkgdir was nuked. See ya !'
 	fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
-	
+
 	# restore the wine tree to its git origin state, without wine-staging patches
 	# (necessary for reapplying wine-staging patches in succedent builds,
 	# otherwise the patches will fail to be reapplied)
@@ -201,74 +201,74 @@ prepare() {
 	git reset --hard HEAD 	# restore tracked files
 	git clean -xdf 			# delete untracked files
 
-	if [ $use_staging == "true" ]; then
+	if [ $_use_staging == "true" ]; then
 	  # change back to the wine upstream commit that this version of wine-staging is based in
 	  msg2 'Changing wine HEAD to the wine-staging base commit...'
 	  git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
 	fi
 
 	# output config to logfile
-	echo "# Last $pkgname configuration :" > $where/last_build_config.log
-	echo "" >> $where/last_build_config.log
+	echo "# Last $pkgname configuration :" > $_where/last_build_config.log
+	echo "" >> $_where/last_build_config.log
 
-	if [ $use_staging == "false" ] && [ -n "$plain_version" ]; then
-	  echo "Using custom plain wine commit $plain_version" >> $where/last_build_config.log # output to log
+	if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
+	  echo "Using custom plain wine commit $_plain_version" >> $_where/last_build_config.log # output to log
 	fi
 
-	if [ $use_staging == "true" ] && [ -n "$staging_version" ]; then
-	  echo "Using custom staging commit $staging_version" >> $where/last_build_config.log # output to log
+	if [ $_use_staging == "true" ] && [ -n "$_staging_version" ]; then
+	  echo "Using custom staging commit $_staging_version" >> $_where/last_build_config.log # output to log
 	fi
 
-	if [ $use_staging == "true" ]; then
-	  echo "Using staging patchset" >> $where/last_build_config.log
+	if [ $_use_staging == "true" ]; then
+	  echo "Using staging patchset" >> $_where/last_build_config.log
 	fi
 
-	if [ $use_esync == "true" ]; then
-	  echo "Using esync patchset" >> $where/last_build_config.log
+	if [ $_use_esync == "true" ]; then
+	  echo "Using esync patchset" >> $_where/last_build_config.log
 	fi
 
-	if [ $use_pba == "true" ]; then
-	  echo "Using pba patchset" >> $where/last_build_config.log
+	if [ $_use_pba == "true" ]; then
+	  echo "Using pba patchset" >> $_where/last_build_config.log
 	fi
 
-	if [ $use_gallium_nine == "true" ]; then
-	  echo "Using gallium nine patchset" >> $where/last_build_config.log
+	if [ $_use_gallium_nine == "true" ]; then
+	  echo "Using gallium nine patchset" >> $_where/last_build_config.log
 	fi
 
-	echo "" >> $where/last_build_config.log
+	echo "" >> $_where/last_build_config.log
 
 	# apply compiler choice and optimizations
-	if [ $COMPILEWITH == 'clang' ]; then
+	if [ $_COMPILEWITH == 'clang' ]; then
 	  export CC="clang"
 	  export CXX="clang++"
-	  echo "Using clang compiler" >> $where/last_build_config.log
-	  if [ $OPTIMIZED == 'true' ]; then
+	  echo "Using clang compiler" >> $_where/last_build_config.log
+	  if [ $_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
-	elif [ $COMPILEWITH == 'zapcc' ]; then
+	elif [ $_COMPILEWITH == 'zapcc' ]; then
 	  export CC="zapcc"
 	  export CXX="zapcc++"
-	  echo "Using zapcc compiler" >> $where/last_build_config.log
-	  if [ $OPTIMIZED == 'true' ]; then
+	  echo "Using zapcc compiler" >> $_where/last_build_config.log
+	  if [ $_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
 	else
-	  echo "Using gcc compiler" >> $where/last_build_config.log
-	  if [ $OPTIMIZED == 'true' ]; then
+	  echo "Using gcc compiler" >> $_where/last_build_config.log
+	  if [ $_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-march=native -pipe -O2"
 	    export LDFLAGS="-O2"
 	  fi
 	fi
 
-	if [ $OPTIMIZED == 'true' ]; then
+	if [ $_OPTIMIZED == 'true' ]; then
 	  export CFLAGS="${COMMON_FLAGS}"
 	  export CXXFLAGS="${COMMON_FLAGS}"
-	  echo "With native optimizations" >> $where/last_build_config.log
+	  echo "With native optimizations" >> $_where/last_build_config.log
 	fi
 
-	echo "" >> $where/last_build_config.log
+	echo "" >> $_where/last_build_config.log
 
 	# workaround for FS#55128
 	# https://bugs.archlinux.org/task/55128
@@ -277,110 +277,110 @@ prepare() {
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
 
 	# patch for 32bit font smoothing
-	if [ $harmony_fix == "true" ]; then
+	if [ $_harmony_fix == "true" ]; then
 	  patch -Np1 < ../'harmony-fix.diff'
-	  echo "Applied harmony fix" >> $where/last_build_config.log
+	  echo "Applied harmony fix" >> $_where/last_build_config.log
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
-	if [ $poe_fix == "true" ]; then
+	if [ $_poe_fix == "true" ]; then
 	  patch -Np1 < ../'poe-fix.patch'
-	  echo "Applied Path of Exile DX11 fix" >> $where/last_build_config.log
+	  echo "Applied Path of Exile DX11 fix" >> $_where/last_build_config.log
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
-	if [ $f4skyrimse_fix == "true" ]; then
+	if [ $_f4skyrimse_fix == "true" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch'
-	  echo "Applied F4/SkyrimSE Script Extender fix" >> $where/last_build_config.log
+	  echo "Applied F4/SkyrimSE Script Extender fix" >> $_where/last_build_config.log
 	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
-	if [ $fallout4dsound_fix == "true" ]; then
+	if [ $_fallout4dsound_fix == "true" ]; then
 	  patch -Np1 < ../'fallout4.patch'
-	  echo "Applied Fallout 4 Dsound workaround" >> $where/last_build_config.log
+	  echo "Applied Fallout 4 Dsound workaround" >> $_where/last_build_config.log
 	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
-	if [ $steam_fix == "true" ]; then
+	if [ $_steam_fix == "true" ]; then
 	  patch -Np1 < ../'steam.patch'
-	  echo "Applied steam crossover hack" >> $where/last_build_config.log
+	  echo "Applied steam crossover hack" >> $_where/last_build_config.log
 	fi
 
 	# FFXIV mouse jitter fix
-	if [ $ffxiv_mouse_patch == "true" ] && [ $use_staging == "true" ]; then
-	  ffxiv_mouse_fix="-W server-send_hardware_message"
-	  echo "Applied FFXIV mouse jittering fix" >> $where/last_build_config.log
+	if [ $_ffxiv_mouse_patch == "true" ] && [ $_use_staging == "true" ]; then
+	  _ffxiv_mouse_fix="-W server-send_hardware_message"
+	  echo "Applied FFXIV mouse jittering fix" >> $_where/last_build_config.log
 	fi
 
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
-	if [ $CSMT_toggle == "true" ] && [ $use_staging == "true" ]; then
+	if [ $_CSMT_toggle == "true" ] && [ $_use_staging == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  patch -Np1 < ../'CSMT-toggle.patch'
 	  cd "${srcdir}"/"${_winesrcdir}"
-	  echo "Applied CSMT toggle logic patch" >> $where/last_build_config.log
+	  echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
 	fi
 
 	# Revert origin breaking commits from the staging PA patchset
-	if [ $origin_fix == "true" ] && [ $use_staging == "true" ] && [ -z $staging_version ]; then
+	if [ $_origin_fix == "true" ] && [ $_use_staging == "true" ] && [ -z $_staging_version ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  patch -Np1 -R < ../'origin-breakers.patch'
 	  cd "${srcdir}"/"${_winesrcdir}"
-	  echo "Applied EA Origin fix" >> $where/last_build_config.log
+	  echo "Applied EA Origin fix" >> $_where/last_build_config.log
 	fi
 
 	# user patches
-	if [ $user_patches == "true" ]; then
-	  if [[ $(find $where -name "*.mypatch") ]]; then
-	    read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
-	    if [ "$CONDITION" == "y" ]; then
-	      for F in $where/*.mypatch; do
-	      if [ -e "${F}" ]; then
+	if [ $_user_patches == "true" ]; then
+	  if [[ $(find $_where -name "*.mypatch") ]]; then
+	    read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	    if [ "$_CONDITION" == "y" ]; then
+	      for _f in $_where/*.mypatch; do
+	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
-	        msg2 "Applying your own patch ${F}"
+	        msg2 "Applying your own patch ${_f}"
 	        msg2 ""
 	        msg2 "######################################################"
-	        patch -Np1 < ${F}
-	        echo "Applied your own patch ${F}" >> $where/last_build_config.log
+	        patch -Np1 < ${_f}
+	        echo "Applied your own patch ${_f}" >> $_where/last_build_config.log
 	      fi
 	      done
 	    fi
 	  fi
-	  if [[ $(find $where -name "*.mypatch.revert") ]]; then
-	    read -p "At least one of your own revert patches were found (*.mypatch.revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" CONDITION;
-	    if [ "$CONDITION" == "y" ]; then
-	      for F in $where/*.mypatch; do
+	  if [[ $(find $_where -name "*.mypatch.revert") ]]; then
+	    read -p "At least one of your own revert patches were found (*.mypatch.revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	    if [ "$_CONDITION" == "y" ]; then
+	      for _f in $_where/*.mypatch; do
 	      if [ -e "${F}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
-	        msg2 "Applying your own revert patch ${F}"
+	        msg2 "Applying your own revert patch ${_f}"
 	        msg2 ""
 	        msg2 "######################################################"
-	        patch -Np1 < ${F}
-	        echo "Applied your own revert patch ${F}" >> $where/last_build_config.log
+	        patch -Np1 < ${_f}
+	        echo "Applied your own revert patch ${_f}" >> $_where/last_build_config.log
 	      fi
 	      done
 	    fi
 	  fi
 	fi
 
-	if [ $use_staging == "true" ]; then
-	  if [ $use_esync == "true" ]; then
+	if [ $_use_staging == "true" ]; then
+	  if [ $_use_esync == "true" ]; then
 	    # msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
 	    # server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName) needs the no_alloc_handle patch to not break esync
-	    esync_exclusions="-W msvfw32-ICGetDisplayFormat"
+	    _esync_exclusions="-W msvfw32-ICGetDisplayFormat"
 	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $esync_exclusions $ffxiv_mouse_fix
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix
 	fi
 
 	# esync
-	if [ $use_esync == "true" ]; then
-	  if [ $use_staging == "true" ]; then
+	if [ $_use_esync == "true" ]; then
+	  if [ $_use_staging == "true" ]; then
 	    cd "${srcdir}"/"${_esyncsrcdir}"
 	    # fixes for esync patches to apply to staging
 	    patch -Np1 < ../'esync-staging-fixes.patch'
@@ -393,48 +393,48 @@ prepare() {
 	  done
 
 	  # fix for server-Desktop_Refcount on esync
-	  if [ $use_staging == "true" ]; then
+	  if [ $_use_staging == "true" ]; then
 	    patch -Np1 < ../'esync-no_alloc_handle.patch'
 	  fi
 	fi
 
 	# Fortnite Fix - Currently not working anymore
-	if [ $fortnite_fix == "true" ]; then
+	if [ $_fortnite_fix == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch'
-	  echo "Applied Fortnite crashfix" >> $where/last_build_config.log
+	  echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
 	fi
 
 	# League of Legends 8.15 crash fix
 	# https://bugs.winehq.org/show_bug.cgi?id=45550
-	if [ $use_staging == "true" ]; then
-	  if [ $lol_fix == "true" ]; then
+	if [ $_use_staging == "true" ]; then
+	  if [ $_lol_fix == "true" ]; then
 	    patch -Np1 < ../'lol-fix.patch'
-	    echo "Applied League of Legends crashfix" >> $where/last_build_config.log
+	    echo "Applied League of Legends crashfix" >> $_where/last_build_config.log
 	  fi
 	fi
 
 	# apply wine-pba patches
-	if [ $use_pba == "true" ]; then
+	if [ $_use_pba == "true" ]; then
 	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
 	    patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
 	  done
 	fi
 
 	# d3d9 patches
-	if [ $use_gallium_nine == "true" ] && [ $use_staging == "true" ]; then
-	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
-	  wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
-	  patch -Np1 < $where/staging-helper.patch
-	  patch -Np1 < $where/wine-d3d9.patch
+	if [ $_use_gallium_nine == "true" ] && [ $_use_staging == "true" ]; then
+	  wget -O $_where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O $_where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
+	  patch -Np1 < $_where/staging-helper.patch
+	  patch -Np1 < $_where/wine-d3d9.patch
 	  autoreconf -f
-	  withd3d9nine='--with-d3d9-nine'
-	elif [ $use_gallium_nine == "true" ] && [ $use_staging == "false" ]; then
-	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
-	  wget -O $where/d3d9-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/d3d9-helper.patch
-	  patch -Np1 < $where/d3d9-helper.patch
-	  patch -Np1 < $where/wine-d3d9.patch
+	  _withd3d9nine='--with-d3d9-nine'
+	elif [ $_use_gallium_nine == "true" ] && [ $_use_staging == "false" ]; then
+	  wget -O $_where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O $_where/d3d9-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/d3d9-helper.patch
+	  patch -Np1 < $_where/d3d9-helper.patch
+	  patch -Np1 < $_where/wine-d3d9.patch
 	  autoreconf -f
-	  withd3d9nine='--with-d3d9-nine'
+	  _withd3d9nine='--with-d3d9-nine'
 	fi
 
 	# fix path of opencl headers
@@ -444,8 +444,8 @@ prepare() {
 	rm	-rf "${srcdir}"/"${pkgname}"-{32,64}-build
 
 	# no compilation
-	if [ $NOCOMPILE == "true" ]; then
-	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
+	if [ $_NOCOMPILE == "true" ]; then
+	  rm -v $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  msg2 'make prepare function fail by using Gandalf'
 	  YOU_SHALL_NOT_PASS
 	fi
@@ -471,7 +471,7 @@ build() {
 		--with-gstreamer \
 		--enable-win64 \
 		--with-xattr \
-		$withd3d9nine \
+		$_withd3d9nine \
 		#--disable-tests
 		# Gstreamer was disabled for FS#33655
 
@@ -488,7 +488,7 @@ build() {
 		--with-x \
 		--with-gstreamer \
 		--with-xattr \
-		$withd3d9nine \
+		$_withd3d9nine \
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
 		#--disable-tests 
 
@@ -521,15 +521,15 @@ package() {
 	# wine binfmt
 	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 
-	rm -v $where/BIG_UGLY_COINMINER # state tracker end
+	rm -v $_where/BIG_UGLY_COINMINER # state tracker end
 
-	if [ $NUKR == "true" ]; then
-	  rm -v $where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
+	if [ $_NUKR == "true" ]; then
+	  rm -v $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
 	  msg2 'srcdir was nuked. See ya !'
 	fi
 
-	if [ $use_esync == "true" ]; then
+	if [ $_use_esync == "true" ]; then
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
 	  msg2 'Remember to export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
@@ -558,4 +558,4 @@ md5sums=('SKIP'
          '6108ac9f6052adb000dc45f1d833f31f')
 
 # Remove the state tracker on failed/stopped compilation
-trap "{ rm -f $where/BIG_UGLY_COINMINER; }" EXIT
+trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
