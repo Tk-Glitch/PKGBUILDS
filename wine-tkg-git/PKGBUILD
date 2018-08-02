@@ -406,11 +406,9 @@ prepare() {
 
 	# League of Legends 8.15 crash fix
 	# https://bugs.winehq.org/show_bug.cgi?id=45550
-	if [ $_use_staging == "true" ]; then
-	  if [ $_lol_fix == "true" ]; then
-	    patch -Np1 < ../'lol-fix.patch'
-	    echo "Applied League of Legends crashfix" >> $_where/last_build_config.log
-	  fi
+	if [ $_lol_fix == "true" ] && [ $_use_staging == "true" ]; then
+	  patch -Np1 < ../'lol-fix.patch'
+	  echo "Applied League of Legends crashfix" >> $_where/last_build_config.log
 	fi
 
 	# apply wine-pba patches
