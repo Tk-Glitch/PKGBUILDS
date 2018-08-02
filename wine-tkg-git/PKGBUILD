@@ -415,10 +415,17 @@ prepare() {
 	fi
 
 	# d3d9 patches
-	if [ $use_gallium_nine == "true" ]; then
+	if [ $use_gallium_nine == "true" ] && [ $use_staging == "true" ]; then
 	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
 	  wget -O $where/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
 	  patch -Np1 < $where/staging-helper.patch
+	  patch -Np1 < $where/wine-d3d9.patch
+	  autoreconf -f
+	  withd3d9nine='--with-d3d9-nine'
+	elif [ $use_gallium_nine == "true" ] && [ $use_staging == "false" ]; then
+	  wget -O $where/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O $where/d3d9-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/d3d9-helper.patch
+	  patch -Np1 < $where/d3d9-helper.patch
 	  patch -Np1 < $where/wine-d3d9.patch
 	  autoreconf -f
 	  withd3d9nine='--with-d3d9-nine'
