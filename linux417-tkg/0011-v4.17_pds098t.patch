@@ -199,10 +199,10 @@ index f20f20a77d4d..7114742084c2 100644
  #define DEF_SAMPLING_DOWN_FACTOR		(1)
  #define MAX_SAMPLING_DOWN_FACTOR		(10)
 diff --git a/drivers/cpufreq/cpufreq_governor.c b/drivers/cpufreq/cpufreq_governor.c
-index ca38229b045a..bf0c0440ed2e 100644
+index 43e14bb512c8..3fe32694b9f3 100644
 --- a/drivers/cpufreq/cpufreq_governor.c
 +++ b/drivers/cpufreq/cpufreq_governor.c
-@@ -539,6 +539,7 @@ int cpufreq_dbs_governor_start(struct cpufreq_policy *policy)
+@@ -537,6 +537,7 @@ int cpufreq_dbs_governor_start(struct cpufreq_policy *policy)
  	gov->start(policy);
  
  	gov_set_update_util(policy_dbs, sampling_rate);
@@ -484,10 +484,10 @@ index e5af028c08b4..f79e98fb0065 100644
  	return false;
  }
 diff --git a/include/linux/sched/task.h b/include/linux/sched/task.h
-index 5be31eb7b266..195c52d53031 100644
+index 108ede99e533..6dd5fc101b7c 100644
 --- a/include/linux/sched/task.h
 +++ b/include/linux/sched/task.h
-@@ -80,7 +80,7 @@ extern long kernel_wait4(pid_t, int *, int, struct rusage *);
+@@ -80,7 +80,7 @@ extern long kernel_wait4(pid_t, int __user *, int, struct rusage *);
  extern void free_task(struct task_struct *tsk);
  
  /* sched_exec is called by processes performing an exec */
@@ -933,10 +933,10 @@ index b42037e6e81d..6acfbf0e5e51 100644
  {
  }
 diff --git a/kernel/delayacct.c b/kernel/delayacct.c
-index e2764d767f18..2f85428d22b9 100644
+index ca8ac2824f0b..ae824da28e4b 100644
 --- a/kernel/delayacct.c
 +++ b/kernel/delayacct.c
-@@ -114,7 +114,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
+@@ -115,7 +115,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
  	 */
  	t1 = tsk->sched_info.pcount;
  	t2 = tsk->sched_info.run_delay;
@@ -1076,7 +1076,7 @@ index d9a02b318108..e5df6620d691 100644
  obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
  obj-$(CONFIG_MEMBARRIER) += membarrier.o
 diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
-index e13df951aca7..2f1e2b8d7eb1 100644
+index 28592b62b1d5..b6f4b2405bd6 100644
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
 @@ -173,15 +173,22 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
@@ -1100,17 +1100,17 @@ index e13df951aca7..2f1e2b8d7eb1 100644
 +	return sg_cpu->max;
 +#else
  	struct rq *rq = cpu_rq(sg_cpu->cpu);
- 	unsigned long util;
  
-@@ -199,6 +206,7 @@ static unsigned long sugov_aggregate_util(struct sugov_cpu *sg_cpu)
+ 	if (rq->rt.rt_nr_running)
+@@ -198,6 +205,7 @@ static unsigned long sugov_aggregate_util(struct sugov_cpu *sg_cpu)
  	 * ready for such an interface. So, we only do the latter for now.
  	 */
- 	return min(util, sg_cpu->max);
+ 	return min(sg_cpu->max, (sg_cpu->util_dl + sg_cpu->util_cfs));
 +#endif
  }
  
  static void sugov_set_iowait_boost(struct sugov_cpu *sg_cpu, u64 time, unsigned int flags)
-@@ -273,7 +281,9 @@ static inline bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu) { return false; }
+@@ -272,7 +280,9 @@ static inline bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu) { return false; }
   */
  static inline void ignore_dl_rate_limit(struct sugov_cpu *sg_cpu, struct sugov_policy *sg_policy)
  {
@@ -1120,7 +1120,7 @@ index e13df951aca7..2f1e2b8d7eb1 100644
  		sg_policy->need_freq_update = true;
  }
  
-@@ -474,8 +484,12 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
+@@ -473,8 +483,12 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
  	struct task_struct *thread;
  	struct sched_attr attr = {
  		.size		= sizeof(struct sched_attr),
@@ -1133,7 +1133,7 @@ index e13df951aca7..2f1e2b8d7eb1 100644
  		.sched_nice	= 0,
  		.sched_priority	= 0,
  		/*
-@@ -503,7 +517,12 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
+@@ -502,7 +516,12 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
  		return PTR_ERR(thread);
  	}
  
@@ -1245,7 +1245,7 @@ index 1a3e9bddd17b..542f4823b262 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..7cde0d7f58a3
+index 000000000000..66f6b1198024
 --- /dev/null
 +++ b/kernel/sched/pds.c
 @@ -0,0 +1,6350 @@
@@ -1703,9 +1703,9 @@ index 000000000000..7cde0d7f58a3
 +
 +static inline void update_sched_rq_queued_masks_normal(struct rq *rq)
 +{
-+	struct task_struct *p = rq->curr;
++	struct task_struct *p = rq_first_queued_task(rq);
 +
-+	if (p->prio == NORMAL_PRIO && rq_first_queued_task(rq) == p) {
++	if (p != NULL && p->prio == NORMAL_PRIO) {
 +		int level = task_running_policy_level(p, rq);
 +		int last_level = rq->queued_level;
 +

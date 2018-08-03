@@ -37,9 +37,9 @@ _basever=417
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
-_sub=11
+_sub=12
 pkgver=${_basekernel}.${_sub}
-pkgrel=12
+pkgrel=13
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -68,7 +68,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0011-v4.17_pds098t.patch
 )
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
-            '1345bf04742096c50eff4de6ba2a2c07ba8779e3c46373cd8076475c36f2e7b0'
+            '6ed482aa6bb72999434ca34de3081e798d4fc0ac79ec3e57af3a98927348ff99'
             '218e07bbe85d1e3dcfeaf38659752b2abf033f4aeb783d1161ca97ea4e0bc481'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -83,9 +83,9 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
             '6e500148b2e6905ed8b78358f793ba596a5226fbf8a04f48dee0c7232bcf1451'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
-            'b90690440a7505882b55ce7b49a5d7871500f768b04fb7986d4b0ffdda0ca055'
+            '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            '8719a4f387943527d0ba4471ebf7fc79b0812e2bf209b846588abe7e96118123')
+            '699258df33dc6f3741253760cbce2470e85982929fe16d60cb37359085f3c360')
 
 prepare() {
   ln -s $where/counter "${srcdir}" # workaround for non-pure Arch

@@ -5189,7 +5189,7 @@ index 05ec530b8a3a..309c62ef80d1 100644
  	set_current_state(TASK_UNINTERRUPTIBLE);
 -	schedule_timeout(msecs_to_jiffies(BAUDRATE_SETTLE_TIMEOUT_MS));
 +	schedule_msec_hrtimeout((BAUDRATE_SETTLE_TIMEOUT_MS));
- 	set_current_state(TASK_INTERRUPTIBLE);
+ 	set_current_state(TASK_RUNNING);
  
  	return 0;
 diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
@@ -14894,20 +14894,15 @@ diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
 index e13df951aca7..f6fd85f77a43 100644
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
-@@ -185,11 +185,11 @@ static unsigned long sugov_aggregate_util(struct sugov_cpu *sg_cpu)
+@@ -184,7 +184,7 @@ static unsigned long sugov_aggregate_util(struct sugov_cpu *sg_cpu)
+ {
  	struct rq *rq = cpu_rq(sg_cpu->cpu);
- 	unsigned long util;
  
--	if (rq->rt.rt_nr_running) {
-+	if (rq_rt_nr_running(rq)) {
- 		util = sg_cpu->max;
- 	} else {
- 		util = sg_cpu->util_dl;
--		if (rq->cfs.h_nr_running)
-+		if (rq_h_nr_running(rq))
- 			util += sg_cpu->util_cfs;
- 	}
+-	if (rq->rt.rt_nr_running)
++	if (rq_rt_nr_running(rq))
+ 		return sg_cpu->max;
  
+ 	/*
 @@ -474,7 +474,11 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
  	struct task_struct *thread;
  	struct sched_attr attr = {
