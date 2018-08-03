@@ -37,9 +37,9 @@ _basever=417
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
-_sub=12
+_sub=11
 pkgver=${_basekernel}.${_sub}
-pkgrel=11
+pkgrel=12
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -68,7 +68,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0011-v4.17_pds098t.patch
 )
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
-            '6ed482aa6bb72999434ca34de3081e798d4fc0ac79ec3e57af3a98927348ff99'
+            '1345bf04742096c50eff4de6ba2a2c07ba8779e3c46373cd8076475c36f2e7b0'
             '218e07bbe85d1e3dcfeaf38659752b2abf033f4aeb783d1161ca97ea4e0bc481'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -142,8 +142,8 @@ prepare() {
   sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set\nCONFIG_HZ_500=y/' ./.config
   fi
 
-  read -p "Disable NUMA? Only say n if you actually own a NUMA system - https://bugs.archlinux.org/task/31187`echo $'\n> Y/n : '`" CONDITION;
-  if [ "$CONDITION" != "n" ]; then
+  read -p "Disable NUMA? https://bugs.archlinux.org/task/31187 - Currently breaks CUDA on Nvidia equipped systems if disabled https://bbs.archlinux.org/viewtopic.php?id=239174`echo $'\n> N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
   # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
   sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
       -i -e '/CONFIG_AMD_NUMA=y/d' \
