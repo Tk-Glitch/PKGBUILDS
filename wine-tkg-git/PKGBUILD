@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=30
+pkgrel=31
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -128,7 +128,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-no_alloc_handle.patch'
 		'fallout4.patch'
 		'fortnite.patch'
-		'origin-breakers.patch'
 		'lol-fix.patch'
 		'lowlatency_audio.patch')
 
@@ -317,20 +316,18 @@ prepare() {
 	  echo "Applied FFXIV mouse jittering fix" >> $_where/last_build_config.log
 	fi
 
+	# Disable winepulse pulseaudio patchset
+	if [ $_staging_pulse_disable == "true" ] && [ $_use_staging == "true" ]; then
+	  _winepulse_disable="-W winepulse-PulseAudio_Support"
+	  echo "Disabled the staging winepulse patchset" >> $_where/last_build_config.log
+	fi
+
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
 	if [ $_CSMT_toggle == "true" ] && [ $_use_staging == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  patch -Np1 < ../'CSMT-toggle.patch'
 	  cd "${srcdir}"/"${_winesrcdir}"
 	  echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
-	fi
-
-	# Revert origin breaking commits from the staging PA patchset
-	if [ $_origin_fix == "true" ] && [ $_use_staging == "true" ] && [ -z $_staging_version ]; then
-	  cd "${srcdir}"/"${_stgsrcdir}"
-	  patch -Np1 -R < ../'origin-breakers.patch'
-	  cd "${srcdir}"/"${_winesrcdir}"
-	  echo "Applied EA Origin fix" >> $_where/last_build_config.log
 	fi
 
 	# user patches
@@ -376,7 +373,7 @@ prepare() {
 	    _esync_exclusions="-W msvfw32-ICGetDisplayFormat"
 	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
 	fi
 
 	# esync
@@ -559,7 +556,6 @@ md5sums=('SKIP'
          '360a9d3ca587a20e78f5373d5135b2bb'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
-         '3fe3638e2c21b81ac0802125c0ff2de8'
          '6108ac9f6052adb000dc45f1d833f31f'
          'ed6060dc030ebd5865f1fcc40d8863be')
 
