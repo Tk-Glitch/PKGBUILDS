@@ -354,7 +354,7 @@ prepare() {
 	  if [[ $(find $_where -name "*.mypatch.revert") ]]; then
 	    read -p "At least one of your own revert patches were found (*.mypatch.revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	    if [ "$_CONDITION" == "y" ]; then
-	      for _f in $_where/*.mypatch; do
+	      for _f in $_where/*.mypatch.revert; do
 	      if [ -e "${F}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
