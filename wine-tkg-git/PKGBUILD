@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=31
+pkgrel=32
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -456,7 +456,7 @@ prepare() {
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
 
-	cd $where # this is needed on version update not to get lost in srcdir
+	cd $_where # this is needed on version update not to get lost in srcdir
 }
 
 build() {
