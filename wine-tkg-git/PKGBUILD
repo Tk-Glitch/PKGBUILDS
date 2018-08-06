@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=32
+pkgrel=33
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -330,38 +330,42 @@ prepare() {
 	  echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
 	fi
 
-	# user patches
+	# wine-staging user patches
 	if [ $_user_patches == "true" ]; then
-	  if [[ $(find $_where -name "*.mypatch") ]]; then
-	    read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  if [[ $(find $_where -name "*.staging.mypatch") ]]; then
+	    read -p "At least one of your own wine-staging patches were found (*.staging.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	    if [ "$_CONDITION" == "y" ]; then
+	      cd "${srcdir}"/"${_stgsrcdir}"
 	      for _f in $_where/*.mypatch; do
 	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
-	        msg2 "Applying your own patch ${_f}"
+	        msg2 "Applying your own wine-staging patch ${_f}"
 	        msg2 ""
 	        msg2 "######################################################"
 	        patch -Np1 < ${_f}
 	        echo "Applied your own patch ${_f}" >> $_where/last_build_config.log
 	      fi
 	      done
+	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  fi
-	  if [[ $(find $_where -name "*.mypatch.revert") ]]; then
-	    read -p "At least one of your own 'to revert' patches were found (*.mypatch.revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  if [[ $(find $_where -name "*.staging.myrevert") ]]; then
+	    read -p "At least one of your own wine-staging 'to revert' patches were found (*.staging.myrevert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	    if [ "$_CONDITION" == "y" ]; then
-	      for _f in $_where/*.mypatch.revert; do
+	      cd "${srcdir}"/"${_stgsrcdir}"
+	      for _f in $_where/*.staging.myrevert; do
 	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
-	        msg2 "Reverting your own patch ${_f}"
+	        msg2 "Reverting your own wine-staging patch ${_f}"
 	        msg2 ""
 	        msg2 "######################################################"
 	        patch -Np1 -R < ${_f}
 	        echo "Reverted your own patch ${_f}" >> $_where/last_build_config.log
 	      fi
 	      done
+	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  fi
 	fi
@@ -437,6 +441,42 @@ prepare() {
 	  patch -Np1 < $_where/wine-d3d9.patch
 	  autoreconf -f
 	  _withd3d9nine='--with-d3d9-nine'
+	fi
+
+	# wine user patches
+	if [ $_user_patches == "true" ]; then
+	  if [[ $(find $_where -name "*.mypatch") ]]; then
+	    read -p "At least one of your own patches were found (*.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	    if [ "$_CONDITION" == "y" ]; then
+	      for _f in $_where/*.mypatch; do
+	      if [ -e "${_f}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Applying your own patch ${_f}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 < ${_f}
+	        echo "Applied your own patch ${_f}" >> $_where/last_build_config.log
+	      fi
+	      done
+	    fi
+	  fi
+	  if [[ $(find $_where -name "*.myrevert") ]]; then
+	    read -p "At least one of your own 'to revert' patches were found (*.myrevert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	    if [ "$_CONDITION" == "y" ]; then
+	      for _f in $_where/*.myrevert; do
+	      if [ -e "${_f}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Reverting your own patch ${_f}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 -R < ${_f}
+	        echo "Reverted your own patch ${_f}" >> $_where/last_build_config.log
+	      fi
+	      done
+	    fi
+	  fi
 	fi
 
 	# fix path of opencl headers
