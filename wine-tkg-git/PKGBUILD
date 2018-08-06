@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.13.r0.g25cc380b8e.staging.esync.pba
-pkgrel=33
+pkgrel=34
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -332,11 +332,11 @@ prepare() {
 
 	# wine-staging user patches
 	if [ $_user_patches == "true" ]; then
-	  if [[ $(find $_where -name "*.staging.mypatch") ]]; then
-	    read -p "At least one of your own wine-staging patches were found (*.staging.mypatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  if [[ $(find $_where -name "*.mystagingpatch") ]]; then
+	    read -p "At least one of your own wine-staging patches were found (*.mystagingpatch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	    if [ "$_CONDITION" == "y" ]; then
 	      cd "${srcdir}"/"${_stgsrcdir}"
-	      for _f in $_where/*.mypatch; do
+	      for _f in $_where/*.mystagingpatch; do
 	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
@@ -350,11 +350,11 @@ prepare() {
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  fi
-	  if [[ $(find $_where -name "*.staging.myrevert") ]]; then
-	    read -p "At least one of your own wine-staging 'to revert' patches were found (*.staging.myrevert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  if [[ $(find $_where -name "*.mystagingrevert") ]]; then
+	    read -p "At least one of your own wine-staging 'to revert' patches were found (*.mystagingrevert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	    if [ "$_CONDITION" == "y" ]; then
 	      cd "${srcdir}"/"${_stgsrcdir}"
-	      for _f in $_where/*.staging.myrevert; do
+	      for _f in $_where/*.mystagingrevert; do
 	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
