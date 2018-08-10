@@ -128,7 +128,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-no_alloc_handle.patch'
 		'fallout4.patch'
 		'fortnite.patch'
-		'lol-fix.patch'
 		'lowlatency_audio.patch')
 
 provides=(
@@ -412,13 +411,6 @@ prepare() {
 	  echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
 	fi
 
-	# League of Legends 8.15 crash fix
-	# https://bugs.winehq.org/show_bug.cgi?id=45550
-	if [ $_lol_fix == "true" ] && [ $_use_staging == "true" ]; then
-	  patch -Np1 < ../'lol-fix.patch'
-	  echo "Applied League of Legends crashfix" >> $_where/last_build_config.log
-	fi
-
 	# apply wine-pba patches
 	if [ $_use_pba == "true" ]; then
 	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
@@ -596,7 +588,6 @@ md5sums=('SKIP'
          '360a9d3ca587a20e78f5373d5135b2bb'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
-         '6108ac9f6052adb000dc45f1d833f31f'
          'ed6060dc030ebd5865f1fcc40d8863be')
 
 # Remove the state tracker on failed/stopped compilation
