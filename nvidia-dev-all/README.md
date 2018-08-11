@@ -1,4 +1,4 @@
-# Nvidia Vulkan Developer Beta driver 396.24.10
+# Nvidia Vulkan Developer Beta driver 396.51.02
 
 LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (you will still be asked if you want to use the regular package). Installs for all currently installed kernels.
 
