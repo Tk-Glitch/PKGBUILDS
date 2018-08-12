@@ -432,3 +432,23 @@ index b7e52a5c0d..7223f9a564 100644
  diff --git a/server/esync.c b/server/esync.c
  index 6adf996..8bf6e44 100644
  --- a/server/esync.c
+
+diff --git a/0077-ntdll-server-Specify-EFD_SEMAPHORE-on-the-server-sid.patch b/0077-ntdll-server-Specify-EFD_SEMAPHORE-on-the-server-sid.patch
+index cb19d79..25e6473 100644
+--- a/0077-ntdll-server-Specify-EFD_SEMAPHORE-on-the-server-sid.patch
++++ b/0077-ntdll-server-Specify-EFD_SEMAPHORE-on-the-server-sid.patch
+@@ -102,14 +102,6 @@ index 49ca1a9..5b7793a 100644
+  };
+  struct create_esync_reply
+  {
+-@@ -6601,6 +6599,6 @@ union generic_reply
+-     struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
+- };
+- 
+--#define SERVER_PROTOCOL_VERSION 564
+-+#define SERVER_PROTOCOL_VERSION 565
+- 
+- #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
+ diff --git a/server/esync.c b/server/esync.c
+ index 10001a2..3e78387 100644
+ --- a/server/esync.c
