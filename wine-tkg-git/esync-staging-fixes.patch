@@ -452,3 +452,48 @@ index cb19d79..25e6473 100644
  diff --git a/server/esync.c b/server/esync.c
  index 10001a2..3e78387 100644
  --- a/server/esync.c
+
+diff --git a/0078-ntdll-server-Initialize-the-shared-memory-portion-on.patch b/0078-ntdll-server-Initialize-the-shared-memory-portion-on.patch
+index 9035601..29107b1 100644
+--- a/0078-ntdll-server-Initialize-the-shared-memory-portion-on.patch
++++ b/0078-ntdll-server-Initialize-the-shared-memory-portion-on.patch
+@@ -216,14 +216,6 @@ index 5b7793a..562e404 100644
+  };
+  struct create_esync_reply
+  {
+-@@ -6599,6 +6601,6 @@ union generic_reply
+-     struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
+- };
+- 
+--#define SERVER_PROTOCOL_VERSION 565
+-+#define SERVER_PROTOCOL_VERSION 566
+- 
+- #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
+ diff --git a/server/esync.c b/server/esync.c
+ index 3e78387..35e7a8a 100644
+ --- a/server/esync.c
+ 
+diff --git a/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch b/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch
+index 6fe1244..8ee6cad 100644
+--- a/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch
++++ b/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch
+@@ -145,17 +145,14 @@ index 562e404..9370333 100644
+  };
+  union generic_reply
+  {
+-@@ -6599,8 +6612,9 @@ union generic_reply
++@@ -6922,6 +6922,7 @@ union generic_reply
+      struct open_esync_reply open_esync_reply;
+      struct get_esync_fd_reply get_esync_fd_reply;
+      struct get_esync_apc_fd_reply get_esync_apc_fd_reply;
+ +    struct esync_msgwait_reply esync_msgwait_reply;
+  };
+  
+--#define SERVER_PROTOCOL_VERSION 566
+-+#define SERVER_PROTOCOL_VERSION 567
+- 
+- #endif /* __WINE_WINE_SERVER_PROTOCOL_H */
++ #define SERVER_PROTOCOL_VERSION 561
+ diff --git a/server/protocol.def b/server/protocol.def
+ index 6ccc1d0..22ae34b 100644
+ --- a/server/protocol.def
