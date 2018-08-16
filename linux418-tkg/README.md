@@ -1,4 +1,4 @@
-A custom Linux kernel 4.17.y with specific PDS and MuQSS CPU schedulers related patchsets selector (stock CFS is also an option).
+A custom Linux kernel 4.18.y with specific PDS and MuQSS CPU schedulers related patchsets selector (stock CFS is also an option).
 
 Comes with a slightly modified Arch config asking for a few core personalization settings at compilation time.
 
