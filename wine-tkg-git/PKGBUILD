@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.13.r256.gd744f367d2.staging.esync.pba
-pkgrel=39
+pkgver=3.13.r318.gccf6211c0a.staging.esync.pba
+pkgrel=40
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -125,6 +125,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
+		'esync-compat-fixes.patch'
 		'esync-no_alloc_handle.patch'
 		'fallout4.patch'
 		'fortnite.patch'
@@ -388,6 +389,10 @@ prepare() {
 	    cd "${srcdir}"/"${_winesrcdir}"
 	  fi
 
+	  cd "${srcdir}"/"${_esyncsrcdir}"
+	  patch -Np1 < ../'esync-compat-fixes.patch'
+	  cd "${srcdir}"/"${_winesrcdir}"
+
 	  # wine-esync patches
 	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
 	    git apply -C1 --verbose < ${_f}
@@ -584,7 +589,8 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         'bdd78cba2ac67b98d8429e41f0c889ab'
+         'bb280dfbf0c1719e67f54018c81e5720'
+         'b63439c600dc4b900d59a20113fede33'
          '360a9d3ca587a20e78f5373d5135b2bb'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
