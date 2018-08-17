@@ -34,7 +34,7 @@ _basever=418
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
-_sub=1
+_sub=2
 pkgver=${_basekernel}.${_sub}
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -59,7 +59,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0010-glitched-muqss.patch
         0010-patch-4.18-ck1
         0011-glitched-pds.patch
-        0011-v4.18_pds098u.patch
+        0011-v4.18_pds098v.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'f0580daf3ea0716301c929be78c09db4dc3d8add65a1da392c2fc2c841244e8c'
@@ -76,7 +76,7 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            '2324c00c20b53f4457b4bae8f1626e17a7f91494355f857d0b072281cafe4046')
+            '579aa4e71c4973dcf72574a31a9edb31ec6d50c26a5d211f83470c94c3bf020b')
 
 prepare() {
   ln -s $where/counter "${srcdir}" # workaround for non-pure Arch
@@ -104,7 +104,7 @@ prepare() {
     patch -Np1 -i ../0010-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0011-v4.18_pds098u.patch
+    patch -Np1 -i ../0011-v4.18_pds098v.patch
     patch -Np1 -i ../0011-glitched-pds.patch
   fi
 
