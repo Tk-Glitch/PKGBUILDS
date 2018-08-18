@@ -1,11 +1,10 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.13.r318.gccf6211c0a.staging.esync.pba
-pkgrel=40
+pkgver=3.14.r0.gc698682b32.staging.esync.pba
+pkgrel=41
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
-_pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
@@ -41,7 +40,7 @@ if [ $_use_staging == "true" ] && [ -n "$_staging_version" ]; then
 fi
 
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
-url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-staging-esync-pba'
+url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git'
 arch=('x86_64')
 options=('staticlibs' 'ccache')
 license=('LGPL')
@@ -115,7 +114,6 @@ optdepends=(
 )
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
-		"$_pbasrcdir"::'git+https://github.com/Firerat/wine-pba.git#branch=knobs_and_switches'
 		"https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		'steam.patch'
 		'poe-fix.patch'
@@ -127,6 +125,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-staging-fixes.patch'
 		'esync-compat-fixes.patch'
 		'esync-no_alloc_handle.patch'
+		'PBA313-.patch'
+		'PBA314+.patch'
 		'fallout4.patch'
 		'fortnite.patch'
 		'lowlatency_audio.patch')
@@ -153,11 +153,6 @@ pkgver() {
 	# retrieve current wine version
 	cd "${srcdir}/${_winesrcdir}"
 	local _wineVer="$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/')"
-
-	# retrieve current wine-pba version
-	cd "${srcdir}/${_pbasrcdir}"
-	local _pbaTag="$(git tag --sort='version:refname' | tail -n1 | sed 's/-/./g;s/^v//;s/\.rc/rc/')"
-	local _pbaVer=$( printf "%s.r%s.%s" "$_pbaTag" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)" )
 
 	if [ $_use_staging == "true" ]; then
 	  _stg=".staging"
@@ -330,6 +325,19 @@ prepare() {
 	  echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
 	fi
 
+	# apply wine-pba patches
+	if [ $_use_pba == "true" ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if [ $_pba_version == "314+" ]; then
+	    patch -Np1 < ../'PBA314+.patch'
+	    echo "Applied PBA 314+ patch" >> $_where/last_build_config.log
+	  elif [ $_pba_version == "313-" ]; then
+	    patch -Np1 < ../'PBA313-.patch'
+	    echo "Applied PBA 313- patch" >> $_where/last_build_config.log
+	  fi
+	  cd "${srcdir}"/"${_winesrcdir}"
+	fi
+
 	# wine-staging user patches
 	if [ $_user_patches == "true" ]; then
 	  if [[ $(find $_where -name "*.mystagingpatch") ]]; then
@@ -414,13 +422,6 @@ prepare() {
 	if [ $_fortnite_fix == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch'
 	  echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
-	fi
-
-	# apply wine-pba patches
-	if [ $_use_pba == "true" ]; then
-	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
-	    patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
-	  done
 	fi
 
 	# d3d9 patches
@@ -581,7 +582,6 @@ package() {
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
-         'SKIP'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
          'ecada2fc8abda49c6bb788c25f05a822'
@@ -592,6 +592,8 @@ md5sums=('SKIP'
          'bb280dfbf0c1719e67f54018c81e5720'
          'b63439c600dc4b900d59a20113fede33'
          '360a9d3ca587a20e78f5373d5135b2bb'
+         '80697db1332b246361cfc8407fa37787'
+         'af25f7cac9169a6b73257d320ceda909'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
          'ed6060dc030ebd5865f1fcc40d8863be')
