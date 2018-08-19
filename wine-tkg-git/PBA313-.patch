@@ -1,13 +1,13 @@
-From a1da07f4cca6a9a8232cb2a58add1d49e504bac2 Mon Sep 17 00:00:00 2001
 From: Firerat <firer4t@googlemail.com>
 Date: Fri, 17 Aug 2018 06:06:52 +0100
 Subject: [PATCH] wined3d: Add wined3d-Persistent_Buffer_Allocator
+
+Modified by Tk-Glitch <ti3nou@gmail.com> for wine-tkg-git (3.13-)
 
 https://github.com/acomminos/wine-pba
 with additional envvar patch
 https://github.com/Firerat/wine-pba/tree/knobs_and_switches
 ---
- patches/patchinstall.sh                       |  30 +
  ...implementation-of-a-persistent-mappe.patch | 793 ++++++++++++++++++
  ...ort-for-backing-dynamic-wined3d_buff.patch | 679 +++++++++++++++
  ...B_multi_bind-to-speed-up-UBO-updates.patch | 121 +++
@@ -19,77 +19,22 @@ https://github.com/Firerat/wine-pba/tree/knobs_and_switches
  ...k-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch |  97 +++
  .../0010-wined3d-knobs-and-switches.patch     | 140 ++++
  11 files changed, 2569 insertions(+)
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
- create mode 100644 patches/wined3d-Persistent_Buffer_Allocator/0010-wined3d-knobs-and-switches.patch
+ create mode 100644 patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
+ create mode 100644 patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
+ create mode 100644 patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
+ create mode 100644 patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
+ create mode 100644 patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
+ create mode 100644 patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
+ create mode 100644 patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
+ create mode 100644 patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
+ create mode 100644 patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
+ create mode 100644 patches/0010-wined3d-knobs-and-switches.patch
 
-diff --git a/patches/patchinstall.sh b/patches/patchinstall.sh
-index 7fd82cbe..800f63d6 100755
---- a/patches/patchinstall.sh
-+++ b/patches/patchinstall.sh
-@@ -368,6 +368,7 @@ patch_enable_all ()
- 	enable_wined3d_DXTn="$1"
- 	enable_wined3d_Dual_Source_Blending="$1"
- 	enable_wined3d_Indexed_Vertex_Blending="$1"
-+	enable_wined3d_Persistent_Buffer_Allocator="$1"
- 	enable_wined3d_QUERY_Stubs="$1"
- 	enable_wined3d_Silence_FIXMEs="$1"
- 	enable_wined3d_UAV_Counters="$1"
-@@ -1280,6 +1281,9 @@ patch_enable ()
- 		wined3d-Indexed_Vertex_Blending)
- 			enable_wined3d_Indexed_Vertex_Blending="$2"
- 			;;
-+        wined3d-Persistent_Buffer_Allocator)
-+			enable_wined3d_Persistent_Buffer_Allocator="$2"
-+			;;
- 		wined3d-QUERY_Stubs)
- 			enable_wined3d_QUERY_Stubs="$2"
- 			;;
-@@ -8409,6 +8413,32 @@ if test "$enable_xaudio2_CommitChanges" -eq 1; then
- 	) >> "$patchlist"
- fi
- 
-+# Patchset  Persistent_Buffer_Allocator
-+# |
-+# | This patchset adds wine-PBA
-+# |     https://github.com/acomminos/wine-pba
-+# | with additional envvars patch
-+# |     https://github.com/Firerat/wine-pba/tree/knobs_and_switches
-+# | 
-+# | Modified files:
-+# |     * dlls/wined3d/Makefile.in, dlls/wined3d/buffer.c, dlls/wined3d/buffer_heap.c, dlls/wined3d/context.c, dlls/wined3d/cs.c, dlls/wined3d/device.c, dlls/wined3d/directx.c, dlls/wined3d/resource.c, dlls/wined3d/state.c, dlls/wined3d/texture.c, dlls/wined3d/utils.c, dlls/wined3d/wined3d_gl.h, dlls/wined3d/wined3d_private.h
-+# |
-+if test "$enable_wined3d_Persistent_Buffer_Allocator" -eq 1; then
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
-+    patch_apply wined3d-Persistent_Buffer_Allocator/0010-wined3d-knobs-and-switches.patch
-+	(
-+		printf '%s\n' '+    { "Andrew Comminos", "wined3d: Persistent Buffer Allocator", 1 },';
-+		printf '%s\n' '+    { "Firerat", "wined3d: add envvars to Persistent Buffer Allocator", 1 },';
-+	) >> "$patchlist"
-+fi
- 
- if test "$enable_patchlist" -eq 1; then
- 
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch b/patches/wined3d-Persistent_Buffer_Allocator/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
+diff --git a/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch b/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
 new file mode 100644
 index 00000000..eb9d1156
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
++++ b/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
 @@ -0,0 +1,793 @@
 +From 5a7616ae55dd012b2c8b551c9af199c6aabb3a93 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -884,11 +829,11 @@ index 00000000..eb9d1156
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch b/patches/wined3d-Persistent_Buffer_Allocator/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
+diff --git a/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch b/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
 new file mode 100644
 index 00000000..bbf78dcd
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
++++ b/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
 @@ -0,0 +1,679 @@
 +From a684d358f30e13045e7dbb5e3c8bad36f83eaed7 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1569,11 +1514,11 @@ index 00000000..bbf78dcd
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch b/patches/wined3d-Persistent_Buffer_Allocator/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
+diff --git a/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch b/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
 new file mode 100644
 index 00000000..631d33f7
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
++++ b/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
 @@ -0,0 +1,121 @@
 +From a3368a5412b5cf59bdfd5a1bf86c4b7178928576 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1696,11 +1641,11 @@ index 00000000..631d33f7
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch b/patches/wined3d-Persistent_Buffer_Allocator/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
+diff --git a/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch b/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
 new file mode 100644
 index 00000000..be09cc17
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
++++ b/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
 @@ -0,0 +1,26 @@
 +From 3de8b84fd798ee510767f5e68b77eb5be629fff6 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1728,11 +1673,11 @@ index 00000000..be09cc17
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch b/patches/wined3d-Persistent_Buffer_Allocator/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
+diff --git a/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch b/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
 new file mode 100644
 index 00000000..56b5b1f6
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
++++ b/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
 @@ -0,0 +1,28 @@
 +From 764f23c1de98c9719afbf2aaeed88ad7ff66015d Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1762,11 +1707,11 @@ index 00000000..56b5b1f6
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch b/patches/wined3d-Persistent_Buffer_Allocator/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
+diff --git a/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch b/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
 new file mode 100644
 index 00000000..02d54546
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
++++ b/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
 @@ -0,0 +1,92 @@
 +From e7adf0b68684aca285a1cd324bef774c63053836 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1860,11 +1805,11 @@ index 00000000..02d54546
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch b/patches/wined3d-Persistent_Buffer_Allocator/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
+diff --git a/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch b/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
 new file mode 100644
 index 00000000..39635440
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
++++ b/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
 @@ -0,0 +1,351 @@
 +From ad2d3eec434fcd4e64e0451889195f4dec9e6aec Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -2217,11 +2162,11 @@ index 00000000..39635440
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch b/patches/wined3d-Persistent_Buffer_Allocator/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
+diff --git a/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch b/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
 new file mode 100644
 index 00000000..bc7561b0
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
++++ b/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
 @@ -0,0 +1,212 @@
 +From 9fcb721bb030871bbdbccdd26f5ee7c37a84e2aa Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -2435,11 +2380,11 @@ index 00000000..bc7561b0
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch b/patches/wined3d-Persistent_Buffer_Allocator/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
+diff --git a/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch b/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
 new file mode 100644
 index 00000000..90224efd
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
++++ b/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
 @@ -0,0 +1,97 @@
 +From 9caebb2fc1a479698111b72b44ea0bc49030f4f7 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -2538,11 +2483,11 @@ index 00000000..90224efd
 +-- 
 +2.18.0
 +
-diff --git a/patches/wined3d-Persistent_Buffer_Allocator/0010-wined3d-knobs-and-switches.patch b/patches/wined3d-Persistent_Buffer_Allocator/0010-wined3d-knobs-and-switches.patch
+diff --git a/patches/0010-wined3d-knobs-and-switches.patch b/patches/0010-wined3d-knobs-and-switches.patch
 new file mode 100644
 index 00000000..12da4298
 --- /dev/null
-+++ b/patches/wined3d-Persistent_Buffer_Allocator/0010-wined3d-knobs-and-switches.patch
++++ b/patches/0010-wined3d-knobs-and-switches.patch
 @@ -0,0 +1,140 @@
 +From 7f38abab433cd53de64e2cff57ffd93c9ae755dd Mon Sep 17 00:00:00 2001
 +From: Firerat <firer4t@googlemail.com>

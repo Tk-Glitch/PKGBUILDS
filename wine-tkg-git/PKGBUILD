@@ -2,9 +2,10 @@
 
 pkgname=wine-tkg-git
 pkgver=3.14.r0.gc698682b32.staging.esync.pba
-pkgrel=41
+pkgrel=42
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
+_pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
@@ -166,7 +167,7 @@ pkgver() {
 
 	if [ $_use_pba == "true" ]; then
 	  _firerat=".pba"
-	  msg2 "Using pba patchset"
+	  msg2 "Using pba (${_pba_version}) patchset"
 	fi
 
 	if [ $_use_gallium_nine == "true" ]; then
@@ -223,7 +224,7 @@ prepare() {
 	fi
 
 	if [ $_use_pba == "true" ]; then
-	  echo "Using pba patchset" >> $_where/last_build_config.log
+	  echo "Using pba (${_pba_version}) patchset" >> $_where/last_build_config.log
 	fi
 
 	if [ $_use_gallium_nine == "true" ]; then
@@ -325,19 +326,6 @@ prepare() {
 	  echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
 	fi
 
-	# apply wine-pba patches
-	if [ $_use_pba == "true" ]; then
-	  cd "${srcdir}"/"${_stgsrcdir}"
-	  if [ $_pba_version == "314+" ]; then
-	    patch -Np1 < ../'PBA314+.patch'
-	    echo "Applied PBA 314+ patch" >> $_where/last_build_config.log
-	  elif [ $_pba_version == "313-" ]; then
-	    patch -Np1 < ../'PBA313-.patch'
-	    echo "Applied PBA 313- patch" >> $_where/last_build_config.log
-	  fi
-	  cd "${srcdir}"/"${_winesrcdir}"
-	fi
-
 	# wine-staging user patches
 	if [ $_user_patches == "true" ]; then
 	  if [[ $(find $_where -name "*.mystagingpatch") ]]; then
@@ -422,6 +410,21 @@ prepare() {
 	if [ $_fortnite_fix == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch'
 	  echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
+	fi
+
+	# apply wine-pba patches
+	if [ $_use_pba == "true" ]; then
+	  mkdir -p "${srcdir}/${_pbasrcdir}/patches"
+	  cd "${srcdir}/${_pbasrcdir}"
+	  if [ $_pba_version == "314+" ]; then
+	    patch -Np1 < ../'PBA314+.patch'
+	  elif [ $_pba_version == "313-" ]; then
+	    patch -Np1 < ../'PBA313-.patch'
+	  fi
+	  cd "${srcdir}"/"${_winesrcdir}"
+	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
+	      patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
+	  done
 	fi
 
 	# d3d9 patches
@@ -592,8 +595,8 @@ md5sums=('SKIP'
          'bb280dfbf0c1719e67f54018c81e5720'
          'b63439c600dc4b900d59a20113fede33'
          '360a9d3ca587a20e78f5373d5135b2bb'
-         '80697db1332b246361cfc8407fa37787'
-         'af25f7cac9169a6b73257d320ceda909'
+         'b5b00938bbd4899404e9f3b33b65e954'
+         '940475a482b411ed7111022175df03c1'
          '7416ca33d6d86e3eab3f4faff105f850'
          'f50501943759c8731d40eb521e36e6da'
          'ed6060dc030ebd5865f1fcc40d8863be')
