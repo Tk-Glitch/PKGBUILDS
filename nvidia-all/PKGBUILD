@@ -24,8 +24,8 @@ else
 fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgver=396.51
-pkgrel=4
+pkgver=396.54
+pkgrel=5
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -41,11 +41,11 @@ source=("https://download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'kernel-4.16.patch')
-md5sums=('42b1a62681dff47f82d66bf9e9406915'
+md5sums=('195afa93d400bdbb9361ede6cef95143'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '84f1f2ecdccf377fc86323f8ad7b7469')
-[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='42b1a62681dff47f82d66bf9e9406915'
+[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='195afa93d400bdbb9361ede6cef95143'
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
