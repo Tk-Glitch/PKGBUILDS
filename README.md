@@ -1,4 +1,4 @@
-# PKGBUILDS and other scripts made for DXVK community
+# PKGBUILDS and other scripts made for random people online
 
 To clone a single folder from this repo :
 ```
