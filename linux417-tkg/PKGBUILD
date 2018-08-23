@@ -4,42 +4,27 @@
 
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
-# CPU SCHED selector
-source counter # We have to reread variable
-if [ -e cpuschedset ] && [ $counter -eq 3 ]; then
-  echo "counter=0" > counter
-  rm cpuschedset
-fi
-
-source counter # We have to reread variable
-if [ -e cpuschedset ] && [ $counter -le 2 ]; then
-  source cpuschedset
-fi
-
-source counter # We have to reread variable
-if [ $counter -eq 0 ]; then
-  read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.MUQSS\n  3.CFS\nchoice[1-3?]: '`" CONDITION;
-  if [ "$CONDITION" == "2" ]; then
-    echo "TkGExt=\"-tkg-muqss\"" > cpuschedset
-    echo "counter=0" > counter
-  elif [ "$CONDITION" == "3" ]; then
-    echo "TkGExt=\"-tkg-cfs\"" > cpuschedset
-    echo "counter=0" > counter
-  else
-    echo "TkGExt=\"-tkg-pds\"" > cpuschedset
-    echo "counter=0" > counter
-  fi
-  source cpuschedset
-fi
-
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
+
+# CPU SCHED selector
+if [ ! -e $where/cpuschedset ]; then
+  read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.CFS\nchoice[1-2?]: '`" CONDITION;
+  if [ "$CONDITION" == "2" ]; then
+    echo "TkGExt=\"-tkg-cfs\"" > $where/cpuschedset
+  else
+    echo "TkGExt=\"-tkg-pds\"" > $where/cpuschedset
+  fi
+fi
+
+source $where/cpuschedset
+
 _basever=417
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
 _sub=18
 pkgver=${_basekernel}.${_sub}
-pkgrel=19
+pkgrel=20
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -88,8 +73,9 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '699258df33dc6f3741253760cbce2470e85982929fe16d60cb37359085f3c360')
 
 prepare() {
-  ln -s $where/counter "${srcdir}" # workaround for non-pure Arch
-  ln -s $where/cpuschedset "${srcdir}" # workaround for non-pure Arch
+  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
+
+  ln -s "${where}/cpuschedset" "${srcdir}" # workaround for non-pure Arch
 
   cd "${srcdir}/linux-${_basekernel}"
   
@@ -184,10 +170,6 @@ build() {
 
   # build!
   time schedtool -B -n 1 -e ionice -n 1 make ${MAKEFLAGS} LOCALVERSION= bzImage modules
-  
-  # hack
-  counter=$((counter + 1))
-  echo counter=$counter > ${srcdir}/counter
 }
 
 hackbase() {
@@ -251,10 +233,6 @@ hackbase() {
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
   sed "${_subst}" ${srcdir}/90-linux.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
-    
-  # hack
-  counter=$((counter + 1))
-  echo counter=$counter > ${srcdir}/counter
 }
 
 hackheaders() {
@@ -321,9 +299,8 @@ hackheaders() {
     /usr/bin/strip ${_strip} "${_binary}"
   done < <(find "${_builddir}/scripts" -type f -perm -u+w -print0 2>/dev/null)
   
-  # hack
-  counter=$((counter + 1))
-  echo counter=$counter > ${srcdir}/counter
+  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
+  rm -v $where/cpuschedset # state tracker end
 }
 
 package_linux417-tkg-pds() {
@@ -349,3 +326,6 @@ hackheaders
 package_linux417-tkg-cfs-headers() {
 hackheaders
 }
+
+# Remove the state tracker on failed/stopped compilation
+trap "{ rm -f $where/cpuschedset; }" EXIT
