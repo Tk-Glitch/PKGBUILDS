@@ -592,28 +592,6 @@ index 02a616e2f17d..17c18b583eed 100644
  
  int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
  			pgoff_t offset, unsigned long nr_to_read);
-diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
-index 023386338269..6af91bd7ae9e 100644
---- a/kernel/locking/lockdep.c
-+++ b/kernel/locking/lockdep.c
-@@ -140,7 +140,7 @@ static struct lock_list list_entries[MAX_LOCKDEP_ENTRIES];
- unsigned long nr_lock_classes;
- static struct lock_class lock_classes[MAX_LOCKDEP_KEYS];
- 
--static inline struct lock_class *hlock_class(struct held_lock *hlock)
-+inline struct lock_class *lockdep_hlock_class(struct held_lock *hlock)
- {
- 	if (!hlock->class_idx) {
- 		/*
-@@ -151,6 +151,8 @@ static inline struct lock_class *hlock_class(struct held_lock *hlock)
- 	}
- 	return lock_classes + hlock->class_idx - 1;
- }
-+EXPORT_SYMBOL_GPL(lockdep_hlock_class);
-+#define hlock_class(hlock) lockdep_hlock_class(hlock)
- 
- #ifdef CONFIG_LOCK_STAT
- static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS], cpu_lock_stats);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
 index 211890edf37e..37121563407d 100644
 --- a/kernel/sched/core.c
@@ -639,15 +617,6 @@ index 211890edf37e..37121563407d 100644
  
  /*
   * __task_rq_lock - lock the rq @p resides on.
-diff --git a/kernel/task_work.c b/kernel/task_work.c
-index 0fef395662a6..83fb1ecfc33d 100644
---- a/kernel/task_work.c
-+++ b/kernel/task_work.c
-@@ -116,3 +116,4 @@ void task_work_run(void)
- 		} while (work);
- 	}
- }
-+EXPORT_SYMBOL_GPL(task_work_run);
 diff --git a/lib/Kconfig b/lib/Kconfig
 index 5fe577673b98..c44c27cd6e05 100644
 --- a/lib/Kconfig

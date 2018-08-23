@@ -4,39 +4,27 @@
 
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
+where=$PWD # track basedir as different Arch based distros are moving srcdir around
+
 # CPU SCHED selector
-source counter # We have to reread variable
-if [ -e cpuschedset ] && [ $counter -eq 3 ]; then
-  echo "counter=0" > counter
-  rm cpuschedset
-fi
-
-source counter # We have to reread variable
-if [ -e cpuschedset ] && [ $counter -le 2 ]; then
-  source cpuschedset
-fi
-
-source counter # We have to reread variable
-if [ $counter -eq 0 ]; then
+if [ ! -e $where/cpuschedset ]; then
   read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.CFS\nchoice[1-2?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "TkGExt=\"-tkg-cfs\"" > cpuschedset
-    echo "counter=0" > counter
+    echo "TkGExt=\"-tkg-cfs\"" > $where/cpuschedset
   else
-    echo "TkGExt=\"-tkg-pds\"" > cpuschedset
-    echo "counter=0" > counter
+    echo "TkGExt=\"-tkg-pds\"" > $where/cpuschedset
   fi
-  source cpuschedset
 fi
 
-where=$PWD # track basedir as different Arch based distros are moving srcdir around
+source $where/cpuschedset
+
 _basever=418
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=4
 pkgver=${_basekernel}.${_sub}
-pkgrel=5
+pkgrel=6
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -44,6 +32,7 @@ makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool
 options=('!strip' 'ccache' 'makeflags')
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
+        "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
         'config.x86_64' # arch config with minor tweaks
         'linux418-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -63,7 +52,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'cc22261cd9651dc2a05ad817a5b5fd3c63076ca86abfade7097915e7ba0b3bd6'
-            'b99ad0f7f92fa1db999ef286de885dd92d4121a1e94da5d30acdbce0fd85972f'
+            'SKIP'
+            '170afeaf03c703b389d8d4ea5eb6335f62f14b5ec5f3474b11a644bfa273f389'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -72,15 +62,34 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
             '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
-            '0ed3662a6e5c5797191a6ce032715bba5180906741b677269c50673aea482f0e'
+            '8d9ae853f6d8e7923f2388b642dbb20927b5993248374570241f9681cd958e14'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
             '579aa4e71c4973dcf72574a31a9edb31ec6d50c26a5d211f83470c94c3bf020b')
 
 prepare() {
-  ln -s $where/counter "${srcdir}" # workaround for non-pure Arch
-  ln -s $where/cpuschedset "${srcdir}" # workaround for non-pure Arch
+  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
+
+  ln -s "${where}/cpuschedset" "${srcdir}" # workaround for non-pure Arch
+
+  # AUFS
+  cd "${srcdir}/aufs"
+  rm -v -f $(find . -type f -name '*.orig')
+  rm -rf "../tmp/linux-4.18"
+  mkdir -p "../tmp/linux-4.18"
+  cp -a fs "../tmp/linux-4.18"
+  cp -a include "../tmp/linux-4.18"
+  cp -a Documentation "../tmp/linux-4.18"
+  rm "../tmp/linux-4.18/include/uapi/linux/Kbuild"
+  cd "../tmp"
+  diff -Naur null linux-4.18  | filterdiff | \
+  sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-4.18-old\1|;s|^--- null.*|--- /dev/null|;\|linux-4.18/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs4.18.patch
+  mv *patch* "${srcdir}"
+  cd "${srcdir}/aufs"
+  mv *patch* "${srcdir}"
+  cd "${srcdir}"
+  rm -rf tmp aufs
 
   cd "${srcdir}/linux-${_basekernel}"
   
@@ -89,6 +98,16 @@ prepare() {
 
   # ARCH Patches
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+
+  # AUFS Patches
+  patch -Np1 -i ../aufs4.18.patch
+  patch -Np1 -i ../aufs4-base.patch
+  patch -Np1 -i ../aufs4-kbuild.patch
+  patch -Np1 -i ../aufs4-loopback.patch
+  patch -Np1 -i ../aufs4-mmap.patch
+  patch -Np1 -i ../aufs4-standalone.patch
+  patch -Np1 -i ../tmpfs-idr.patch
+  patch -Np1 -i ../vfs-ino.patch
 
   # TkG
   patch -Np1 -i ../0005-pci-pme-wakeups.patch
@@ -170,10 +189,6 @@ build() {
 
   # build!
   time schedtool -B -n 1 -e ionice -n 1 make ${MAKEFLAGS} LOCALVERSION= bzImage modules
-  
-  # hack
-  counter=$((counter + 1))
-  echo counter=$counter > ${srcdir}/counter
 }
 
 hackbase() {
@@ -237,10 +252,6 @@ hackbase() {
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
   sed "${_subst}" ${srcdir}/90-linux.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
-    
-  # hack
-  counter=$((counter + 1))
-  echo counter=$counter > ${srcdir}/counter
 }
 
 hackheaders() {
@@ -306,10 +317,9 @@ hackheaders() {
     esac
     /usr/bin/strip ${_strip} "${_binary}"
   done < <(find "${_builddir}/scripts" -type f -perm -u+w -print0 2>/dev/null)
-  
-  # hack
-  counter=$((counter + 1))
-  echo counter=$counter > ${srcdir}/counter
+
+  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
+  rm -v $where/cpuschedset # state tracker end
 }
 
 package_linux418-tkg-pds() {
@@ -335,3 +345,6 @@ hackheaders
 package_linux418-tkg-cfs-headers() {
 hackheaders
 }
+
+# Remove the state tracker on failed/stopped compilation
+trap "{ rm -f $where/cpuschedset; }" EXIT
