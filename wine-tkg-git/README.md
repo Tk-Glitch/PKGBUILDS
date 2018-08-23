@@ -23,5 +23,7 @@ With other patches available such as :
 - Winepulse disable patch (fix for various sound issues related to winepulse/pulsaudio)
 - Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency/
 - Gallium 9 support
+- Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
+- VKD3D builder integrated (for d3d12 to vulkan translation)
 
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
