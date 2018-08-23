@@ -1,0 +1,95 @@
+# Created by: Tk-Glitch <ti3nou at gmail dot com>
+
+pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
+pkgver=1.0.r107.g98b3487
+pkgrel=1
+
+_vkd3dsrcdir='vkd3d'
+
+source $_where/customization.cfg # load configuration from file
+
+# custom vkd3d commit to pass to git
+_vkd3d_commit="#commit=$_vkd3d_version"
+
+pkgdesc='Wine d3d12 to vulkan translation lib, git version'
+url='https://source.winehq.org/git/vkd3d.git'
+arch=('x86_64')
+license=('LGPL')
+depends=(
+    'spirv-tools' 'lib32-spirv-tools'
+)
+makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
+    'gcc>=4.5.0-2'          'schedtool'
+    'spirv-headers-git'     'vulkan-headers'
+)
+
+source=("$_vkd3dsrcdir"::"git+https://source.winehq.org/git/vkd3d.git${_vkd3d_commit}"
+)
+
+makedepends=(${makedepends[@]} ${depends[@]})
+
+pkgver() {
+
+	# retrieve current version
+	cd "${srcdir}/${_vkd3dsrcdir}"
+	local _vkd3dVer="$(git describe --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^//;s/\.rc/rc/')"
+
+	# version string
+	printf '%s' "${_vkd3dVer#vkd3d.}"
+}
+
+prepare() {
+	# create new build dirs
+	mkdir -p "${srcdir}"/vkd3d-tkg-git
+	mkdir -p "${srcdir}"/lib32-vkd3d-tkg-git
+}
+
+build() {
+	cd "${srcdir}"/${_vkd3dsrcdir}
+	./autogen.sh
+
+	export CC='gcc -m32'
+	export CXX='g++ -m32'
+	export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
+
+	cd  "${srcdir}"/lib32-vkd3d-tkg-git
+	../${_vkd3dsrcdir}/configure \
+	  --prefix=/usr \
+	  --libdir=/usr/lib32 \
+	  --with-spirv-tools
+
+	# make using all available threads
+	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/lib32-vkd3d-tkg-git
+
+	export CC='gcc -m64'
+	export CXX='g++ -m64'
+	export PKG_CONFIG_PATH='/usr/lib/pkgconfig'
+
+	cd  "${srcdir}"/vkd3d-tkg-git
+	../${_vkd3dsrcdir}/configure \
+	  --prefix=/usr \
+	  --libdir=/usr/lib \
+	  --with-spirv-tools
+
+	# make using all available threads
+	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/vkd3d-tkg-git
+}
+
+package_vkd3d-tkg-git() {
+  provides=("vkd3d=$pkgver")
+
+	msg2 'Packaging vkd3d 64...'
+	cd  "${srcdir}"/"${pkgname}"
+	make -C "${srcdir}"/"${pkgname}" DESTDIR="${pkgdir}" install
+}
+
+package_lib32-vkd3d-tkg-git() {
+  provides=("lib32-vkd3d=$pkgver")
+
+	msg2 'Packaging vkd3d 32...'
+	cd  "${srcdir}"/"${pkgname}"
+	make -C "${srcdir}"/"${pkgname}" DESTDIR="${pkgdir}" install
+
+	rm -rf ${pkgdir}/usr/include
+}
+md5sums=('SKIP')

@@ -2,12 +2,14 @@
 
 pkgname=wine-tkg-git
 pkgver=3.14.r95.g18564c76fc.staging.esync.pba
-pkgrel=43
+pkgrel=44
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
-_where=$PWD # track basedir as different Arch based distros are moving srcdir around
+_vkd3dsrcdir='vkd3d-tkg-git'
+_dxvksrcdir='dxvk'
+export _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
 # If the state tracker isn't found, prompt the user with useful stuff.
 # This is to prevent the prompt to come back until packaging is done
@@ -38,6 +40,11 @@ fi
 # custom staging commit to pass to git
 if [ $_use_staging == "true" ] && [ -n "$_staging_version" ]; then
   _staging_commit="#commit=$_staging_version"
+fi
+
+# custom dxvk commit to pass to git
+if [ $_use_dxvk == "true" ]; then
+  _dxvk_commit="#commit=$_dxvk_version"
 fi
 
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
@@ -115,6 +122,7 @@ optdepends=(
 )
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
+		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
 		"https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		'steam.patch'
 		'poe-fix.patch'
@@ -130,7 +138,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA314+.patch'
 		'fallout4.patch'
 		'fortnite.patch'
-		'lowlatency_audio.patch')
+		'lowlatency_audio.patch'
+		'dxvk-winelib.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -186,6 +195,19 @@ prepare() {
 	if [ $_NUKR == "true" ]; then
 	  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
 	  msg2 'pkgdir was nuked. See ya !'
+	fi
+
+	# build and install vkd3d package prior to building wine
+	if [ $_use_local_vkd3d == "true" ]; then
+	  read -p "Local VKD3D building is enabled. Install/update VKD3D package from git before building wine?`echo $'\n> N/y : '`" CONDITION;
+	  if [ "$CONDITION" == "y" ]; then
+	    mkdir ${_vkd3dsrcdir}
+	    cp PKGBUILD.vkd3d "${_vkd3dsrcdir}/PKGBUILD"
+	    cd ${_vkd3dsrcdir}
+	    makepkg -si > /dev/null
+	    cd ..
+	    rm -rf ${_vkd3dsrcdir}
+	  fi
 	fi
 
 	cd "${srcdir}"/"${_winesrcdir}"
@@ -495,12 +517,13 @@ prepare() {
 
 	# create new build dirs
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
-	mkdir -p  "${srcdir}"/"${pkgname}"-32-build
+	mkdir -p "${srcdir}"/"${pkgname}"-32-build
 
 	cd $_where # this is needed on version update not to get lost in srcdir
 }
 
 build() {
+
 	cd "${srcdir}"
 
 	# build wine 64-bit
@@ -537,10 +560,18 @@ build() {
 
     # make using all available threads
 	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+
+	# Build DXVK winelib
+	if [ $_use_dxvk == "true" ]; then
+	  cd "${srcdir}"/"${_dxvksrcdir}"
+	  mkdir build
+	  patch -Np1 < ../'dxvk-winelib.patch'
+	  ./package-release-wine.sh master build --no-package
+	fi
 }
 
 package() {
-	
+
 	# package wine 32-bit
 	# (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
 	msg2 'Packaging Wine-32...'
@@ -564,6 +595,12 @@ package() {
 	# wine binfmt
 	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 
+	# dxvk
+	if [ $_use_dxvk == "true" ]; then
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}"/usr/lib32/wine
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}"/usr/lib/wine
+	fi
+
 	rm -v $_where/BIG_UGLY_COINMINER # state tracker end
 
 	if [ $_NUKR == "true" ]; then
@@ -585,6 +622,7 @@ package() {
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
+         'SKIP'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
          'ecada2fc8abda49c6bb788c25f05a822'
@@ -593,13 +631,14 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          'bb280dfbf0c1719e67f54018c81e5720'
-         'b63439c600dc4b900d59a20113fede33'
+         '7d673a445661606949886209120e0790'
          '360a9d3ca587a20e78f5373d5135b2bb'
          'b5b00938bbd4899404e9f3b33b65e954'
          '940475a482b411ed7111022175df03c1'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
-         'ed6060dc030ebd5865f1fcc40d8863be')
+         'ed6060dc030ebd5865f1fcc40d8863be'
+         'd328bfd0d363434fe5f83f3a614849f7')
 
 # Remove the state tracker on failed/stopped compilation
 trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT

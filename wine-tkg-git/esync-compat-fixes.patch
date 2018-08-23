@@ -1,7 +1,7 @@
 From 9444d9e6561cdd6093142b860dd2c51588c0c98b Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Fri, 3 Aug 2018 13:16:23 +0200
-Subject: server: Don't change protocol version on esync when staging also tries to
+Subject: server: Don't change protocol version on esync etc.
 
 diff --git a/0014-server-Add-a-request-to-get-the-eventfd-file-descrip.patch b/0014-server-Add-a-request-to-get-the-eventfd-file-descrip.patch
 index d12f647..8aba1f2 100644
