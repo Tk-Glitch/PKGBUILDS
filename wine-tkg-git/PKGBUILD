@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.14.r95.g18564c76fc.staging.esync.pba
-pkgrel=44
+pkgver=3.14.r126.gf0ad5b5c54.staging.esync.pba
+pkgrel=1
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -199,7 +199,9 @@ prepare() {
 
 	# build and install vkd3d package prior to building wine
 	if [ $_use_local_vkd3d == "true" ]; then
-	  read -p "Local VKD3D building is enabled. Install/update VKD3D package from git before building wine?`echo $'\n> N/y : '`" CONDITION;
+	  _withvkd3d='--with-vkd3d'
+	  msg2 'Local VKD3D building is enabled.'
+	  read -p "Install/update VKD3D package from git before building wine? Answer no to use current package if available.`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	    mkdir ${_vkd3dsrcdir}
 	    cp PKGBUILD.vkd3d "${_vkd3dsrcdir}/PKGBUILD"
@@ -538,6 +540,7 @@ build() {
 		--enable-win64 \
 		--with-xattr \
 		$_withd3d9nine \
+		$_withvkd3d \
 		#--disable-tests
 		# Gstreamer was disabled for FS#33655
 
@@ -555,6 +558,7 @@ build() {
 		--with-gstreamer \
 		--with-xattr \
 		$_withd3d9nine \
+		$_withvkd3d \
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
 		#--disable-tests 
 
