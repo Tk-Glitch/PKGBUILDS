@@ -24,7 +24,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=4
 pkgver=${_basekernel}.${_sub}
-pkgrel=6
+pkgrel=7
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -40,15 +40,15 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         # ARCH Patches
         0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
         # TkG
-        0005-pci-pme-wakeups.patch
-        0006-intel_idle-tweak-cpuidle-cstates.patch
-        0007-smpboot-reuse-timer-calibration.patch
-        0008-perf.patch
-        0009-glitched-base.patch
-        0010-glitched-muqss.patch
-        0010-patch-4.18-ck1
-        0011-glitched-pds.patch
-        0011-v4.18_pds098v.patch
+        0002-pci-pme-wakeups.patch
+        0003-intel_idle-tweak-cpuidle-cstates.patch
+        0004-smpboot-reuse-timer-calibration.patch
+        0005-perf.patch
+        0006-glitched-base.patch
+        0007-glitched-muqss.patch
+        0007-patch-4.18-ck1
+        0008-glitched-pds.patch
+        0008-v4.18_pds098w.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'cc22261cd9651dc2a05ad817a5b5fd3c63076ca86abfade7097915e7ba0b3bd6'
@@ -66,7 +66,7 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            '579aa4e71c4973dcf72574a31a9edb31ec6d50c26a5d211f83470c94c3bf020b')
+            'ac54edcabbe40a70002a160f7068416f535ae4148c6640fb97883aa1b3351a7f')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -110,21 +110,21 @@ prepare() {
   patch -Np1 -i ../vfs-ino.patch
 
   # TkG
-  patch -Np1 -i ../0005-pci-pme-wakeups.patch
-  patch -Np1 -i ../0006-intel_idle-tweak-cpuidle-cstates.patch
-  patch -Np1 -i ../0007-smpboot-reuse-timer-calibration.patch
-  patch -Np1 -i ../0008-perf.patch
+  patch -Np1 -i ../0002-pci-pme-wakeups.patch
+  patch -Np1 -i ../0003-intel_idle-tweak-cpuidle-cstates.patch
+  patch -Np1 -i ../0004-smpboot-reuse-timer-calibration.patch
+  patch -Np1 -i ../0005-perf.patch
   
-  patch -Np1 -i ../0009-glitched-base.patch
+  patch -Np1 -i ../0006-glitched-base.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
-    patch -Np1 -i ../0010-patch-4.18-ck1
-    patch -Np1 -i ../0010-glitched-muqss.patch
+    patch -Np1 -i ../0007-patch-4.18-ck1
+    patch -Np1 -i ../0007-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0011-v4.18_pds098v.patch
-    patch -Np1 -i ../0011-glitched-pds.patch
+    patch -Np1 -i ../0008-v4.18_pds098w.patch
+    patch -Np1 -i ../0008-glitched-pds.patch
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
