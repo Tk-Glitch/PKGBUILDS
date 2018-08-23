@@ -44,14 +44,14 @@ diff --git a/src/winetricks b/src/winetricks
 index 582f37a..79f19c0 100755
 --- a/src/winetricks
 +++ b/src/winetricks
-@@ -874,6 +874,7 @@ w_dotnet_verify()
+@@ -884,6 +884,7 @@ w_dotnet_verify()
          dotnet46) version="4.6" ;;
          dotnet461) version="4.6.1" ;;
          dotnet462) version="4.6.2" ;;
 +        dotnet471) version="4.7.1" ;;
+         dotnet472) version="4.7.2" ;;
          *) echo error ; exit 1 ;;
      esac
-             w_call dotnet_verifier
 @@ -7586,14 +7587,14 @@ load_dotnet40()
  
      w_try_cd "$W_CACHE/$W_PACKAGE"
