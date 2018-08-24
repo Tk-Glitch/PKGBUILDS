@@ -24,6 +24,6 @@ With other patches available such as :
 - Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency/
 - Gallium 9 support
 - Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
-- VKD3D builder integrated (for d3d12 to vulkan translation)
+- VKD3D builder integrated (for d3d12 to vulkan translation) - You'll need https://github.com/Tk-Glitch/PKGBUILDS/tree/master/spirv-tools-git to build vkd3d
 
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
