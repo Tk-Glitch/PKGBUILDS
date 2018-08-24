@@ -22,9 +22,9 @@ _basever=418
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
-_sub=4
+_sub=5
 pkgver=${_basekernel}.${_sub}
-pkgrel=8
+pkgrel=9
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -51,7 +51,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-v4.18_pds098w.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
-            'cc22261cd9651dc2a05ad817a5b5fd3c63076ca86abfade7097915e7ba0b3bd6'
+            'c88a4e56ab8a37e38c76dbb12be53a2a3379e920ce4b86003ccfff8a4a9d1f69'
             'SKIP'
             '170afeaf03c703b389d8d4ea5eb6335f62f14b5ec5f3474b11a644bfa273f389'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
