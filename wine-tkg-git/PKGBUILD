@@ -204,7 +204,7 @@ prepare() {
 	  read -p "Install/update VKD3D package from git before building wine? Answer no to use current package if available.`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	    mkdir ${_vkd3dsrcdir}
-	    cp PKGBUILD.vkd3d "${_vkd3dsrcdir}/PKGBUILD"
+	    cp $_where/PKGBUILD.vkd3d "${srcdir}"/"${_vkd3dsrcdir}"/PKGBUILD
 	    cd ${_vkd3dsrcdir}
 	    makepkg -si > /dev/null
 	    cd ..
