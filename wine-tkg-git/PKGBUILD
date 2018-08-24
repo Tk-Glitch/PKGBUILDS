@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.14.r126.gf0ad5b5c54.staging.esync.pba
-pkgrel=45
+pkgver=3.14.r126.gf0ad5b5c54.staging.esync.pba.vkd3d
+pkgrel=46
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -184,13 +184,23 @@ pkgver() {
 	  msg2 "Using gallium nine patchset"
 	fi
 
+	if [ $_use_local_vkd3d == "true" ]; then
+	  _vkd3d=".vkd3d"
+	  msg2 "Using VKD3D for d3d12 translation"
+	fi
+
+	if [ $_use_dxvk == "true" ]; then
+	  _doitsujin=".dxvk"
+	  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
+	fi
+
 	# version string
-	printf '%s%s%s%s%s' "${_wineVer#wine.}" "$_stg" "$_zf" "$_firerat" "$_nine"
+	printf '%s%s%s%s%s%s%s' "${_wineVer#wine.}" "$_stg" "$_zf" "$_firerat" "$_nine" "$_vkd3d" "$_doitsujin"
 }
 
 prepare() {
 	# state tracker start - FEAR THE MIGHTY COIN MINER
-	touch $_where/BIG_UGLY_COINMINER
+	touch "${_where}"/BIG_UGLY_COINMINER
 
 	if [ $_NUKR == "true" ]; then
 	  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -204,11 +214,12 @@ prepare() {
 	  read -p "Install/update VKD3D package from git before building wine? Answer no to use current package if available.`echo $'\n> N/y : '`" CONDITION;
 	  if [ "$CONDITION" == "y" ]; then
 	    mkdir ${_vkd3dsrcdir}
-	    cp $_where/PKGBUILD.vkd3d "${srcdir}"/"${_vkd3dsrcdir}"/PKGBUILD
-	    cd ${_vkd3dsrcdir}
+	    cp "${_where}"/PKGBUILD.vkd3d "${srcdir}"/"${_vkd3dsrcdir}"/PKGBUILD
+	    cd "${_vkd3dsrcdir}"
 	    makepkg -si > /dev/null
+	    cp -r *.tar.xz "${_where}"
 	    cd ..
-	    rm -rf ${_vkd3dsrcdir}
+	    rm -rf "${_vkd3dsrcdir}"
 	  fi
 	fi
 
@@ -253,6 +264,14 @@ prepare() {
 
 	if [ $_use_gallium_nine == "true" ]; then
 	  echo "Using gallium nine patchset" >> $_where/last_build_config.log
+	fi
+
+	if [ $_use_local_vkd3d == "true" ]; then
+	  echo "Using VKD3D for d3d12 translation" >> $_where/last_build_config.log
+	fi
+
+	if [ $_use_dxvk == "true" ]; then
+	  echo "Using DXVK winelib for d3d10 and d3d11 translation" >> $_where/last_build_config.log
 	fi
 
 	echo "" >> $_where/last_build_config.log
