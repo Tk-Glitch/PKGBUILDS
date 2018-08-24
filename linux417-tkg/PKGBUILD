@@ -22,9 +22,9 @@ _basever=417
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
-_sub=18
+_sub=19
 pkgver=${_basekernel}.${_sub}
-pkgrel=20
+pkgrel=21
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -53,7 +53,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0011-v4.17_pds098t.patch
 )
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
-            '89d87b1d1a5494d8326bcf03ac07f51a4eea6a244695f60f3d38f8cb9249d16f'
+            '6d860198753f5897c494fc864332a854e3bf5ee64021baca744777442c2859f6'
             '218e07bbe85d1e3dcfeaf38659752b2abf033f4aeb783d1161ca97ea4e0bc481'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
