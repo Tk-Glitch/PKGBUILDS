@@ -2,12 +2,15 @@
 
 This pkgbuild allows you to create custom wine builds using an opt-in mechanism. You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
 
-Wine esync : https://github.com/zfigura/wine/tree/esync
-- https://github.com/zfigura/wine/blob/esync/README.esync
+Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
+
+VKD3D builder integrated (for d3d12 to vulkan translation) - You'll need https://github.com/Tk-Glitch/PKGBUILDS/tree/master/spirv-tools-git to build VKD3D packages
 
 Wine : https://github.com/wine-mirror/wine
 
 Wine-staging : https://github.com/wine-staging/wine-staging
+
+Wine esync : https://github.com/zfigura/wine/tree/esync
 
 Wine-pba : https://github.com/Firerat/wine-pba
 
@@ -21,9 +24,8 @@ With other patches available such as :
 - Fallout 4 Direct sound fix - https://bugs.winehq.org/show_bug.cgi?id=41271
 - Final Fantasy XIV mouse jitter fix
 - Winepulse disable patch (fix for various sound issues related to winepulse/pulsaudio)
-- Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency/
+- Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency
+- Mouse subpixel raw motion fix - https://bugs.winehq.org/show_bug.cgi?id=42631
 - Gallium 9 support
-- Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
-- VKD3D builder integrated (for d3d12 to vulkan translation) - You'll need https://github.com/Tk-Glitch/PKGBUILDS/tree/master/spirv-tools-git to build vkd3d
 
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
