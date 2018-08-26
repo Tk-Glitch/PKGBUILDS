@@ -24,7 +24,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=5
 pkgver=${_basekernel}.${_sub}
-pkgrel=9
+pkgrel=10
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -66,7 +66,7 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            'ac54edcabbe40a70002a160f7068416f535ae4148c6640fb97883aa1b3351a7f')
+            'f4a33dd39a723542781f6e87ae0f9be6636345852a362c4a0113bd2287be454e')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
