@@ -134,6 +134,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'30-win32-aliases.conf'
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
+		'subpixel-raw-motion-fix.patch'
 		'esync-staging-fixes.patch'
 		'esync-compat-fixes.patch'
 		'esync-314+-compat-fixes.patch'
@@ -357,6 +358,13 @@ prepare() {
 	if [ $_steam_fix == "true" ]; then
 	  patch -Np1 < ../'steam.patch'
 	  echo "Applied steam crossover hack" >> $_where/last_build_config.log
+	fi
+
+	# mouse subpixel raw motion fix
+	# https://bugs.winehq.org/show_bug.cgi?id=42631
+	if [ $_subpixel_raw_motion_fix == "true" ]; then
+	  patch -Np1 < ../'subpixel-raw-motion-fix.patch'
+	  echo "Applied mouse subpixel raw motion fix" >> $_where/last_build_config.log
 	fi
 
 	# FFXIV mouse jitter fix
@@ -670,6 +678,7 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
+         'ade95c314337173195af51e3d2d46e5a'
          'bb280dfbf0c1719e67f54018c81e5720'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
