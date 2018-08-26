@@ -1,7 +1,6 @@
-From 9444d9e6561cdd6093142b860dd2c51588c0c98b Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Fri, 3 Aug 2018 13:16:23 +0200
-Subject: server: Don't change protocol version on esync etc.
+Subject: server: Don't change protocol version on esync builds to preserve compatibility accross different wine/staging versions
 
 diff --git a/0014-server-Add-a-request-to-get-the-eventfd-file-descrip.patch b/0014-server-Add-a-request-to-get-the-eventfd-file-descrip.patch
 index d12f647..8aba1f2 100644
@@ -260,19 +259,4 @@ index 6fe1244..8ee6cad 100644
  diff --git a/server/protocol.def b/server/protocol.def
  index 6ccc1d0..22ae34b 100644
  --- a/server/protocol.def
- 
-diff --git a/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch b/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch
-index 8ee6cad..bd99f0f 100644
---- a/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch
-+++ b/0079-ntdll-server-Revert-to-old-implementation-of-hung-qu.patch
-@@ -316,9 +316,9 @@ index 3d56640..ea06eb1 100644
-      { "INVALID_OWNER",               STATUS_INVALID_OWNER },
-      { "INVALID_PARAMETER",           STATUS_INVALID_PARAMETER },
- +    { "INVALID_PARAMETER_4",         STATUS_INVALID_PARAMETER_4 },
-+     { "INVALID_PIPE_STATE",          STATUS_INVALID_PIPE_STATE },
-      { "INVALID_READ_MODE",           STATUS_INVALID_READ_MODE },
-      { "INVALID_SECURITY_DESCR",      STATUS_INVALID_SECURITY_DESCR },
--     { "IO_TIMEOUT",                  STATUS_IO_TIMEOUT },
- -- 
- 2.7.4
  

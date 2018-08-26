@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.14.r126.gf0ad5b5c54.staging.esync.pba.vkd3d
-pkgrel=46
+pkgver=3.14.r161.g70fbfa2cb8.staging.esync.pba.vkd3d
+pkgrel=47
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -18,6 +18,8 @@ if [ ! -e $_where/BIG_UGLY_COINMINER ]; then
   msg2 ''
   msg2 'You can configure your wine build flavour (right now for example)'
   msg2 'by editing the customization.cfg file next to this PKGBUILD.'
+  msg2 ''
+  msg2 'Set _OPTIMIZED to "false" if you want to share the package !'
   msg2 ''
   msg2 "Current path is '$_where'"
   msg2 ''
@@ -134,6 +136,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'CSMT-toggle.patch'
 		'esync-staging-fixes.patch'
 		'esync-compat-fixes.patch'
+		'esync-314+-compat-fixes.patch'
 		'esync-no_alloc_handle.patch'
 		'PBA313-.patch'
 		'PBA314+.patch'
@@ -260,6 +263,12 @@ prepare() {
 	fi
 
 	if [ $_use_pba == "true" ]; then
+	  # If using a wine version that includes cf9536b, apply 3.14+ fixes
+	  if [ 0 -eq $(git log | grep cf9536b6bfbefbf5003c7633446a91f6e399c4de > /dev/null 2> /dev/null; echo $?) ]; then # kernel32: Add AttachConsole implementation commit
+	    _pba_version="314+"
+	  else
+	    _pba_version="313-"
+	  fi
 	  echo "Using pba (${_pba_version}) patchset" >> $_where/last_build_config.log
 	fi
 
@@ -432,6 +441,13 @@ prepare() {
 	  cd "${srcdir}"/"${_esyncsrcdir}"
 	  patch -Np1 < ../'esync-compat-fixes.patch'
 	  cd "${srcdir}"/"${_winesrcdir}"
+
+	  # if using a wine version that includes 57212f6, apply 3.14+ fixes
+	  if [ 0 -eq $(git log | grep 57212f64f8e4fef0c63c633940e13d407c0f2069 > /dev/null 2> /dev/null; echo $?) ]; then # wined3d: Move OpenGL initialisation code to adapter_gl.c commit
+	    cd "${srcdir}"/"${_esyncsrcdir}"
+	    patch -Np1 < ../'esync-314+-compat-fixes.patch'
+	    cd "${srcdir}"/"${_winesrcdir}"
+	  fi
 
 	  # wine-esync patches
 	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
@@ -655,7 +671,8 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          'bb280dfbf0c1719e67f54018c81e5720'
-         '7d673a445661606949886209120e0790'
+         '3a263a0f6211287af53ea7db79b1f34f'
+         '4e1b9cc09a01749c07230c7241526371'
          '360a9d3ca587a20e78f5373d5135b2bb'
          'b5b00938bbd4899404e9f3b33b65e954'
          '940475a482b411ed7111022175df03c1'
