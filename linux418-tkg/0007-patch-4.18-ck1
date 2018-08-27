@@ -1,8 +1,8 @@
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index f2040d46f095..ae023b5df0e3 100644
+index 533ff5c68970..8cd1e9db4643 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -3843,6 +3843,14 @@
+@@ -3854,6 +3854,14 @@
  			Memory area to be used by remote processor image,
  			managed by CMA.
  
@@ -834,7 +834,7 @@ index eded671d55eb..3240aa6149d8 100644
 +
 +==============================================================
 diff --git a/arch/arc/configs/tb10x_defconfig b/arch/arc/configs/tb10x_defconfig
-index 1aca2e8fd1ba..f892be336781 100644
+index 2cc87f909747..5bdf547dccbc 100644
 --- a/arch/arc/configs/tb10x_defconfig
 +++ b/arch/arc/configs/tb10x_defconfig
 @@ -28,7 +28,7 @@ CONFIG_ARC_PLAT_TB10X=y
@@ -847,7 +847,7 @@ index 1aca2e8fd1ba..f892be336781 100644
  CONFIG_NET=y
  CONFIG_PACKET=y
 diff --git a/arch/arm/configs/bcm2835_defconfig b/arch/arm/configs/bcm2835_defconfig
-index 8682b15336b9..b5cab442078a 100644
+index e4d188f0a4b4..d75f478acaab 100644
 --- a/arch/arm/configs/bcm2835_defconfig
 +++ b/arch/arm/configs/bcm2835_defconfig
 @@ -29,7 +29,7 @@ CONFIG_MODULE_UNLOAD=y
@@ -860,10 +860,10 @@ index 8682b15336b9..b5cab442078a 100644
  CONFIG_KSM=y
  CONFIG_CLEANCACHE=y
 diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index 3a308437b088..f1270bc684fc 100644
+index 200ebda47e0c..2879135c57da 100644
 --- a/arch/arm/configs/imx_v6_v7_defconfig
 +++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -47,7 +47,7 @@ CONFIG_PCI_MSI=y
+@@ -48,7 +48,7 @@ CONFIG_PCI_MSI=y
  CONFIG_PCI_IMX6=y
  CONFIG_SMP=y
  CONFIG_ARM_PSCI=y
@@ -3835,18 +3835,400 @@ index 52c9050a7c5c..8d86d2e989f4 100644
  CONFIG_GSC_LASI=y
  CONFIG_GSC_WAX=y
 diff --git a/arch/powerpc/configs/c2k_defconfig b/arch/powerpc/configs/c2k_defconfig
-index 6c1196b0f81e..04fee07ea6c5 100644
---- a/arch/powerpc/configs/c2k_defconfig
+new file mode 100644
+index 000000000000..04fee07ea6c5
+--- /dev/null
 +++ b/arch/powerpc/configs/c2k_defconfig
-@@ -29,7 +29,7 @@ CONFIG_CPU_FREQ_GOV_POWERSAVE=m
- CONFIG_CPU_FREQ_GOV_ONDEMAND=m
- CONFIG_GEN_RTC=y
- CONFIG_HIGHMEM=y
--CONFIG_PREEMPT_VOLUNTARY=y
+@@ -0,0 +1,389 @@
++CONFIG_SYSVIPC=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_AUDIT=y
++CONFIG_BSD_PROCESS_ACCT=y
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_PROFILING=y
++CONFIG_OPROFILE=m
++CONFIG_KPROBES=y
++CONFIG_MODULES=y
++CONFIG_MODULE_UNLOAD=y
++CONFIG_MODVERSIONS=y
++CONFIG_PARTITION_ADVANCED=y
++CONFIG_OSF_PARTITION=y
++CONFIG_MAC_PARTITION=y
++CONFIG_BSD_DISKLABEL=y
++CONFIG_MINIX_SUBPARTITION=y
++CONFIG_SOLARIS_X86_PARTITION=y
++CONFIG_UNIXWARE_DISKLABEL=y
++CONFIG_SGI_PARTITION=y
++CONFIG_SUN_PARTITION=y
++# CONFIG_PPC_CHRP is not set
++# CONFIG_PPC_PMAC is not set
++CONFIG_EMBEDDED6xx=y
++CONFIG_PPC_C2K=y
++CONFIG_CPU_FREQ=y
++CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y
++CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
++CONFIG_CPU_FREQ_GOV_POWERSAVE=m
++CONFIG_CPU_FREQ_GOV_ONDEMAND=m
++CONFIG_GEN_RTC=y
++CONFIG_HIGHMEM=y
 +CONFIG_PREEMPT=y
- CONFIG_BINFMT_MISC=y
- CONFIG_PM=y
- CONFIG_PCI_MSI=y
++CONFIG_BINFMT_MISC=y
++CONFIG_PM=y
++CONFIG_PCI_MSI=y
++CONFIG_HOTPLUG_PCI=y
++CONFIG_HOTPLUG_PCI_SHPC=m
++CONFIG_NET=y
++CONFIG_PACKET=y
++CONFIG_UNIX=y
++CONFIG_XFRM_USER=y
++CONFIG_NET_KEY=m
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++CONFIG_IP_ADVANCED_ROUTER=y
++CONFIG_IP_MULTIPLE_TABLES=y
++CONFIG_IP_ROUTE_MULTIPATH=y
++CONFIG_IP_ROUTE_VERBOSE=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_NET_IPIP=m
++CONFIG_IP_MROUTE=y
++CONFIG_IP_PIMSM_V1=y
++CONFIG_IP_PIMSM_V2=y
++CONFIG_SYN_COOKIES=y
++CONFIG_INET_AH=m
++CONFIG_INET_ESP=m
++CONFIG_INET_IPCOMP=m
++CONFIG_INET6_AH=m
++CONFIG_INET6_ESP=m
++CONFIG_INET6_IPCOMP=m
++CONFIG_IPV6_TUNNEL=m
++CONFIG_NETFILTER=y
++# CONFIG_NETFILTER_XT_MATCH_SCTP is not set
++CONFIG_IP_NF_IPTABLES=m
++CONFIG_IP_NF_MATCH_ECN=m
++CONFIG_IP_NF_MATCH_TTL=m
++CONFIG_IP_NF_FILTER=m
++CONFIG_IP_NF_TARGET_REJECT=m
++CONFIG_IP_NF_MANGLE=m
++CONFIG_IP_NF_TARGET_ECN=m
++CONFIG_IP_NF_RAW=m
++CONFIG_IP_NF_ARPTABLES=m
++CONFIG_IP_NF_ARPFILTER=m
++CONFIG_IP_NF_ARP_MANGLE=m
++CONFIG_IP6_NF_IPTABLES=m
++CONFIG_IP6_NF_MATCH_EUI64=m
++CONFIG_IP6_NF_MATCH_FRAG=m
++CONFIG_IP6_NF_MATCH_OPTS=m
++CONFIG_IP6_NF_MATCH_HL=m
++CONFIG_IP6_NF_MATCH_IPV6HEADER=m
++CONFIG_IP6_NF_MATCH_RT=m
++CONFIG_IP6_NF_FILTER=m
++CONFIG_IP6_NF_MANGLE=m
++CONFIG_IP6_NF_RAW=m
++CONFIG_BRIDGE_NF_EBTABLES=m
++CONFIG_BRIDGE_EBT_BROUTE=m
++CONFIG_BRIDGE_EBT_T_FILTER=m
++CONFIG_BRIDGE_EBT_T_NAT=m
++CONFIG_BRIDGE_EBT_802_3=m
++CONFIG_BRIDGE_EBT_AMONG=m
++CONFIG_BRIDGE_EBT_ARP=m
++CONFIG_BRIDGE_EBT_IP=m
++CONFIG_BRIDGE_EBT_LIMIT=m
++CONFIG_BRIDGE_EBT_MARK=m
++CONFIG_BRIDGE_EBT_PKTTYPE=m
++CONFIG_BRIDGE_EBT_STP=m
++CONFIG_BRIDGE_EBT_VLAN=m
++CONFIG_BRIDGE_EBT_ARPREPLY=m
++CONFIG_BRIDGE_EBT_DNAT=m
++CONFIG_BRIDGE_EBT_MARK_T=m
++CONFIG_BRIDGE_EBT_REDIRECT=m
++CONFIG_BRIDGE_EBT_SNAT=m
++CONFIG_BRIDGE_EBT_LOG=m
++CONFIG_IP_SCTP=m
++CONFIG_ATM=m
++CONFIG_ATM_CLIP=m
++CONFIG_ATM_LANE=m
++CONFIG_ATM_BR2684=m
++CONFIG_BRIDGE=m
++CONFIG_VLAN_8021Q=m
++CONFIG_NET_SCHED=y
++CONFIG_NET_SCH_CBQ=m
++CONFIG_NET_SCH_HTB=m
++CONFIG_NET_SCH_HFSC=m
++CONFIG_NET_SCH_ATM=m
++CONFIG_NET_SCH_PRIO=m
++CONFIG_NET_SCH_RED=m
++CONFIG_NET_SCH_SFQ=m
++CONFIG_NET_SCH_TEQL=m
++CONFIG_NET_SCH_TBF=m
++CONFIG_NET_SCH_GRED=m
++CONFIG_NET_SCH_DSMARK=m
++CONFIG_NET_SCH_NETEM=m
++CONFIG_NET_CLS_TCINDEX=m
++CONFIG_NET_CLS_ROUTE4=m
++CONFIG_NET_CLS_FW=m
++CONFIG_NET_CLS_U32=m
++CONFIG_CLS_U32_PERF=y
++CONFIG_NET_CLS_RSVP=m
++CONFIG_NET_CLS_RSVP6=m
++CONFIG_NET_CLS_IND=y
++CONFIG_BT=m
++CONFIG_BT_RFCOMM=m
++CONFIG_BT_RFCOMM_TTY=y
++CONFIG_BT_BNEP=m
++CONFIG_BT_BNEP_MC_FILTER=y
++CONFIG_BT_BNEP_PROTO_FILTER=y
++CONFIG_BT_HIDP=m
++CONFIG_BT_HCIUART=m
++CONFIG_BT_HCIUART_H4=y
++CONFIG_BT_HCIUART_BCSP=y
++CONFIG_BT_HCIBCM203X=m
++CONFIG_BT_HCIBFUSB=m
++CONFIG_BT_HCIVHCI=m
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_MTD=y
++CONFIG_MTD_BLOCK=y
++CONFIG_MTD_CFI=y
++CONFIG_MTD_CFI_AMDSTD=y
++CONFIG_MTD_COMPLEX_MAPPINGS=y
++CONFIG_MTD_PHYSMAP_OF=y
++CONFIG_BLK_DEV_LOOP=m
++CONFIG_BLK_DEV_CRYPTOLOOP=m
++CONFIG_BLK_DEV_NBD=m
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_SIZE=16384
++CONFIG_SCSI=m
++CONFIG_BLK_DEV_SD=m
++CONFIG_CHR_DEV_ST=m
++CONFIG_CHR_DEV_OSST=m
++CONFIG_BLK_DEV_SR=m
++CONFIG_BLK_DEV_SR_VENDOR=y
++CONFIG_CHR_DEV_SG=m
++CONFIG_SCSI_CONSTANTS=y
++CONFIG_SCSI_LOGGING=y
++CONFIG_SCSI_ISCSI_ATTRS=m
++CONFIG_BLK_DEV_3W_XXXX_RAID=m
++CONFIG_SCSI_3W_9XXX=m
++CONFIG_SCSI_ACARD=m
++CONFIG_SCSI_AACRAID=m
++CONFIG_SCSI_AIC7XXX=m
++CONFIG_AIC7XXX_CMDS_PER_DEVICE=4
++CONFIG_AIC7XXX_RESET_DELAY_MS=15000
++# CONFIG_AIC7XXX_DEBUG_ENABLE is not set
++# CONFIG_AIC7XXX_REG_PRETTY_PRINT is not set
++CONFIG_SCSI_AIC79XX=m
++CONFIG_AIC79XX_CMDS_PER_DEVICE=4
++CONFIG_AIC79XX_RESET_DELAY_MS=15000
++# CONFIG_AIC79XX_DEBUG_ENABLE is not set
++# CONFIG_AIC79XX_REG_PRETTY_PRINT is not set
++CONFIG_SCSI_ARCMSR=m
++CONFIG_MEGARAID_NEWGEN=y
++CONFIG_MEGARAID_MM=m
++CONFIG_MEGARAID_MAILBOX=m
++CONFIG_MEGARAID_SAS=m
++CONFIG_SCSI_GDTH=m
++CONFIG_SCSI_IPS=m
++CONFIG_SCSI_INITIO=m
++CONFIG_SCSI_SYM53C8XX_2=m
++CONFIG_SCSI_QLOGIC_1280=m
++CONFIG_NETDEVICES=y
++CONFIG_BONDING=m
++CONFIG_DUMMY=m
++CONFIG_NETCONSOLE=m
++CONFIG_TUN=m
++# CONFIG_ATM_DRIVERS is not set
++CONFIG_MV643XX_ETH=y
++CONFIG_VITESSE_PHY=y
++CONFIG_INPUT_EVDEV=y
++# CONFIG_INPUT_KEYBOARD is not set
++# CONFIG_INPUT_MOUSE is not set
++CONFIG_INPUT_MISC=y
++CONFIG_INPUT_UINPUT=m
++# CONFIG_SERIO is not set
++# CONFIG_LEGACY_PTYS is not set
++CONFIG_SERIAL_NONSTANDARD=y
++CONFIG_SERIAL_MPSC=y
++CONFIG_SERIAL_MPSC_CONSOLE=y
++CONFIG_NVRAM=m
++CONFIG_RAW_DRIVER=y
++CONFIG_MAX_RAW_DEVS=8192
++CONFIG_I2C=m
++CONFIG_I2C_CHARDEV=m
++CONFIG_I2C_MV64XXX=m
++CONFIG_HWMON=m
++CONFIG_SENSORS_ADM1021=m
++CONFIG_SENSORS_ADM1025=m
++CONFIG_SENSORS_ADM1026=m
++CONFIG_SENSORS_ADM1031=m
++CONFIG_SENSORS_DS1621=m
++CONFIG_SENSORS_GL518SM=m
++CONFIG_SENSORS_MAX1619=m
++CONFIG_SENSORS_LM75=m
++CONFIG_SENSORS_LM77=m
++CONFIG_SENSORS_LM78=m
++CONFIG_SENSORS_LM80=m
++CONFIG_SENSORS_LM83=m
++CONFIG_SENSORS_LM85=m
++CONFIG_SENSORS_LM87=m
++CONFIG_SENSORS_LM90=m
++CONFIG_SENSORS_PCF8591=m
++CONFIG_SENSORS_VIA686A=m
++CONFIG_SENSORS_W83781D=m
++CONFIG_SENSORS_W83L785TS=m
++CONFIG_WATCHDOG=y
++CONFIG_SOFT_WATCHDOG=m
++CONFIG_PCIPCWATCHDOG=m
++CONFIG_WDTPCI=m
++CONFIG_USBPCWATCHDOG=m
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_USB=m
++CONFIG_USB_MON=m
++CONFIG_USB_EHCI_HCD=m
++CONFIG_USB_EHCI_ROOT_HUB_TT=y
++CONFIG_USB_OHCI_HCD=m
++CONFIG_USB_OHCI_HCD_PPC_OF_BE=y
++CONFIG_USB_UHCI_HCD=m
++CONFIG_USB_ACM=m
++CONFIG_USB_PRINTER=m
++CONFIG_USB_STORAGE=m
++CONFIG_USB_STORAGE_DATAFAB=m
++CONFIG_USB_STORAGE_FREECOM=m
++CONFIG_USB_STORAGE_ISD200=m
++CONFIG_USB_STORAGE_SDDR09=m
++CONFIG_USB_STORAGE_SDDR55=m
++CONFIG_USB_STORAGE_JUMPSHOT=m
++CONFIG_USB_MDC800=m
++CONFIG_USB_MICROTEK=m
++CONFIG_USB_SERIAL=m
++CONFIG_USB_SERIAL_GENERIC=y
++CONFIG_USB_SERIAL_BELKIN=m
++CONFIG_USB_SERIAL_WHITEHEAT=m
++CONFIG_USB_SERIAL_DIGI_ACCELEPORT=m
++CONFIG_USB_SERIAL_EMPEG=m
++CONFIG_USB_SERIAL_FTDI_SIO=m
++CONFIG_USB_SERIAL_VISOR=m
++CONFIG_USB_SERIAL_IPAQ=m
++CONFIG_USB_SERIAL_IR=m
++CONFIG_USB_SERIAL_EDGEPORT=m
++CONFIG_USB_SERIAL_EDGEPORT_TI=m
++CONFIG_USB_SERIAL_KEYSPAN_PDA=m
++CONFIG_USB_SERIAL_KEYSPAN=m
++CONFIG_USB_SERIAL_KLSI=m
++CONFIG_USB_SERIAL_KOBIL_SCT=m
++CONFIG_USB_SERIAL_MCT_U232=m
++CONFIG_USB_SERIAL_PL2303=m
++CONFIG_USB_SERIAL_SAFE=m
++CONFIG_USB_SERIAL_SAFE_PADDED=y
++CONFIG_USB_SERIAL_CYBERJACK=m
++CONFIG_USB_SERIAL_XIRCOM=m
++CONFIG_USB_SERIAL_OMNINET=m
++CONFIG_USB_EMI62=m
++CONFIG_USB_RIO500=m
++CONFIG_USB_LEGOTOWER=m
++CONFIG_USB_LCD=m
++CONFIG_USB_LED=m
++CONFIG_USB_TEST=m
++CONFIG_USB_ATM=m
++CONFIG_USB_SPEEDTOUCH=m
++CONFIG_INFINIBAND=m
++CONFIG_INFINIBAND_USER_MAD=m
++CONFIG_INFINIBAND_USER_ACCESS=m
++CONFIG_INFINIBAND_MTHCA=m
++CONFIG_INFINIBAND_IPOIB=m
++CONFIG_INFINIBAND_IPOIB_CM=y
++CONFIG_INFINIBAND_SRP=m
++CONFIG_DMADEVICES=y
++CONFIG_EXT4_FS=m
++CONFIG_EXT4_FS_POSIX_ACL=y
++CONFIG_EXT4_FS_SECURITY=y
++CONFIG_QUOTA=y
++CONFIG_QFMT_V2=y
++CONFIG_AUTOFS4_FS=m
++CONFIG_UDF_FS=m
++CONFIG_MSDOS_FS=m
++CONFIG_VFAT_FS=m
++CONFIG_FAT_DEFAULT_IOCHARSET="ascii"
++CONFIG_PROC_KCORE=y
++CONFIG_TMPFS=y
++CONFIG_HFS_FS=m
++CONFIG_HFSPLUS_FS=m
++CONFIG_JFFS2_FS=y
++CONFIG_CRAMFS=m
++CONFIG_VXFS_FS=m
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3_ACL=y
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++CONFIG_CIFS=m
++CONFIG_CIFS_XATTR=y
++CONFIG_CIFS_POSIX=y
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="utf8"
++CONFIG_NLS_CODEPAGE_437=y
++CONFIG_NLS_CODEPAGE_737=m
++CONFIG_NLS_CODEPAGE_775=m
++CONFIG_NLS_CODEPAGE_850=m
++CONFIG_NLS_CODEPAGE_852=m
++CONFIG_NLS_CODEPAGE_855=m
++CONFIG_NLS_CODEPAGE_857=m
++CONFIG_NLS_CODEPAGE_860=m
++CONFIG_NLS_CODEPAGE_861=m
++CONFIG_NLS_CODEPAGE_862=m
++CONFIG_NLS_CODEPAGE_863=m
++CONFIG_NLS_CODEPAGE_864=m
++CONFIG_NLS_CODEPAGE_865=m
++CONFIG_NLS_CODEPAGE_866=m
++CONFIG_NLS_CODEPAGE_869=m
++CONFIG_NLS_CODEPAGE_936=m
++CONFIG_NLS_CODEPAGE_950=m
++CONFIG_NLS_CODEPAGE_932=m
++CONFIG_NLS_CODEPAGE_949=m
++CONFIG_NLS_CODEPAGE_874=m
++CONFIG_NLS_ISO8859_8=m
++CONFIG_NLS_CODEPAGE_1250=m
++CONFIG_NLS_CODEPAGE_1251=m
++CONFIG_NLS_ASCII=y
++CONFIG_NLS_ISO8859_1=m
++CONFIG_NLS_ISO8859_2=m
++CONFIG_NLS_ISO8859_3=m
++CONFIG_NLS_ISO8859_4=m
++CONFIG_NLS_ISO8859_5=m
++CONFIG_NLS_ISO8859_6=m
++CONFIG_NLS_ISO8859_7=m
++CONFIG_NLS_ISO8859_9=m
++CONFIG_NLS_ISO8859_13=m
++CONFIG_NLS_ISO8859_14=m
++CONFIG_NLS_ISO8859_15=m
++CONFIG_NLS_KOI8_R=m
++CONFIG_NLS_KOI8_U=m
++CONFIG_CRC_CCITT=m
++CONFIG_CRC_T10DIF=m
++CONFIG_DEBUG_INFO=y
++CONFIG_MAGIC_SYSRQ=y
++CONFIG_DEBUG_KERNEL=y
++CONFIG_DEBUG_STACK_USAGE=y
++CONFIG_DEBUG_HIGHMEM=y
++CONFIG_DEBUG_STACKOVERFLOW=y
++CONFIG_DETECT_HUNG_TASK=y
++CONFIG_DEBUG_SPINLOCK=y
++CONFIG_BOOTX_TEXT=y
++CONFIG_PPC_EARLY_DEBUG=y
++CONFIG_SECURITY=y
++CONFIG_SECURITY_NETWORK=y
++CONFIG_SECURITY_SELINUX=y
++CONFIG_SECURITY_SELINUX_BOOTPARAM=y
++CONFIG_SECURITY_SELINUX_DISABLE=y
++CONFIG_CRYPTO_HMAC=y
++CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_SHA1=y
++CONFIG_CRYPTO_SHA512=m
++CONFIG_CRYPTO_WP512=m
++CONFIG_CRYPTO_BLOWFISH=m
++CONFIG_CRYPTO_CAST6=m
++CONFIG_CRYPTO_KHAZAD=m
++CONFIG_CRYPTO_SERPENT=m
++CONFIG_CRYPTO_TEA=m
++CONFIG_CRYPTO_TWOFISH=m
 diff --git a/arch/powerpc/configs/ppc6xx_defconfig b/arch/powerpc/configs/ppc6xx_defconfig
 index 7ee736f20774..8663c0043a56 100644
 --- a/arch/powerpc/configs/ppc6xx_defconfig
@@ -3861,7 +4243,7 @@ index 7ee736f20774..8663c0043a56 100644
  CONFIG_HIBERNATION=y
  CONFIG_PM_DEBUG=y
 diff --git a/arch/powerpc/platforms/cell/spufs/sched.c b/arch/powerpc/platforms/cell/spufs/sched.c
-index ccc421503363..84545f768d8e 100644
+index c9ef3c532169..1298454c0499 100644
 --- a/arch/powerpc/platforms/cell/spufs/sched.c
 +++ b/arch/powerpc/platforms/cell/spufs/sched.c
 @@ -64,11 +64,6 @@ static struct task_struct *spusched_task;
@@ -4966,10 +5348,10 @@ index 000000000000..e8c4003cbd81
 +CONFIG_CRC_CCITT=m
 +CONFIG_CRC7=m
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index c07f492b871a..301b1d780ac9 100644
+index 887d3a7bb646..90cd722a0277 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -1011,10 +1011,26 @@ config SCHED_SMT
+@@ -1009,10 +1009,26 @@ config SCHED_SMT
  	depends on SMP
  	---help---
  	  SMT scheduler support improves the CPU scheduler's decision making
@@ -4997,7 +5379,7 @@ index c07f492b871a..301b1d780ac9 100644
  config SCHED_MC
  	def_bool y
  	prompt "Multi-core scheduler support"
-@@ -1045,6 +1061,79 @@ config SCHED_MC_PRIO
+@@ -1043,6 +1059,79 @@ config SCHED_MC_PRIO
  
  	  If unsure say Y here.
  
@@ -5077,7 +5459,7 @@ index c07f492b871a..301b1d780ac9 100644
  source "kernel/Kconfig.preempt"
  
  config UP_LATE_INIT
-@@ -1409,7 +1498,7 @@ config HIGHMEM64G
+@@ -1407,7 +1496,7 @@ config HIGHMEM64G
  endchoice
  
  choice
@@ -5086,7 +5468,7 @@ index c07f492b871a..301b1d780ac9 100644
  	default VMSPLIT_3G
  	depends on X86_32
  	---help---
-@@ -1429,17 +1518,17 @@ choice
+@@ -1427,17 +1516,17 @@ choice
  	  option alone!
  
  	config VMSPLIT_3G
@@ -5180,10 +5562,10 @@ index 0e31884a9519..16fcfbde31d5 100644
  		swim_select(base, RELAX);
  		if (!swim_readbit(base, STEP))
 diff --git a/drivers/bluetooth/hci_qca.c b/drivers/bluetooth/hci_qca.c
-index 05ec530b8a3a..309c62ef80d1 100644
+index 51790dd02afb..4dfca4e8ef54 100644
 --- a/drivers/bluetooth/hci_qca.c
 +++ b/drivers/bluetooth/hci_qca.c
-@@ -879,7 +879,7 @@ static int qca_set_baudrate(struct hci_dev *hdev, uint8_t baudrate)
+@@ -909,7 +909,7 @@ static int qca_set_baudrate(struct hci_dev *hdev, uint8_t baudrate)
  	 * then host can communicate with new baudrate to controller
  	 */
  	set_current_state(TASK_UNINTERRUPTIBLE);
@@ -5193,10 +5575,10 @@ index 05ec530b8a3a..309c62ef80d1 100644
  
  	return 0;
 diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
-index 361148938801..8a5f55ca9bbc 100644
+index 51832b8a2c62..e842e2e30b57 100644
 --- a/drivers/char/ipmi/ipmi_msghandler.c
 +++ b/drivers/char/ipmi/ipmi_msghandler.c
-@@ -3511,7 +3511,7 @@ static void cleanup_smi_msgs(ipmi_smi_t intf)
+@@ -3447,7 +3447,7 @@ static void cleanup_smi_msgs(struct ipmi_smi *intf)
  	/* Current message first, to preserve order */
  	while (intf->curr_msg && !list_empty(&intf->waiting_rcv_msgs)) {
  		/* Wait for the message to clear out. */
@@ -5206,10 +5588,10 @@ index 361148938801..8a5f55ca9bbc 100644
  
  	/* No need for locks, the interface is down. */
 diff --git a/drivers/char/ipmi/ipmi_ssif.c b/drivers/char/ipmi/ipmi_ssif.c
-index 35a82f4bfd78..567684c8150f 100644
+index 18e4650c233b..d6a5f4aba10d 100644
 --- a/drivers/char/ipmi/ipmi_ssif.c
 +++ b/drivers/char/ipmi/ipmi_ssif.c
-@@ -1250,7 +1250,7 @@ static int ssif_remove(struct i2c_client *client)
+@@ -1206,7 +1206,7 @@ static void shutdown_ssif(void *send_info)
  
  	/* make sure the driver is not looking for flags any more. */
  	while (ssif_info->ssif_state != SSIF_NORMAL)
@@ -5481,10 +5863,10 @@ index f530a80f5051..76905e410197 100644
  
  	return err;
 diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
-index 0867f7275852..839a4b357c5e 100644
+index aeca484a75b8..4cf84e394e2a 100644
 --- a/drivers/net/usb/lan78xx.c
 +++ b/drivers/net/usb/lan78xx.c
-@@ -2561,7 +2561,7 @@ static void lan78xx_terminate_urbs(struct lan78xx_net *dev)
+@@ -2690,7 +2690,7 @@ static void lan78xx_terminate_urbs(struct lan78xx_net *dev)
  	while (!skb_queue_empty(&dev->rxq) &&
  	       !skb_queue_empty(&dev->txq) &&
  	       !skb_queue_empty(&dev->done)) {
@@ -5494,7 +5876,7 @@ index 0867f7275852..839a4b357c5e 100644
  		netif_dbg(dev, ifdown, dev->net,
  			  "waited for %d urb completions\n", temp);
 diff --git a/drivers/net/usb/usbnet.c b/drivers/net/usb/usbnet.c
-index d9eea8cfe6cb..48dbe8b63500 100644
+index 770aa624147f..9384de186bf9 100644
 --- a/drivers/net/usb/usbnet.c
 +++ b/drivers/net/usb/usbnet.c
 @@ -770,7 +770,7 @@ static void wait_skb_queue_empty(struct sk_buff_head *q)
@@ -5507,7 +5889,7 @@ index d9eea8cfe6cb..48dbe8b63500 100644
  		spin_lock_irqsave(&q->lock, flags);
  	}
 diff --git a/drivers/net/wireless/intel/ipw2x00/ipw2100.c b/drivers/net/wireless/intel/ipw2x00/ipw2100.c
-index 236b52423506..c2f6f35ff728 100644
+index b8fd3cc90634..8ff752aa56aa 100644
 --- a/drivers/net/wireless/intel/ipw2x00/ipw2100.c
 +++ b/drivers/net/wireless/intel/ipw2x00/ipw2100.c
 @@ -830,7 +830,7 @@ static int ipw2100_hw_send_command(struct ipw2100_priv *priv,
@@ -5555,7 +5937,7 @@ index 5d41dda6da4e..34705f6b423f 100644
  			}
  			else
 diff --git a/drivers/platform/x86/intel_ips.c b/drivers/platform/x86/intel_ips.c
-index a0c95853fd3f..18fd7b1b4ee0 100644
+index 014fc1634a3d..ba167ffdf228 100644
 --- a/drivers/platform/x86/intel_ips.c
 +++ b/drivers/platform/x86/intel_ips.c
 @@ -809,7 +809,7 @@ static int ips_adjust(void *data)
@@ -5626,7 +6008,7 @@ index 483c7993516b..fddbaa475066 100644
  
  	if (rtc_ctrl & WM8350_RTC_ALMSTS)
 diff --git a/drivers/scsi/Kconfig b/drivers/scsi/Kconfig
-index 11e89e56b865..8841ff3ef891 100644
+index 35c909bbf8ba..b1378636fb45 100644
 --- a/drivers/scsi/Kconfig
 +++ b/drivers/scsi/Kconfig
 @@ -50,6 +50,7 @@ config SCSI_NETLINK
@@ -5660,10 +6042,10 @@ index 8cbd3c9f0b4c..7e3f9baa4ac6 100644
  	/* walk again to check, if IOs are still pending in fw */
  	if (fnic_is_abts_pending(fnic, lr_sc))
 diff --git a/drivers/scsi/lpfc/lpfc_scsi.c b/drivers/scsi/lpfc/lpfc_scsi.c
-index 050f04418f5f..e3bc5100b057 100644
+index a94fb9f8bb44..45bb5cde6637 100644
 --- a/drivers/scsi/lpfc/lpfc_scsi.c
 +++ b/drivers/scsi/lpfc/lpfc_scsi.c
-@@ -5155,7 +5155,7 @@ lpfc_reset_flush_io_context(struct lpfc_vport *vport, uint16_t tgt_id,
+@@ -5146,7 +5146,7 @@ lpfc_reset_flush_io_context(struct lpfc_vport *vport, uint16_t tgt_id,
  					tgt_id, lun_id, context);
  	later = msecs_to_jiffies(2 * vport->cfg_devloss_tmo * 1000) + jiffies;
  	while (time_after(later, jiffies) && cnt) {
@@ -5673,7 +6055,7 @@ index 050f04418f5f..e3bc5100b057 100644
  	}
  	if (cnt) {
 diff --git a/drivers/scsi/snic/snic_scsi.c b/drivers/scsi/snic/snic_scsi.c
-index d8a376b7882d..9d0e67d98b2c 100644
+index d9b2e46424aa..4a313a0f2039 100644
 --- a/drivers/scsi/snic/snic_scsi.c
 +++ b/drivers/scsi/snic/snic_scsi.c
 @@ -2354,7 +2354,7 @@ snic_reset(struct Scsi_Host *shost, struct scsi_cmnd *sc)
@@ -5699,18 +6081,437 @@ index e40a2c0a9543..fc5b39f1f9ca 100644
  	}
  	if (i == timeout) {
 diff --git a/drivers/staging/lustre/lnet/lnet/lib-eq.c b/drivers/staging/lustre/lnet/lnet/lib-eq.c
-index ea53b5cb3f72..8cca151741b2 100644
---- a/drivers/staging/lustre/lnet/lnet/lib-eq.c
+new file mode 100644
+index 000000000000..8cca151741b2
+--- /dev/null
 +++ b/drivers/staging/lustre/lnet/lnet/lib-eq.c
-@@ -329,7 +329,7 @@ __must_hold(&the_lnet.ln_eq_wait_lock)
- 		schedule();
- 	} else {
- 		now = jiffies;
--		schedule_timeout(msecs_to_jiffies(tms));
+@@ -0,0 +1,426 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * GPL HEADER START
++ *
++ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 only,
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License version 2 for more details (a copy is included
++ * in the LICENSE file that accompanied this code).
++ *
++ * You should have received a copy of the GNU General Public License
++ * version 2 along with this program; If not, see
++ * http://www.gnu.org/licenses/gpl-2.0.html
++ *
++ * GPL HEADER END
++ */
++/*
++ * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
++ * Use is subject to license terms.
++ *
++ * Copyright (c) 2012, Intel Corporation.
++ */
++/*
++ * This file is part of Lustre, http://www.lustre.org/
++ * Lustre is a trademark of Sun Microsystems, Inc.
++ *
++ * lnet/lnet/lib-eq.c
++ *
++ * Library level Event queue management routines
++ */
++
++#define DEBUG_SUBSYSTEM S_LNET
++
++#include <linux/lnet/lib-lnet.h>
++
++/**
++ * Create an event queue that has room for \a count number of events.
++ *
++ * The event queue is circular and older events will be overwritten by new
++ * ones if they are not removed in time by the user using the functions
++ * LNetEQGet(), LNetEQWait(), or LNetEQPoll(). It is up to the user to
++ * determine the appropriate size of the event queue to prevent this loss
++ * of events. Note that when EQ handler is specified in \a callback, no
++ * event loss can happen, since the handler is run for each event deposited
++ * into the EQ.
++ *
++ * \param count The number of events to be stored in the event queue. It
++ * will be rounded up to the next power of two.
++ * \param callback A handler function that runs when an event is deposited
++ * into the EQ. The constant value LNET_EQ_HANDLER_NONE can be used to
++ * indicate that no event handler is desired.
++ * \param handle On successful return, this location will hold a handle for
++ * the newly created EQ.
++ *
++ * \retval 0       On success.
++ * \retval -EINVAL If an parameter is not valid.
++ * \retval -ENOMEM If memory for the EQ can't be allocated.
++ *
++ * \see lnet_eq_handler_t for the discussion on EQ handler semantics.
++ */
++int
++LNetEQAlloc(unsigned int count, lnet_eq_handler_t callback,
++	    struct lnet_handle_eq *handle)
++{
++	struct lnet_eq *eq;
++
++	LASSERT(the_lnet.ln_refcount > 0);
++
++	/*
++	 * We need count to be a power of 2 so that when eq_{enq,deq}_seq
++	 * overflow, they don't skip entries, so the queue has the same
++	 * apparent capacity at all times
++	 */
++	if (count)
++		count = roundup_pow_of_two(count);
++
++	if (callback != LNET_EQ_HANDLER_NONE && count)
++		CWARN("EQ callback is guaranteed to get every event, do you still want to set eqcount %d for polling event which will have locking overhead? Please contact with developer to confirm\n", count);
++
++	/*
++	 * count can be 0 if only need callback, we can eliminate
++	 * overhead of enqueue event
++	 */
++	if (!count && callback == LNET_EQ_HANDLER_NONE)
++		return -EINVAL;
++
++	eq = kzalloc(sizeof(*eq), GFP_NOFS);
++	if (!eq)
++		return -ENOMEM;
++
++	if (count) {
++		eq->eq_events = kvmalloc_array(count, sizeof(struct lnet_event),
++					       GFP_KERNEL | __GFP_ZERO);
++		if (!eq->eq_events)
++			goto failed;
++		/*
++		 * NB allocator has set all event sequence numbers to 0,
++		 * so all them should be earlier than eq_deq_seq
++		 */
++	}
++
++	eq->eq_deq_seq = 1;
++	eq->eq_enq_seq = 1;
++	eq->eq_size = count;
++	eq->eq_callback = callback;
++
++	eq->eq_refs = cfs_percpt_alloc(lnet_cpt_table(),
++				       sizeof(*eq->eq_refs[0]));
++	if (!eq->eq_refs)
++		goto failed;
++
++	/* MUST hold both exclusive lnet_res_lock */
++	lnet_res_lock(LNET_LOCK_EX);
++	/*
++	 * NB: hold lnet_eq_wait_lock for EQ link/unlink, so we can do
++	 * both EQ lookup and poll event with only lnet_eq_wait_lock
++	 */
++	lnet_eq_wait_lock();
++
++	lnet_res_lh_initialize(&the_lnet.ln_eq_container, &eq->eq_lh);
++	list_add(&eq->eq_list, &the_lnet.ln_eq_container.rec_active);
++
++	lnet_eq_wait_unlock();
++	lnet_res_unlock(LNET_LOCK_EX);
++
++	lnet_eq2handle(handle, eq);
++	return 0;
++
++failed:
++	kvfree(eq->eq_events);
++
++	if (eq->eq_refs)
++		cfs_percpt_free(eq->eq_refs);
++
++	kfree(eq);
++	return -ENOMEM;
++}
++EXPORT_SYMBOL(LNetEQAlloc);
++
++/**
++ * Release the resources associated with an event queue if it's idle;
++ * otherwise do nothing and it's up to the user to try again.
++ *
++ * \param eqh A handle for the event queue to be released.
++ *
++ * \retval 0 If the EQ is not in use and freed.
++ * \retval -ENOENT If \a eqh does not point to a valid EQ.
++ * \retval -EBUSY  If the EQ is still in use by some MDs.
++ */
++int
++LNetEQFree(struct lnet_handle_eq eqh)
++{
++	struct lnet_eq *eq;
++	struct lnet_event *events = NULL;
++	int **refs = NULL;
++	int *ref;
++	int rc = 0;
++	int size = 0;
++	int i;
++
++	LASSERT(the_lnet.ln_refcount > 0);
++
++	lnet_res_lock(LNET_LOCK_EX);
++	/*
++	 * NB: hold lnet_eq_wait_lock for EQ link/unlink, so we can do
++	 * both EQ lookup and poll event with only lnet_eq_wait_lock
++	 */
++	lnet_eq_wait_lock();
++
++	eq = lnet_handle2eq(&eqh);
++	if (!eq) {
++		rc = -ENOENT;
++		goto out;
++	}
++
++	cfs_percpt_for_each(ref, i, eq->eq_refs) {
++		LASSERT(*ref >= 0);
++		if (!*ref)
++			continue;
++
++		CDEBUG(D_NET, "Event equeue (%d: %d) busy on destroy.\n",
++		       i, *ref);
++		rc = -EBUSY;
++		goto out;
++	}
++
++	/* stash for free after lock dropped */
++	events = eq->eq_events;
++	size = eq->eq_size;
++	refs = eq->eq_refs;
++
++	lnet_res_lh_invalidate(&eq->eq_lh);
++	list_del(&eq->eq_list);
++	kfree(eq);
++ out:
++	lnet_eq_wait_unlock();
++	lnet_res_unlock(LNET_LOCK_EX);
++
++	kvfree(events);
++	if (refs)
++		cfs_percpt_free(refs);
++
++	return rc;
++}
++EXPORT_SYMBOL(LNetEQFree);
++
++void
++lnet_eq_enqueue_event(struct lnet_eq *eq, struct lnet_event *ev)
++{
++	/* MUST called with resource lock hold but w/o lnet_eq_wait_lock */
++	int index;
++
++	if (!eq->eq_size) {
++		LASSERT(eq->eq_callback != LNET_EQ_HANDLER_NONE);
++		eq->eq_callback(ev);
++		return;
++	}
++
++	lnet_eq_wait_lock();
++	ev->sequence = eq->eq_enq_seq++;
++
++	LASSERT(eq->eq_size == LOWEST_BIT_SET(eq->eq_size));
++	index = ev->sequence & (eq->eq_size - 1);
++
++	eq->eq_events[index] = *ev;
++
++	if (eq->eq_callback != LNET_EQ_HANDLER_NONE)
++		eq->eq_callback(ev);
++
++	/* Wake anyone waiting in LNetEQPoll() */
++	if (waitqueue_active(&the_lnet.ln_eq_waitq))
++		wake_up_all(&the_lnet.ln_eq_waitq);
++	lnet_eq_wait_unlock();
++}
++
++static int
++lnet_eq_dequeue_event(struct lnet_eq *eq, struct lnet_event *ev)
++{
++	int new_index = eq->eq_deq_seq & (eq->eq_size - 1);
++	struct lnet_event *new_event = &eq->eq_events[new_index];
++	int rc;
++
++	/* must called with lnet_eq_wait_lock hold */
++	if (LNET_SEQ_GT(eq->eq_deq_seq, new_event->sequence))
++		return 0;
++
++	/* We've got a new event... */
++	*ev = *new_event;
++
++	CDEBUG(D_INFO, "event: %p, sequence: %lu, eq->size: %u\n",
++	       new_event, eq->eq_deq_seq, eq->eq_size);
++
++	/* ...but did it overwrite an event we've not seen yet? */
++	if (eq->eq_deq_seq == new_event->sequence) {
++		rc = 1;
++	} else {
++		/*
++		 * don't complain with CERROR: some EQs are sized small
++		 * anyway; if it's important, the caller should complain
++		 */
++		CDEBUG(D_NET, "Event Queue Overflow: eq seq %lu ev seq %lu\n",
++		       eq->eq_deq_seq, new_event->sequence);
++		rc = -EOVERFLOW;
++	}
++
++	eq->eq_deq_seq = new_event->sequence + 1;
++	return rc;
++}
++
++/**
++ * A nonblocking function that can be used to get the next event in an EQ.
++ * If an event handler is associated with the EQ, the handler will run before
++ * this function returns successfully. The event is removed from the queue.
++ *
++ * \param eventq A handle for the event queue.
++ * \param event On successful return (1 or -EOVERFLOW), this location will
++ * hold the next event in the EQ.
++ *
++ * \retval 0	  No pending event in the EQ.
++ * \retval 1	  Indicates success.
++ * \retval -ENOENT    If \a eventq does not point to a valid EQ.
++ * \retval -EOVERFLOW Indicates success (i.e., an event is returned) and that
++ * at least one event between this event and the last event obtained from the
++ * EQ has been dropped due to limited space in the EQ.
++ */
++
++/**
++ * Block the calling process until there is an event in the EQ.
++ * If an event handler is associated with the EQ, the handler will run before
++ * this function returns successfully. This function returns the next event
++ * in the EQ and removes it from the EQ.
++ *
++ * \param eventq A handle for the event queue.
++ * \param event On successful return (1 or -EOVERFLOW), this location will
++ * hold the next event in the EQ.
++ *
++ * \retval 1	  Indicates success.
++ * \retval -ENOENT    If \a eventq does not point to a valid EQ.
++ * \retval -EOVERFLOW Indicates success (i.e., an event is returned) and that
++ * at least one event between this event and the last event obtained from the
++ * EQ has been dropped due to limited space in the EQ.
++ */
++
++static int
++lnet_eq_wait_locked(int *timeout_ms, long state)
++__must_hold(&the_lnet.ln_eq_wait_lock)
++{
++	int tms = *timeout_ms;
++	int wait;
++	wait_queue_entry_t wl;
++	unsigned long now;
++
++	if (!tms)
++		return -ENXIO; /* don't want to wait and no new event */
++
++	init_waitqueue_entry(&wl, current);
++	set_current_state(state);
++	add_wait_queue(&the_lnet.ln_eq_waitq, &wl);
++
++	lnet_eq_wait_unlock();
++
++	if (tms < 0) {
++		schedule();
++	} else {
++		now = jiffies;
 +		schedule_msec_hrtimeout((tms));
- 		tms -= jiffies_to_msecs(jiffies - now);
- 		if (tms < 0) /* no more wait but may have new event */
- 			tms = 0;
++		tms -= jiffies_to_msecs(jiffies - now);
++		if (tms < 0) /* no more wait but may have new event */
++			tms = 0;
++	}
++
++	wait = tms; /* might need to call here again */
++	*timeout_ms = tms;
++
++	lnet_eq_wait_lock();
++	remove_wait_queue(&the_lnet.ln_eq_waitq, &wl);
++
++	return wait;
++}
++
++/**
++ * Block the calling process until there's an event from a set of EQs or
++ * timeout happens.
++ *
++ * If an event handler is associated with the EQ, the handler will run before
++ * this function returns successfully, in which case the corresponding event
++ * is consumed.
++ *
++ * LNetEQPoll() provides a timeout to allow applications to poll, block for a
++ * fixed period, or block indefinitely.
++ *
++ * \param eventqs,neq An array of EQ handles, and size of the array.
++ * \param timeout_ms Time in milliseconds to wait for an event to occur on
++ * one of the EQs. The constant LNET_TIME_FOREVER can be used to indicate an
++ * infinite timeout.
++ * \param interruptible, if true, use TASK_INTERRUPTIBLE, else TASK_NOLOAD
++ * \param event,which On successful return (1 or -EOVERFLOW), \a event will
++ * hold the next event in the EQs, and \a which will contain the index of the
++ * EQ from which the event was taken.
++ *
++ * \retval 0	  No pending event in the EQs after timeout.
++ * \retval 1	  Indicates success.
++ * \retval -EOVERFLOW Indicates success (i.e., an event is returned) and that
++ * at least one event between this event and the last event obtained from the
++ * EQ indicated by \a which has been dropped due to limited space in the EQ.
++ * \retval -ENOENT    If there's an invalid handle in \a eventqs.
++ */
++int
++LNetEQPoll(struct lnet_handle_eq *eventqs, int neq, int timeout_ms,
++	   int interruptible,
++	   struct lnet_event *event, int *which)
++{
++	int wait = 1;
++	int rc;
++	int i;
++
++	LASSERT(the_lnet.ln_refcount > 0);
++
++	if (neq < 1)
++		return -ENOENT;
++
++	lnet_eq_wait_lock();
++
++	for (;;) {
++		for (i = 0; i < neq; i++) {
++			struct lnet_eq *eq = lnet_handle2eq(&eventqs[i]);
++
++			if (!eq) {
++				lnet_eq_wait_unlock();
++				return -ENOENT;
++			}
++
++			rc = lnet_eq_dequeue_event(eq, event);
++			if (rc) {
++				lnet_eq_wait_unlock();
++				*which = i;
++				return rc;
++			}
++		}
++
++		if (!wait)
++			break;
++
++		/*
++		 * return value of lnet_eq_wait_locked:
++		 * -1 : did nothing and it's sure no new event
++		 *  1 : sleep inside and wait until new event
++		 *  0 : don't want to wait anymore, but might have new event
++		 *      so need to call dequeue again
++		 */
++		wait = lnet_eq_wait_locked(&timeout_ms,
++					   interruptible ? TASK_INTERRUPTIBLE
++					   : TASK_NOLOAD);
++		if (wait < 0) /* no new event */
++			break;
++	}
++
++	lnet_eq_wait_unlock();
++	return 0;
++}
 diff --git a/drivers/staging/rts5208/rtsx.c b/drivers/staging/rts5208/rtsx.c
 index 70e0b8623110..04ae8e3f2448 100644
 --- a/drivers/staging/rts5208/rtsx.c
@@ -5876,7 +6677,7 @@ index 7deeb7061018..c02fb3f2b71d 100644
  		}
  		set_current_state(TASK_RUNNING);
 diff --git a/drivers/staging/unisys/visornic/visornic_main.c b/drivers/staging/unisys/visornic/visornic_main.c
-index 92dceb557886..8b1b1bd083c5 100644
+index 3647b8f1ed28..9fb26ccc2b3b 100644
 --- a/drivers/staging/unisys/visornic/visornic_main.c
 +++ b/drivers/staging/unisys/visornic/visornic_main.c
 @@ -549,7 +549,7 @@ static int visornic_disable_with_timeout(struct net_device *netdev,
@@ -5920,7 +6721,7 @@ index 6199d4806193..7c7165f2dad4 100644
  	hwa742_set_update_mode(hwa742.update_mode_before_suspend);
  }
 diff --git a/drivers/video/fbdev/pxafb.c b/drivers/video/fbdev/pxafb.c
-index c3d49e13643c..84b984986f4d 100644
+index 76722a59f55e..dfe989604b42 100644
 --- a/drivers/video/fbdev/pxafb.c
 +++ b/drivers/video/fbdev/pxafb.c
 @@ -1286,7 +1286,7 @@ static int pxafb_smart_thread(void *arg)
@@ -5933,10 +6734,10 @@ index c3d49e13643c..84b984986f4d 100644
  
  	pr_debug("%s(): task ending\n", __func__);
 diff --git a/fs/btrfs/extent-tree.c b/fs/btrfs/extent-tree.c
-index 51b5e2da708c..d097ed90c0d2 100644
+index 3d9fe58c0080..d98bf5e52b47 100644
 --- a/fs/btrfs/extent-tree.c
 +++ b/fs/btrfs/extent-tree.c
-@@ -6101,7 +6101,7 @@ int btrfs_delalloc_reserve_metadata(struct btrfs_inode *inode, u64 num_bytes)
+@@ -6041,7 +6041,7 @@ int btrfs_delalloc_reserve_metadata(struct btrfs_inode *inode, u64 num_bytes)
  			flush = BTRFS_RESERVE_FLUSH_LIMIT;
  
  		if (btrfs_transaction_in_commit(fs_info))
@@ -5959,10 +6760,10 @@ index 12fcd8897c33..0cdedfe9b091 100644
  			} else
  				continue;
 diff --git a/fs/proc/base.c b/fs/proc/base.c
-index 1a76d751cf3c..76564b87c736 100644
+index aaffc0c30216..146ba8266d68 100644
 --- a/fs/proc/base.c
 +++ b/fs/proc/base.c
-@@ -467,7 +467,7 @@ static int proc_pid_schedstat(struct seq_file *m, struct pid_namespace *ns,
+@@ -445,7 +445,7 @@ static int proc_pid_schedstat(struct seq_file *m, struct pid_namespace *ns,
  		seq_printf(m, "0 0 0\n");
  	else
  		seq_printf(m, "%llu %llu %lu\n",
@@ -6000,7 +6801,7 @@ index a454b8aeb938..f0a14e08e8e8 100644
  /* Attach to the init_task data structure for proper alignment */
  #ifdef CONFIG_ARCH_TASK_STRUCT_ON_STACK
 diff --git a/include/linux/ioprio.h b/include/linux/ioprio.h
-index 627efac73e6d..e25a094c2f81 100644
+index 9e30ed6443db..7d6e7e7cdf9f 100644
 --- a/include/linux/ioprio.h
 +++ b/include/linux/ioprio.h
 @@ -53,6 +53,8 @@ enum {
@@ -6013,20 +6814,20 @@ index 627efac73e6d..e25a094c2f81 100644
  }
  
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index ca3f3eae8980..ef8ebae59e39 100644
+index 43731fe51c97..ec19b03fa4c2 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -27,6 +27,9 @@
- #include <linux/signal_types.h>
+@@ -28,6 +28,9 @@
  #include <linux/mm_types_task.h>
  #include <linux/task_io_accounting.h>
+ #include <linux/rseq.h>
 +#ifdef CONFIG_SCHED_MUQSS
 +#include <linux/skip_list.h>
 +#endif
  
  /* task_struct member predeclarations (sorted alphabetically): */
  struct audit_context;
-@@ -207,13 +210,40 @@ struct task_group;
+@@ -208,13 +211,40 @@ struct task_group;
  
  extern void scheduler_tick(void);
  
@@ -6069,7 +6870,7 @@ index ca3f3eae8980..ef8ebae59e39 100644
  asmlinkage void schedule(void);
  extern void schedule_preempt_disabled(void);
  
-@@ -612,9 +642,11 @@ struct task_struct {
+@@ -613,9 +643,11 @@ struct task_struct {
  	unsigned int			flags;
  	unsigned int			ptrace;
  
@@ -6082,7 +6883,7 @@ index ca3f3eae8980..ef8ebae59e39 100644
  #ifdef CONFIG_THREAD_INFO_IN_TASK
  	/* Current CPU: */
  	unsigned int			cpu;
-@@ -639,10 +671,25 @@ struct task_struct {
+@@ -640,10 +672,25 @@ struct task_struct {
  	int				static_prio;
  	int				normal_prio;
  	unsigned int			rt_priority;
@@ -6108,7 +6909,7 @@ index ca3f3eae8980..ef8ebae59e39 100644
  #ifdef CONFIG_CGROUP_SCHED
  	struct task_group		*sched_task_group;
  #endif
-@@ -791,6 +838,10 @@ struct task_struct {
+@@ -792,6 +839,10 @@ struct task_struct {
  #ifdef CONFIG_ARCH_HAS_SCALED_CPUTIME
  	u64				utimescaled;
  	u64				stimescaled;
@@ -6119,7 +6920,7 @@ index ca3f3eae8980..ef8ebae59e39 100644
  #endif
  	u64				gtime;
  	struct prev_cputime		prev_cputime;
-@@ -1185,6 +1236,40 @@ struct task_struct {
+@@ -1197,6 +1248,40 @@ struct task_struct {
  	 */
  };
  
@@ -6223,10 +7024,10 @@ index e5af028c08b4..010b2244e0b6 100644
  }
  
 diff --git a/include/linux/sched/task.h b/include/linux/sched/task.h
-index 5be31eb7b266..2cfc0347db0b 100644
+index 108ede99e533..21f53ec1bb1f 100644
 --- a/include/linux/sched/task.h
 +++ b/include/linux/sched/task.h
-@@ -80,7 +80,7 @@ extern long kernel_wait4(pid_t, int *, int, struct rusage *);
+@@ -80,7 +80,7 @@ extern long kernel_wait4(pid_t, int __user *, int, struct rusage *);
  extern void free_task(struct task_struct *tsk);
  
  /* sched_exec is called by processes performing an exec */
@@ -6297,10 +7098,10 @@ index 22627f80063e..17077cd6fc40 100644
  /* Can be ORed in to make sure the process is reverted back to SCHED_NORMAL on fork */
  #define SCHED_RESET_ON_FORK     0x40000000
 diff --git a/init/Kconfig b/init/Kconfig
-index 18b151f0ddc1..4b4dafae858b 100644
+index 041f3a022122..6d30ef61a482 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -38,6 +38,18 @@ config THREAD_INFO_IN_TASK
+@@ -45,6 +45,18 @@ config THREAD_INFO_IN_TASK
  
  menu "General setup"
  
@@ -6319,7 +7120,7 @@ index 18b151f0ddc1..4b4dafae858b 100644
  config BROKEN
  	bool
  
-@@ -619,6 +631,7 @@ config NUMA_BALANCING
+@@ -617,6 +629,7 @@ config NUMA_BALANCING
  	depends on ARCH_SUPPORTS_NUMA_BALANCING
  	depends on !ARCH_WANT_NUMA_VARIABLE_LOCALITY
  	depends on SMP && NUMA && MIGRATION
@@ -6327,7 +7128,7 @@ index 18b151f0ddc1..4b4dafae858b 100644
  	help
  	  This option adds support for automatic NUMA aware memory/task placement.
  	  The mechanism is quite primitive and is based on migrating memory when
-@@ -721,9 +734,13 @@ menuconfig CGROUP_SCHED
+@@ -719,9 +732,13 @@ menuconfig CGROUP_SCHED
  	help
  	  This feature lets CPU scheduler recognize task groups and control CPU
  	  bandwidth allocation to such task groups. It uses cgroups to group
@@ -6343,7 +7144,7 @@ index 18b151f0ddc1..4b4dafae858b 100644
  config FAIR_GROUP_SCHED
  	bool "Group scheduling for SCHED_OTHER"
  	depends on CGROUP_SCHED
-@@ -830,6 +847,7 @@ config CGROUP_DEVICE
+@@ -828,6 +845,7 @@ config CGROUP_DEVICE
  
  config CGROUP_CPUACCT
  	bool "Simple CPU accounting controller"
@@ -6351,7 +7152,7 @@ index 18b151f0ddc1..4b4dafae858b 100644
  	help
  	  Provides a simple controller for monitoring the
  	  total CPU consumed by the tasks in a cgroup.
-@@ -936,6 +954,7 @@ endif # NAMESPACES
+@@ -934,6 +952,7 @@ endif # NAMESPACES
  
  config SCHED_AUTOGROUP
  	bool "Automatic process group scheduling"
@@ -6360,10 +7161,10 @@ index 18b151f0ddc1..4b4dafae858b 100644
  	select CGROUP_SCHED
  	select FAIR_GROUP_SCHED
 diff --git a/init/init_task.c b/init/init_task.c
-index 3ac6e754cf64..a5da207d71cf 100644
+index 74f60baa2799..dcbadbd8be85 100644
 --- a/init/init_task.c
 +++ b/init/init_task.c
-@@ -59,9 +59,17 @@ struct task_struct init_task
+@@ -60,9 +60,17 @@ struct task_struct init_task
  	.stack		= init_stack,
  	.usage		= ATOMIC_INIT(2),
  	.flags		= PF_KTHREAD,
@@ -6381,7 +7182,7 @@ index 3ac6e754cf64..a5da207d71cf 100644
  	.policy		= SCHED_NORMAL,
  	.cpus_allowed	= CPU_MASK_ALL,
  	.nr_cpus_allowed= NR_CPUS,
-@@ -70,6 +78,7 @@ struct task_struct init_task
+@@ -71,6 +79,7 @@ struct task_struct init_task
  	.restart_block	= {
  		.fn = do_no_restart_syscall,
  	},
@@ -6389,7 +7190,7 @@ index 3ac6e754cf64..a5da207d71cf 100644
  	.se		= {
  		.group_node 	= LIST_HEAD_INIT(init_task.se.group_node),
  	},
-@@ -77,6 +86,7 @@ struct task_struct init_task
+@@ -78,6 +87,7 @@ struct task_struct init_task
  		.run_list	= LIST_HEAD_INIT(init_task.rt.run_list),
  		.time_slice	= RR_TIMESLICE,
  	},
@@ -6398,7 +7199,7 @@ index 3ac6e754cf64..a5da207d71cf 100644
  #ifdef CONFIG_SMP
  	.pushable_tasks	= PLIST_NODE_INIT(init_task.pushable_tasks, MAX_PRIO),
 diff --git a/init/main.c b/init/main.c
-index 3b4ada11ed52..def6a8409e5f 100644
+index 5e13c544bbf4..a53eb1099247 100644
 --- a/init/main.c
 +++ b/init/main.c
 @@ -900,7 +900,6 @@ int __init_or_module do_one_initcall(initcall_t fn)
@@ -6519,7 +7320,7 @@ index 3f9c97419f02..1dc79ec7ad09 100644
  config PREEMPT
  	bool "Preemptible Kernel (Low-Latency Desktop)"
 diff --git a/kernel/Makefile b/kernel/Makefile
-index f85ae5dfa474..78c2c0cc7508 100644
+index 04bc07c2b42a..f4142e4fc555 100644
 --- a/kernel/Makefile
 +++ b/kernel/Makefile
 @@ -10,7 +10,7 @@ obj-y     = fork.o exec_domain.o panic.o \
@@ -6532,10 +7333,10 @@ index f85ae5dfa474..78c2c0cc7508 100644
  obj-$(CONFIG_MODULES) += kmod.o
  obj-$(CONFIG_MULTIUSER) += groups.o
 diff --git a/kernel/delayacct.c b/kernel/delayacct.c
-index e2764d767f18..2f85428d22b9 100644
+index ca8ac2824f0b..ae824da28e4b 100644
 --- a/kernel/delayacct.c
 +++ b/kernel/delayacct.c
-@@ -114,7 +114,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
+@@ -115,7 +115,7 @@ int __delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
  	 */
  	t1 = tsk->sched_info.pcount;
  	t2 = tsk->sched_info.run_delay;
@@ -6595,10 +7396,10 @@ index c6766f326072..8a34acfd0ba2 100644
  	bool "Support sparse irq numbering" if MAY_HAVE_SPARSE_IRQ
  	---help---
 diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index e3336d904f64..75ac409b85e7 100644
+index 9a8b7ba9aa88..f39a4d22ee63 100644
 --- a/kernel/irq/manage.c
 +++ b/kernel/irq/manage.c
-@@ -23,7 +23,17 @@
+@@ -23,8 +23,18 @@
  #include "internals.h"
  
  #ifdef CONFIG_IRQ_FORCED_THREADING
@@ -6606,6 +7407,7 @@ index e3336d904f64..75ac409b85e7 100644
 +__read_mostly bool force_irqthreads = true;
 +#else
  __read_mostly bool force_irqthreads;
+ EXPORT_SYMBOL_GPL(force_irqthreads);
 +#endif
 +static int __init setup_noforced_irqthreads(char *arg)
 +{
@@ -6617,10 +7419,10 @@ index e3336d904f64..75ac409b85e7 100644
  static int __init setup_forced_irqthreads(char *arg)
  {
 diff --git a/kernel/kthread.c b/kernel/kthread.c
-index 481951bf091d..711d0347b100 100644
+index 486dedbd9af5..c4f2b56900c6 100644
 --- a/kernel/kthread.c
 +++ b/kernel/kthread.c
-@@ -412,6 +412,34 @@ void kthread_bind(struct task_struct *p, unsigned int cpu)
+@@ -424,6 +424,34 @@ void kthread_bind(struct task_struct *p, unsigned int cpu)
  }
  EXPORT_SYMBOL(kthread_bind);
  
@@ -6655,7 +7457,7 @@ index 481951bf091d..711d0347b100 100644
  /**
   * kthread_create_on_cpu - Create a cpu bound kthread
   * @threadfn: the function to run until signal_pending(current).
-@@ -433,7 +461,7 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
+@@ -445,7 +473,7 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
  				   cpu);
  	if (IS_ERR(p))
  		return p;
@@ -6732,10 +7534,10 @@ index d9a02b318108..0666fe1870b1 100644
 +endif
 diff --git a/kernel/sched/MuQSS.c b/kernel/sched/MuQSS.c
 new file mode 100644
-index 000000000000..340b314f2fbf
+index 000000000000..a91fba774a1f
 --- /dev/null
 +++ b/kernel/sched/MuQSS.c
-@@ -0,0 +1,7325 @@
+@@ -0,0 +1,7327 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + *  kernel/sched/MuQSS.c, was kernel/sched.c
@@ -6769,38 +7571,34 @@ index 000000000000..340b314f2fbf
 + * 		scheduler by Con Kolivas.
 + */
 +
-+#include <linux/sched.h>
-+#include <linux/sched/clock.h>
-+#include <uapi/linux/sched/types.h>
++#include <linux/sched/isolation.h>
 +#include <linux/sched/loadavg.h>
-+#include <linux/sched/hotplug.h>
-+#include <linux/wait_bit.h>
++
++#include <linux/binfmts.h>
++#include <linux/blkdev.h>
++#include <linux/compat.h>
++#include <linux/context_tracking.h>
 +#include <linux/cpuset.h>
 +#include <linux/delayacct.h>
 +#include <linux/init_task.h>
-+#include <linux/binfmts.h>
-+#include <linux/context_tracking.h>
-+#include <linux/rcupdate_wait.h>
-+#include <linux/compat.h>
-+#include <linux/skip_list.h>
-+
-+#include <linux/blkdev.h>
++#include <linux/kcov.h>
 +#include <linux/kprobes.h>
 +#include <linux/mmu_context.h>
 +#include <linux/module.h>
 +#include <linux/nmi.h>
 +#include <linux/prefetch.h>
 +#include <linux/profile.h>
++#include <linux/rcupdate_wait.h>
++#include <linux/sched.h>
 +#include <linux/security.h>
++#include <linux/skip_list.h>
 +#include <linux/syscalls.h>
-+#include <linux/sched/isolation.h>
 +#include <linux/tick.h>
++#include <linux/wait_bit.h>
 +
++#include <asm/irq_regs.h>
 +#include <asm/switch_to.h>
 +#include <asm/tlb.h>
-+#ifdef CONFIG_PARAVIRT
-+#include <asm/paravirt.h>
-+#endif
 +
 +#include "../workqueue_internal.h"
 +#include "../smpboot.h"
@@ -6851,7 +7649,7 @@ index 000000000000..340b314f2fbf
 +
 +void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "MuQSS CPU scheduler v0.172 by Con Kolivas.\n");
++	printk(KERN_INFO "MuQSS CPU scheduler v0.173 by Con Kolivas.\n");
 +}
 +
 +#define RQSHARE_NONE 0
@@ -7963,6 +8761,7 @@ index 000000000000..340b314f2fbf
 +#endif
 +
 +	trace_sched_migrate_task(p, new_cpu);
++	rseq_migrate(p);
 +	perf_event_task_migrate(p);
 +
 +	/*
@@ -9317,8 +10116,10 @@ index 000000000000..340b314f2fbf
 +prepare_task_switch(struct rq *rq, struct task_struct *prev,
 +		    struct task_struct *next)
 +{
++	kcov_prepare_switch(prev);
 +	sched_info_switch(rq, prev, next);
 +	perf_event_task_sched_out(prev, next);
++	rseq_preempt(prev);
 +	fire_sched_out_preempt_notifiers(prev, next);
 +	prepare_task(next);
 +	prepare_arch_switch(next);
@@ -9386,6 +10187,7 @@ index 000000000000..340b314f2fbf
 +	finish_task(prev);
 +	finish_lock_switch(rq, prev);
 +	finish_arch_post_lock_switch();
++	kcov_finish_switch(current);
 +
 +	fire_sched_in_preempt_notifiers(current);
 +	/*
@@ -9404,25 +10206,17 @@ index 000000000000..340b314f2fbf
 +		membarrier_mm_sync_core_before_usermode(mm);
 +		mmdrop(mm);
 +	}
-+	if (unlikely(prev_state & (TASK_DEAD | TASK_PARKED))) {
-+		switch (prev_state) {
-+		case TASK_DEAD:
-+			/*
-+			 * Remove function-return probe instances associated with this
-+			 * task and put them back on the free list.
-+			 */
-+			kprobe_flush_task(prev);
++	if (unlikely(prev_state == TASK_DEAD)) {
++		/*
++		 * Remove function-return probe instances associated with this
++		 * task and put them back on the free list.
++		 */
++		kprobe_flush_task(prev);
 +
-+			/* Task is done with its stack. */
-+			put_task_stack(prev);
++		/* Task is done with its stack. */
++		put_task_stack(prev);
 +
-+			put_task_struct(prev);
-+			break;
-+
-+		case TASK_PARKED:
-+			kthread_park_complete(prev);
-+			break;
-+		}
++		put_task_struct(prev);
 +	}
 +}
 +
@@ -10045,6 +10839,8 @@ index 000000000000..340b314f2fbf
 +	struct tick_work *twork = container_of(dwork, struct tick_work, work);
 +	int cpu = twork->cpu;
 +	struct rq *rq = cpu_rq(cpu);
++	struct task_struct *curr;
++	u64 delta;
 +
 +	/*
 +	 * Handle the tick only if it appears the remote CPU is running in full
@@ -10053,24 +10849,28 @@ index 000000000000..340b314f2fbf
 +	 * statistics and checks timeslices in a time-independent way, regardless
 +	 * of when exactly it is running.
 +	 */
-+	if (!idle_cpu(cpu) && tick_nohz_tick_stopped_cpu(cpu)) {
-+		struct task_struct *curr;
-+		u64 delta;
++	if (idle_cpu(cpu) || !tick_nohz_tick_stopped_cpu(cpu))
++		goto out_requeue;
 +
-+		rq_lock_irq(rq);
-+		update_rq_clock(rq);
-+		curr = rq->curr;
-+		delta = rq_clock_task(rq) - curr->last_ran;
++	rq_lock_irq(rq);
++	curr = rq->curr;
++	if (is_idle_task(curr))
++		goto out_unlock;
 +
-+		/*
-+		 * Make sure the next tick runs within a reasonable
-+		 * amount of time.
-+		 */
-+		WARN_ON_ONCE(delta > (u64)NSEC_PER_SEC * 3);
-+		task_tick(rq);
-+		rq_unlock_irq(rq);
-+	}
++	update_rq_clock(rq);
++	delta = rq_clock_task(rq) - curr->last_ran;
 +
++	/*
++	 * Make sure the next tick runs within a reasonable
++	 * amount of time.
++	 */
++	WARN_ON_ONCE(delta > (u64)NSEC_PER_SEC * 3);
++	task_tick(rq);
++
++out_unlock:
++	rq_unlock_irq(rq);
++
++out_requeue:
 +	/*
 +	 * Run the remote tick once per second (1Hz). This arbitrary
 +	 * frequency is large enough to avoid overload but short enough
@@ -11192,6 +11992,23 @@ index 000000000000..340b314f2fbf
 +}
 +
 +/**
++ * available_idle_cpu - is a given CPU idle for enqueuing work.
++ * @cpu: the CPU in question.
++ *
++ * Return: 1 if the CPU is currently idle. 0 otherwise.
++ */
++int available_idle_cpu(int cpu)
++{
++	if (!idle_cpu(cpu))
++		return 0;
++
++	if (vcpu_is_preempted(cpu))
++		return 0;
++
++	return 1;
++}
++
++/**
 + * idle_task - return the idle task for a given CPU.
 + * @cpu: the processor in question.
 + *
@@ -12047,20 +12864,6 @@ index 000000000000..340b314f2fbf
 +}
 +EXPORT_SYMBOL(__cond_resched_lock);
 +
-+int __sched __cond_resched_softirq(void)
-+{
-+	BUG_ON(!in_softirq());
-+
-+	if (should_resched(SOFTIRQ_DISABLE_OFFSET)) {
-+		local_bh_enable();
-+		preempt_schedule_common();
-+		local_bh_disable();
-+		return 1;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(__cond_resched_softirq);
-+
 +/**
 + * yield - yield the current processor to other threads.
 + *
@@ -12669,8 +13472,8 @@ index 000000000000..340b314f2fbf
 +	bool queued = false, running_wrong = false, kthread;
 +	struct cpumask old_mask;
 +	unsigned long flags;
++	int cpu, ret = 0;
 +	struct rq *rq;
-+	int ret = 0;
 +
 +	rq = task_rq_lock(p, &flags);
 +	update_rq_clock(rq);
@@ -12721,13 +13524,14 @@ index 000000000000..340b314f2fbf
 +	if (task_running(rq, p)) {
 +		/* Task is running on the wrong cpu now, reschedule it. */
 +		if (rq == this_rq()) {
++			cpu = cpumask_any_and(cpu_valid_mask, new_mask);
++			set_task_cpu(p, cpu);
 +			set_tsk_need_resched(p);
 +			running_wrong = true;
 +		} else
 +			resched_task(p);
 +	} else {
-+		int cpu = cpumask_any_and(cpu_valid_mask, new_mask);
-+
++		cpu = cpumask_any_and(cpu_valid_mask, new_mask);
 +		if (queued) {
 +			/*
 +			 * Switch runqueue locks after dequeueing the task
@@ -14063,10 +14867,10 @@ index 000000000000..340b314f2fbf
 +#undef CREATE_TRACE_POINTS
 diff --git a/kernel/sched/MuQSS.h b/kernel/sched/MuQSS.h
 new file mode 100644
-index 000000000000..d3e132e04ee9
+index 000000000000..1c9326cdd9e9
 --- /dev/null
 +++ b/kernel/sched/MuQSS.h
-@@ -0,0 +1,823 @@
+@@ -0,0 +1,828 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +#ifndef MUQSS_SCHED_H
 +#define MUQSS_SCHED_H
@@ -14871,6 +15675,11 @@ index 000000000000..d3e132e04ee9
 +
 +#define SCHED_FLAG_SUGOV	0x10000000
 +
++static inline bool rt_rq_is_runnable(struct rq *rt_rq)
++{
++	return rt_rq->rt_nr_running;
++}
++
 +#ifdef CONFIG_CPU_FREQ_GOV_SCHEDUTIL
 +
 +static inline unsigned long cpu_util_dl(struct rq *rq)
@@ -14891,19 +15700,29 @@ index 000000000000..d3e132e04ee9
 +
 +#endif /* MUQSS_SCHED_H */
 diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
-index e13df951aca7..f6fd85f77a43 100644
+index c907fde01eaa..8552d52803b1 100644
 --- a/kernel/sched/cpufreq_schedutil.c
 +++ b/kernel/sched/cpufreq_schedutil.c
-@@ -184,7 +184,7 @@ static unsigned long sugov_aggregate_util(struct sugov_cpu *sg_cpu)
+@@ -188,11 +188,17 @@ static void sugov_get_util(struct sugov_cpu *sg_cpu)
+ 	sg_cpu->util_dl  = cpu_util_dl(rq);
+ }
+ 
++#ifdef CONFIG_SCHED_MUQSS
++#define rt_rq_runnable(rq_rt) rt_rq_is_runnable(rq)
++#else
++#define rt_rq_runnable(rq_rt) rt_rq_is_runnable(&rq->rt)
++#endif
++
+ static unsigned long sugov_aggregate_util(struct sugov_cpu *sg_cpu)
  {
  	struct rq *rq = cpu_rq(sg_cpu->cpu);
  
--	if (rq->rt.rt_nr_running)
-+	if (rq_rt_nr_running(rq))
+-	if (rt_rq_is_runnable(&rq->rt))
++	if (rt_rq_runnable(rq))
  		return sg_cpu->max;
  
  	/*
-@@ -474,7 +474,11 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
+@@ -573,7 +579,11 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
  	struct task_struct *thread;
  	struct sched_attr attr = {
  		.size		= sizeof(struct sched_attr),
@@ -15020,7 +15839,7 @@ index 1a3e9bddd17b..2caac890f169 100644
  };
 +#endif /* CONFIG_SCHED_MUQSS */
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index cb467c221b15..3b3018908a1d 100644
+index c7742dcc136c..9b96aa93f966 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
 @@ -2,6 +2,19 @@
@@ -15043,7 +15862,7 @@ index cb467c221b15..3b3018908a1d 100644
  #include <linux/sched.h>
  
  #include <linux/sched/autogroup.h>
-@@ -2181,3 +2194,30 @@ static inline unsigned long cpu_util_cfs(struct rq *rq)
+@@ -2194,3 +2207,30 @@ static inline unsigned long cpu_util_cfs(struct rq *rq)
  	return util;
  }
  #endif
@@ -15075,7 +15894,7 @@ index cb467c221b15..3b3018908a1d 100644
 +#endif
 +#endif /* CONFIG_SCHED_MUQSS */
 diff --git a/kernel/sched/topology.c b/kernel/sched/topology.c
-index 61a1125c1ae4..ed9c3ce6452a 100644
+index 56a0fed30c0a..fd33eab3f06d 100644
 --- a/kernel/sched/topology.c
 +++ b/kernel/sched/topology.c
 @@ -219,7 +219,11 @@ void rq_attach_root(struct rq *rq, struct root_domain *rd)
@@ -15257,7 +16076,7 @@ index 000000000000..bf5c6e97e139
 +	l->entries--;
 +}
 diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index 6a78cf70761d..42044f8bb05e 100644
+index 2d9837c0aff4..dc8ef7c52781 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
 @@ -126,9 +126,17 @@ static int __maybe_unused one = 1;
@@ -15386,10 +16205,10 @@ index 16c027e9cc73..37162d7bd922 100644
  /**
   * clockevents_increase_min_delta - raise minimum delta of a clock event device
 diff --git a/kernel/time/hrtimer.c b/kernel/time/hrtimer.c
-index 14e858753d76..1256139353b4 100644
+index 3e93c54bd3a1..12a1680327ef 100644
 --- a/kernel/time/hrtimer.c
 +++ b/kernel/time/hrtimer.c
-@@ -2023,3 +2023,117 @@ int __sched schedule_hrtimeout(ktime_t *expires,
+@@ -2027,3 +2027,117 @@ int __sched schedule_hrtimeout(ktime_t *expires,
  	return schedule_hrtimeout_range(expires, 0, mode);
  }
  EXPORT_SYMBOL_GPL(schedule_hrtimeout);
@@ -15508,10 +16327,10 @@ index 14e858753d76..1256139353b4 100644
 +}
 +EXPORT_SYMBOL(schedule_msec_hrtimeout_uninterruptible);
 diff --git a/kernel/time/posix-cpu-timers.c b/kernel/time/posix-cpu-timers.c
-index 5a6251ac6f7a..5d838674666d 100644
+index 9cdf54b04ca8..d507c72e2db0 100644
 --- a/kernel/time/posix-cpu-timers.c
 +++ b/kernel/time/posix-cpu-timers.c
-@@ -830,7 +830,7 @@ static void check_thread_timers(struct task_struct *tsk,
+@@ -829,7 +829,7 @@ static void check_thread_timers(struct task_struct *tsk,
  	tsk_expires->virt_exp = expires;
  
  	tsk_expires->sched_exp = check_timers_list(++timers, firing,
@@ -15520,7 +16339,7 @@ index 5a6251ac6f7a..5d838674666d 100644
  
  	/*
  	 * Check for the special case thread timers.
-@@ -840,7 +840,7 @@ static void check_thread_timers(struct task_struct *tsk,
+@@ -839,7 +839,7 @@ static void check_thread_timers(struct task_struct *tsk,
  		unsigned long hard = task_rlimit_max(tsk, RLIMIT_RTTIME);
  
  		if (hard != RLIM_INFINITY &&
@@ -15529,7 +16348,7 @@ index 5a6251ac6f7a..5d838674666d 100644
  			/*
  			 * At the hard limit, we just die.
  			 * No need to calculate anything else now.
-@@ -852,7 +852,7 @@ static void check_thread_timers(struct task_struct *tsk,
+@@ -851,7 +851,7 @@ static void check_thread_timers(struct task_struct *tsk,
  			__group_send_sig_info(SIGKILL, SEND_SIG_PRIV, tsk);
  			return;
  		}
@@ -15538,7 +16357,7 @@ index 5a6251ac6f7a..5d838674666d 100644
  			/*
  			 * At the soft limit, send a SIGXCPU every second.
  			 */
-@@ -1096,7 +1096,7 @@ static inline int fastpath_timer_check(struct task_struct *tsk)
+@@ -1094,7 +1094,7 @@ static inline int fastpath_timer_check(struct task_struct *tsk)
  		struct task_cputime task_sample;
  
  		task_cputime(tsk, &task_sample.utime, &task_sample.stime);
@@ -15548,7 +16367,7 @@ index 5a6251ac6f7a..5d838674666d 100644
  			return 1;
  	}
 diff --git a/kernel/time/timer.c b/kernel/time/timer.c
-index 4a4fd567fb26..a5f11b8d8386 100644
+index cc2d23e6ff61..35c2a01505dd 100644
 --- a/kernel/time/timer.c
 +++ b/kernel/time/timer.c
 @@ -44,6 +44,7 @@
@@ -15677,20 +16496,8 @@ index 11e9daa4a568..4c4e1d5bdf42 100644
  	};
  	struct wakeup_test_data *x = data;
  
-diff --git a/lib/swiotlb.c b/lib/swiotlb.c
-index cc640588f145..8765ff08bf9d 100644
---- a/lib/swiotlb.c
-+++ b/lib/swiotlb.c
-@@ -973,6 +973,7 @@ swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl, int nelems,
- 	}
- 	return nelems;
- }
-+EXPORT_SYMBOL(swiotlb_map_sg_attrs);
- 
- /*
-  * Unmap a set of streaming mode DMA translations.  Again, cpu read rules
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index 9270a4370d54..da0912308629 100644
+index 03822f86f288..2498ff144912 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
 @@ -159,7 +159,7 @@ struct scan_control {
@@ -15703,7 +16510,7 @@ index 9270a4370d54..da0912308629 100644
   * The total number of pages which are beyond the high watermark within all
   * zones.
 diff --git a/net/core/pktgen.c b/net/core/pktgen.c
-index 7e4ede34cc52..4cc056a2a516 100644
+index 49368e21d228..787bf62c0580 100644
 --- a/net/core/pktgen.c
 +++ b/net/core/pktgen.c
 @@ -1902,7 +1902,7 @@ static void pktgen_mark_device(const struct pktgen_net *pn, const char *ifname)
@@ -15716,7 +16523,7 @@ index 7e4ede34cc52..4cc056a2a516 100644
  
  		if (++i >= max_tries) {
 diff --git a/sound/pci/maestro3.c b/sound/pci/maestro3.c
-index 8f20dec97843..944ce63431b0 100644
+index 224e942f556d..f568d4c451dc 100644
 --- a/sound/pci/maestro3.c
 +++ b/sound/pci/maestro3.c
 @@ -2016,7 +2016,7 @@ static void snd_m3_ac97_reset(struct snd_m3 *chip)
@@ -15848,7 +16655,7 @@ index 643863bb32e0..fc318d71a8a3 100644
  }
  
 diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
-index 2d9709104ec5..706aaf90ceaf 100644
+index 229c12349803..83a9e8f0ac36 100644
 --- a/sound/soc/soc-dapm.c
 +++ b/sound/soc/soc-dapm.c
 @@ -137,7 +137,7 @@ static void dapm_assert_locked(struct snd_soc_dapm_context *dapm)
@@ -15861,7 +16668,7 @@ index 2d9709104ec5..706aaf90ceaf 100644
  
  static void pop_dbg(struct device *dev, u32 pop_time, const char *fmt, ...)
 diff --git a/sound/usb/line6/pcm.c b/sound/usb/line6/pcm.c
-index b3854f8c0c67..d6bd68b381f3 100644
+index 72c6f8e82a7e..46d8c2a148ad 100644
 --- a/sound/usb/line6/pcm.c
 +++ b/sound/usb/line6/pcm.c
 @@ -131,7 +131,7 @@ static void line6_wait_clear_audio_urbs(struct snd_line6_pcm *line6pcm,
