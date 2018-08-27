@@ -8,8 +8,10 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 
 # CPU SCHED selector
 if [ ! -e $where/cpuschedset ]; then
-  read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.CFS\nchoice[1-2?]: '`" CONDITION;
+  read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.MUQSS\n  3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
+    echo "TkGExt=\"-tkg-muqss\"" > $where/cpuschedset
+  elif [ "$CONDITION" == "3" ]; then
     echo "TkGExt=\"-tkg-cfs\"" > $where/cpuschedset
   else
     echo "TkGExt=\"-tkg-pds\"" > $where/cpuschedset
@@ -24,7 +26,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
 _sub=19
 pkgver=${_basekernel}.${_sub}
-pkgrel=21
+pkgrel=22
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -32,6 +34,7 @@ makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool
 options=('!strip' 'ccache' 'makeflags')
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
+        "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
         'config.x86_64' # arch config with minor tweaks
         'linux417-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -54,6 +57,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '6d860198753f5897c494fc864332a854e3bf5ee64021baca744777442c2859f6'
+            'SKIP'
             '218e07bbe85d1e3dcfeaf38659752b2abf033f4aeb783d1161ca97ea4e0bc481'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -66,7 +70,7 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
             '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
-            '6e500148b2e6905ed8b78358f793ba596a5226fbf8a04f48dee0c7232bcf1451'
+            '8d9ae853f6d8e7923f2388b642dbb20927b5993248374570241f9681cd958e14'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
@@ -77,6 +81,24 @@ prepare() {
 
   ln -s "${where}/cpuschedset" "${srcdir}" # workaround for non-pure Arch
 
+  # AUFS
+  cd "${srcdir}/aufs"
+  rm -v -f $(find . -type f -name '*.orig')
+  rm -rf "../tmp/linux-${_basekernel}"
+  mkdir -p "../tmp/linux-${_basekernel}"
+  cp -a fs "../tmp/linux-${_basekernel}"
+  cp -a include "../tmp/linux-${_basekernel}"
+  cp -a Documentation "../tmp/linux-${_basekernel}"
+  rm "../tmp/linux-${_basekernel}/include/uapi/linux/Kbuild"
+  cd "../tmp"
+  diff -Naur null linux-${_basekernel}  | filterdiff | \
+  sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-'"${_basekernel}"'-old\1|;s|^--- null.*|--- /dev/null|;\|linux-'"${_basekernel}"'/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs${_basekernel}.patch
+  mv *patch* "${srcdir}"
+  cd "${srcdir}/aufs"
+  mv *patch* "${srcdir}"
+  cd "${srcdir}"
+  rm -rf tmp aufs
+
   cd "${srcdir}/linux-${_basekernel}"
   
   # add upstream patch
@@ -86,6 +108,16 @@ prepare() {
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
   patch -Np1 -i ../0003-Revert-drm-i915-edp-Allow-alternate-fixed-mode-for-e.patch
   patch -Np1 -i ../0004-ACPI-watchdog-Prefer-iTCO_wdt-always-when-WDAT-table.patch
+
+  # AUFS Patches
+  patch -Np1 -i ../aufs${_basekernel}.patch
+  patch -Np1 -i ../aufs4-base.patch
+  patch -Np1 -i ../aufs4-kbuild.patch
+  git apply -C1 ../aufs4-loopback.patch
+  git apply -C1 ../aufs4-mmap.patch
+  patch -Np1 -i ../aufs4-standalone.patch
+  patch -Np1 -i ../tmpfs-idr.patch
+  patch -Np1 -i ../vfs-ino.patch
 
   # TkG
   patch -Np1 -i ../0005-pci-pme-wakeups.patch
