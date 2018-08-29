@@ -52,6 +52,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-glitched-base.patch
         0010-glitched-muqss.patch
         0010-patch-4.17-ck1
+        0010-muqss-4.17.19-fix.patch
         0011-glitched-pds.patch
         0011-v4.17_pds098t.patch
         0011-pds098t-4.17.19-fix.patch
@@ -74,6 +75,7 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '8d9ae853f6d8e7923f2388b642dbb20927b5993248374570241f9681cd958e14'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
+            '29c692095d27640f7f5e3f01b5e6f80a5fdd28f2b8c4fe3411b5ea2157d50ce4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
             '699258df33dc6f3741253760cbce2470e85982929fe16d60cb37359085f3c360'
             'f7f3cd18bd17eeaf5bc3de91dae886dc21c0d0508c0a5ffbddae9cba48b4179c')
@@ -132,6 +134,7 @@ prepare() {
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
     patch -Np1 -i ../0010-patch-4.17-ck1
+    patch -Np1 -i ../0010-muqss-4.17.19-fix.patch
     patch -Np1 -i ../0010-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
