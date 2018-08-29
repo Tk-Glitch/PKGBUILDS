@@ -1245,10 +1245,10 @@ index 1a3e9bddd17b..542f4823b262 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..8711bf7a5cb9
+index 000000000000..47623501648a
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6399 @@
+@@ -0,0 +1,6358 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1328,6 +1328,12 @@ index 000000000000..8711bf7a5cb9
 +
 +#define MIN_VISIBLE_DEADLINE	(1 << 8)
 +
++/*
++ * RQ balance mask and shift
++ */
++static u64 sched_balance_mask ____cacheline_aligned_in_smp = (8ULL - 1);
++static u64 sched_balance_shift ____cacheline_aligned_in_smp = 0UL;
++
 +enum {
 +	BASE_CPU_AFFINITY_CHK_LEVEL = 1,
 +#ifdef CONFIG_SCHED_SMT
@@ -1341,7 +1347,7 @@ index 000000000000..8711bf7a5cb9
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.98w by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.98v by Alfred Chen.\n");
 +}
 +
 +/* task_struct::on_rq states: */
@@ -1421,11 +1427,14 @@ index 000000000000..8711bf7a5cb9
 +}
 +
 +#ifdef CONFIG_SMP
-+/*
-+ * RQ balance mask and shift
-+ */
-+static u64 sched_balance_mask ____cacheline_aligned_in_smp = (8ULL - 1);
-+static u64 sched_balance_shift ____cacheline_aligned_in_smp = 0UL;
++
++#define MAX_SCHED_RQ_NR_RUNNING_BITS (32UL)
++
++static cpumask_t sched_rq_nr_running_masks[MAX_SCHED_RQ_NR_RUNNING_BITS]
++____cacheline_aligned_in_smp;
++
++static DECLARE_BITMAP(sched_rq_nr_running_mb, MAX_SCHED_RQ_NR_RUNNING_BITS)
++____cacheline_aligned_in_smp;
 +
 +enum {
 +SCHED_RQ_EMPTY		=	0,
@@ -1448,18 +1457,12 @@ index 000000000000..8711bf7a5cb9
 +static DECLARE_BITMAP(sched_rq_queued_masks_bitmap, NR_SCHED_RQ_QUEUED_LEVEL)
 +____cacheline_aligned_in_smp;
 +
-+static cpumask_t sched_rq_pending_masks[NR_SCHED_RQ_QUEUED_LEVEL]
-+____cacheline_aligned_in_smp;
-+
-+static DECLARE_BITMAP(sched_rq_pending_masks_bitmap, NR_SCHED_RQ_QUEUED_LEVEL)
-+____cacheline_aligned_in_smp;
-+
 +DEFINE_PER_CPU(cpumask_t [NR_CPU_AFFINITY_CHK_LEVEL], sched_cpu_affinity_chk_masks);
 +DEFINE_PER_CPU(cpumask_t *, sched_cpu_llc_start_mask);
 +DEFINE_PER_CPU(cpumask_t *, sched_cpu_affinity_chk_end_masks);
 +
 +#ifdef CONFIG_SCHED_SMT
-+DEFINE_PER_CPU(int, sched_sibling_cpu);
++DEFINE_PER_CPU(unsigned int, cpu_has_smt_sibling);
 +
 +static cpumask_t sched_cpu_sg_idle_mask ____cacheline_aligned_in_smp;
 +#endif
@@ -1656,19 +1659,12 @@ index 000000000000..8711bf7a5cb9
 +
 +static inline struct task_struct *rq_first_queued_task(struct rq *rq)
 +{
-+	return skiplist_entry(rq->sl_header->next[0],
-+			      struct task_struct, sl_node);
-+}
++	struct skiplist_node *node = rq->sl_header.next[0];
 +
-+static inline struct task_struct *rq_second_queued_task(struct rq *rq)
-+{
-+	return skiplist_entry(rq->sl_header->next[0]->next[0],
-+			      struct task_struct, sl_node);
-+}
++	if (node == &rq->sl_header)
++		return NULL;
 +
-+static inline int is_second_in_rq(struct task_struct *p, struct rq *rq)
-+{
-+	return (p->sl_node.prev[0]->prev[0] == rq->sl_header);
++	return skiplist_entry(node, struct task_struct, sl_node);
 +}
 +
 +static const int task_dl_hash_tbl[] = {
@@ -1706,6 +1702,17 @@ index 000000000000..8711bf7a5cb9
 +	return true;
 +}
 +
++static inline void update_sched_rq_nr_running_masks(struct rq *rq)
++{
++	unsigned long level;
++
++	level = find_last_bit(&rq->nr_running, MAX_SCHED_RQ_NR_RUNNING_BITS);
++	level %= MAX_SCHED_RQ_NR_RUNNING_BITS;
++	__update_cpumasks_bitmap(cpu_of(rq), &rq->nr_running_level, level,
++				 &sched_rq_nr_running_masks[0],
++				 &sched_rq_nr_running_mb[0]);
++}
++
 +static inline int
 +task_running_policy_level(const struct task_struct *p, const struct rq *rq)
 +{
@@ -1723,7 +1730,7 @@ index 000000000000..8711bf7a5cb9
 +{
 +	struct task_struct *p = rq_first_queued_task(rq);
 +
-+	if (p->prio != NORMAL_PRIO)
++	if (p == NULL || p->prio != NORMAL_PRIO)
 +		return;
 +
 +	__update_cpumasks_bitmap(cpu_of(rq), &rq->queued_level,
@@ -1735,14 +1742,16 @@ index 000000000000..8711bf7a5cb9
 +static inline void update_sched_rq_queued_masks(struct rq *rq)
 +{
 +	int cpu = cpu_of(rq);
-+	unsigned long level;
-+#ifdef CONFIG_SCHED_SMT
-+	unsigned long last_level = rq->queued_level;
-+#endif
-+	struct task_struct *p = rq_first_queued_task(rq);
++	struct task_struct *p;
++	unsigned long level, last_level = rq->queued_level;
 +
-+	level = task_running_policy_level(p, rq);
-+	sched_rq_prio[cpu] = p->prio;
++	if ((p = rq_first_queued_task(rq)) == NULL) {
++		level = SCHED_RQ_EMPTY;
++		sched_rq_prio[cpu] = PRIO_LIMIT;
++	} else {
++		level = task_running_policy_level(p, rq);
++		sched_rq_prio[cpu] = p->prio;
++	}
 +
 +	if (!__update_cpumasks_bitmap(cpu, &rq->queued_level, level,
 +				      &sched_rq_queued_masks[0],
@@ -1750,7 +1759,7 @@ index 000000000000..8711bf7a5cb9
 +		return;
 +
 +#ifdef CONFIG_SCHED_SMT
-+	if (~0 != per_cpu(sched_sibling_cpu, cpu)) {
++	if (per_cpu(cpu_has_smt_sibling, cpu)) {
 +		if (SCHED_RQ_EMPTY == last_level) {
 +			cpumask_andnot(&sched_cpu_sg_idle_mask,
 +				       &sched_cpu_sg_idle_mask,
@@ -1768,23 +1777,9 @@ index 000000000000..8711bf7a5cb9
 +	}
 +#endif
 +}
-+
-+static inline void update_sched_rq_pending_masks(struct rq *rq)
-+{
-+	unsigned long level;
-+	struct task_struct *p = rq_second_queued_task(rq);
-+
-+	level = task_running_policy_level(p, rq);
-+
-+	__update_cpumasks_bitmap(cpu_of(rq), &rq->pending_level, level,
-+				 &sched_rq_pending_masks[0],
-+				 &sched_rq_pending_masks_bitmap[0]);
-+}
-+
 +#else /* CONFIG_SMP */
 +static inline void update_sched_rq_queued_masks(struct rq *rq) {}
 +static inline void update_sched_rq_queued_masks_normal(struct rq *rq) {}
-+static inline void update_sched_rq_pending_masks(struct rq *rq) {}
 +#endif
 +
 +#ifdef CONFIG_NO_HZ_FULL
@@ -1828,12 +1823,12 @@ index 000000000000..8711bf7a5cb9
 +
 +	WARN_ONCE(task_rq(p) != rq, "pds: dequeue task reside on cpu%d from cpu%d\n",
 +		  task_cpu(p), cpu_of(rq));
-+	if (skiplist_del_init(rq->sl_header, &p->sl_node)) {
++	if (skiplist_del_init(&rq->sl_header, &p->sl_node))
 +		update_sched_rq_queued_masks(rq);
-+		update_sched_rq_pending_masks(rq);
-+	} else if (is_second_in_rq(p, rq))
-+		update_sched_rq_pending_masks(rq);
 +	rq->nr_running--;
++#ifdef CONFIG_SMP
++	update_sched_rq_nr_running_masks(rq);
++#endif
 +
 +	sched_update_tick_dependency(rq);
 +
@@ -1844,7 +1839,7 @@ index 000000000000..8711bf7a5cb9
 + * To determine if it's safe for a task of SCHED_IDLE to actually run as
 + * an idle task, we ensure none of the following conditions are met.
 + */
-+static inline bool idleprio_suitable(struct task_struct *p)
++static bool idleprio_suitable(struct task_struct *p)
 +{
 +	return (!freezing(p) && !signal_pending(p) &&
 +		!(task_contributes_to_load(p)) && !(p->flags & (PF_EXITING)));
@@ -1930,12 +1925,12 @@ index 000000000000..8711bf7a5cb9
 +		  task_cpu(p), cpu_of(rq));
 +
 +	p->sl_node.level = p->sl_level;
-+	if (pds_skiplist_insert(rq->sl_header, &p->sl_node)) {
++	if (pds_skiplist_insert(&rq->sl_header, &p->sl_node))
 +		update_sched_rq_queued_masks(rq);
-+		update_sched_rq_pending_masks(rq);
-+	} else if (is_second_in_rq(p, rq))
-+		update_sched_rq_pending_masks(rq);
 +	rq->nr_running++;
++#ifdef CONFIG_SMP
++	update_sched_rq_nr_running_masks(rq);
++#endif
 +
 +	sched_update_tick_dependency(rq);
 +
@@ -1952,22 +1947,18 @@ index 000000000000..8711bf7a5cb9
 +
 +static inline void requeue_task(struct task_struct *p, struct rq *rq)
 +{
-+	bool b_first, b_second;
++	bool b_first;
 +
 +	lockdep_assert_held(&rq->lock);
 +
 +	WARN_ONCE(task_rq(p) != rq, "pds: cpu[%d] requeue task reside on cpu%d\n",
 +		  cpu_of(rq), task_cpu(p));
 +
-+	b_first = skiplist_del_init(rq->sl_header, &p->sl_node);
-+	b_second = is_second_in_rq(p, rq);
++	b_first = skiplist_del_init(&rq->sl_header, &p->sl_node);
 +
 +	p->sl_node.level = p->sl_level;
-+	if (pds_skiplist_insert(rq->sl_header, &p->sl_node) || b_first) {
++	if (pds_skiplist_insert(&rq->sl_header, &p->sl_node) || b_first)
 +		update_sched_rq_queued_masks(rq);
-+		update_sched_rq_pending_masks(rq);
-+	} else if (is_second_in_rq(p, rq) || b_second)
-+		update_sched_rq_pending_masks(rq);
 +}
 +
 +/*
@@ -2774,32 +2765,20 @@ index 000000000000..8711bf7a5cb9
 + * @only_preempt_low_policy: indicate only preempt rq running low policy than @p
 + */
 +static inline int
-+task_preemptible_rq_idle(struct task_struct *p, cpumask_t *chk_mask)
++task_preemptible_rq(struct task_struct *p, cpumask_t *chk_mask)
 +{
 +	cpumask_t tmp;
-+
-+	if (
-+#ifdef CONFIG_SCHED_SMT
-+	    cpumask_and(&tmp, chk_mask, &sched_cpu_sg_idle_mask) ||
-+#endif
-+	    cpumask_and(&tmp, chk_mask, &sched_rq_queued_masks[SCHED_RQ_EMPTY]))
-+		return best_mask_cpu(task_cpu(p), &tmp);
-+
-+	return best_mask_cpu(task_cpu(p), chk_mask);
-+}
-+
-+static inline int
-+task_preemptible_rq(struct task_struct *p, cpumask_t *chk_mask,
-+		    int preempt_level)
-+{
-+	cpumask_t tmp;
-+	int level;
++	int level, preempt_level;
 +
 +#ifdef CONFIG_SCHED_SMT
 +	if (cpumask_and(&tmp, chk_mask, &sched_cpu_sg_idle_mask))
 +		return best_mask_cpu(task_cpu(p), &tmp);
 +#endif
 +
++	if (batch_task(p))
++		preempt_level = SCHED_RQ_NORMAL_0;
++	else
++		preempt_level = task_running_policy_level(p, this_rq());
 +	level = find_first_bit(sched_rq_queued_masks_bitmap,
 +			       NR_SCHED_RQ_QUEUED_LEVEL);
 +
@@ -2812,10 +2791,10 @@ index 000000000000..8711bf7a5cb9
 +				      level + 1);
 +	}
 +
-+	if (unlikely(SCHED_RQ_RT == level &&
-+		     level == preempt_level &&
++	if (unlikely(level == preempt_level &&
++		     SCHED_RQ_RT == level &&
 +		     cpumask_and(&tmp, chk_mask,
-+				 &sched_rq_queued_masks[SCHED_RQ_RT]))) {
++				 &sched_rq_queued_masks[preempt_level]))) {
 +		unsigned int cpu;
 +
 +		for_each_cpu (cpu, &tmp)
@@ -2836,26 +2815,11 @@ index 000000000000..8711bf7a5cb9
 +static inline int select_task_rq(struct task_struct *p)
 +{
 +	cpumask_t chk_mask;
-+	int preempt_level;
 +
 +	if (unlikely(!cpumask_and(&chk_mask, &p->cpus_allowed, cpu_online_mask)))
 +		return select_fallback_rq(task_cpu(p), p);
 +
-+	/* Check IDLE tasks suitable to run normal priority */
-+	if (idleprio_task(p)) {
-+		if (idleprio_suitable(p)) {
-+			p->prio = p->normal_prio;
-+			update_task_priodl(p);
-+			return task_preemptible_rq_idle(p, &chk_mask);
-+		}
-+		p->prio = NORMAL_PRIO;
-+		update_task_priodl(p);
-+	}
-+
-+	preempt_level = batch_task(p) ?
-+		SCHED_RQ_NORMAL_0:task_running_policy_level(p, this_rq());
-+
-+	return task_preemptible_rq(p, &chk_mask, preempt_level);
++	return task_preemptible_rq(p, &chk_mask);
 +}
 +#else /* CONFIG_SMP */
 +static inline int select_task_rq(struct task_struct *p)
@@ -3133,6 +3097,12 @@ index 000000000000..8711bf7a5cb9
 +	if (p->in_iowait) {
 +		delayacct_blkio_end(p);
 +		atomic_dec(&task_rq(p)->nr_iowait);
++	}
++
++	/* Check IDLE tasks suitable to run normal priority */
++	if (idleprio_task(p)) {
++		p->prio = idleprio_suitable(p)? p->normal_prio:NORMAL_PRIO;
++		update_task_priodl(p);
 +	}
 +
 +	cpu = select_task_rq(p);
@@ -4200,7 +4170,7 @@ index 000000000000..8711bf7a5cb9
 +	/*
 +	 * this function is called when rq is locked and nr_running >= 2
 +	 */
-+	node = rq->sl_header->next[0]->next[0];
++	node = rq->sl_header.next[0]->next[0];
 +	p = skiplist_entry(node, struct task_struct, sl_node);
 +
 +	/*
@@ -4520,39 +4490,38 @@ index 000000000000..8711bf7a5cb9
 + * SCHED_RQ_NR_MIGRATION to @dest_cpu
 + */
 +static inline int
-+migrate_pending_tasks(struct rq *rq, struct rq *dest_rq, int filter_prio)
++migrate_pending_tasks(struct rq *rq, struct rq *dest_rq, int dest_cpu)
 +{
-+	struct task_struct *p;
-+	int dest_cpu = cpu_of(dest_rq);
 +	int nr_migrated = 0;
-+	int nr_tries = min((rq->nr_running + 1) / 2, SCHED_RQ_NR_MIGRATION);
-+	struct skiplist_node *node = rq->sl_header->next[0];
++	int nr_max_tries = min(rq->nr_running / 2, SCHED_RQ_NR_MIGRATION);
++	struct skiplist_node *node = rq->sl_header.next[0];
 +
-+	while (nr_tries && node != rq->sl_header) {
++	while (nr_max_tries && node != &rq->sl_header) {
++		struct task_struct *p;
++
++		/* seek to the next node */
++		node = node->next[0];
++		if (node == &rq->sl_header)
++			break;
++
 +		p = skiplist_entry(node, struct task_struct, sl_node);
 +		node = node->next[0];
++		nr_max_tries--;
 +
-+		if (task_running(p))
-+			continue;
-+		if (p->prio >= filter_prio)
-+			break;
-+		if (cpumask_test_cpu(dest_cpu, &p->cpus_allowed)) {
++		/* skip the running task and check CPU affinity */
++		if (!task_running(p) &&
++		    cpumask_test_cpu(dest_cpu, &p->cpus_allowed)) {
 +			detach_task(rq, p, dest_cpu);
 +			attach_task(dest_rq, p);
 +			nr_migrated++;
 +		}
-+		nr_tries--;
-+		/* make a jump */
-+		if (node == rq->sl_header)
-+			break;
-+		node = node->next[0];
 +	}
 +
 +	return nr_migrated;
 +}
 +
-+static inline int
-+take_queued_task_cpumask(struct rq *rq, cpumask_t *chk_mask, int filter_prio)
++static inline struct task_struct *
++take_queued_task_cpumask(struct rq *rq, int cpu, struct cpumask *chk_mask)
 +{
 +	int src_cpu;
 +
@@ -4565,60 +4534,51 @@ index 000000000000..8711bf7a5cb9
 +		spin_acquire(&src_rq->lock.dep_map, SINGLE_DEPTH_NESTING, 1, _RET_IP_);
 +
 +		update_rq_clock(src_rq);
-+		nr_migrated = migrate_pending_tasks(src_rq, rq, filter_prio);
++		nr_migrated = migrate_pending_tasks(src_rq, rq, cpu);
 +
 +		spin_release(&src_rq->lock.dep_map, 1, _RET_IP_);
 +		do_raw_spin_unlock(&src_rq->lock);
 +
-+		if (nr_migrated)
-+			return nr_migrated;
++		if (nr_migrated) {
++			resched_curr(rq);
++			return rq_first_queued_task(rq);
++		}
 +	}
-+	return 0;
++	return NULL;
 +}
 +
-+static inline int take_other_rq_task(struct rq *rq, int filter_prio)
++static inline struct task_struct *take_other_rq_task(struct rq *rq, int cpu)
 +{
++	struct cpumask tmp;
 +	struct cpumask *affinity_mask, *end;
-+	int cpu = cpu_of(rq);
-+	struct cpumask chk;
-+
-+	if (PRIO_LIMIT == filter_prio) {
-+		cpumask_complement(&chk, &sched_rq_pending_masks[SCHED_RQ_EMPTY]);
-+	} else if (IDLE_PRIO == filter_prio) {
-+		cpumask_complement(&chk, &sched_rq_pending_masks[SCHED_RQ_EMPTY]);
-+		cpumask_andnot(&chk, &chk, &sched_rq_pending_masks[SCHED_RQ_IDLE]);
-+	} else
-+		cpumask_copy(&chk, &sched_rq_pending_masks[SCHED_RQ_RT]);
-+
 +
 +	affinity_mask = per_cpu(sched_cpu_llc_start_mask, cpu);
 +	end = per_cpu(sched_cpu_affinity_chk_end_masks, cpu);
 +	do {
-+		struct cpumask tmp;
-+
-+		if (cpumask_and(&tmp, &chk, affinity_mask) &&
-+		    take_queued_task_cpumask(rq, &tmp, filter_prio))
-+			return 1;
++		struct task_struct *p;
++		if (cpumask_andnot(&tmp, affinity_mask,
++				   &sched_rq_nr_running_masks[0]) &&
++		    (p = take_queued_task_cpumask(rq, cpu, &tmp)))
++			return p;
 +	} while (++affinity_mask < end);
 +
-+	return 0;
++	return NULL;
 +}
 +#endif
 +
-+static inline struct task_struct *
-+choose_next_task(struct rq *rq, struct task_struct *prev)
++static inline struct task_struct *choose_next_task(struct rq *rq, int cpu)
 +{
-+	struct task_struct *next = rq_first_queued_task(rq);
++	struct task_struct *next;
++
++	if ((next = rq_first_queued_task(rq)))
++		return next;
 +
 +#ifdef	CONFIG_SMP
 +	if (likely(rq->online))
-+		if ((next->prio > prev->prio || PRIO_LIMIT == next->prio) &&
-+		    take_other_rq_task(rq, next->prio)) {
-+			resched_curr(rq);
-+			return rq_first_queued_task(rq);
-+		}
++		if ((next = take_other_rq_task(rq, cpu)))
++			return next;
 +#endif
-+	return next;
++	return rq->idle;
 +}
 +
 +static inline unsigned long get_preempt_disable_ip(struct task_struct *p)
@@ -4799,7 +4759,7 @@ index 000000000000..8711bf7a5cb9
 +
 +	check_deadline(prev, rq);
 +
-+	next = choose_next_task(rq, prev);
++	next = choose_next_task(rq, cpu);
 +
 +	set_rq_task(rq, next);
 +
@@ -6719,8 +6679,6 @@ index 000000000000..8711bf7a5cb9
 +	raw_spin_lock(&rq->lock);
 +	update_rq_clock(rq);
 +
-+	FULL_INIT_SKIPLIST_NODE(&idle->sl_node);
-+
 +	idle->last_ran = rq->clock_task;
 +	idle->state = TASK_RUNNING;
 +	idle->flags |= PF_IDLE;
@@ -6748,7 +6706,6 @@ index 000000000000..8711bf7a5cb9
 +
 +	rq->curr = rq->idle = idle;
 +	idle->on_cpu = 1;
-+	rq->sl_header = &idle->sl_node;
 +
 +	raw_spin_unlock(&rq->lock);
 +	raw_spin_unlock_irqrestore(&idle->pi_lock, flags);
@@ -6959,14 +6916,14 @@ index 000000000000..8711bf7a5cb9
 +	 */
 +	rq->stop = NULL;
 +
-+	node = rq->sl_header;
-+	while ((node = node->next[0]) != rq->sl_header) {
++	node = &rq->sl_header;
++	while ((node = node->next[0]) != &rq->sl_header) {
 +		int dest_cpu;
 +
 +		p = skiplist_entry(node, struct task_struct, sl_node);
 +
-+		/* skip the running task */
-+		if (task_running(p))
++		/* Leave kernel tasks only on this CPU along: */
++		if (p->flags & PF_KTHREAD && p->nr_cpus_allowed == 1)
 +			continue;
 +
 +		/*
@@ -6993,8 +6950,10 @@ index 000000000000..8711bf7a5cb9
 +		}
 +
 +		count++;
-+		/* Find suitable destination for @next, with force if needed. */
-+		dest_cpu = select_fallback_rq(dead_rq->cpu, p);
++		if (!cpumask_intersects(&p->cpus_allowed, cpu_online_mask))
++			cpumask_set_cpu(0, &p->cpus_allowed);
++		p->nr_cpus_allowed = cpumask_weight(&p->cpus_allowed);
++		dest_cpu = cpumask_any_and(&p->cpus_allowed, cpu_online_mask);
 +
 +		rq = __migrate_task(rq, p, dest_cpu);
 +		raw_spin_unlock(&rq->lock);
@@ -7003,7 +6962,7 @@ index 000000000000..8711bf7a5cb9
 +		rq = dead_rq;
 +		raw_spin_lock(&rq->lock);
 +		/* Check queued task all over from the header again */
-+		node = rq->sl_header;
++		node = &rq->sl_header;
 +	}
 +
 +	rq->stop = stop;
@@ -7325,9 +7284,9 @@ index 000000000000..8711bf7a5cb9
 +		cpumask_setall(chk);
 +		cpumask_clear_cpu(cpu, chk);
 +		if (cpumask_and(chk, chk, topology_sibling_cpumask(cpu))) {
-+			per_cpu(sched_sibling_cpu, cpu) = cpumask_any(chk);
 +			printk(KERN_INFO "pds: cpu #%d affinity check mask - smt 0x%08lx",
 +			       cpu, (chk++)->bits[0]);
++			per_cpu(cpu_has_smt_sibling, cpu) = 1;
 +		}
 +#endif
 +		cpumask_setall(chk);
@@ -7417,16 +7376,15 @@ index 000000000000..8711bf7a5cb9
 +	cpumask_setall(&sched_rq_queued_masks[SCHED_RQ_EMPTY]);
 +	set_bit(SCHED_RQ_EMPTY, sched_rq_queued_masks_bitmap);
 +
-+	cpumask_setall(&sched_rq_pending_masks[SCHED_RQ_EMPTY]);
-+	set_bit(SCHED_RQ_EMPTY, sched_rq_pending_masks_bitmap);
++	cpumask_setall(&sched_rq_nr_running_masks[0]);
++	set_bit(0, sched_rq_nr_running_mb);
 +#else
 +	uprq = &per_cpu(runqueues, 0);
 +#endif
 +	for_each_possible_cpu(i) {
 +		rq = cpu_rq(i);
-+
++		FULL_INIT_SKIPLIST_NODE(&rq->sl_header);
 +		raw_spin_lock_init(&rq->lock);
-+		rq->sl_header = NULL;
 +		rq->dither = 0;
 +		rq->nr_running = rq->nr_uninterruptible = 0;
 +		rq->calc_load_active = 0;
@@ -7436,9 +7394,10 @@ index 000000000000..8711bf7a5cb9
 +		rq->cpu = i;
 +
 +		rq->queued_level = SCHED_RQ_EMPTY;
-+		rq->pending_level = SCHED_RQ_EMPTY;
++		rq->nr_running_level = 0UL;
++
 +#ifdef CONFIG_SCHED_SMT
-+		per_cpu(sched_sibling_cpu, i) = ~0;
++		per_cpu(cpu_has_smt_sibling, i)  = 0;
 +		rq->active_balance = 0;
 +#endif
 +#endif
@@ -7650,7 +7609,7 @@ index 000000000000..8711bf7a5cb9
 +#undef CREATE_TRACE_POINTS
 diff --git a/kernel/sched/pds_sched.h b/kernel/sched/pds_sched.h
 new file mode 100644
-index 000000000000..1bc5be10919c
+index 000000000000..8acf8698bd39
 --- /dev/null
 +++ b/kernel/sched/pds_sched.h
 @@ -0,0 +1,352 @@
@@ -7711,7 +7670,7 @@ index 000000000000..1bc5be10919c
 +	struct task_struct *curr, *idle, *stop;
 +	struct mm_struct *prev_mm;
 +
-+	struct skiplist_node *sl_header;
++	struct skiplist_node sl_header;
 +
 +	/* switch count */
 +	u64 nr_switches;
@@ -7724,9 +7683,6 @@ index 000000000000..1bc5be10919c
 +#ifdef CONFIG_SMP
 +	int cpu;		/* cpu of this runqueue */
 +	bool online;
-+
-+	unsigned long queued_level;
-+	unsigned long pending_level;
 +
 +#ifdef CONFIG_SCHED_SMT
 +	int active_balance;
@@ -7753,6 +7709,9 @@ index 000000000000..1bc5be10919c
 +
 +	unsigned long nr_running;
 +	unsigned long nr_uninterruptible;
++
++	unsigned long nr_running_level;
++	unsigned long queued_level;
 +
 +#ifdef CONFIG_SCHED_HRTICK
 +#ifdef CONFIG_SMP
