@@ -26,7 +26,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.17
 _sub=19
 pkgver=${_basekernel}.${_sub}
-pkgrel=22
+pkgrel=23
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -54,6 +54,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0010-patch-4.17-ck1
         0011-glitched-pds.patch
         0011-v4.17_pds098t.patch
+        0011-pds098t-4.17.19-fix.patch
 )
 sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             '6d860198753f5897c494fc864332a854e3bf5ee64021baca744777442c2859f6'
@@ -74,7 +75,8 @@ sha256sums=('9faa1dd896eaea961dc6e886697c0b3301277102e5bc976b2758f9a62d3ccd13'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '4c27a05e4677cb6f6c979dbd1e471ef5149da78e2d53863850d66b4c680f6cb4'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            '699258df33dc6f3741253760cbce2470e85982929fe16d60cb37359085f3c360')
+            '699258df33dc6f3741253760cbce2470e85982929fe16d60cb37359085f3c360'
+            'f7f3cd18bd17eeaf5bc3de91dae886dc21c0d0508c0a5ffbddae9cba48b4179c')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -135,6 +137,7 @@ prepare() {
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
     # PDS-mq
     patch -Np1 -i ../0011-v4.17_pds098t.patch
+    patch -Np1 -i ../0011-pds098t-4.17.19-fix.patch
     patch -Np1 -i ../0011-glitched-pds.patch
   else
     patch -Np1 -i ../0002-Partially-revert-swiotlb-remove-various-exports.patch
