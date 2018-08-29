@@ -26,7 +26,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=5
 pkgver=${_basekernel}.${_sub}
-pkgrel=12
+pkgrel=13
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -51,6 +51,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-patch-4.18-ck1
         0008-glitched-pds.patch
         0008-v4.18_pds098v.patch
+        0009-clocksource-Remove-kthread.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'c88a4e56ab8a37e38c76dbb12be53a2a3379e920ce4b86003ccfff8a4a9d1f69'
@@ -68,7 +69,8 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'b8fa942ef13db8f6e209049404df26801a990ee3bd7f6e339cd9a75e72fc248d'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             '508e604a71cf17f8173756c34dde976b0ebb387f6625a474e4d352e809e9e7d8'
-            '579aa4e71c4973dcf72574a31a9edb31ec6d50c26a5d211f83470c94c3bf020b')
+            '579aa4e71c4973dcf72574a31a9edb31ec6d50c26a5d211f83470c94c3bf020b'
+            '8b8efda50d7d668a1b61f39b6c5c3945798f01c195f912972490e79a0b8cc074')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -118,6 +120,9 @@ prepare() {
   patch -Np1 -i ../0005-perf.patch
   
   patch -Np1 -i ../0006-glitched-base.patch
+  
+  # Revert commit 7197e77abcb65a71d0b21d67beb24f153a96055e due to stability issues
+  patch -Np1 -R -i ../0009-clocksource-Remove-kthread.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
