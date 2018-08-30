@@ -1,5 +1,5 @@
 diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
-index 8b2966d50e..1aad566632 100644
+index 8b2966d50e..a94f62502d 100644
 --- a/dlls/winex11.drv/mouse.c
 +++ b/dlls/winex11.drv/mouse.c
 @@ -257,6 +257,8 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
@@ -20,7 +20,7 @@ index 8b2966d50e..1aad566632 100644
      data->xi2_devices = NULL;
      data->xi2_core_pointer = 0;
      data->xi2_current_slave = 0;
-@@ -1770,31 +1774,49 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1770,31 +1774,47 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  
      for (i = 0; i <= max ( x_rel->number, y_rel->number ); i++)
      {
@@ -50,20 +50,18 @@ index 8b2966d50e..1aad566632 100644
          }
      }
  
-+    // accumulate motion
++    /* Accumulate the *double* dx/dy motions so sub-pixel motions wont be lost
++     * when sent/cast to *LONG* input.u.mi.dx/dy.
++     */
 +    x_rel->accum += dx;
 +    y_rel->accum += dy;
-+    // test if large enough to cast to integer input.u.mi.dx/dy
-+    if (abs(x_rel->accum) < 1.0 && abs(y_rel->accum) < 1.0)
++    if (fabs(x_rel->accum) < 1.0 && fabs(y_rel->accum) < 1.0)
 +    {
 +        TRACE( "accumulating raw motion (event %f,%f, accum %f,%f)\n", dx, dy, x_rel->accum, y_rel->accum );
 +        return TRUE;
 +    }
-+
-+    // cast to integer
 +    input.u.mi.dx = x_rel->accum;
 +    input.u.mi.dy = y_rel->accum;
-+    // remove integer part from accumulator
 +    x_rel->accum -= input.u.mi.dx;
 +    y_rel->accum -= input.u.mi.dy;
 +
