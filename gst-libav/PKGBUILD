@@ -137,8 +137,7 @@ build() {
   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
-  # make using all available threads
-  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/"$_basename-tkg$_gitext"
+  schedtool -B -n 1 -e ionice -n 1 make -C "${srcdir}"/"$_basename-tkg$_gitext"
 
 if [ "$_lib32" == "true" ]; then
   export CC='gcc -m32'
@@ -164,8 +163,7 @@ if [ "$_lib32" == "true" ]; then
   # https://bugzilla.gnome.org/show_bug.cgi?id=655517
   sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
 
-  # make using all available threads
-  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/"lib32-$_basename-tkg$_gitext"
+  schedtool -B -n 1 -e ionice -n 1 make -C "${srcdir}"/"lib32-$_basename-tkg$_gitext"
 fi
 }
 
