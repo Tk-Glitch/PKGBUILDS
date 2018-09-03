@@ -46,7 +46,7 @@ else
   depends=('gst-plugins-base-libs' $_lib32dep 'bzip2')
 fi
 
-makedepends=('python' 'gtk-doc' 'autoconf-archive' 'git' 'yasm')
+makedepends=('python' 'gtk-doc' 'autoconf-archive' 'git' 'yasm' 'schedtool')
 optdepends=(
     # 64-bit
     # official repositories:
