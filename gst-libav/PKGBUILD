@@ -26,22 +26,26 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _basename=gst-libav
+
 if [ "$_lib32" == "true" ]; then
-pkgname=("$_basename-tkg$_gitext" "lib32-$_basename-tkg$_gitext")
+  pkgname=("$_basename-tkg$_gitext" "lib32-$_basename-tkg$_gitext")
 else
-pkgname=("$_basename-tkg$_gitext")
+  pkgname=("$_basename-tkg$_gitext")
 fi
+
 pkgver=1.14.2
 pkgrel=1
 pkgdesc="GStreamer Multimedia Framework ffmpeg Plugin"
 url="https://gstreamer.freedesktop.org/"
 arch=('x86_64')
 license=(GPL)
+
 if [ "$_gitext" == "-git" ]; then
-depends=('gstreamer-git' 'gst-plugins-base-git' 'bzip2')
+  depends=('gstreamer-git' 'gst-plugins-base-git' 'bzip2')
 else
-depends=('gst-plugins-base-libs' $_lib32dep 'bzip2')
+  depends=('gst-plugins-base-libs' $_lib32dep 'bzip2')
 fi
+
 makedepends=('python' 'gtk-doc' 'autoconf-archive' 'git' 'yasm')
 optdepends=(
     # 64-bit
