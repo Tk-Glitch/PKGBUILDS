@@ -26,7 +26,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=5
 pkgver=${_basekernel}.${_sub}
-pkgrel=15
+pkgrel=16
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -50,13 +50,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-glitched-muqss.patch
         0007-patch-4.18-ck1
         0008-glitched-pds.patch
-        0008-v4.18_pds098x.patch
+        0008-v4.18_pds098y.patch
         0009-clocksource-Remove-kthread.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'c88a4e56ab8a37e38c76dbb12be53a2a3379e920ce4b86003ccfff8a4a9d1f69'
             'SKIP'
-            '6187dfc8d77da00423e0717d2cc36680ce5ae7ed7d65f89e5b997a7c4d359edb'
+            '7a03fc5a82984999844f5a858654b9c739be5c7eafdf824d71a37914e16ce9d8'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -69,7 +69,7 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
-            'fda8ba8404df03612fae6fb1c05870235b076d4700021825b6815218a091e674'
+            'c2b10985083b667d681e98fb57eee5a444b0279a7fb000d862ae3dd81c7232e4'
             '8b8efda50d7d668a1b61f39b6c5c3945798f01c195f912972490e79a0b8cc074')
 
 prepare() {
@@ -130,7 +130,7 @@ prepare() {
     patch -Np1 -i ../0007-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0008-v4.18_pds098x.patch
+    patch -Np1 -i ../0008-v4.18_pds098y.patch
     patch -Np1 -i ../0008-glitched-pds.patch
   fi
 
