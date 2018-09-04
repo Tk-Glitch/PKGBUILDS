@@ -4,18 +4,20 @@ Date: Wed, 4 Jul 2018 04:30:08 +0200
 Subject: glitched - PDS
 
 diff --git a/drivers/cpufreq/cpufreq_ondemand.c b/drivers/cpufreq/cpufreq_ondemand.c
-index e8c8aff4cba4..61e3271675d6 100644
+index 6b423eebfd5d..61e3271675d6 100644
 --- a/drivers/cpufreq/cpufreq_ondemand.c
 +++ b/drivers/cpufreq/cpufreq_ondemand.c
-@@ -22,9 +22,9 @@
+@@ -21,10 +21,10 @@
+ #include "cpufreq_ondemand.h"
  
  /* On-demand governor macros */
- #define DEF_FREQUENCY_UP_THRESHOLD		(63)
+-#define DEF_FREQUENCY_UP_THRESHOLD		(63)
 -#define DEF_SAMPLING_DOWN_FACTOR		(1)
-+#define DEF_SAMPLING_DOWN_FACTOR		(100)
++#define DEF_FREQUENCY_UP_THRESHOLD		(55)
++#define DEF_SAMPLING_DOWN_FACTOR		(5)
  #define MAX_SAMPLING_DOWN_FACTOR		(100000)
 -#define MICRO_FREQUENCY_UP_THRESHOLD		(95)
-+#define MICRO_FREQUENCY_UP_THRESHOLD		(70)
++#define MICRO_FREQUENCY_UP_THRESHOLD		(63)
  #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
  #define MIN_FREQUENCY_UP_THRESHOLD		(1)
  #define MAX_FREQUENCY_UP_THRESHOLD		(100)
@@ -63,7 +65,36 @@ index 9270a4370d54..30d01e647417 100644
   * From 0 .. 100.  Higher means more swappy.
   */
 -int vm_swappiness = 60;
-+int vm_swappiness = 30;
++int vm_swappiness = 33;
  /*
   * The total number of pages which are beyond the high watermark within all
   * zones.
+
+diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
+index f27383bb3a423..7437ca5dccdbb 100644
+--- a/kernel/sched/pds.c
++++ b/kernel/sched/pds.c
+@@ -118,7 +118,11 @@ static inline int task_on_rq_migrating(struct task_struct *p)
+  * Value is in ms and set to a minimum of 6ms. Scales with number of cpus.
+  * Tunable via /proc interface.
+  */
++#ifdef CONFIG_ZENIFY
++#define SCHED_DEFAULT_RR (3)
++#else
+ #define SCHED_DEFAULT_RR (6)
++#endif
+ int rr_interval __read_mostly = SCHED_DEFAULT_RR;
+ 
+ static int __init rr_interval_set(char *str)
+@@ -156,7 +160,11 @@ static const u64 sched_prio2deadline[NICE_WIDTH] = {
+  * are allowed to run five seconds as real time tasks. This is the total over
+  * all online cpus.
+  */
++#ifdef CONFIG_ZENIFY
++int sched_iso_cpu __read_mostly = 25;
++#else
+ int sched_iso_cpu __read_mostly = 70;
++#endif
+ 
+ /**
+  * sched_yield_type - Choose what sort of yield sched_yield will perform.
