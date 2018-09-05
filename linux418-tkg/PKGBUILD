@@ -24,9 +24,9 @@ _basever=418
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
-_sub=5
+_sub=6
 pkgver=${_basekernel}.${_sub}
-pkgrel=16
+pkgrel=17
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -54,7 +54,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-clocksource-Remove-kthread.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
-            'c88a4e56ab8a37e38c76dbb12be53a2a3379e920ce4b86003ccfff8a4a9d1f69'
+            '5b76b5fd6b588f94ee834a5e7a084581ed5413719fcd1df40b031b9fd42818fd'
             'SKIP'
             '7a03fc5a82984999844f5a858654b9c739be5c7eafdf824d71a37914e16ce9d8'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
