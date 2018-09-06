@@ -25,7 +25,6 @@ With other patches available such as :
 - Final Fantasy XIV mouse jitter fix
 - Winepulse disable patch (fix for various sound issues related to winepulse/pulsaudio)
 - Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency
-- Mouse subpixel raw motion fix - https://bugs.winehq.org/show_bug.cgi?id=42631
 - Gallium 9 support
 
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
