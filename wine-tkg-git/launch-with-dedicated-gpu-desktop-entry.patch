@@ -1,0 +1,68 @@
+From ae3db1317289547a555412bc5a82d44ae5ecf503 Mon Sep 17 00:00:00 2001
+From: Martin Otto <paraboloid234@gmail.com>
+Date: Mon, 10 Sep 2018 17:28:33 +0200
+Subject: [PATCH] loader: add launch with dedicated gpu desktop entry
+
+---
+ configure                         | 2 +-
+ configure.ac                      | 2 +-
+ loader/Makefile.in                | 1 +
+ loader/wine_dedicated_gpu.desktop | 8 ++++++++
+ 4 files changed, 11 insertions(+), 2 deletions(-)
+ create mode 100644 loader/wine_dedicated_gpu.desktop
+
+diff --git a/configure b/configure
+index a3916ee..84b4388 100755
+--- a/configure
++++ b/configure
+@@ -20197,7 +20197,7 @@ else
+ 
+     case $host_os in
+       cygwin*|mingw32*|darwin*|macosx*|linux-android*) ;;
+-      *) WINELOADER_INSTALL="$WINELOADER_INSTALL wine.desktop" ;;
++      *) WINELOADER_INSTALL="$WINELOADER_INSTALL wine.desktop wine_dedicated_gpu.desktop" ;;
+     esac
+ fi
+ 
+diff --git a/configure.ac b/configure.ac
+index 006f7d9..e82d3c3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -4068,7 +4068,7 @@ else
+     AC_SUBST(WINELOADER_INSTALL,"wine.inf l_intl.nls")
+     case $host_os in
+       cygwin*|mingw32*|darwin*|macosx*|linux-android*) ;;
+-      *) WINELOADER_INSTALL="$WINELOADER_INSTALL wine.desktop" ;;
++      *) WINELOADER_INSTALL="$WINELOADER_INSTALL wine.desktop wine_dedicated_gpu.desktop" ;;
+     esac
+ fi
+ 
+diff --git a/loader/Makefile.in b/loader/Makefile.in
+index b1eafd1..4b5f467 100644
+--- a/loader/Makefile.in
++++ b/loader/Makefile.in
+@@ -4,6 +4,7 @@ SOURCES = \
+ 	preloader.c \
+ 	wine.de.UTF-8.man.in \
+ 	wine.desktop \
++	wine_dedicated_gpu.desktop \
+ 	wine.fr.UTF-8.man.in \
+ 	wine.inf.in \
+ 	wine.man.in \
+diff --git a/loader/wine_dedicated_gpu.desktop b/loader/wine_dedicated_gpu.desktop
+new file mode 100644
+index 0000000..9e859d6
+--- /dev/null
++++ b/loader/wine_dedicated_gpu.desktop
+@@ -0,0 +1,8 @@
++[Desktop Entry]
++Type=Application
++Name=Wine Windows Program Loader (Dedicated GPU)
++Exec=env DRI_PRIME=1 wine start /unix %f
++MimeType=application/x-ms-dos-executable;application/x-msi;application/x-ms-shortcut;
++Icon=wine
++NoDisplay=true
++StartupNotify=true
+-- 
+2.18.0
+

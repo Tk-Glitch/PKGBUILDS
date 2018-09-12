@@ -142,6 +142,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA314+.patch'
 		'fallout4.patch'
 		'fortnite.patch'
+		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'lowlatency_audio.patch'
 		'dxvk-winelib.patch')
 
@@ -465,6 +466,12 @@ prepare() {
 	  fi
 	fi
 
+	# Launch with dedicated gpu desktop entry patch
+	if [ $_launch_with_dedicated_gpu == "true" ]; then
+	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch'
+	  echo "Applied launch with dedicated gpu desktop entry patch" >> $_where/last_build_config.log
+	fi
+
 	# Low latency alsa audio - https://blog.thepoon.fr/osuLinuxAudioLatency/
 	if [ $_lowlatency_audio == "true" ] && [ $_use_staging == "true" ]; then
 	  patch -Np1 < ../'lowlatency_audio.patch'
@@ -663,6 +670,7 @@ md5sums=('SKIP'
          '940475a482b411ed7111022175df03c1'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
+         '78ea7fa80abd8beb6e2afac27deb938f'
          'ed6060dc030ebd5865f1fcc40d8863be'
          'd328bfd0d363434fe5f83f3a614849f7')
 
