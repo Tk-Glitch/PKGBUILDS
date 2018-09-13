@@ -2631,49 +2631,44 @@ index 00000000..12da4298
 +
 diff --git a/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch b/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch
 new file mode 100644
-index 000000000..eb4a3f6ac
+index 000000000..b37d2b0b4
 --- /dev/null
 +++ b/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch
-@@ -0,0 +1,46 @@
-+From f7c826564ea81e30e9e3445c7c2bd7c006b7184e Mon Sep 17 00:00:00 2001
+@@ -0,0 +1,41 @@
++From eb9500e70dcb5ac8a059148ba8d22ec92446bf43 Mon Sep 17 00:00:00 2001
 +From: Tk-Glitch <ti3nou@gmail.com>
-+Date: Thu, 13 Sep 2018 23:05:20 +0200
++Date: Fri, 14 Sep 2018 01:03:27 +0200
 +Subject: Check for envvar to actually enable PBA instead of the opposite
 +
 +
 +diff --git a/dlls/wined3d/device.c b/dlls/wined3d/device.c
-+index 183e7082d..6466bc136 100644
++index 183e7082d..4345bf99b 100644
 +--- a/dlls/wined3d/device.c
 ++++ b/dlls/wined3d/device.c
-+@@ -843,17 +843,10 @@ static void create_buffer_heap(struct wined3d_device *device, struct wined3d_con
++@@ -843,17 +843,13 @@ static void create_buffer_heap(struct wined3d_device *device, struct wined3d_con
 + {
 +     const struct wined3d_gl_info *gl_info = &device->adapter->gl_info;
 +     BOOL use_pba = FALSE;
 +-    char *env_pba_disable;
 ++    char *env_pba_enable;
 + 
-+-    if (!gl_info->supported[ARB_BUFFER_STORAGE])
-+-    {
-+-        FIXME_(d3d_perf)("Not using PBA, ARB_buffer_storage unsupported.\n");
-+-    }
++     if (!gl_info->supported[ARB_BUFFER_STORAGE])
++     {
++         FIXME_(d3d_perf)("Not using PBA, ARB_buffer_storage unsupported.\n");
++     }
 +-    else if ((env_pba_disable = getenv("PBA_DISABLE")) && *env_pba_disable != '0')
 +-    {
 +-        FIXME("Not using PBA, envvar 'PBA_DISABLE' set.\n");
 +-    }
 +-    else
-++
-++    if ((env_pba_enable = getenv("PBA_ENABLE")) && *env_pba_enable != '0')
+++    else if ((env_pba_enable = getenv("PBA_ENABLE")) && *env_pba_enable != '0')
 +     {
 +         //(Firerat) is it worth initialising an int for vram?
 +         unsigned int vram_mb = device->adapter->vram_bytes / 1048576;
-+@@ -927,6 +920,14 @@ static void create_buffer_heap(struct wined3d_device *device, struct wined3d_con
++@@ -927,6 +923,10 @@ static void create_buffer_heap(struct wined3d_device *device, struct wined3d_con
 + 
 +         use_pba = TRUE;
 +     }
-++    else if (!gl_info->supported[ARB_BUFFER_STORAGE])
-++    {
-++        FIXME_(d3d_perf)("Not using PBA, ARB_buffer_storage unsupported.\n");
-++    }
 ++    else
 ++    {
 ++        FIXME("Not using PBA, envvar 'PBA_ENABLE' not set.\n");
