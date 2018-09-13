@@ -1,6 +1,6 @@
 # Wine to rule them all !
 
-This pkgbuild allows you to create custom wine builds using an opt-in mechanism. You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
+This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
 
 Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
 
