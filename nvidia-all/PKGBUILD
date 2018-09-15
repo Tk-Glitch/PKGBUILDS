@@ -342,8 +342,7 @@ package_nvidia-tkg() {
   done
 
   # Blacklist Nouveau
-    echo "blacklist nouveau" |
-        install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
+  echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
 	msg2 '#####################################################################################################'
 	msg2 ''
@@ -440,8 +439,7 @@ package_nvidia-dkms-tkg() {
     cp -dr --no-preserve='ownership' kernel-dkms "${pkgdir}/usr/src/nvidia-${pkgver}"
 
   # Blacklist Nouveau
-    echo "blacklist nouveau" |
-        install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
+  echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
 
