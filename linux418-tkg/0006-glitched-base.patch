@@ -18894,55 +18894,6 @@ index 0866874ae8c6..61a42862c9c5 100644
  		}
  	}
  }
-diff --git a/drivers/gpu/drm/i915/intel_dp_link_training.c b/drivers/gpu/drm/i915/intel_dp_link_training.c
-index 3fcaa98b9055..667397541f10 100644
---- a/drivers/gpu/drm/i915/intel_dp_link_training.c
-+++ b/drivers/gpu/drm/i915/intel_dp_link_training.c
-@@ -335,22 +335,14 @@ intel_dp_start_link_train(struct intel_dp *intel_dp)
- 	return;
- 
-  failure_handling:
--	/* Dont fallback and prune modes if its eDP */
--	if (!intel_dp_is_edp(intel_dp)) {
--		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] Link Training failed at link rate = %d, lane count = %d",
--			      intel_connector->base.base.id,
--			      intel_connector->base.name,
--			      intel_dp->link_rate, intel_dp->lane_count);
--		if (!intel_dp_get_link_train_fallback_values(intel_dp,
--							     intel_dp->link_rate,
--							     intel_dp->lane_count))
--			/* Schedule a Hotplug Uevent to userspace to start modeset */
--			schedule_work(&intel_connector->modeset_retry_work);
--	} else {
--		DRM_ERROR("[CONNECTOR:%d:%s] Link Training failed at link rate = %d, lane count = %d",
--			  intel_connector->base.base.id,
--			  intel_connector->base.name,
--			  intel_dp->link_rate, intel_dp->lane_count);
--	}
-+	DRM_DEBUG_KMS("[CONNECTOR:%d:%s] Link Training failed at link rate = %d, lane count = %d",
-+		      intel_connector->base.base.id,
-+		      intel_connector->base.name,
-+		      intel_dp->link_rate, intel_dp->lane_count);
-+	if (!intel_dp_get_link_train_fallback_values(intel_dp,
-+						     intel_dp->link_rate,
-+						     intel_dp->lane_count))
-+		/* Schedule a Hotplug Uevent to userspace to start modeset */
-+		schedule_work(&intel_connector->modeset_retry_work);
- 	return;
- }
-diff --git a/drivers/gpu/drm/i915/intel_lspcon.c b/drivers/gpu/drm/i915/intel_lspcon.c
-index 8ae8f42f430a..6b6758419fb3 100644
---- a/drivers/gpu/drm/i915/intel_lspcon.c
-+++ b/drivers/gpu/drm/i915/intel_lspcon.c
-@@ -74,7 +74,7 @@ static enum drm_lspcon_mode lspcon_wait_mode(struct intel_lspcon *lspcon,
- 	DRM_DEBUG_KMS("Waiting for LSPCON mode %s to settle\n",
- 		      lspcon_mode_name(mode));
- 
--	wait_for((current_mode = lspcon_get_current_mode(lspcon)) == mode, 100);
-+	wait_for((current_mode = lspcon_get_current_mode(lspcon)) == mode, 400);
- 	if (current_mode != mode)
- 		DRM_ERROR("LSPCON mode hasn't settled\n");
- 
 diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
 index 4f32c4062fb6..c0bf039e1b40 100644
 --- a/drivers/infiniband/core/addr.c
