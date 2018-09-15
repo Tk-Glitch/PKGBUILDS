@@ -79,6 +79,7 @@ pkgver() {
 }
 
 prepare() {
+	cd "${srcdir}/${_vkd3dsrcdir}"
 	# vkd3d user patches
 	if [ $_user_patches == "true" ] && [ $_use_vkd3d == "true" ]; then
 	  _userpatch_target="vkd3d"
