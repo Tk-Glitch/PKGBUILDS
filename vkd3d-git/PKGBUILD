@@ -1,15 +1,15 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.0.r129.g0a49901
+pkgver=1.0.r150.g5c9fa15
 pkgrel=1
+_where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
 _vkd3dsrcdir='vkd3d'
-
-source $_where/customization.cfg # load configuration from file
+_user_patches_no_confirm='false'
 
 # custom vkd3d commit to pass to git
-_vkd3d_commit="#commit=$_vkd3d_version"
+_vkd3d_commit="#commit="
 
 pkgdesc='Wine d3d12 to vulkan translation lib, git version'
 url='https://source.winehq.org/git/vkd3d.git'
@@ -31,10 +31,10 @@ makedepends=(${makedepends[@]} ${depends[@]})
 user_patcher() {
 	# To patch the user because all your base are belong to us
 	if [[ $(find $_where -name "*.${_userpatch_ext}patch") ]]; then
-	  if [ "$__user_patches_no_confirm" != "true" ]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	  read -p "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
-	  if [ "$_CONDITION" == "y" ] || [ "$__user_patches_no_confirm" == "true" ]; then
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in $_where/*.${_userpatch_ext}patch; do
 	    if [ -e "${_f}" ]; then
 	      msg2 "######################################################"
@@ -49,10 +49,10 @@ user_patcher() {
 	  fi
 	fi
 	if [[ $(find $_where -name "*.${_userpatch_ext}revert") ]]; then
-	  if [ "$__user_patches_no_confirm" != "true" ]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	  read -p "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
-	  if [ "$_CONDITION" == "y" ] || [ "$__user_patches_no_confirm" == "true" ]; then
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in $_where/*.${_userpatch_ext}revert; do
 	    if [ -e "${_f}" ]; then
 	      msg2 "######################################################"
@@ -79,13 +79,13 @@ pkgver() {
 }
 
 prepare() {
+	rm -v $_where/last_build_config.log
 	cd "${srcdir}/${_vkd3dsrcdir}"
+
 	# vkd3d user patches
-	if [ $_user_patches == "true" ] && [ $_use_vkd3d == "true" ]; then
 	  _userpatch_target="vkd3d"
 	  _userpatch_ext="myvkd3d"
 	  user_patcher
-	fi
 
 	# create new build dirs
 	mkdir -p "${srcdir}"/vkd3d-tkg-git

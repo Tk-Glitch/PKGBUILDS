@@ -4,8 +4,6 @@ This pkgbuild allows you to create custom wine builds using an opt-in mechanism 
 
 Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
 
-VKD3D builder integrated (for d3d12 to vulkan translation) - You'll need https://github.com/Tk-Glitch/PKGBUILDS/tree/master/spirv-tools-git to build VKD3D packages
-
 Wine : https://github.com/wine-mirror/wine
 
 Wine-staging : https://github.com/wine-staging/wine-staging

@@ -2,14 +2,13 @@
 
 pkgname=wine-tkg-git
 pkgver=3.16.r0.g64d9f309b7.staging.esync.pba
-pkgrel=54
+pkgrel=55
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
 _esyncsrcdir='esync'
-_vkd3dsrcdir='vkd3d-tkg-git'
 _dxvksrcdir='dxvk'
-export _where=$PWD # track basedir as different Arch based distros are moving srcdir around
+_where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
 # If the state tracker isn't found, prompt the user with useful stuff.
 # This is to prevent the prompt to come back until packaging is done
@@ -122,6 +121,7 @@ optdepends=(
     'cups'                  'zapcc'
     'samba'                 'clang'
     'dosbox'                'ccache'
+    'vkd3d'                 'lib32-vkd3d'
 )
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
@@ -160,10 +160,10 @@ install=wine.install
 user_patcher() {
 	# To patch the user because all your base are belong to us
 	if [[ $(find $_where -name "*.${_userpatch_ext}patch") ]]; then
-	  if [ "$__user_patches_no_confirm" != "true" ]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	  read -p "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
-	  if [ "$_CONDITION" == "y" ] || [ "$__user_patches_no_confirm" == "true" ]; then
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in $_where/*.${_userpatch_ext}patch; do
 	    if [ -e "${_f}" ]; then
 	      msg2 "######################################################"
@@ -178,10 +178,10 @@ user_patcher() {
 	  fi
 	fi
 	if [[ $(find $_where -name "*.${_userpatch_ext}revert") ]]; then
-	  if [ "$__user_patches_no_confirm" != "true" ]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	  read -p "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
-	  if [ "$_CONDITION" == "y" ] || [ "$__user_patches_no_confirm" == "true" ]; then
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in $_where/*.${_userpatch_ext}revert; do
 	    if [ -e "${_f}" ]; then
 	      msg2 "######################################################"
@@ -252,25 +252,6 @@ prepare() {
 	  msg2 'pkgdir was nuked. See ya !'
 	fi
 
-	# build and install vkd3d package prior to building wine
-	if [ $_use_vkd3d == "true" ]; then
-	  _withvkd3d='--with-vkd3d'
-	  msg2 'Local VKD3D building is enabled.'
-	  if [ $_build_vkd3d == "true" ]; then
-	    mkdir ${_vkd3dsrcdir}
-	    cp "${_where}"/PKGBUILD.vkd3d "${srcdir}"/"${_vkd3dsrcdir}"/PKGBUILD
-	    cd "${_vkd3dsrcdir}"
-	    makepkg -si > /dev/null
-	    if [ -e "${srcdir}"/"${_vkd3dsrcdir}"/*.tar.xz ]; then
-	      cp -r "${srcdir}"/"${_vkd3dsrcdir}"/*.tar.xz "${_where}"
-	    else
-	      msg2 'Dox-like makepkg config detected. The package will be wherever you configured them to be.'
-	    fi
-	    cd "${srcdir}"
-	    rm -rf "${_vkd3dsrcdir}"
-	  fi
-	fi
-
 	cd "${srcdir}"/"${_winesrcdir}"
 
 	# restore the wine tree to its git origin state, without wine-staging patches
@@ -321,6 +302,7 @@ prepare() {
 	fi
 
 	if [ $_use_vkd3d == "true" ]; then
+	  _withvkd3d='--with-vkd3d'
 	  echo "Using VKD3D for d3d12 translation" >> $_where/last_build_config.log
 	fi
 
