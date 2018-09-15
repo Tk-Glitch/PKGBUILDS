@@ -261,8 +261,8 @@ prepare() {
 	    cp "${_where}"/PKGBUILD.vkd3d "${srcdir}"/"${_vkd3dsrcdir}"/PKGBUILD
 	    cd "${_vkd3dsrcdir}"
 	    makepkg -si > /dev/null
-	    cp -r *.tar.xz "${_where}"
-	    cd ..
+	    cp -r "${srcdir}"/"${_vkd3dsrcdir}"/*.tar.xz "${_where}"
+	    cd "${srcdir}"
 	    rm -rf "${_vkd3dsrcdir}"
 	  fi
 	fi
