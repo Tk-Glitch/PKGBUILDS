@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.16.r0.g64d9f309b7.staging.esync.pba
-pkgrel=55
+pkgver=3.16.r37.g8a985174eb.staging.esync.pba
+pkgrel=56
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -144,7 +144,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fortnite.patch'
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'lowlatency_audio.patch'
-		'dxvk-winelib.patch')
+		'dxvk-winelib.patch'
+		'use_clock_monotonic.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -350,6 +351,12 @@ prepare() {
 	# https://bugs.winehq.org/show_bug.cgi?id=43530
 	export CFLAGS="${CFLAGS/-fno-plt/}"
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
+
+	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
+	if [ $_clock_monotonic == "true" ]; then
+	  patch -Np1 < ../'use_clock_monotonic.patch'
+	  echo "Applied clock_monotonic patch" >> $_where/last_build_config.log
+	fi
 
 	# patch for 32bit font smoothing
 	if [ $_harmony_fix == "true" ]; then
@@ -661,7 +668,8 @@ md5sums=('SKIP'
          'f50501943759c8731d40eb521e36e6da'
          '78ea7fa80abd8beb6e2afac27deb938f'
          'ed6060dc030ebd5865f1fcc40d8863be'
-         'd328bfd0d363434fe5f83f3a614849f7')
+         'd328bfd0d363434fe5f83f3a614849f7'
+         '517a67b31d26990e6704074ccb630f80')
 
 # Remove the state tracker on failed/stopped compilation
 trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
