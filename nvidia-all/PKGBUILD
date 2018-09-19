@@ -31,8 +31,8 @@ else
 fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgver=396.54
-pkgrel=5
+pkgver=410.57
+pkgrel=6
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -43,15 +43,15 @@ options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
 
 # Source
-source=("https://download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
+source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'kernel-4.16.patch')
-md5sums=('195afa93d400bdbb9361ede6cef95143'
+md5sums=('014b77dac22045c5a3dd0dca7629a31e'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '84f1f2ecdccf377fc86323f8ad7b7469')
-[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='195afa93d400bdbb9361ede6cef95143'
+[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='014b77dac22045c5a3dd0dca7629a31e'
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
@@ -166,14 +166,14 @@ package_opencl-nvidia-tkg() {
 }
 
 package_nvidia-egl-wayland-tkg() {
-  pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.1.0.3) for 'nvidia-utils-tkg'"
+  pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.1.1.0) for 'nvidia-utils-tkg'"
   depends=('nvidia-utils-tkg')
   provides=('egl-wayland')
   conflicts=('egl-wayland')
   cd $_pkg
 
-  install -Dm755 libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.0.3
-  ln -s libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
+  install -Dm755 libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.0
+  ln -s libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
 }
 
 package_nvidia-utils-tkg() {
@@ -183,7 +183,7 @@ package_nvidia-utils-tkg() {
               'gtk3: nvidia-settings (GTK+ v3)'
               'opencl-nvidia-tkg: OpenCL support'
               'xorg-server-devel: nvidia-xconfig'
-              'egl-wayland-git: for alternative, more advanced Wayland library (libnvidia-egl-wayland.so.1.0.3)')
+              'egl-wayland-git: for alternative, more advanced Wayland library (libnvidia-egl-wayland.so.1.1.0)')
   provides=("nvidia-utils=$pkgver" "nvidia-settings=$pkgver" 'vulkan-driver' 'opengl-driver' 'nvidia-libgl')
   conflicts=('nvidia-utils' 'nvidia-settings' 'nvidia-libgl')
   backup=('etc/X11/xorg.conf.d/20-nvidia.conf')
@@ -194,9 +194,9 @@ package_nvidia-utils-tkg() {
     install -D -m755 nvidia_drv.so "${pkgdir}/usr/lib/xorg/modules/drivers/nvidia_drv.so"
 
     # GLX extension module for X
-    install -D -m755 "libglx.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so.${pkgver}"
-    ln -s "libglx.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so.1"	# X doesn't find glx otherwise
-    ln -s "libglx.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so"	# X doesn't find glx otherwise
+    install -D -m755 "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.${pkgver}"
+    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so.1"	# X doesn't find glx otherwise
+    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so"	# X doesn't find glx otherwise
 
     install -D -m755 "libGLX_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/libGLX_nvidia.so.${pkgver}"
     # now in mesa driver
@@ -221,6 +221,11 @@ package_nvidia-utils-tkg() {
     install -D -m755 "libnvidia-ml.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-ml.so.${pkgver}"
     install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
     install -D -m755 "libnvidia-glvkspirv.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-glvkspirv.so.${pkgver}"
+    
+    # Ray tracing
+    install -D -m755 "libnvoptix.so.${pkgver}" "${pkgdir}/usr/lib/libnvoptix.so.${pkgver}"
+    install -D -m755 "libnvidia-rtcore.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-rtcore.so.${pkgver}"
+    install -D -m755 "libnvidia-cbl.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-cbl.so.${pkgver}"
 
     # Vulkan ICD
     install -D -m644 "nvidia_icd.json.template" "${pkgdir}/usr/share/vulkan/icd.d/nvidia_icd.json"
