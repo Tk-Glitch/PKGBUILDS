@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.16.r37.g8a985174eb.staging.esync.pba
-pkgrel=56
+pkgver=3.16.r74.g93994dfc0b.staging.esync.pba
+pkgrel=57
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -96,6 +96,7 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'sdl2'                  'lib32-sdl2'
     'samba'                 'schedtool'
     'meson'                 'ninja'
+    'glslang'
 )
 optdepends=(
     'giflib'                'lib32-giflib'
@@ -253,11 +254,22 @@ prepare() {
 	  msg2 'pkgdir was nuked. See ya !'
 	fi
 
+	cd "${srcdir}"/"${_stgsrcdir}"
+
+	# restore the targetted trees to their git origin state
+	# for the patches not fail on subsequent aborted builds
+	msg2 'Cleaning wine-staging source code tree...'
+	git reset --hard HEAD 	# restore tracked files
+	git clean -xdf 			# delete untracked files
+
+	cd "${srcdir}"/"${_dxvksrcdir}"
+
+	msg2 'Cleaning dxvk source code tree...'
+	git reset --hard HEAD 	# restore tracked files
+	git clean -xdf 			# delete untracked files
+
 	cd "${srcdir}"/"${_winesrcdir}"
 
-	# restore the wine tree to its git origin state, without wine-staging patches
-	# (necessary for reapplying wine-staging patches in succedent builds,
-	# otherwise the patches will fail to be reapplied)
 	msg2 'Cleaning wine source code tree...'
 	git reset --hard HEAD 	# restore tracked files
 	git clean -xdf 			# delete untracked files
