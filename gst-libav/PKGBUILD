@@ -9,12 +9,12 @@ _lib32="true"
 
 # Version selector
 if [ ! -e options ]; then
-  read -p "  Build the regular version or the git one?`echo $'\n\n  > 1.Regular 1.14.2^0 (default and recommended)\n\n    2.Git (lib32 will be disabled)\n\nchoice[1-2?]: '`" CONDITION;
+  read -p "  Build the regular version or the git one?`echo $'\n\n  > 1.Regular 1.14.3^0 (default and recommended)\n\n    2.Git (lib32 will be disabled)\n\nchoice[1-2?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_gitext="-git"' > options
       echo '_lib32="false"' >> options
     else
-      echo '_commit="#commit=8886a016fce625e1c25a4902be4021196a6784a2"' > options # version 1.14.2^0
+      echo '_commit="#commit=35290bb8c25b00b80a51d18c88adc9c70aeaebf8"' > options # version 1.14.3^0
     fi
 fi
 
@@ -33,7 +33,7 @@ else
   pkgname=("$_basename-tkg$_gitext")
 fi
 
-pkgver=1.14.2
+pkgver=1.14.3
 pkgrel=1
 pkgdesc="GStreamer Multimedia Framework ffmpeg Plugin"
 url="https://gstreamer.freedesktop.org/"
