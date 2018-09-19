@@ -50,7 +50,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-glitched-muqss.patch
         0007-patch-4.18-ck1
         0008-glitched-pds.patch
-        0008-v4.18_pds098y.patch
+        0008-v4.18_pds098z.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '3b5b90535027daeb0d44d291c5e087595993f73f367e4e8dae608cb6631f00c6'
@@ -68,7 +68,7 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
-            '1764ca7d99d20831258362b642af7986fc2edb4db3432125d2907559a88ef4ce')
+            '2e08eb734f540b2e8b4d7bf5d0a27c60ed51da542c09cb4da9f4485bb3b16ef0')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -125,7 +125,7 @@ prepare() {
     patch -Np1 -i ../0007-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0008-v4.18_pds098y.patch
+    patch -Np1 -i ../0008-v4.18_pds098z.patch
     patch -Np1 -i ../0008-glitched-pds.patch
   fi
 
