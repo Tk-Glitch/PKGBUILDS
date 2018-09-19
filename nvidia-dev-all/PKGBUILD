@@ -25,7 +25,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=396.54.06
-pkgrel=11
+pkgrel=12
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
