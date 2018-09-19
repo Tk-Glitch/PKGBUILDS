@@ -5,6 +5,13 @@
 # Includes DKMS support, libglvnd compat and building for all kernels currently installed
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
+# Some people seem to believe making blank headers is a good idea
+if [ $(pacman -Qs linux-headers | head -c1 | wc -c) -eq 0 ]; then
+  error "A (correctly made?) linux-headers package can't be found."
+  plain "If you're sure it's installed, blame your kernel maintainer."
+  read -p "    Press enter to proceed anyway..."
+fi
+
 # Package type selector
 if [ ! -e options ]; then
   read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
@@ -29,8 +36,7 @@ pkgrel=12
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
-makedepends=('linux-headers')
-optdepends=('linux-lts-headers: Build the module for LTS Arch kernel')
+optdepends=('linux-headers' 'linux-lts-headers: Build the module for LTS Arch kernel')
 options=('!strip')
 
 # Installer name
