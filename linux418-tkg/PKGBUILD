@@ -51,6 +51,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-patch-4.18-ck1
         0008-glitched-pds.patch
         0008-v4.18_pds098z.patch
+        sugov_kthread_create_fix.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'd819e109cb892859f9ffbb4987678076e1535b9e60c12b6512d3847da43e528b'
@@ -68,7 +69,8 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
-            '2e08eb734f540b2e8b4d7bf5d0a27c60ed51da542c09cb4da9f4485bb3b16ef0')
+            '2e08eb734f540b2e8b4d7bf5d0a27c60ed51da542c09cb4da9f4485bb3b16ef0'
+            '5cc9cfdf6093dd3b27c3fab4b4a2d49d8108731c705655487ae6ee94973e30ae')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -127,6 +129,7 @@ prepare() {
     # PDS-mq
     patch -Np1 -i ../0008-v4.18_pds098z.patch
     patch -Np1 -i ../0008-glitched-pds.patch
+    patch -Np1 -i ../sugov_kthread_create_fix.patch
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
