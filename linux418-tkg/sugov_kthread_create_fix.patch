@@ -1,0 +1,109 @@
+From 4f431cdc66a8700629b607d1eec381e85130b2e1 Mon Sep 17 00:00:00 2001
+From: Alfred Chen <cchalpha@gmail.com>
+Date: Wed, 19 Sep 2018 07:26:09 +0000
+Subject: [PATCH] pds: Fix sugov_kthread_create fail to set policy.
+
+Fix issue in sugov_kthread_create(), faile to set SHCED_DEADLINE.
+
+"cpufreq_schedutil: sugov_kthread_create: failed to set SCHED_DEADLINE"
+---
+ include/uapi/linux/sched.h       |  5 +----
+ kernel/sched/cpufreq_schedutil.c |  6 ++++++
+ kernel/sched/pds.c               |  6 +-----
+ kernel/sched/pds_sched.h         | 14 --------------
+ 4 files changed, 8 insertions(+), 23 deletions(-)
+
+diff --git a/include/uapi/linux/sched.h b/include/uapi/linux/sched.h
+index e1dc3f960693..ebc69c660546 100644
+--- a/include/uapi/linux/sched.h
++++ b/include/uapi/linux/sched.h
+@@ -42,10 +42,7 @@
+ #define SCHED_ISO		4
+ #endif /* CONFIG_SCHED_PDS */
+ #define SCHED_IDLE		5
+-#ifdef CONFIG_SCHED_PDS
+-/* Re-mapping SCHED_DEADLINE to SCHED_FIFO in PDS */
+-#define SCHED_DEADLINE		SCHED_FIFO
+-#else
++#ifndef CONFIG_SCHED_PDS
+ #define SCHED_DEADLINE		6
+ #endif /* !CONFIG_SCHED_PDS */
+ 
+diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
+index 24a39dfffe6c..43ba8241fd7b 100644
+--- a/kernel/sched/cpufreq_schedutil.c
++++ b/kernel/sched/cpufreq_schedutil.c
+@@ -583,10 +583,16 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
+ 	struct task_struct *thread;
+ 	struct sched_attr attr = {
+ 		.size		= sizeof(struct sched_attr),
++#ifdef CONFIG_SCHED_PDS
++		.sched_policy	= SCHED_FIFO,
++		.sched_nice	= 0,
++		.sched_priority	= 1,
++#else
+ 		.sched_policy	= SCHED_DEADLINE,
+ 		.sched_flags	= SCHED_FLAG_SUGOV,
+ 		.sched_nice	= 0,
+ 		.sched_priority	= 0,
++#endif
+ 		/*
+ 		 * Fake (unused) bandwidth; workaround to "fix"
+ 		 * priority inheritance.
+diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
+index f15d1a7c5d81..c11f0e211ff8 100644
+--- a/kernel/sched/pds.c
++++ b/kernel/sched/pds.c
+@@ -4432,7 +4432,7 @@ __sched_setscheduler(struct task_struct *p,
+ 			return -EINVAL;
+ 	}
+ 
+-	if (attr->sched_flags & ~(SCHED_FLAG_ALL | SCHED_FLAG_SUGOV))
++	if (attr->sched_flags & ~(SCHED_FLAG_ALL))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -4500,9 +4500,6 @@ __sched_setscheduler(struct task_struct *p,
+ 	}
+ 
+ 	if (user) {
+-		if (attr->sched_flags & SCHED_FLAG_SUGOV)
+-			return retval;
+-
+ 		retval = security_task_setscheduler(p);
+ 		if (retval)
+ 			return retval;
+@@ -4650,7 +4647,6 @@ int sched_setattr(struct task_struct *p, const struct sched_attr *attr)
+ }
+ EXPORT_SYMBOL_GPL(sched_setattr);
+ 
+-
+ int sched_setattr_nocheck(struct task_struct *p, const struct sched_attr *attr)
+ {
+ 	return __sched_setscheduler(p, attr, false, true);
+diff --git a/kernel/sched/pds_sched.h b/kernel/sched/pds_sched.h
+index 73181453785e..6d20158b123a 100644
+--- a/kernel/sched/pds_sched.h
++++ b/kernel/sched/pds_sched.h
+@@ -349,18 +349,4 @@ unsigned long arch_scale_cpu_capacity(struct sched_domain *sd, int cpu)
+ 
+ extern void schedule_idle(void);
+ 
+-/*
+- * !! For sched_setattr_nocheck() (kernel) only !!
+- *
+- * This is actually gross. :(
+- *
+- * It is used to make schedutil kworker(s) higher priority than SCHED_DEADLINE
+- * tasks, but still be able to sleep. We need this on platforms that cannot
+- * atomically change clock frequency. Remove once fast switching will be
+- * available on such platforms.
+- *
+- * SUGOV stands for SchedUtil GOVernor.
+- */
+-#define SCHED_FLAG_SUGOV	0x10000000
+-
+ #endif /* PDS_SCHED_H */
+-- 
+2.18.0
+
