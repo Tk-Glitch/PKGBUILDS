@@ -4,6 +4,13 @@ post_install() {
   dkms install -m nvidia/${1%-*}
   echo "==> To build your modules automatically at startup, run:"
   echo "    # systemctl enable dkms"
+  echo ""
+  echo -e "\e[31m###########################################################\e[0m"
+  echo ""
+  echo -e "\e[31m It is recommended to run mkinitcpio -P after installation\e[0m"
+  echo ""
+  echo -e "\e[31m###########################################################\e[0m"
+  echo ""
 }
 
 # arg 1:  the new package version

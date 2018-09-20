@@ -32,7 +32,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=396.54.06
-pkgrel=12
+pkgrel=13
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -350,12 +350,6 @@ package_nvidia-dev-tkg() {
   # Blacklist Nouveau
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
-	msg2 '#####################################################################################################'
-	msg2 ''
-	msg2 'It is recommended to run mkinitcpio -P after installation to prevent wrong module versioning remnants'
-	msg2 ''
-	msg2 '#####################################################################################################'
-
 	rm -v ${where}/options
 }
 fi
@@ -448,12 +442,6 @@ package_nvidia-dev-dkms-tkg() {
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
-
-	msg2 '#####################################################################################################'
-	msg2 ''
-	msg2 'It is recommended to run mkinitcpio -P after installation to prevent wrong module versioning remnants'
-	msg2 ''
-	msg2 '#####################################################################################################'
 
 	rm -v ${where}/options
 }
