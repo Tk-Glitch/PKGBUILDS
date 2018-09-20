@@ -4,4 +4,4 @@ LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (you will 
 
 You may need/want to add a pacman hook for nvidia depending on your setup : https://wiki.archlinux.org/index.php/NVIDIA#DRM_kernel_mode_setting
 
-http://www.nvidia.com/download/driverResults.aspx/136888/en-us
+https://www.nvidia.com/Download/driverResults.aspx/138279/en-us
