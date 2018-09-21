@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.16.r74.g93994dfc0b.staging.esync.pba
-pkgrel=57
+pkgver=3.16.r149.gb1a3b9e5ce.staging.esync.pba
+pkgrel=58
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -138,6 +138,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-staging-fixes.patch'
 		'esync-compat-fixes.patch'
 		'esync-314+-compat-fixes.patch'
+		'esync-317+-compat-fixes.patch'
 		'esync-no_alloc_handle.patch'
 		'PBA313-.patch'
 		'PBA314+.patch'
@@ -463,6 +464,13 @@ prepare() {
 	    cd "${srcdir}"/"${_winesrcdir}"
 	  fi
 
+	  # if using a wine version that includes af8f3ae, apply 3.17+ fixes
+	  if [ 0 -eq $(git log | grep af8f3ae3339336ff23acad5cdaf8d39812146e5d > /dev/null 2> /dev/null; echo $?) ]; then
+	    cd "${srcdir}"/"${_esyncsrcdir}"
+	    patch -Np1 < ../'esync-317+-compat-fixes.patch'
+	    cd "${srcdir}"/"${_winesrcdir}"
+	  fi
+
 	  # wine-esync patches
 	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
 	    git apply -C1 --verbose < ${_f}
@@ -673,6 +681,7 @@ md5sums=('SKIP'
          'bb280dfbf0c1719e67f54018c81e5720'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
+         '6e36cfbd8286e9f865f50bd6e4d6c456'
          '360a9d3ca587a20e78f5373d5135b2bb'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
