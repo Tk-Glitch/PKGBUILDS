@@ -26,7 +26,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=9
 pkgver=${_basekernel}.${_sub}
-pkgrel=21
+pkgrel=22
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -52,11 +52,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-glitched-pds.patch
         0008-v4.18_pds098z.patch
         sugov_kthread_create_fix.patch
+        0009-add-acs-overrides_iommu.patch
+        0009-tr_gpu_passthrough_bus.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'd819e109cb892859f9ffbb4987678076e1535b9e60c12b6512d3847da43e528b'
             'SKIP'
-            '7a03fc5a82984999844f5a858654b9c739be5c7eafdf824d71a37914e16ce9d8'
+            '98f115a2b2149e7521c5550de62df1212f86bd5ef13a55c68d72216c1a12dbca'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -70,7 +72,9 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
             '2e08eb734f540b2e8b4d7bf5d0a27c60ed51da542c09cb4da9f4485bb3b16ef0'
-            '5cc9cfdf6093dd3b27c3fab4b4a2d49d8108731c705655487ae6ee94973e30ae')
+            '5cc9cfdf6093dd3b27c3fab4b4a2d49d8108731c705655487ae6ee94973e30ae'
+            '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
+            '25c9bca17a9b1a561c870e634c41c1717bcc9f356f4f133b6369320f19a773f4')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -155,7 +159,7 @@ prepare() {
   sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
   fi
 
-  read -p "Disable NUMA? Lowers overhead, but currently breaks CUDA on Nvidia equipped systems if disabled https://bbs.archlinux.org/viewtopic.php?id=239174`echo $'\n> N/y : '`" CONDITION;
+  read -p "Disable NUMA? Lowers overhead, but currently breaks CUDA on Nvidia equipped systems if disabled. https://bbs.archlinux.org/viewtopic.php?id=239174`echo $'\n> N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
   # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
   sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
@@ -167,6 +171,16 @@ prepare() {
       -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
       -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
       -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
+  fi
+
+  read -p "Fix Threadripper platform issues with GPU passthrough? You don't want that if you don't have a Threadripper CPU. https://forum.level1techs.com/t/threadripper-reset-fixes/123937`echo $'\n> N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
+    patch -Np1 -i ../0009-tr_gpu_passthrough_bus.patch
+  fi
+
+  read -p "Use ACS override patch? https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29`echo $'\n> N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
+    patch -Np1 -i ../0009-add-acs-overrides_iommu.patch
   fi
 
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
