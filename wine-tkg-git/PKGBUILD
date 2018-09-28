@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.16.r149.gb1a3b9e5ce.staging.esync.pba
-pkgrel=58
+pkgver=3.17.r0.gf11563c65f.staging.esync.pba
+pkgrel=59
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -142,6 +142,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-no_alloc_handle.patch'
 		'PBA313-.patch'
 		'PBA314+.patch'
+		'PBA317+.patch'
 		'fallout4.patch'
 		'fortnite.patch'
 		'launch-with-dedicated-gpu-desktop-entry.patch'
@@ -302,8 +303,11 @@ prepare() {
 	fi
 
 	if [ $_use_pba == "true" ]; then
+	  # If using a wine version that includes 580ea44, apply 3.17+ fixes
+	  if [ 0 -eq $(git log | grep 580ea44bc65472c0304d74b7e873acfb7f680b85 > /dev/null 2> /dev/null; echo $?) ]; then # wined3d: Use query buffer objects for occlusion queries
+	    _pba_version="317+"
 	  # If using a wine version that includes cf9536b, apply 3.14+ fixes
-	  if [ 0 -eq $(git log | grep cf9536b6bfbefbf5003c7633446a91f6e399c4de > /dev/null 2> /dev/null; echo $?) ]; then # kernel32: Add AttachConsole implementation commit
+	  elif [ 0 -eq $(git log | grep cf9536b6bfbefbf5003c7633446a91f6e399c4de > /dev/null 2> /dev/null; echo $?) ]; then # kernel32: Add AttachConsole implementation commit
 	    _pba_version="314+"
 	  else
 	    _pba_version="313-"
@@ -504,7 +508,9 @@ prepare() {
 	if [ $_use_pba == "true" ]; then
 	  mkdir -p "${srcdir}/${_pbasrcdir}/patches"
 	  cd "${srcdir}/${_pbasrcdir}"
-	  if [ $_pba_version == "314+" ]; then
+	  if [ $_pba_version == "317+" ]; then
+	    patch -Np1 < ../'PBA317+.patch'
+	  elif [ $_pba_version == "314+" ]; then
 	    patch -Np1 < ../'PBA314+.patch'
 	  elif [ $_pba_version == "313-" ]; then
 	    patch -Np1 < ../'PBA313-.patch'
@@ -685,6 +691,7 @@ md5sums=('SKIP'
          '360a9d3ca587a20e78f5373d5135b2bb'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
+         '6bca60ad43e164b399055b44ce8fca64'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
          '78ea7fa80abd8beb6e2afac27deb938f'
