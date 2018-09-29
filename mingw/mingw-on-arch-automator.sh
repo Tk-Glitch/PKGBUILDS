@@ -9,7 +9,7 @@ _fortran=false
  echo '#################################################################'
  echo ''
  echo 'Mingw on arch automator will install mingw for you. Since the'
- echo 'automation process need to use pacman, your password is needed.'
+ echo 'automation process needs to use pacman, your password is required.'
  echo ''
  echo '###################################TkG##########was##########here'
 
