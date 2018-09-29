@@ -26,7 +26,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=11
 pkgver=${_basekernel}.${_sub}
-pkgrel=24
+pkgrel=25
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -53,6 +53,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-v4.18_pds099a.patch
         0009-add-acs-overrides_iommu.patch
         0009-tr_gpu_passthrough_bus.patch
+        tmpfs-idr-fix.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             '7fbb39b70d7dffb782cdec1fa172805da3e0ae8f01b5687f50173d23b0f4f128'
@@ -72,7 +73,8 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
             'a760206039e1d155f2926f85bcbb2748577ece5748fb306faacd0a1f14a35881'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
-            '25c9bca17a9b1a561c870e634c41c1717bcc9f356f4f133b6369320f19a773f4')
+            '25c9bca17a9b1a561c870e634c41c1717bcc9f356f4f133b6369320f19a773f4'
+            '30aa3261154106e796eaf50f450fcf7378c67a75a53afff8f594f4a57b426e0d')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -112,7 +114,7 @@ prepare() {
   patch -Np1 -i ../aufs4-loopback.patch
   patch -Np1 -i ../aufs4-mmap.patch
   patch -Np1 -i ../aufs4-standalone.patch
-  git apply -C1 ../tmpfs-idr.patch
+  patch -Np1 -i ../tmpfs-idr-fix.patch
   patch -Np1 -i ../vfs-ino.patch
 
   # TkG
