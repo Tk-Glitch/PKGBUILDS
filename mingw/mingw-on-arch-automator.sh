@@ -4,7 +4,7 @@
 
 _where=$PWD
 _dwarf2=true
-_fortran=false
+_fortran=true
 
  echo '#################################################################'
  echo ''
@@ -16,6 +16,7 @@ _fortran=false
 # cleanup
 echo "Cleaning up"
 rm -rf mingw-w64-*
+rm -rf cloog-git
 
 sudo pacman -Rscnd mingw-w64 --noconfirm
 
