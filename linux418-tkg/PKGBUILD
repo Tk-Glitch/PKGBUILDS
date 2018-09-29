@@ -24,9 +24,9 @@ _basever=418
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
-_sub=10
+_sub=11
 pkgver=${_basekernel}.${_sub}
-pkgrel=23
+pkgrel=24
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -55,7 +55,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-tr_gpu_passthrough_bus.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
-            'ecab148471b5b4a1ef1bb0559815807bf553ff3f2b41f66b916c33b1694b9511'
+            '7fbb39b70d7dffb782cdec1fa172805da3e0ae8f01b5687f50173d23b0f4f128'
             'SKIP'
             'f779bacc979399b7a40d3874160dbe706bb81832e947880d47681e7f2dfffbbd'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
@@ -112,7 +112,7 @@ prepare() {
   patch -Np1 -i ../aufs4-loopback.patch
   patch -Np1 -i ../aufs4-mmap.patch
   patch -Np1 -i ../aufs4-standalone.patch
-  patch -Np1 -i ../tmpfs-idr.patch
+  git apply -C1 ../tmpfs-idr.patch
   patch -Np1 -i ../vfs-ino.patch
 
   # TkG
