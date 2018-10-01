@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.17.r0.gf11563c65f.staging.esync.pba
-pkgrel=59
+pkgrel=60
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -446,6 +446,9 @@ prepare() {
 	  fi
 	  msg2 'Applying wine-staging patches...'
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
+
+	  # Remove staging version tag
+	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 	fi
 
 	# esync
@@ -544,6 +547,27 @@ prepare() {
 	  _userpatch_ext="my"
 	  user_patcher
 	fi
+
+	# Set custom version tags
+	if [ $_use_staging == "true" ]; then
+	  _stg=" Staging"
+	fi
+	if [ $_use_esync == "true" ]; then
+	  _zf=" Esync"
+	fi
+	if [ $_use_pba == "true" ]; then
+	  _acomminos=" PBA"
+	fi
+	if [ $_use_gallium_nine == "true" ]; then
+	  _nine=" Nine"
+	fi
+	if [ $_use_vkd3d == "true" ]; then
+	  _vkd3d=" Vkd3d"
+	fi
+	if [ $_use_dxvk == "true" ]; then
+	  _doitsujin=" Dxvk"
+	fi
+	sed -i "s/\\\1/\\\1  (${_stg}${_zf}${_acomminos}${_nine}${_vkd3d}${_doitsujin} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
 	# dxvk user patches
 	if [ $_user_patches == "true" ] && [ $_use_dxvk == "true" ]; then
