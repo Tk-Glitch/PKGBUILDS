@@ -30,11 +30,11 @@ https://github.com/Firerat/wine-pba/tree/knobs_and_switches
  create mode 100644 patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
  create mode 100644 patches/0010-wined3d-knobs-and-switches.patch
 
-diff --git a/wine-tkg-git/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch b/wine-tkg-git/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
+diff --git a/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch b/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
 new file mode 100644
 index 0000000..39c21b0
 --- /dev/null
-+++ b/wine-tkg-git/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
++++ b/patches/0001-wined3d-Initial-implementation-of-a-persistent-mappe.patch
 @@ -0,0 +1,760 @@
 +From 5a7616ae55dd012b2c8b551c9af199c6aabb3a93 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -796,11 +796,11 @@ index 0000000..39c21b0
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch b/wine-tkg-git/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
+diff --git a/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch b/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
 new file mode 100644
 index 0000000..bbf78dc
 --- /dev/null
-+++ b/wine-tkg-git/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
++++ b/patches/0002-wined3d-Add-support-for-backing-dynamic-wined3d_buff.patch
 @@ -0,0 +1,679 @@
 +From a684d358f30e13045e7dbb5e3c8bad36f83eaed7 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1481,11 +1481,11 @@ index 0000000..bbf78dc
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch b/wine-tkg-git/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
+diff --git a/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch b/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
 new file mode 100644
 index 0000000..0d0e6fe
 --- /dev/null
-+++ b/wine-tkg-git/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
++++ b/patches/0003-wined3d-Use-ARB_multi_bind-to-speed-up-UBO-updates.patch
 @@ -0,0 +1,121 @@
 +From a3368a5412b5cf59bdfd5a1bf86c4b7178928576 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1523,9 +1523,9 @@ index 0000000..0d0e6fe
 +     USE_GL_FUNC(glSampleCoverageARB)
 +     /* GL_ARB_multitexture */
 +@@ -3968,6 +3971,7 @@ static BOOL wined3d_adapter_init_gl_caps(struct wined3d_adapter *adapter,
-+         {ARB_TEXTURE_VIEW,                 MAKEDWORD_VERSION(4, 3)},
-+ 
++         {ARB_BUFFER_STORAGE,               MAKEDWORD_VERSION(4, 4)},
 +         {ARB_CLEAR_TEXTURE,                MAKEDWORD_VERSION(4, 4)},
++         {ARB_QUERY_BUFFER_OBJECT,          MAKEDWORD_VERSION(4, 4)},
 ++        {ARB_MULTI_BIND,                   MAKEDWORD_VERSION(4, 4)},
 + 
 +         {ARB_CLIP_CONTROL,                 MAKEDWORD_VERSION(4, 5)},
@@ -1608,11 +1608,11 @@ index 0000000..0d0e6fe
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch b/wine-tkg-git/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
+diff --git a/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch b/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
 new file mode 100644
 index 0000000..be09cc1
 --- /dev/null
-+++ b/wine-tkg-git/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
++++ b/patches/0004-wined3d-Use-GL_CLIENT_STORAGE_BIT-for-persistent-map.patch
 @@ -0,0 +1,26 @@
 +From 3de8b84fd798ee510767f5e68b77eb5be629fff6 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1640,11 +1640,11 @@ index 0000000..be09cc1
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch b/wine-tkg-git/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
+diff --git a/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch b/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
 new file mode 100644
 index 0000000..56b5b1f
 --- /dev/null
-+++ b/wine-tkg-git/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
++++ b/patches/0005-wined3d-Disable-persistently-mapped-shader-resource-.patch
 @@ -0,0 +1,28 @@
 +From 764f23c1de98c9719afbf2aaeed88ad7ff66015d Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1674,11 +1674,11 @@ index 0000000..56b5b1f
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch b/wine-tkg-git/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
+diff --git a/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch b/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
 new file mode 100644
 index 0000000..02d5454
 --- /dev/null
-+++ b/wine-tkg-git/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
++++ b/patches/0006-wined3d-Perform-initial-allocation-of-persistent-buf.patch
 @@ -0,0 +1,92 @@
 +From e7adf0b68684aca285a1cd324bef774c63053836 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -1772,11 +1772,11 @@ index 0000000..02d5454
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch b/wine-tkg-git/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
+diff --git a/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch b/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
 new file mode 100644
 index 0000000..3963544
 --- /dev/null
-+++ b/wine-tkg-git/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
++++ b/patches/0007-wined3d-Avoid-freeing-persistent-buffer-heap-element.patch
 @@ -0,0 +1,351 @@
 +From ad2d3eec434fcd4e64e0451889195f4dec9e6aec Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -2129,11 +2129,11 @@ index 0000000..3963544
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch b/wine-tkg-git/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
+diff --git a/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch b/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
 new file mode 100644
 index 0000000..bc7561b
 --- /dev/null
-+++ b/wine-tkg-git/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
++++ b/patches/0008-wined3d-Add-DISABLE_PBA-envvar-some-PBA-cleanup.patch
 @@ -0,0 +1,212 @@
 +From 9fcb721bb030871bbdbccdd26f5ee7c37a84e2aa Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -2347,11 +2347,11 @@ index 0000000..bc7561b
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch b/wine-tkg-git/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
+diff --git a/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch b/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
 new file mode 100644
 index 0000000..080d4c1
 --- /dev/null
-+++ b/wine-tkg-git/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
++++ b/patches/0009-wined3d-Add-quirk-to-use-GL_CLIENT_STORAGE_BIT-for-m.patch
 @@ -0,0 +1,97 @@
 +From 9caebb2fc1a479698111b72b44ea0bc49030f4f7 Mon Sep 17 00:00:00 2001
 +From: Andrew Comminos <andrew@comminos.com>
@@ -2450,11 +2450,11 @@ index 0000000..080d4c1
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0010-wined3d-knobs-and-switches.patch b/wine-tkg-git/patches/0010-wined3d-knobs-and-switches.patch
+diff --git a/patches/0010-wined3d-knobs-and-switches.patch b/patches/0010-wined3d-knobs-and-switches.patch
 new file mode 100644
 index 0000000..12da429
 --- /dev/null
-+++ b/wine-tkg-git/patches/0010-wined3d-knobs-and-switches.patch
++++ b/patches/0010-wined3d-knobs-and-switches.patch
 @@ -0,0 +1,140 @@
 +From 7f38abab433cd53de64e2cff57ffd93c9ae755dd Mon Sep 17 00:00:00 2001
 +From: Firerat <firer4t@googlemail.com>
@@ -2596,11 +2596,11 @@ index 0000000..12da429
 +-- 
 +2.18.0
 +
-diff --git a/wine-tkg-git/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch b/wine-tkg-git/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch
+diff --git a/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch b/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch
 new file mode 100644
 index 0000000..9ba9697
 --- /dev/null
-+++ b/wine-tkg-git/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch
++++ b/patches/0011-wined3d-replace-PBA_DISABLE-with-PBA_ENABLE-envvar.patch
 @@ -0,0 +1,41 @@
 +From eb9500e70dcb5ac8a059148ba8d22ec92446bf43 Mon Sep 17 00:00:00 2001
 +From: Tk-Glitch <ti3nou@gmail.com>

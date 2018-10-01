@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.17.r0.gf11563c65f.staging.esync.pba
-pkgrel=60
+pkgrel=61
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -715,7 +715,7 @@ md5sums=('SKIP'
          '360a9d3ca587a20e78f5373d5135b2bb'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
-         '6bca60ad43e164b399055b44ce8fca64'
+         '5a1e50fb432d1bbc6cf3db8cdb4cdc0c'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
          '78ea7fa80abd8beb6e2afac27deb938f'
