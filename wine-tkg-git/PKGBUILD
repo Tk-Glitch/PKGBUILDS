@@ -51,7 +51,15 @@ fi
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
 url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git'
 arch=('x86_64')
-options=('staticlibs' 'ccache')
+
+if [ $(pacman -Qs ccache | head -c1 | wc -c) -eq 1 ]; then
+  msg2 'ccache was found and will be used'
+  options=('staticlibs' 'ccache')
+else
+  msg2 'ccache was not found and will not be used'
+  options=('staticlibs')
+fi
+
 license=('LGPL')
 depends=(
     'attr'                  'lib32-attr'
