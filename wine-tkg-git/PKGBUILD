@@ -586,7 +586,7 @@ prepare() {
 
 	# no compilation
 	if [ $_NOCOMPILE == "true" ]; then
-	  rm -v $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
+	  rm -fv $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  msg2 'make prepare function fail by using Gandalf'
 	  YOU_SHALL_NOT_PASS
 	fi
@@ -679,10 +679,10 @@ package() {
 	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}"/usr/lib/wine
 	fi
 
-	rm -v $_where/BIG_UGLY_COINMINER # state tracker end
+	rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
 
 	if [ $_NUKR == "true" ]; then
-	  rm -v $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
+	  rm -fv $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
 	  msg2 'srcdir was nuked. See ya !'
 	fi
