@@ -565,6 +565,8 @@ prepare() {
 	# Set custom version tags
 	if [ $_use_staging == "true" ]; then
 	  _stg=" Staging"
+	else
+	  _stg=" Plain"
 	fi
 	if [ $_use_esync == "true" ]; then
 	  _zf=" Esync"
