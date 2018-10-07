@@ -316,7 +316,7 @@ prepare() {
 	  if [ 0 -eq $(git log | grep 580ea44bc65472c0304d74b7e873acfb7f680b85 > /dev/null 2> /dev/null; echo $?) ]; then # wined3d: Use query buffer objects for occlusion queries
 	    _pba_version="317+"
 	  # If using a wine version that includes cf9536b, apply 3.14+ fixes
-	  elif [ 0 -eq $(git log | grep cf9536b6bfbefbf5003c7633446a91f6e399c4de > /dev/null 2> /dev/null; echo $?) ]; then # kernel32: Add AttachConsole implementation commit
+	  elif [ 0 -eq $(git log | grep cf9536b6bfbefbf5003c7633446a91f6e399c4de > /dev/null 2> /dev/null; echo $?) ]; then # wined3d: Move OpenGL initialisation code to adapter_gl.c
 	    _pba_version="314+"
 	  else
 	    _pba_version="313-"
