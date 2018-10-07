@@ -1,7 +1,6 @@
-From 41b9c90deb3873e8cf47c05ddc9a6a6d60536bf9 Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Mon, 30 Jul 2018 15:01:36 +0200
-Subject: Esync staging patch - minimalistic edition. Requires git apply -C1
+Subject: Esync staging patch for 3.16- - minimalistic edition. Requires git apply -C1
 
 Signed-off-by: Tk-Glitch <ti3nou@gmail.com>
 

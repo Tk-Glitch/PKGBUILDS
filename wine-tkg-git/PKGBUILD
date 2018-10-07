@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.17.r0.gf11563c65f.staging.esync.pba
-pkgrel=61
+pkgver=3.17.r94.g2e754a6527.esync
+pkgrel=62
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -143,10 +143,11 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'30-win32-aliases.conf'
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
-		'esync-staging-fixes.patch'
-		'esync-compat-fixes.patch'
-		'esync-314+-compat-fixes.patch'
-		'esync-317+-compat-fixes.patch'
+		'esync-staging-fixes-r1.patch'
+		'esync-staging-fixes-r2.patch'
+		'esync-compat-fixes-r1.patch'
+		'esync-compat-fixes-r1.1.patch'
+		'esync-compat-fixes-r2.patch'
 		'esync-no_alloc_handle.patch'
 		'PBA313-.patch'
 		'PBA314+.patch'
@@ -228,7 +229,7 @@ pkgver() {
 
 	if [ $_use_esync == "true" ]; then
 	  _zf=".esync"
-	  msg2 "Using esync patchset"
+	  msg2 "Using esync (${_esync_version}) patchset"
 	fi
 
 	if [ $_use_pba == "true" ]; then
@@ -307,7 +308,7 @@ prepare() {
 	fi
 
 	if [ $_use_esync == "true" ]; then
-	  echo "Using esync patchset" >> $_where/last_build_config.log
+	  echo "Using (${_esync_version}) patchset" >> $_where/last_build_config.log
 	fi
 
 	if [ $_use_pba == "true" ]; then
@@ -461,41 +462,51 @@ prepare() {
 
 	# esync
 	if [ $_use_esync == "true" ]; then
-	  if [ $_use_staging == "true" ]; then
+	  # if using a wine version that includes aec7bef, use 3.17+ fixes
+	  if [ 0 -eq $(git log | grep aec7befb5115d866724149bbc5576c7259fef820 > /dev/null 2> /dev/null; echo $?) ]; then # server: Avoid potential size overflow for empty object attributes
+	    if [ $_use_staging == "true" ]; then
+	      # fixes for esync patches to apply to staging
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-staging-fixes-r2.patch' && echo "Using esync staging 3.17+ compat fixes" >> $_where/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
 	    cd "${srcdir}"/"${_esyncsrcdir}"
-	    # fixes for esync patches to apply to staging
-	    patch -Np1 < ../'esync-staging-fixes.patch'
+	    patch -Np1 < ../'esync-compat-fixes-r2.patch' && echo "Using esync 3.17+ compat fixes" >> $_where/last_build_config.log
 	    cd "${srcdir}"/"${_winesrcdir}"
+	  else
+	    # 3.10 - 3.16
+	    if [ $_use_staging == "true" ]; then
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-staging-fixes-r1.patch' && echo "Using esync staging 3.16- compat fixes" >> $_where/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    cd "${srcdir}"/"${_esyncsrcdir}"
+	    patch -Np1 < ../'esync-compat-fixes-r1.patch' && echo "Using esync 3.16- compat fixes" >> $_where/last_build_config.log
+	    cd "${srcdir}"/"${_winesrcdir}"
+
+	    # if using a wine version that includes 57212f6, apply 3.14+ additional fixes
+	    if [ 0 -eq $(git log | grep 57212f64f8e4fef0c63c633940e13d407c0f2069 > /dev/null 2> /dev/null; echo $?) ]; then # kernel32: Add AttachConsole implementation
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-compat-fixes-r1.1.patch' && echo "Using esync 3.14+ additional compat fixes" >> $_where/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
 	  fi
 
-	  cd "${srcdir}"/"${_esyncsrcdir}"
-	  patch -Np1 < ../'esync-compat-fixes.patch'
-	  cd "${srcdir}"/"${_winesrcdir}"
-
-	  # if using a wine version that includes 57212f6, apply 3.14+ fixes
-	  if [ 0 -eq $(git log | grep 57212f64f8e4fef0c63c633940e13d407c0f2069 > /dev/null 2> /dev/null; echo $?) ]; then # wined3d: Move OpenGL initialisation code to adapter_gl.c commit
-	    cd "${srcdir}"/"${_esyncsrcdir}"
-	    patch -Np1 < ../'esync-314+-compat-fixes.patch'
-	    cd "${srcdir}"/"${_winesrcdir}"
-	  fi
-
-	  # if using a wine version that includes af8f3ae, apply 3.17+ fixes
-	  if [ 0 -eq $(git log | grep af8f3ae3339336ff23acad5cdaf8d39812146e5d > /dev/null 2> /dev/null; echo $?) ]; then
-	    cd "${srcdir}"/"${_esyncsrcdir}"
-	    patch -Np1 < ../'esync-317+-compat-fixes.patch'
-	    cd "${srcdir}"/"${_winesrcdir}"
-	  fi
-
-	  # wine-esync patches
+	  # apply esync patches
 	  for _f in "${srcdir}"/"${_esyncsrcdir}"/*.patch; do
+	    msg2 "Applying ${_f}"
 	    git apply -C1 --verbose < ${_f}
 	  done
 
-	  # fix for server-Desktop_Refcount on esync
+	  # fix for server-Desktop_Refcount on esync staging
 	  if [ $_use_staging == "true" ]; then
+	    msg2 "Applying esync-no_alloc_handle.patch"
 	    patch -Np1 < ../'esync-no_alloc_handle.patch'
 	  fi
 	fi
+	# /esync
 
 	# Launch with dedicated gpu desktop entry patch
 	if [ $_launch_with_dedicated_gpu == "true" ]; then
@@ -716,11 +727,12 @@ md5sums=('SKIP'
          '1ff4e467f59409272088d92173a0f801'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
-         'bb280dfbf0c1719e67f54018c81e5720'
+         'dd993e03188c86631e6c2cbdf14113aa'
+         'b997bf4bae2d08f7e84870c8c91fb08b'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
-         '6e36cfbd8286e9f865f50bd6e4d6c456'
-         '360a9d3ca587a20e78f5373d5135b2bb'
+         'c4b104892b0501781789aadc5a95b261'
+         '46f612602ee7698b840a4e757194cfa7'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
          '5a1e50fb432d1bbc6cf3db8cdb4cdc0c'

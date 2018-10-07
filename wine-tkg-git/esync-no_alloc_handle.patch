@@ -1,7 +1,6 @@
-From 7b50f4e23a1c594a0a565fdfae9011155dbcbdda Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Thu, 2 Aug 2018 06:58:02 +0200
-Subject: Add no_alloc_handle object method to esync
+Subject: Add no_alloc_handle object method to esync. This is required for staging server-Desktop_Refcount patchsets and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName).
 
 
 diff --git a/server/esync.c b/server/esync.c
