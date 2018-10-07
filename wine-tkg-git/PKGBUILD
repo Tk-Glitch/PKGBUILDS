@@ -378,6 +378,11 @@ prepare() {
 	export CFLAGS="${CFLAGS/-fno-plt/}"
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
 
+	# Revert b79fd40 to fix steam on 3.17 - Breaks Star Control: Origins and some apps depending on kernel32.dll.GetQueuedCompletionStatusEx - https://bugs.winehq.org/show_bug.cgi?id=43878
+	if [ $_star_control_fix == "false" ] && [ 0 -eq $(git log | grep b79fd400c05547457bb10e74776b8f312bacae8c > /dev/null 2> /dev/null; echo $?) ]; then # kernel32: Implement GetQueuedCompletionStatusEx()
+	  git revert --no-commit b79fd400c05547457bb10e74776b8f312bacae8c && echo "Reverted b79fd40 (3.17 steam fix)" >> $_where/last_build_config.log
+	fi
+
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
 	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> $_where/last_build_config.log
