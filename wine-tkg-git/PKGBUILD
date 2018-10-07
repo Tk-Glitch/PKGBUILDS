@@ -308,7 +308,7 @@ prepare() {
 	fi
 
 	if [ $_use_esync == "true" ]; then
-	  echo "Using (${_esync_version}) patchset" >> $_where/last_build_config.log
+	  echo "Using esync (${_esync_version}) patchset" >> $_where/last_build_config.log
 	fi
 
 	if [ $_use_pba == "true" ]; then
