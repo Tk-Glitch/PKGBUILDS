@@ -380,42 +380,36 @@ prepare() {
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
-	  patch -Np1 < ../'use_clock_monotonic.patch'
-	  echo "Applied clock_monotonic patch" >> $_where/last_build_config.log
+	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> $_where/last_build_config.log
 	fi
 
 	# patch for 32bit font smoothing
 	if [ $_harmony_fix == "true" ]; then
-	  patch -Np1 < ../'harmony-fix.diff'
-	  echo "Applied harmony fix" >> $_where/last_build_config.log
+	  patch -Np1 < ../'harmony-fix.diff' && echo "Applied harmony fix" >> $_where/last_build_config.log
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
 	if [ $_poe_fix == "true" ]; then
-	  patch -Np1 < ../'poe-fix.patch'
-	  echo "Applied Path of Exile DX11 fix" >> $_where/last_build_config.log
+	  patch -Np1 < ../'poe-fix.patch' && echo "Applied Path of Exile DX11 fix" >> $_where/last_build_config.log
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ $_f4skyrimse_fix == "true" ]; then
-	  patch -Np1 < ../'f4skyrimse-fix.patch'
-	  echo "Applied F4/SkyrimSE Script Extender fix" >> $_where/last_build_config.log
+	  patch -Np1 < ../'f4skyrimse-fix.patch' && echo "Applied F4/SkyrimSE Script Extender fix" >> $_where/last_build_config.log
 	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
 	if [ $_fallout4dsound_fix == "true" ]; then
-	  patch -Np1 < ../'fallout4.patch'
-	  echo "Applied Fallout 4 Dsound workaround" >> $_where/last_build_config.log
+	  patch -Np1 < ../'fallout4.patch' && echo "Applied Fallout 4 Dsound workaround" >> $_where/last_build_config.log
 	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $_steam_fix == "true" ]; then
-	  patch -Np1 < ../'steam.patch'
-	  echo "Applied steam crossover hack" >> $_where/last_build_config.log
+	  patch -Np1 < ../'steam.patch' && echo "Applied steam crossover hack" >> $_where/last_build_config.log
 	fi
 
 	# FFXIV mouse jitter fix
@@ -433,9 +427,8 @@ prepare() {
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
 	if [ $_CSMT_toggle == "true" ] && [ $_use_staging == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
-	  patch -Np1 < ../'CSMT-toggle.patch'
+	  patch -Np1 < ../'CSMT-toggle.patch' && echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
 	  cd "${srcdir}"/"${_winesrcdir}"
-	  echo "Applied CSMT toggle logic patch" >> $_where/last_build_config.log
 	fi
 
 	# wine-staging user patches
@@ -510,20 +503,17 @@ prepare() {
 
 	# Launch with dedicated gpu desktop entry patch
 	if [ $_launch_with_dedicated_gpu == "true" ]; then
-	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch'
-	  echo "Applied launch with dedicated gpu desktop entry patch" >> $_where/last_build_config.log
+	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch' && echo "Applied launch with dedicated gpu desktop entry patch" >> $_where/last_build_config.log
 	fi
 
 	# Low latency alsa audio - https://blog.thepoon.fr/osuLinuxAudioLatency/
 	if [ $_lowlatency_audio == "true" ] && [ $_use_staging == "true" ]; then
-	  patch -Np1 < ../'lowlatency_audio.patch'
-	  echo "Applied low latency alsa audio patch" >> $_where/last_build_config.log
+	  patch -Np1 < ../'lowlatency_audio.patch' && echo "Applied low latency alsa audio patch" >> $_where/last_build_config.log
 	fi
 
 	# Fortnite Fix - Currently not working anymore
 	if [ $_fortnite_fix == "true" ]; then
-	  patch -Np1 < ../'fortnite.patch'
-	  echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
+	  patch -Np1 < ../'fortnite.patch' && echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
 	fi
 
 	# apply wine-pba patches
