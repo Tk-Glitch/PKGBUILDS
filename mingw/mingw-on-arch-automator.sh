@@ -5,6 +5,7 @@
 _where=$PWD
 _dwarf2=true
 _fortran=true
+_cloog_git=false
 
  echo '#################################################################'
  echo ''
@@ -20,11 +21,16 @@ rm -rf cloog-git
 
 sudo pacman -Rscnd mingw-w64 --noconfirm
 
-# cloog git - Needed for a successful build for now
-git clone https://aur.archlinux.org/cloog-git.git
-cd cloog-git
-makepkg -si --noconfirm
-cd $_where
+# cloog git - If the usual cloog package fails with mingw, you'll need -git
+if [ $_cloog_git == "true" ]; then
+  sudo pacman -Rscnd cloog --noconfirm
+  git clone https://aur.archlinux.org/cloog-git.git
+  cd cloog-git
+  makepkg -si --noconfirm
+  cd $_where
+else
+  sudo pacman -S cloog --noconfirm
+fi
 
 # mingw-w64-binutils
 git clone https://aur.archlinux.org/mingw-w64-binutils.git
