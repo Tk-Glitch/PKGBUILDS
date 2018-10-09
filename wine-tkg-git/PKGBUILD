@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.17.r94.g2e754a6527.esync
+pkgver=3.17.r126.gcc4b28a99d.staging.esync.pba
 pkgrel=62
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -136,28 +136,32 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
 		"https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
-		'steam.patch'
+		# game specific
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
-		'harmony-fix.diff'
-		'30-win32-aliases.conf'
-		'wine-binfmt.conf'
-		'CSMT-toggle.patch'
-		'esync-staging-fixes-r1.patch'
-		'esync-staging-fixes-r2.patch'
-		'esync-compat-fixes-r1.patch'
-		'esync-compat-fixes-r1.1.patch'
-		'esync-compat-fixes-r2.patch'
-		'esync-no_alloc_handle.patch'
-		'PBA313-.patch'
-		'PBA314+.patch'
-		'PBA317+.patch'
 		'fallout4.patch'
 		'fortnite.patch'
-		'launch-with-dedicated-gpu-desktop-entry.patch'
+		# esync
+		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
+		'esync-staging-fixes-r2.patch' # For 3.17+
+		'esync-compat-fixes-r1.patch'  # For 3.10-3.16 - Untested on lower than 3.10
+		'esync-compat-fixes-r1.1.patch' # Addon for 3.14+
+		'esync-compat-fixes-r2.patch' # For 3.17+
+		'esync-no_alloc_handle.patch'
+		# pba
+		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
+		'PBA314+.patch' # For 3.14-3.16
+		'PBA317+.patch' # For 3.17+
+		# misc
+		'steam.patch'
+		'harmony-fix.diff'
+		'30-win32-aliases.conf'
+		'use_clock_monotonic.patch'
 		'lowlatency_audio.patch'
-		'dxvk-winelib.patch'
-		'use_clock_monotonic.patch')
+		'wine-binfmt.conf'
+		'CSMT-toggle.patch'
+		'launch-with-dedicated-gpu-desktop-entry.patch'
+		'dxvk-winelib.patch')
 
 provides=(
 	"wine=$pkgver"
@@ -717,13 +721,10 @@ md5sums=('SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
-         'f58a4e17b33bd96ce0d6e8325cad7f76'
          '108d1a6f71bde6431bece05e98ea31db'
          'ecada2fc8abda49c6bb788c25f05a822'
-         '608cbfa520e154687dcd62cbdb6db82b'
-         '1ff4e467f59409272088d92173a0f801'
-         'cff441678d798466a13a0d03b01e23d7'
-         '830a78ea35e124536cdbc8291102ffaa'
+         'd1a18945f2ca46fa3fce70e157393a01'
+         'f50501943759c8731d40eb521e36e6da'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '3a263a0f6211287af53ea7db79b1f34f'
@@ -733,12 +734,15 @@ md5sums=('SKIP'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
          '5a1e50fb432d1bbc6cf3db8cdb4cdc0c'
-         'd1a18945f2ca46fa3fce70e157393a01'
-         'f50501943759c8731d40eb521e36e6da'
-         '78ea7fa80abd8beb6e2afac27deb938f'
+         'f58a4e17b33bd96ce0d6e8325cad7f76'
+         '608cbfa520e154687dcd62cbdb6db82b'
+         '1ff4e467f59409272088d92173a0f801'
+         '517a67b31d26990e6704074ccb630f80'
          'ed6060dc030ebd5865f1fcc40d8863be'
-         'd328bfd0d363434fe5f83f3a614849f7'
-         '517a67b31d26990e6704074ccb630f80')
+         'cff441678d798466a13a0d03b01e23d7'
+         '830a78ea35e124536cdbc8291102ffaa'
+         '78ea7fa80abd8beb6e2afac27deb938f'
+         'd328bfd0d363434fe5f83f3a614849f7')
 
 # Remove the state tracker on failed/stopped compilation
 trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
