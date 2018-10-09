@@ -2,7 +2,7 @@
 # Modified for multilib by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=('spirv-tools-tkg-git' 'lib32-spirv-tools-tkg-git')
-pkgver=r1662.47ee776a
+pkgver=r1727.03cbf33a
 pkgrel=1
 pkgdesc='API and commands for processing SPIR-V modules'
 url='https://github.com/KhronosGroup/SPIRV-Tools'
