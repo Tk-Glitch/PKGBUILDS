@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.17.r126.gcc4b28a99d.staging.esync.pba
-pkgrel=62
+pkgver=3.17.r12.g5a2c1ea6.staging.esync.pba
+pkgrel=63
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -215,20 +215,12 @@ user_patcher() {
 }
 
 pkgver() {
-	# retrieve current wine-staging version
-	cd "${srcdir}/${_stgsrcdir}"
-	local _stagingTag="$(git tag --sort='version:refname' | tail -n1 | sed 's/-/./g;s/^v//;s/\.rc/rc/')"
-	local _stagingVer="$(git describe --long --tags \
-								| sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/' \
-								| sed "s/^latest.release/${_stagingTag}/")"
-
-	# retrieve current wine version
-	cd "${srcdir}/${_winesrcdir}"
-	local _wineVer="$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/')"
-
 	if [ $_use_staging == "true" ]; then
 	  _stg=".staging"
 	  msg2 "Using staging patchset"
+	  cd "${srcdir}/${_stgsrcdir}"
+	else
+	  cd "${srcdir}/${_winesrcdir}"
 	fi
 
 	if [ $_use_esync == "true" ]; then
@@ -255,6 +247,9 @@ pkgver() {
 	  _doitsujin=".dxvk"
 	  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
 	fi
+
+	# retrieve current wine version - if staging is enabled, staging version will be used instead
+	local _wineVer="$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/')"
 
 	# version string
 	printf '%s%s%s%s%s%s%s' "${_wineVer#wine.}" "$_stg" "$_zf" "$_firerat" "$_nine" "$_vkd3d" "$_doitsujin"
