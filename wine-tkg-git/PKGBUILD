@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.17.r12.g5a2c1ea6.staging.esync.pba
+pkgver=3.17.r13.g4beed4a3.staging.esync.pba
 pkgrel=63
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -740,4 +740,4 @@ md5sums=('SKIP'
          'd328bfd0d363434fe5f83f3a614849f7')
 
 # Remove the state tracker on failed/stopped compilation
-trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
+trap "{ rm -f $_where/BIG_UGLY_COINMINER; rm -f $_where/esync.tgz; }" EXIT
