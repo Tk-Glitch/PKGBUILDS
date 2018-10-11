@@ -34,7 +34,7 @@ makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool
 options=('!strip' 'ccache' 'makeflags')
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
-        "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
+        "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}.11+"
         'config.x86_64' # arch config with minor tweaks
         'linux418-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -53,7 +53,6 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-v4.18_pds099a.patch
         0009-add-acs-overrides_iommu.patch
         0009-tr_gpu_passthrough_bus.patch
-        tmpfs-idr-fix.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'db9a1dc5cbe0b979f170ae4a28084f6777613cf76079a7e9b62209ca3ec5de30'
@@ -114,7 +113,7 @@ prepare() {
   patch -Np1 -i ../aufs4-loopback.patch
   patch -Np1 -i ../aufs4-mmap.patch
   patch -Np1 -i ../aufs4-standalone.patch
-  patch -Np1 -i ../tmpfs-idr-fix.patch
+  patch -Np1 -i ../tmpfs-idr.patch
   patch -Np1 -i ../vfs-ino.patch
 
   # TkG
