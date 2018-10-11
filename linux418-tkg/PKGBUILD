@@ -8,7 +8,8 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 
 # CPU SCHED selector
 if [ ! -e $where/cpuschedset ]; then
-  read -p "What CPU sched variant do you want to build/install?`echo $'\n> 1.PDS\n  2.MUQSS\n  3.CFS\nchoice[1-3?]: '`" CONDITION;
+  plain "What CPU sched variant do you want to build/install?"
+  read -p "`echo $'  > 1.PDS\n    2.MUQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
     echo "TkGExt=\"-tkg-muqss\"" > $where/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
@@ -26,7 +27,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
 _sub=13
 pkgver=${_basekernel}.${_sub}
-pkgrel=27
+pkgrel=28
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -57,7 +58,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'db9a1dc5cbe0b979f170ae4a28084f6777613cf76079a7e9b62209ca3ec5de30'
             'SKIP'
-            'f779bacc979399b7a40d3874160dbe706bb81832e947880d47681e7f2dfffbbd'
+            'e74f42259f4b5675c5b367cd2927d462a7874ea1fdacf3b0532580ea106547d3'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -72,8 +73,7 @@ sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
             'a760206039e1d155f2926f85bcbb2748577ece5748fb306faacd0a1f14a35881'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
-            '25c9bca17a9b1a561c870e634c41c1717bcc9f356f4f133b6369320f19a773f4'
-            '30aa3261154106e796eaf50f450fcf7378c67a75a53afff8f594f4a57b426e0d')
+            '25c9bca17a9b1a561c870e634c41c1717bcc9f356f4f133b6369320f19a773f4')
 
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
@@ -157,7 +157,20 @@ prepare() {
   sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
   fi
 
-  read -p "Disable NUMA? Lowers overhead, but currently breaks CUDA on Nvidia equipped systems if disabled. https://bbs.archlinux.org/viewtopic.php?id=239174`echo $'\n> N/y : '`" CONDITION;
+  plain ""
+  plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
+  read -p "`echo $'    > N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
+  sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
+      -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
+      -i -e '/CONFIG_DYNAMIC_FTRACE=y/d' \
+      -i -e '/CONFIG_DYNAMIC_FTRACE_WITH_REGS=y/d' ./.config
+  fi
+
+  plain ""
+  plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
+  plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
+  read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
   # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
   sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
@@ -171,12 +184,18 @@ prepare() {
       -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
   fi
 
-  read -p "Fix Threadripper platform issues with GPU passthrough? You don't want that if you don't have a Threadripper CPU. https://forum.level1techs.com/t/threadripper-reset-fixes/123937`echo $'\n> N/y : '`" CONDITION;
+  plain ""
+  plain "Fix Threadripper platform issues with GPU passthrough? You don't want that if you don't have a Threadripper CPU."
+  plain "https://forum.level1techs.com/t/threadripper-reset-fixes/123937"
+  read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0009-tr_gpu_passthrough_bus.patch
   fi
 
-  read -p "Use ACS override patch? https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29`echo $'\n> N/y : '`" CONDITION;
+  plain ""
+  plain "Use ACS override patch?"
+  plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
+  read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0009-add-acs-overrides_iommu.patch
   fi
@@ -187,7 +206,11 @@ prepare() {
   # get kernel version
   make prepare
 
-  read -p "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Make sure to have a well populated db !!!! - https://wiki.archlinux.org/index.php/Modprobed-db`echo $'\n> N/y : '`" CONDITION;
+  plain ""
+  plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably."
+  plain "https://wiki.archlinux.org/index.php/Modprobed-db"
+  plain "!!!! Make sure to have a well populated db !!!!"
+  read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
     make LSMOD=$HOME/.config/modprobed.db localmodconfig
   fi
