@@ -32,10 +32,10 @@ else
     msg2 ''
     msg2 '###################################TkG##########was##########here'
     read -p "When you are ready, press enter to continue."
+
+    source $_where/customization.cfg # load configuration from file again, in case of changes.
   fi
 fi
-
-source $_where/customization.cfg # load configuration from file, again.
 
 # custom plain wine commit to pass to git
 if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
