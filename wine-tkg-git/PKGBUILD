@@ -10,28 +10,32 @@ _esyncsrcdir='esync'
 _dxvksrcdir='dxvk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
-# If the state tracker isn't found, prompt the user with useful stuff.
-# This is to prevent the prompt to come back until packaging is done
-if [ ! -e $_where/BIG_UGLY_COINMINER ]; then
-  msg2 '#################################################################'
-  msg2 ''
-  msg2 'You can configure your wine build flavour (right now for example)'
-  msg2 'by editing the customization.cfg file next to this PKGBUILD.'
-  msg2 ''
-  msg2 'Set _OPTIMIZED to "false" if you want to share the package !'
-  msg2 ''
-  msg2 "Current path is '$_where'"
-  msg2 ''
-  msg2 'If you are rebuilding using the same configuration, you may want'
-  msg2 'to delete/move previously built package and clear src dir.'
-  msg2 ''
-  msg2 'If your previous build was stopped/crashed, clear src dir.'
-  msg2 ''
-  msg2 '###################################TkG##########was##########here'
-  read -p "When you are ready, press enter to continue."
+source $_where/customization.cfg # load configuration from file
+
+if [ "$_NOINITIALPROMPT" == "true" ]; then
+  msg2 'Initial prompt skipped. Do you remember what it said? 8)'
+else
+  # If the state tracker isn't found, prompt the user with useful stuff.
+  # This is to prevent the prompt to come back until packaging is done
+  if [ ! -e $_where/BIG_UGLY_COINMINER ]; then
+    msg2 '#################################################################'
+    msg2 ''
+    msg2 'You can configure your wine build flavour (right now for example)'
+    msg2 'by editing the customization.cfg file next to this PKGBUILD.'
+    msg2 ''
+    msg2 'Set _OPTIMIZED to "false" if you want to share the package !'
+    msg2 ''
+    msg2 "Current path is '$_where'"
+    msg2 ''
+    msg2 'If you are rebuilding using the same configuration, you may want'
+    msg2 'to delete/move previously built package if in the same dir.'
+    msg2 ''
+    msg2 '###################################TkG##########was##########here'
+    read -p "When you are ready, press enter to continue."
+  fi
 fi
 
-source $_where/customization.cfg # load configuration from file
+source $_where/customization.cfg # load configuration from file, again.
 
 # custom plain wine commit to pass to git
 if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
