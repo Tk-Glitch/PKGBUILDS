@@ -159,7 +159,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA317+.patch' # For 3.17+
 		# misc
 		'steam.patch'
-		'harmony-fix.diff'
 		'30-win32-aliases.conf'
 		'use_clock_monotonic.patch'
 		'lowlatency_audio.patch'
@@ -390,11 +389,6 @@ prepare() {
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
 	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> $_where/last_build_config.log
-	fi
-
-	# patch for 32bit font smoothing
-	if [ $_harmony_fix == "true" ]; then
-	  patch -Np1 < ../'harmony-fix.diff' && echo "Applied harmony fix" >> $_where/last_build_config.log
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
@@ -743,7 +737,6 @@ md5sums=('SKIP'
          'b76d64af20e1026f0303cc8cb5835815'
          '5a1e50fb432d1bbc6cf3db8cdb4cdc0c'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
-         '608cbfa520e154687dcd62cbdb6db82b'
          '1ff4e467f59409272088d92173a0f801'
          '517a67b31d26990e6704074ccb630f80'
          'ed6060dc030ebd5865f1fcc40d8863be'
