@@ -522,6 +522,7 @@ prepare() {
 
 	# apply wine-pba patches
 	if [ $_use_pba == "true" ]; then
+	  rm -rf "${srcdir}/${_pbasrcdir}"
 	  mkdir -p "${srcdir}/${_pbasrcdir}/patches"
 	  cd "${srcdir}/${_pbasrcdir}"
 	  if [ $_pba_version == "317+" ]; then
