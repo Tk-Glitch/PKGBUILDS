@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.17.r13.g4beed4a3.staging.esync.pba
+pkgver=3.17.r15.g652a39ca.staging.esync.pba
 pkgrel=63
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
