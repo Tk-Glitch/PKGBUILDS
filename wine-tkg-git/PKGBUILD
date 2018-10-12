@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.17.r15.g652a39ca.staging.esync.pba
-pkgrel=63
+pkgrel=64
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -145,6 +145,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'f4skyrimse-fix.patch'
 		'fallout4.patch'
 		'fortnite.patch'
+		'halo-blackiness-fix.patch'
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -418,6 +419,12 @@ prepare() {
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $_steam_fix == "true" ]; then
 	  patch -Np1 < ../'steam.patch' && echo "Applied steam crossover hack" >> $_where/last_build_config.log
+	fi
+
+	# Halo Online fix for black textures/vertices on negative Z axis
+	# https://bugs.winehq.org/show_bug.cgi?id=45375
+	if [ $_halo_online_blackiness_fix == "true" ]; then
+	  patch -Np1 < ../'halo-blackiness-fix.patch' && echo "Applied Halo Online black vertices fix" >> $_where/last_build_config.log
 	fi
 
 	# FFXIV mouse jitter fix
@@ -725,6 +732,7 @@ md5sums=('SKIP'
          'ecada2fc8abda49c6bb788c25f05a822'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
+         'a976b19df4e068c017e639f8a9d37c3e'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '3a263a0f6211287af53ea7db79b1f34f'
