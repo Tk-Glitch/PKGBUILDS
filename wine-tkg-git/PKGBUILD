@@ -77,6 +77,10 @@ if [[ $_OPTIMIZED == "true" ]]; then
   msg2 "Using native processor optimizations"
 fi
 
+if [[ $_INSTALL_TO_OPT == "true" ]]; then
+  msg2 "Installing to /opt/$pkgname"
+fi
+
 # custom plain wine commit to pass to git
 if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
   _plain_commit="#commit=$_plain_version"
@@ -208,14 +212,15 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'dxvk-winelib.patch'
 		'winevulkan_transform-feedback_ext.patch')
 
-provides=(
-	"wine=$pkgver"
-	"wine-wow64=$pkgver"
-	"wine-staging=$pkgver"
-	"wine-esync=$pkgver"
-)
-
-conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
+if [[ $_INSTALL_TO_OPT != true ]]; then
+  provides=(
+    "wine=$pkgver"
+    "wine-wow64=$pkgver"
+    "wine-staging=$pkgver"
+    "wine-esync=$pkgver"
+  )
+  conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
+fi
 makedepends=(${makedepends[@]} ${depends[@]})
 install=wine.install
 
@@ -634,13 +639,18 @@ build() {
 
 	cd "${srcdir}"
 
+	local _prefix=/usr
+	if [[ $_INSTALL_TO_OPT == true ]]; then
+	  _prefix=/opt/$pkgname
+	fi
+
 	# build wine 64-bit
 	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	msg2 'Building Wine-64...'
 	cd  "${srcdir}"/"${pkgname}"-64-build
 	../${_winesrcdir}/configure \
-		--prefix='/usr' \
-		--libdir='/usr/lib' \
+		--prefix="$_prefix" \
+		--libdir="$_prefix/lib" \
 		--with-x \
 		--with-gstreamer \
 		--enable-win64 \
@@ -658,8 +668,8 @@ build() {
 	msg2 'Building Wine-32...'
 	cd "${srcdir}/${pkgname}"-32-build
 	../${_winesrcdir}/configure \
-		--prefix='/usr' \
-		--libdir='/usr/lib32' \
+		--prefix="$_prefix" \
+		--libdir="$_prefix/lib32" \
 		--with-x \
 		--with-gstreamer \
 		--with-xattr \
@@ -682,33 +692,44 @@ build() {
 
 package() {
 
+	local _prefix=/usr
+	if [[ $_INSTALL_TO_OPT == true ]]; then
+	  _prefix=/opt/$pkgname
+	fi
+
 	# package wine 32-bit
 	# (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
 	msg2 'Packaging Wine-32...'
 	cd "${srcdir}/${pkgname}"-32-build
-	make 	prefix="${pkgdir}/usr" \
-			libdir="${pkgdir}/usr/lib32" \
-			dlldir="${pkgdir}/usr/lib32/wine" install
+	make 	prefix="${pkgdir}$_prefix" \
+			libdir="${pkgdir}$_prefix/lib32" \
+			dlldir="${pkgdir}$_prefix/lib32/wine" install
 
 	# package wine 64-bit
 	msg2 'Packaging Wine-64...'
 	cd "${srcdir}/${pkgname}"-64-build
-	make 	prefix="${pkgdir}/usr" \
-			libdir="${pkgdir}/usr/lib" \
-			dlldir="${pkgdir}/usr/lib/wine" install
+	make 	prefix="${pkgdir}$_prefix" \
+			libdir="${pkgdir}$_prefix/lib" \
+			dlldir="${pkgdir}$_prefix/lib/wine" install
 
 	# freetype font smoothing for win32 applications
 	install -d "$pkgdir"/etc/fonts/conf.{avail,d}
-	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail"
-	ln -s ../conf.avail/30-win32-aliases.conf "${pkgdir}/etc/fonts/conf.d/30-win32-aliases.conf"
+	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail/30-$pkgname-win32-aliases.conf"
+	ln -s "../conf.avail/30-$pkgname-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.d/30-$pkgname-win32-aliases.conf"
 
 	# wine binfmt
-	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
+	if [[ $_INSTALL_TO_OPT == true ]]; then
+	  mkdir -p "${pkgdir}/usr/lib/binfmt.d"
+	  # change binfmt.conf to actual installed path
+	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
+	else
+	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
+	fi
 
 	# dxvk
 	if [ $_use_dxvk == "true" ]; then
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}"/usr/lib32/wine
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}"/usr/lib/wine
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	fi
 
 	rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
@@ -727,6 +748,11 @@ package() {
 	  msg2 'https://raw.githubusercontent.com/zfigura/wine/esync/README.esync'
 	  msg2 ''
 	  msg2 '##########################################################################################################################'
+	fi
+
+	if [[ $_INSTALL_TO_OPT == "true" ]]; then
+	  msg2 "### This wine will be installed to: $_prefix"
+	  msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
 	fi
 }
 md5sums=('SKIP'
