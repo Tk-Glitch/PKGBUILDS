@@ -183,7 +183,7 @@ optdepends=(
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
-		"https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
+		"esync${_esync_version}.tgz::https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		# game specific
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -623,7 +623,6 @@ prepare() {
 
 	# no compilation
 	if [ $_NOCOMPILE == "true" ]; then
-	  rm -fv $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  msg2 'make prepare function fail by using Gandalf'
 	  YOU_SHALL_NOT_PASS
 	fi
@@ -735,7 +734,6 @@ package() {
 	rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
 
 	if [ $_NUKR == "true" ]; then
-	  rm -fv $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
 	  msg2 'srcdir was nuked. See ya !'
 	fi
@@ -784,4 +782,4 @@ md5sums=('SKIP'
          'bccedecbf4ccb527552ba52a24315f71')
 
 # Remove the state tracker on failed/stopped compilation
-trap "{ rm -f $_where/BIG_UGLY_COINMINER; rm -f $_where/esync.tgz; }" EXIT
+trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
