@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r0.g30dca36a.staging.esync.pba
+pkgver=3.18.r0.g30dca36a
 pkgrel=67
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -35,6 +35,36 @@ else
 
     source $_where/customization.cfg # load configuration from file again, in case of changes.
   fi
+fi
+
+if [[ $_use_staging == "true" ]]; then
+  pkgname="${pkgname/%-git/-staging-git}"
+  msg2 "Using staging patchset"
+fi
+
+if [[ $_use_esync == "true" ]]; then
+  pkgname="${pkgname/%-git/-esync-git}"
+  msg2 "Using esync (${_esync_version}) patchset"
+fi
+
+if [[ $_use_pba == "true" ]]; then
+  pkgname="${pkgname/%-git/-pba-git}"
+  msg2 "Using pba patchset"
+fi
+
+if [[ $_use_gallium_nine == "true" ]]; then
+  pkgname="${pkgname/%-git/-nine-git}"
+  msg2 "Using gallium nine patchset"
+fi
+
+if [[ $_use_vkd3d == "true" ]]; then
+  pkgname="${pkgname/%-git/-vkd3d-git}"
+  msg2 "Using VKD3D for d3d12 translation"
+fi
+
+if [[ $_use_dxvk == "true" ]]; then
+  pkgname="${pkgname/%-git/-dxvk-git}"
+  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
 fi
 
 # custom plain wine commit to pass to git
@@ -221,43 +251,13 @@ user_patcher() {
 
 pkgver() {
 	if [ $_use_staging == "true" ]; then
-	  _stg=".staging"
-	  msg2 "Using staging patchset"
 	  cd "${srcdir}/${_stgsrcdir}"
 	else
 	  cd "${srcdir}/${_winesrcdir}"
 	fi
 
-	if [ $_use_esync == "true" ]; then
-	  _zf=".esync"
-	  msg2 "Using esync (${_esync_version}) patchset"
-	fi
-
-	if [ $_use_pba == "true" ]; then
-	  _firerat=".pba"
-	  msg2 "Using pba (${_pba_version}) patchset"
-	fi
-
-	if [ $_use_gallium_nine == "true" ]; then
-	  _nine=".nine"
-	  msg2 "Using gallium nine patchset"
-	fi
-
-	if [ $_use_vkd3d == "true" ]; then
-	  _vkd3d=".vkd3d"
-	  msg2 "Using VKD3D for d3d12 translation"
-	fi
-
-	if [ $_use_dxvk == "true" ]; then
-	  _doitsujin=".dxvk"
-	  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
-	fi
-
 	# retrieve current wine version - if staging is enabled, staging version will be used instead
-	local _wineVer="$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/')"
-
-	# version string
-	printf '%s%s%s%s%s%s%s' "${_wineVer#wine.}" "$_stg" "$_zf" "$_firerat" "$_nine" "$_vkd3d" "$_doitsujin"
+	git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
 }
 
 prepare() {
@@ -656,7 +656,7 @@ build() {
 		$_withd3d9nine \
 		$_withvkd3d \
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
-		#--disable-tests 
+		#--disable-tests
 
     # make using all available threads
 	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
@@ -679,14 +679,14 @@ package() {
 	make 	prefix="${pkgdir}/usr" \
 			libdir="${pkgdir}/usr/lib32" \
 			dlldir="${pkgdir}/usr/lib32/wine" install
-	
+
 	# package wine 64-bit
 	msg2 'Packaging Wine-64...'
 	cd "${srcdir}/${pkgname}"-64-build
 	make 	prefix="${pkgdir}/usr" \
 			libdir="${pkgdir}/usr/lib" \
 			dlldir="${pkgdir}/usr/lib/wine" install
-	
+
 	# freetype font smoothing for win32 applications
 	install -d "$pkgdir"/etc/fonts/conf.{avail,d}
 	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail"
