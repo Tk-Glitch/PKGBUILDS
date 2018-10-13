@@ -154,6 +154,9 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'meson'                 'ninja'
     'glslang'
 )
+if [[ $_use_dxvk == true ]]; then
+  makedepends=("${makedepends[@]}" wine)
+fi
 optdepends=(
     'giflib'                'lib32-giflib'
     'libpng'                'lib32-libpng'
