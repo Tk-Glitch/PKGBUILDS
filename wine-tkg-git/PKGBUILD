@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.17.r15.g652a39ca.staging.esync.pba
-pkgrel=64
+pkgver=3.18.r0.g3f4455c0f0.esync.pba
+pkgrel=65
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -569,26 +569,26 @@ prepare() {
 
 	# Set custom version tags
 	if [ $_use_staging == "true" ]; then
-	  _stg=" Staging"
+	  __stg=" Staging"
 	else
-	  _stg=" Plain"
+	  __stg=" Plain"
 	fi
 	if [ $_use_esync == "true" ]; then
-	  _zf=" Esync"
+	  __zf=" Esync"
 	fi
 	if [ $_use_pba == "true" ]; then
-	  _acomminos=" PBA"
+	  __acomminos=" PBA"
 	fi
 	if [ $_use_gallium_nine == "true" ]; then
-	  _nine=" Nine"
+	  __nine=" Nine"
 	fi
 	if [ $_use_vkd3d == "true" ]; then
-	  _vkd3d=" Vkd3d"
+	  __vkd3d=" Vkd3d"
 	fi
 	if [ $_use_dxvk == "true" ]; then
-	  _doitsujin=" Dxvk"
+	  __doitsujin=" Dxvk"
 	fi
-	sed -i "s/\\\1/\\\1  (${_stg}${_zf}${_acomminos}${_nine}${_vkd3d}${_doitsujin} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
+	sed -i "s/\\\1/\\\1  (${__stg}${__zf}${__acomminos}${__nine}${__vkd3d}${__doitsujin} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
 	# dxvk user patches
 	if [ $_user_patches == "true" ] && [ $_use_dxvk == "true" ]; then
