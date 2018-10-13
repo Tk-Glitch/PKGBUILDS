@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r0.g30dca36a.staging.esync.pba
+pkgver=3.18.r0.g30dca36a
 pkgrel=67
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -37,6 +37,45 @@ else
   fi
 fi
 
+if [[ $_use_staging == "true" ]]; then
+  pkgname="${pkgname/%-git/-staging-git}"
+  msg2 "Using staging patchset"
+fi
+
+if [[ $_use_esync == "true" ]]; then
+  pkgname="${pkgname/%-git/-esync-git}"
+  msg2 "Using esync (${_esync_version}) patchset"
+fi
+
+if [[ $_use_pba == "true" ]]; then
+  pkgname="${pkgname/%-git/-pba-git}"
+  msg2 "Using pba patchset"
+fi
+
+if [[ $_use_gallium_nine == "true" ]]; then
+  pkgname="${pkgname/%-git/-nine-git}"
+  msg2 "Using gallium nine patchset"
+fi
+
+if [[ $_use_vkd3d == "true" ]]; then
+  pkgname="${pkgname/%-git/-vkd3d-git}"
+  msg2 "Using VKD3D for d3d12 translation"
+fi
+
+if [[ $_use_dxvk == "true" ]]; then
+  pkgname="${pkgname/%-git/-dxvk-git}"
+  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
+fi
+
+if [[ $_OPTIMIZED == "true" ]]; then
+  pkgname="${pkgname/%-git/-optimized-git}"
+  msg2 "Using native processor optimizations"
+fi
+
+if [[ $_INSTALL_TO_OPT == "true" ]]; then
+  msg2 "Installing to /opt/$pkgname"
+fi
+
 # custom plain wine commit to pass to git
 if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
   _plain_commit="#commit=$_plain_version"
@@ -56,7 +95,7 @@ pkgdesc='This "Wine to rule them all" package is the result of some random pkgbu
 url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git'
 arch=('x86_64')
 
-if [ $(pacman -Qs ccache | head -c1 | wc -c) -eq 1 ]; then
+if pacman -Qq ccache &> /dev/null; then
   msg2 'ccache was found and will be used'
   options=('staticlibs' 'ccache')
 else
@@ -110,6 +149,9 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'meson'                 'ninja'
     'glslang'
 )
+if [[ $_use_dxvk == true ]]; then
+  makedepends=("${makedepends[@]}" wine)
+fi
 optdepends=(
     'giflib'                'lib32-giflib'
     'libpng'                'lib32-libpng'
@@ -139,7 +181,7 @@ optdepends=(
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
-		"https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
+		"esync${_esync_version}.tgz::https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		# game specific
 		'poe-fix.patch'
 		'f4skyrimse-fix.patch'
@@ -168,14 +210,15 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'dxvk-winelib.patch'
 		'winevulkan_transform-feedback_ext.patch')
 
-provides=(
-	"wine=$pkgver"
-	"wine-wow64=$pkgver"
-	"wine-staging=$pkgver"
-	"wine-esync=$pkgver"
-)
-
-conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
+if [[ $_INSTALL_TO_OPT != true ]]; then
+  provides=(
+    "wine=$pkgver"
+    "wine-wow64=$pkgver"
+    "wine-staging=$pkgver"
+    "wine-esync=$pkgver"
+  )
+  conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
+fi
 makedepends=(${makedepends[@]} ${depends[@]})
 install=wine.install
 
@@ -221,43 +264,13 @@ user_patcher() {
 
 pkgver() {
 	if [ $_use_staging == "true" ]; then
-	  _stg=".staging"
-	  msg2 "Using staging patchset"
 	  cd "${srcdir}/${_stgsrcdir}"
 	else
 	  cd "${srcdir}/${_winesrcdir}"
 	fi
 
-	if [ $_use_esync == "true" ]; then
-	  _zf=".esync"
-	  msg2 "Using esync (${_esync_version}) patchset"
-	fi
-
-	if [ $_use_pba == "true" ]; then
-	  _firerat=".pba"
-	  msg2 "Using pba (${_pba_version}) patchset"
-	fi
-
-	if [ $_use_gallium_nine == "true" ]; then
-	  _nine=".nine"
-	  msg2 "Using gallium nine patchset"
-	fi
-
-	if [ $_use_vkd3d == "true" ]; then
-	  _vkd3d=".vkd3d"
-	  msg2 "Using VKD3D for d3d12 translation"
-	fi
-
-	if [ $_use_dxvk == "true" ]; then
-	  _doitsujin=".dxvk"
-	  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
-	fi
-
 	# retrieve current wine version - if staging is enabled, staging version will be used instead
-	local _wineVer="$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/')"
-
-	# version string
-	printf '%s%s%s%s%s%s%s' "${_wineVer#wine.}" "$_stg" "$_zf" "$_firerat" "$_nine" "$_vkd3d" "$_doitsujin"
+	git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
 }
 
 prepare() {
@@ -608,7 +621,6 @@ prepare() {
 
 	# no compilation
 	if [ $_NOCOMPILE == "true" ]; then
-	  rm -fv $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  msg2 'make prepare function fail by using Gandalf'
 	  YOU_SHALL_NOT_PASS
 	fi
@@ -624,13 +636,18 @@ build() {
 
 	cd "${srcdir}"
 
+	local _prefix=/usr
+	if [[ $_INSTALL_TO_OPT == true ]]; then
+	  _prefix=/opt/$pkgname
+	fi
+
 	# build wine 64-bit
 	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	msg2 'Building Wine-64...'
 	cd  "${srcdir}"/"${pkgname}"-64-build
 	../${_winesrcdir}/configure \
-		--prefix='/usr' \
-		--libdir='/usr/lib' \
+		--prefix="$_prefix" \
+		--libdir="$_prefix/lib" \
 		--with-x \
 		--with-gstreamer \
 		--enable-win64 \
@@ -648,15 +665,15 @@ build() {
 	msg2 'Building Wine-32...'
 	cd "${srcdir}/${pkgname}"-32-build
 	../${_winesrcdir}/configure \
-		--prefix='/usr' \
-		--libdir='/usr/lib32' \
+		--prefix="$_prefix" \
+		--libdir="$_prefix/lib32" \
 		--with-x \
 		--with-gstreamer \
 		--with-xattr \
 		$_withd3d9nine \
 		$_withvkd3d \
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
-		#--disable-tests 
+		#--disable-tests
 
     # make using all available threads
 	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
@@ -672,39 +689,49 @@ build() {
 
 package() {
 
+	local _prefix=/usr
+	if [[ $_INSTALL_TO_OPT == true ]]; then
+	  _prefix=/opt/$pkgname
+	fi
+
 	# package wine 32-bit
 	# (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
 	msg2 'Packaging Wine-32...'
 	cd "${srcdir}/${pkgname}"-32-build
-	make 	prefix="${pkgdir}/usr" \
-			libdir="${pkgdir}/usr/lib32" \
-			dlldir="${pkgdir}/usr/lib32/wine" install
-	
+	make 	prefix="${pkgdir}$_prefix" \
+			libdir="${pkgdir}$_prefix/lib32" \
+			dlldir="${pkgdir}$_prefix/lib32/wine" install
+
 	# package wine 64-bit
 	msg2 'Packaging Wine-64...'
 	cd "${srcdir}/${pkgname}"-64-build
-	make 	prefix="${pkgdir}/usr" \
-			libdir="${pkgdir}/usr/lib" \
-			dlldir="${pkgdir}/usr/lib/wine" install
-	
+	make 	prefix="${pkgdir}$_prefix" \
+			libdir="${pkgdir}$_prefix/lib" \
+			dlldir="${pkgdir}$_prefix/lib/wine" install
+
 	# freetype font smoothing for win32 applications
 	install -d "$pkgdir"/etc/fonts/conf.{avail,d}
-	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail"
-	ln -s ../conf.avail/30-win32-aliases.conf "${pkgdir}/etc/fonts/conf.d/30-win32-aliases.conf"
+	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail/30-$pkgname-win32-aliases.conf"
+	ln -s "../conf.avail/30-$pkgname-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.d/30-$pkgname-win32-aliases.conf"
 
 	# wine binfmt
-	install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
+	if [[ $_INSTALL_TO_OPT == true ]]; then
+	  mkdir -p "${pkgdir}/usr/lib/binfmt.d"
+	  # change binfmt.conf to actual installed path
+	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
+	else
+	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
+	fi
 
 	# dxvk
 	if [ $_use_dxvk == "true" ]; then
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}"/usr/lib32/wine
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}"/usr/lib/wine
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	fi
 
 	rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
 
 	if [ $_NUKR == "true" ]; then
-	  rm -fv $_where/esync.tgz # User may want to switch esync releases. Better nuke it to stay fresh
 	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
 	  msg2 'srcdir was nuked. See ya !'
 	fi
@@ -717,6 +744,11 @@ package() {
 	  msg2 'https://raw.githubusercontent.com/zfigura/wine/esync/README.esync'
 	  msg2 ''
 	  msg2 '##########################################################################################################################'
+	fi
+
+	if [[ $_INSTALL_TO_OPT == "true" ]]; then
+	  msg2 "### This wine will be installed to: $_prefix"
+	  msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
 	fi
 }
 md5sums=('SKIP'
@@ -748,4 +780,4 @@ md5sums=('SKIP'
          'bccedecbf4ccb527552ba52a24315f71')
 
 # Remove the state tracker on failed/stopped compilation
-trap "{ rm -f $_where/BIG_UGLY_COINMINER; rm -f $_where/esync.tgz; }" EXIT
+trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
