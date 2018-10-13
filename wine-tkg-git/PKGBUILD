@@ -360,6 +360,14 @@ prepare() {
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
+	elif [ $_COMPILEWITH == 'gcc7' ]; then
+	  export CC="gcc-7"
+	  export CXX="g++-7"
+	  echo "Using gcc7 compiler" >> $_where/last_build_config.log
+	  if [ $_OPTIMIZED == 'true' ]; then
+	    export COMMON_FLAGS="-march=native -pipe -Os"
+	    export LDFLAGS="-Os"
+	  fi
 	else
 	  echo "Using gcc compiler" >> $_where/last_build_config.log
 	  if [ $_OPTIMIZED == 'true' ]; then
