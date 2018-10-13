@@ -43,7 +43,7 @@ options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
 
 # Source
-source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-3965409"
+source=("NVIDIA-Linux-x86_64-$pkgver.run::http://developer.nvidia.com/linux-3965409"
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'kernel-4.16.patch')
