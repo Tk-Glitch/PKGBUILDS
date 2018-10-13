@@ -32,7 +32,13 @@ arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool' 'patchutils' 'flex')
-options=('!strip' 'ccache' 'makeflags')
+if [ $(pacman -Qs ccache | head -c1 | wc -c) -eq 1 ]; then
+  msg2 'ccache was found and will be used'
+  options=('!strip' 'ccache' 'makeflags')
+else
+  msg2 'ccache was not found and will not be used'
+  options=('!strip' 'makeflags')
+fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
         "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}.11+"
