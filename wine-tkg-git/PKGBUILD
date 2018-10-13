@@ -67,6 +67,11 @@ if [[ $_use_dxvk == "true" ]]; then
   msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
 fi
 
+if [[ $_lowlatency_audio == "true" ]]; then
+  pkgname="${pkgname/%-git/-osu-git}"
+  msg2 "Using low latency audio patch"
+fi
+
 # custom plain wine commit to pass to git
 if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
   _plain_commit="#commit=$_plain_version"
