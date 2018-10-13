@@ -67,11 +67,6 @@ if [[ $_use_dxvk == "true" ]]; then
   msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
 fi
 
-if [[ $_lowlatency_audio == "true" ]]; then
-  pkgname="${pkgname/%-git/-osu-git}"
-  msg2 "Using low latency audio patch"
-fi
-
 if [[ $_OPTIMIZED == "true" ]]; then
   pkgname="${pkgname/%-git/-optimized-git}"
   msg2 "Using native processor optimizations"
