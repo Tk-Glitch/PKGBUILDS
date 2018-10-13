@@ -100,7 +100,7 @@ pkgdesc='This "Wine to rule them all" package is the result of some random pkgbu
 url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git'
 arch=('x86_64')
 
-if [ $(pacman -Qs ccache | head -c1 | wc -c) -eq 1 ]; then
+if pacman -Qq ccache &> /dev/null; then
   msg2 'ccache was found and will be used'
   options=('staticlibs' 'ccache')
 else
