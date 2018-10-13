@@ -31,8 +31,8 @@ else
 fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgver=396.54.06
-pkgrel=13
+pkgver=396.54.09
+pkgrel=14
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -43,15 +43,15 @@ options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
 
 # Source
-source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-3965406"
+source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-3965409"
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'kernel-4.16.patch')
-md5sums=('7a402a37375f6e2c747e56056f56698e'
+md5sums=('eda9e2eb9e0d16ea7346659c255713a4'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '84f1f2ecdccf377fc86323f8ad7b7469')
-[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='7a402a37375f6e2c747e56056f56698e'
+[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='eda9e2eb9e0d16ea7346659c255713a4'
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
