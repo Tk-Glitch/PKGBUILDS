@@ -277,11 +277,6 @@ prepare() {
 	# state tracker start - FEAR THE MIGHTY COIN MINER
 	touch "${_where}"/BIG_UGLY_COINMINER
 
-	if [ $_NUKR == "true" ]; then
-	  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
-	  msg2 'pkgdir was nuked. See ya !'
-	fi
-
 	cd "${srcdir}"/"${_stgsrcdir}"
 
 	# restore the targetted trees to their git origin state
@@ -737,13 +732,6 @@ package() {
 	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	fi
 
-	rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
-
-	if [ $_NUKR == "true" ]; then
-	  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
-	  msg2 'srcdir was nuked. See ya !'
-	fi
-
 	if [ $_use_esync == "true" ]; then
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
@@ -787,5 +775,15 @@ md5sums=('SKIP'
          'd328bfd0d363434fe5f83f3a614849f7'
          'bccedecbf4ccb527552ba52a24315f71')
 
-# Remove the state tracker on failed/stopped compilation
-trap "{ rm -f $_where/BIG_UGLY_COINMINER; }" EXIT
+function exit_cleanup {
+  rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
+
+if [ $_NUKR == "true" ]; then
+  # Sanitization
+  rm -rf $srcdir/$_pbasrcdir
+  rm -rf $srcdir/$_esyncsrcdir
+  msg2 'exit cleanup done'
+fi
+}
+
+trap exit_cleanup EXIT
