@@ -24,6 +24,8 @@ DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Alway
 
 PREFIXES_ROOT=$HOME/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
 
+ROOT=$PWD
+
 build() {
 mkdir -p BUILD
 mkdir -p BUILD/patches
@@ -109,10 +111,12 @@ mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/x32 ../BUILD/dxvk-$DXVK_BRANCH/win32
 mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/x64 ../BUILD/dxvk-$DXVK_BRANCH/win64
 mkdir -p ../BUILD/$DXVK_BRANCH/$GIT_HEAD
 mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/win32 ../BUILD/$DXVK_BRANCH/$GIT_HEAD/win32
+cp $ROOT/setup_dxvk32.sh ../BUILD/$DXVK_BRANCH/$GIT_HEAD/win32/setup_dxvk.sh
 mv -v -T ../BUILD/dxvk-$DXVK_BRANCH/win64 ../BUILD/$DXVK_BRANCH/$GIT_HEAD/win64
+cp $ROOT/setup_dxvk64.sh ../BUILD/$DXVK_BRANCH/$GIT_HEAD/win64/setup_dxvk.sh
 rm -R -f ../BUILD/dxvk-$DXVK_BRANCH
-echo "Your files were built in the ../BUILD/$DXVK_BRANCH/$GIT_HEAD directory"
-rm ../BUILD/$DXVK_BRANCH/last-HEAD
+echo "Your files were built in $ROOT/BUILD/$DXVK_BRANCH/$GIT_HEAD"
+rm -f ../BUILD/$DXVK_BRANCH/last-HEAD
 echo "CURRENT_HEAD=$GIT_HEAD" >> ../BUILD/$DXVK_BRANCH/last-HEAD
 fi
 
@@ -149,7 +153,7 @@ else
     echo "#################################"
 fi
 
-if [ -d "win32" ] && [ -d "win64" ]; then    
+if [ -d "win32" ] && [ -d "win64" ]; then
     WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $WINEARCH/setup_dxvk.sh
     
     if [ $WINEARCH = "win64" ]; then
@@ -174,7 +178,7 @@ fi
 }
 
 # External / Dynamic
-if [ ! -z $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ]; then
+if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ]; then
     if [ -d $1 ]; then
     WINEPREFIX="$1"
         if [ "$2" == "32" ]; then
@@ -207,7 +211,6 @@ fi
 
 # Batch
 if [ "$1" == "batch" ] && [ ! -z $PREFIXES_ROOT ]; then
-ROOT=$PWD
 for D in $PREFIXES_ROOT/*; do
     if [ -d "${D}" ]; then
     echo "${D}"
