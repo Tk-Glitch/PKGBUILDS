@@ -32,7 +32,7 @@ Also supports user patches for you to make even more exotic builds (more details
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
 
 
-# Quick how-to
+# Quick how-to :
 
 # Download the source :
 
@@ -43,7 +43,7 @@ svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/wine-tkg-git
 
 OR
 
-Clone the whole thing :
+Clone the whole thing (that enables you to use `git pull` to get updates) :
 ```
 git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
@@ -54,4 +54,6 @@ From the `wine-tkg-git` directory (where the PKGBUILD is located), run the follo
 ```
 makepkg -si
 ```
+
+See the bottom of the customization.cfg file for how to apply your own patches.
 
