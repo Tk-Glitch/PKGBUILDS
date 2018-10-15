@@ -1,6 +1,21 @@
 # PKGBUILDS and other scripts made for random people online
 
-To clone a single folder from this repo :
+# How-to
+
+Clone a single folder from this repo (you need to have the `subversion` package installed) :
 ```
 svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/folder_name
 ```
+
+Clone the whole thing :
+```
+git clone https://github.com/Tk-Glitch/PKGBUILDS.git
+```
+
+Build packages :
+
+From the directory of the package you want to build (where the PKGBUILD is located), run
+```
+makepkg -si
+```
+That will grab the required dependencies, build, then install the newly created package(s).
