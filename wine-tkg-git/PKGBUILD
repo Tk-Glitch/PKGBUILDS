@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r0.g30dca36a
-pkgrel=67
+pkgver=3.18.r3.gad4de045
+pkgrel=68
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -782,6 +782,9 @@ if [ $_NUKR == "true" ]; then
   # Sanitization
   rm -rf $srcdir/$_pbasrcdir
   rm -rf $srcdir/$_esyncsrcdir
+  rm -rf $srcdir/*.patch
+  rm -rf $srcdir/*.tgz
+  rm -rf $srcdir/*.conf
   msg2 'exit cleanup done'
 fi
 }
