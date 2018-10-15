@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r3.gad4de045
-pkgrel=68
+pkgver=3.18.r4.ga804fed0
+pkgrel=69
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -207,8 +207,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
 		'launch-with-dedicated-gpu-desktop-entry.patch'
-		'dxvk-winelib.patch'
-		'winevulkan_transform-feedback_ext.patch')
+		'dxvk-winelib.patch')
 
 if [[ $_INSTALL_TO_OPT != true ]]; then
   provides=(
@@ -537,11 +536,6 @@ prepare() {
 	  patch -Np1 < ../'fortnite.patch' && echo "Applied Fortnite crashfix" >> $_where/last_build_config.log
 	fi
 
-	# Alien tech
-	if [ $_transform_feedback_ext == "true" ]; then
-	  patch -Np1 < ../'winevulkan_transform-feedback_ext.patch' && echo "Applied $(echo "winevulkan transform feedback ext support" | sed -e 's/./&\xCC\xB8/g') Alien tech patch" >> $_where/last_build_config.log
-	fi
-
 	# apply wine-pba patches
 	if [ $_use_pba == "true" ]; then
 	  rm -rf "${srcdir}/${_pbasrcdir}"
@@ -772,8 +766,7 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          '78ea7fa80abd8beb6e2afac27deb938f'
-         'd328bfd0d363434fe5f83f3a614849f7'
-         'bccedecbf4ccb527552ba52a24315f71')
+         'd328bfd0d363434fe5f83f3a614849f7')
 
 function exit_cleanup {
   rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
