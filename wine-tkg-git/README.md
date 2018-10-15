@@ -34,26 +34,27 @@ Lutris esync (+staging +pba) builds are currently created using this pkgbuild - 
 
 # Quick how-to :
 
-# Download the source :
+## Download the source :
 
-Clone only this repo (you need to have the `subversion` package installed) :
+ * Clone only this repo (you need to have the `subversion` package installed) :
 ```
 svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/wine-tkg-git
 ```
 
 OR
 
-Clone the whole thing (that enables you to use `git pull` to get updates) :
+ * Clone the whole thing (that enables you to use `git pull` to get updates) :
 ```
 git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
+ 
 
-# Build  :
+## Build  :
 
 From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
 ```
 makepkg -si
 ```
-
+ 
 See the bottom of the customization.cfg file for how to apply your own patches.
 
