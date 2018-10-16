@@ -1,6 +1,8 @@
 # PKGBUILDS and other scripts made for random people & frogs
 
-<img width="60%" align="middle" src="https://user-images.githubusercontent.com/40970965/47018999-6c449400-d12c-11e8-9f3a-617d79587282.png">
+<p align="center">
+  <img src="https://cdn.discordapp.com/attachments/472158720399245323/501778941913202708/tkgfrogu.png">
+</p>
 
 ## How-to use that mess :
 
