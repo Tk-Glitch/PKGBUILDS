@@ -47,7 +47,7 @@ OR
 ```
 git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
- 
+
 
 ## Build  :
 
@@ -55,6 +55,5 @@ From the `wine-tkg-git` directory (where the PKGBUILD is located), run the follo
 ```
 makepkg -si
 ```
- 
-See the bottom of the customization.cfg file for how to apply your own patches.
 
+See the bottom of the customization.cfg file for how to apply your own patches.
