@@ -1,6 +1,6 @@
 # PKGBUILDS and other scripts made for random people & frogs
 
-![kassin's trolling](https://user-images.githubusercontent.com/40970965/47018999-6c449400-d12c-11e8-9f3a-617d79587282.png)
+<img width="60%" align="middle" src="https://user-images.githubusercontent.com/40970965/47018999-6c449400-d12c-11e8-9f3a-617d79587282.png">
 
 ## How-to use that mess :
 
