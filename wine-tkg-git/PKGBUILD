@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r4.ga804fed0
-pkgrel=69
+pkgver=3.18.r8.g8519a9ea
+pkgrel=70
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -37,39 +37,44 @@ else
   fi
 fi
 
-if [[ $_use_staging == "true" ]]; then
-  pkgname="${pkgname/%-git/-staging-git}"
-  msg2 "Using staging patchset"
-fi
+if [ -n "$_PKGNAME_OVERRIDE" ]; then
+  pkgname="${pkgname}-${_PKGNAME_OVERRIDE}"
+  msg2 "Overriding default pkgname. New pkgname: ${pkgname}"
+else
+  if [[ $_use_staging == "true" ]]; then
+    pkgname="${pkgname/%-git/-staging-git}"
+    msg2 "Using staging patchset"
+  fi
 
-if [[ $_use_esync == "true" ]]; then
-  pkgname="${pkgname/%-git/-esync-git}"
-  msg2 "Using esync (${_esync_version}) patchset"
-fi
+  if [[ $_use_esync == "true" ]]; then
+    pkgname="${pkgname/%-git/-esync-git}"
+    msg2 "Using esync (${_esync_version}) patchset"
+  fi
 
-if [[ $_use_pba == "true" ]]; then
-  pkgname="${pkgname/%-git/-pba-git}"
-  msg2 "Using pba patchset"
-fi
+  if [[ $_use_pba == "true" ]]; then
+    pkgname="${pkgname/%-git/-pba-git}"
+    msg2 "Using pba patchset"
+  fi
 
-if [[ $_use_gallium_nine == "true" ]]; then
-  pkgname="${pkgname/%-git/-nine-git}"
-  msg2 "Using gallium nine patchset"
-fi
+  if [[ $_use_gallium_nine == "true" ]]; then
+    pkgname="${pkgname/%-git/-nine-git}"
+    msg2 "Using gallium nine patchset"
+  fi
 
-if [[ $_use_vkd3d == "true" ]]; then
-  pkgname="${pkgname/%-git/-vkd3d-git}"
-  msg2 "Using VKD3D for d3d12 translation"
-fi
+  if [[ $_use_vkd3d == "true" ]]; then
+    pkgname="${pkgname/%-git/-vkd3d-git}"
+    msg2 "Using VKD3D for d3d12 translation"
+  fi
 
-if [[ $_use_dxvk == "true" ]]; then
-  pkgname="${pkgname/%-git/-dxvk-git}"
-  msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
-fi
+  if [[ $_use_dxvk == "true" ]]; then
+    pkgname="${pkgname/%-git/-dxvk-git}"
+    msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
+  fi
 
-if [[ $_OPTIMIZED == "true" ]]; then
-  pkgname="${pkgname/%-git/-optimized-git}"
-  msg2 "Using native processor optimizations"
+  if [[ $_OPTIMIZED == "true" ]]; then
+    pkgname="${pkgname/%-git/-optimized-git}"
+    msg2 "Using native processor optimizations"
+  fi
 fi
 
 if [[ $_INSTALL_TO_OPT == "true" ]]; then
