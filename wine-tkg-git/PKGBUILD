@@ -10,7 +10,12 @@ _esyncsrcdir='esync'
 _dxvksrcdir='dxvk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
-source $_where/customization.cfg # load configuration from file
+source $_where/customization.cfg # load default configuration from file
+
+# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+if [ -e ~/.config/frogminer/wine-tkg.cfg ]; then
+  source ~/.config/frogminer/wine-tkg.cfg && msg2 "External configuration file ~/.config/frogminer/wine-tkg.cfg will be used to override customization.cfg values." && msg2 ""
+fi
 
 if [ "$_NOINITIALPROMPT" == "true" ]; then
   msg2 'Initial prompt skipped. Do you remember what it said? 8)'
@@ -21,7 +26,17 @@ else
     msg2 '#################################################################'
     msg2 ''
     msg2 'You can configure your wine build flavour (right now for example)'
-    msg2 'by editing the customization.cfg file next to this PKGBUILD.'
+    if [ -e ~/.config/frogminer/wine-tkg.cfg ]; then
+      msg2 'by editing the ~/.config/frogminer/wine-tkg.cfg file.'
+      msg2 ''
+      msg2 'In case you are only using a partial config file, remaining'
+      msg2 'values will be loaded from the customization.cfg file next to'
+      msg2 'this PKGBUILD.'
+    else
+      msg2 'by editing the customization.cfg file next to this PKGBUILD,'
+      msg2 'or by creating ~/.config/frogminer/wine-tkg.cfg to override'
+      msg2 'some or all of its values.'
+    fi
     msg2 ''
     msg2 'Set _OPTIMIZED to "false" if you want to share the package !'
     msg2 ''
@@ -33,7 +48,11 @@ else
     msg2 '###################################TkG##########was##########here'
     read -p "When you are ready, press enter to continue."
 
-    source $_where/customization.cfg # load configuration from file again, in case of changes.
+    if [ -e ~/.config/frogminer/wine-tkg.cfg ]; then
+      source ~/.config/frogminer/wine-tkg.cfg && msg2 "External config loaded" # load external configuration from file again, in case of changes.
+    else
+      source $_where/customization.cfg # load configuration from file again, in case of changes.
+    fi
   fi
 fi
 
