@@ -9,7 +9,7 @@ _faudio_commit="#commit="
 _user_patches_no_confirm='false'
 
 pkgname=('faudio-tkg-git' 'lib32-faudio-tkg-git')
-pkgver=830.6204f35
+pkgver=832.b6be7c6
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _faudiosrcdir='faudio'
@@ -27,6 +27,7 @@ makedepends=('git' 'autoconf' 'ncurses' 'ladspa' 'yasm' 'schedtool'
 source=("$_faudiosrcdir"::"git+https://github.com/FNA-XNA/FAudio.git${_faudio_commit}"
         "git+https://git.ffmpeg.org/ffmpeg.git#tag=n4.0.2"
         "faudio-arch.patch"
+        "faudio_install"
 )
 
 makedepends=(${makedepends[@]} ${depends[@]})
@@ -105,9 +106,7 @@ prepare() {
       --cross-prefix=x86_64-w64-mingw32- \
       --disable-debug \
       --disable-static \
-      --enable-shared \
-      --disable-stripping \
-      --enable-avresample
+      --enable-shared
 
 	  make clean && schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
 
@@ -125,9 +124,7 @@ prepare() {
       --cross-prefix=i686-w64-mingw32- \
       --disable-debug \
       --disable-static \
-      --enable-shared \
-      --disable-stripping \
-      --enable-avresample
+      --enable-shared
 
 	  make clean && schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
 
@@ -164,6 +161,10 @@ build() {
 
 	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
 
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  cp -v "${srcdir}"/ffmpeg64tmp/bin/*.dll "${srcdir}"/faudio-tkg-git
+	fi
+
 	# 32
 	cd "${srcdir}"/"${_faudiosrcdir}"
 
@@ -176,6 +177,10 @@ build() {
 	cd cpp && make # C++/COM wrapper
 
 	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/lib32-faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  cp -v "${srcdir}"/ffmpeg32tmp/bin/*.dll "${srcdir}"/lib32-faudio-tkg-git
+	fi
 }
 
 package_faudio-tkg-git() {
@@ -190,7 +195,20 @@ package_faudio-tkg-git() {
 	# 64-bit
 	cp "${srcdir}/${_faudiosrcdir}/cpp/scripts/wine_setup_native" "${pkgdir}/usr/bin/setup_faudio64"
 	sed -i -e "s/dll_path=.*/dll_path=\"\/usr\/share\/$pkgname\"/g" "${pkgdir}/usr/bin/setup_faudio64"
+	sed -i -e "s/native/native,builtin/g" "${pkgdir}/usr/bin/setup_faudio64"
 
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  echo "ln -sf \"\$dll_path/avcodec-58.dll\" \"\$wine_path/avcodec-58.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	  echo "ln -sf \"\$dll_path/avdevice-58.dll\" \"\$wine_path/avdevice-58.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	  echo "ln -sf \"\$dll_path/avfilter-7.dll\" \"\$wine_path/avfilter-7.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	  echo "ln -sf \"\$dll_path/avformat-58.dll\" \"\$wine_path/avformat-58.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	  echo "ln -sf \"\$dll_path/avutil-56.dll\" \"\$wine_path/avutil-56.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	  echo "ln -sf \"\$dll_path/swresample-3.dll\" \"\$wine_path/swresample-3.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	  echo "ln -sf \"\$dll_path/swscale-5.dll\" \"\$wine_path/swscale-5.dll\"" >> "${pkgdir}/usr/bin/setup_faudio64"
+	fi
+
+	cp -v $_where/faudio_install "${pkgdir}/usr/bin/faudio_install"
+	chmod +x "${pkgdir}/usr/bin/faudio_install"
 	chmod +x "${pkgdir}/usr/bin/setup_faudio64"
 
 	install -dm755 "${pkgdir}/usr/share/licenses/${pkgname}"
@@ -209,6 +227,17 @@ package_lib32-faudio-tkg-git() {
 	# 32-bit
 	cp "${srcdir}/${_faudiosrcdir}/cpp/scripts/wine_setup_native" "${pkgdir}/usr/bin/setup_faudio32"
 	sed -i -e "s/dll_path=.*/dll_path=\"\/usr\/share\/$pkgname\"/g" "${pkgdir}/usr/bin/setup_faudio32"
+	sed -i -e "s/native/native,builtin/g" "${pkgdir}/usr/bin/setup_faudio32"
+
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  echo "ln -sf \"\$dll_path/avcodec-58.dll\" \"\$wine_path/avcodec-58.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	  echo "ln -sf \"\$dll_path/avdevice-58.dll\" \"\$wine_path/avdevice-58.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	  echo "ln -sf \"\$dll_path/avfilter-7.dll\" \"\$wine_path/avfilter-7.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	  echo "ln -sf \"\$dll_path/avformat-58.dll\" \"\$wine_path/avformat-58.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	  echo "ln -sf \"\$dll_path/avutil-56.dll\" \"\$wine_path/avutil-56.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	  echo "ln -sf \"\$dll_path/swresample-3.dll\" \"\$wine_path/swresample-3.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	  echo "ln -sf \"\$dll_path/swscale-5.dll\" \"\$wine_path/swscale-5.dll\"" >> "${pkgdir}/usr/bin/setup_faudio32"
+	fi
 
 	# 32-bit on 64-bit
 	cp "${pkgdir}/usr/bin/setup_faudio32" "${pkgdir}/usr/bin/setup_faudio3264"
@@ -222,7 +251,8 @@ package_lib32-faudio-tkg-git() {
 }
 md5sums=('SKIP'
          'SKIP'
-         '4dc7ddf58028da1f4e7d86d6c8874ea7')
+         '4dc7ddf58028da1f4e7d86d6c8874ea7'
+         'd60c8079de1d730c90d2d768a9134cb7')
 
 function exit_cleanup {
   # Sanitization
