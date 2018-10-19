@@ -10,11 +10,11 @@ You can also revert faudio patches by putting them in the same folder as the PKG
 ## Installation :
 
 For a 64-bit prefix :
-* run `WINEPREFIX="/path/to/your/target/wine/prefix" setup_faudio64` to install 64-bit dlls overrides to system32
+* run `WINEPREFIX="/path/to/your/target/wine/prefix" setup_faudio64 && ln -sf /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll $WINEPREFIX/drive_c/windows/system32/libwinpthread-1.dll` to install 64-bit dlls overrides to system32
 
-* run `WINEPREFIX="/path/to/your/target/wine/prefix" setup_faudio3264` to install 32-bit dlls overrides to sysWOW64
+* run `WINEPREFIX="/path/to/your/target/wine/prefix" setup_faudio3264 && ln -sf /usr/i686-w64-mingw32/bin/libwinpthread-1.dll $WINEPREFIX/drive_c/windows/syswow64/libwinpthread-1.dll` to install 32-bit dlls overrides to sysWOW64
 
 For a 32-bit prefix :
-* run `WINEPREFIX="/path/to/your/target/wine/prefix" setup_faudio32` to install 32-bit dlls overrides to system32
+* run `WINEPREFIX="/path/to/your/target/wine/prefix" setup_faudio32 && ln -sf /usr/i686-w64-mingw32/bin/libwinpthread-1.dll $WINEPREFIX/drive_c/windows/system32/libwinpthread-1.dll` to install 32-bit dlls overrides to system32
 
 Note : The file not found error is harmless and may be fixed upstream at some point. Or maybe I'll patch it.
