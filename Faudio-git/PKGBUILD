@@ -1,27 +1,31 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
+# Cross compile FFMPEG for WMA support - https://github.com/FNA-XNA/FAudio/pull/46
+_FFMPEG_CROSS=false
+
+# custom faudio commit to pass to git
+_faudio_commit="#commit="
+# skip user patches prompt
+_user_patches_no_confirm='false'
+
 pkgname=('faudio-tkg-git' 'lib32-faudio-tkg-git')
 pkgver=830.6204f35
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
-
 _faudiosrcdir='faudio'
-_user_patches_no_confirm='false'
-
-# custom faudio commit to pass to git
-_faudio_commit="#commit="
-
+_ffmpegsrcdir='ffmpeg'
 pkgdesc='This is FAudio, an XAudio reimplementation that focuses solely on developing fully accurate DirectX Audio runtime libraries for the FNA project, including XAudio2, X3DAudio, XAPO, and XACT3.'
 url='https://github.com/FNA-XNA/FAudio'
 arch=('x86_64')
 license=('ZLIB')
-depends=()
-makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
+depends=('alsa-lib' 'fontconfig' 'libpulse' 'bzip2')
+makedepends=('git' 'autoconf' 'ncurses' 'ladspa' 'yasm'
     'gcc>=4.5.0-2'      'wine'
     'mingw-w64-gcc'     'mingw-w64-sdl2'
 )
 
 source=("$_faudiosrcdir"::"git+https://github.com/FNA-XNA/FAudio.git${_faudio_commit}"
+        "git+https://git.ffmpeg.org/ffmpeg.git#tag=n4.0.2"
         "faudio-arch.patch"
 )
 
@@ -76,7 +80,60 @@ pkgver() {
 }
 
 prepare() {
+	# Cleanup
 	rm -fv $_where/last_build_config.log
+	rm -rf $srcdir/faudio-tkg-git
+	rm -rf $srcdir/lib32-faudio-tkg-git
+
+	# flags overriders on the storm
+	export CFLAGS="-O2"
+	export CXXFLAGS="-O2"
+	export LDFLAGS="-O2"
+
+	# Cross compile FFMPEG
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  # Enable Faudio FFMPEG for WMA support - https://github.com/FNA-XNA/FAudio/pull/46
+	  export FAUDIO_FFMPEG=1
+
+	  # 64-bit
+	  cd ${_ffmpegsrcdir}
+	  msg2 "Halp! I'm stuck!!! Nah, just kidding. Wait.. Am I? Huh. No we should be fine. I guess.. Yeah, everything is good good good. Right?"
+	  ./configure \
+      --prefix="ffmpeg64tmp" \
+      --arch=x86 \
+      --target-os=mingw32 \
+      --cross-prefix=x86_64-w64-mingw32- \
+      --disable-debug \
+      --disable-static \
+      --enable-shared \
+      --disable-stripping \
+      --enable-avresample
+
+	  make clean && schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+
+	  cd $srcdir
+	  make DESTDIR=../ -C ffmpeg install
+
+	  # 32-bit
+	  cd ${_ffmpegsrcdir}
+	  msg2 "I could have made a separate package for the cross-built ffmpeg, true. But where would be the fun in that? Aren't you kinda glad I'm talking to you right now?"
+	  msg2 "Halp! I'm stuck!!! Nah, just kidding. Wait.. Am I? Huh. No we should be fine. I guess.. Yeah, everything is good good good. Right? Last time it was fine, RIGHT?"
+	  ./configure \
+      --prefix="ffmpeg32tmp" \
+      --arch=x86 \
+      --target-os=mingw32 \
+      --cross-prefix=i686-w64-mingw32- \
+      --disable-debug \
+      --disable-static \
+      --enable-shared \
+      --disable-stripping \
+      --enable-avresample
+
+	  make clean && schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+
+	  cd $srcdir
+	  make DESTDIR=../ -C ffmpeg install
+	fi
 
 	cd "${srcdir}/${_faudiosrcdir}"
 
@@ -85,9 +142,7 @@ prepare() {
 	  _userpatch_ext="myfaudio"
 	  user_patcher
 
-	# create new build dirs / delete previous ones
-	rm -rf $srcdir/faudio-tkg-git
-	rm -rf $srcdir/lib32-faudio-tkg-git
+	# create new build dirs
 	mkdir -p $srcdir/faudio-tkg-git
 	mkdir -p $srcdir/lib32-faudio-tkg-git
 }
@@ -98,11 +153,10 @@ build() {
 	# arch mingw path
 	patch -Np1 < ../'faudio-arch.patch'
 
-	export CFLAGS="-march=native -O2"
-	export CXXFLAGS="-march=native -O2"
-	export LDFLAGS="-O2"
-
 	# 64
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  export FAUDIO_FFMPEG_PREFIX=$srcdir/ffmpeg64tmp
+	fi
 	source cpp/scripts/cross_compile_64
 
 	make clean && make all # FAudio
@@ -112,6 +166,10 @@ build() {
 
 	# 32
 	cd "${srcdir}"/"${_faudiosrcdir}"
+
+	if [ $_FFMPEG_CROSS == "true" ]; then
+	  export FAUDIO_FFMPEG_PREFIX=$srcdir/ffmpeg32tmp
+	fi
 	source cpp/scripts/cross_compile_32
 
 	make clean && make all # FAudio
@@ -163,6 +221,7 @@ package_lib32-faudio-tkg-git() {
 	install -m644 "${srcdir}/${_faudiosrcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 md5sums=('SKIP'
+         'SKIP'
          '4dc7ddf58028da1f4e7d86d6c8874ea7')
 
 function exit_cleanup {
