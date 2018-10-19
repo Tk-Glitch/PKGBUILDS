@@ -19,7 +19,7 @@ url='https://github.com/FNA-XNA/FAudio'
 arch=('x86_64')
 license=('ZLIB')
 depends=('alsa-lib' 'fontconfig' 'libpulse' 'bzip2')
-makedepends=('git' 'autoconf' 'ncurses' 'ladspa' 'yasm'
+makedepends=('git' 'autoconf' 'ncurses' 'ladspa' 'yasm' 'schedtool'
     'gcc>=4.5.0-2'      'wine'
     'mingw-w64-gcc'     'mingw-w64-sdl2'
 )
