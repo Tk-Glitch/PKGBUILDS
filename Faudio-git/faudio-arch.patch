@@ -1,0 +1,48 @@
+From 601289d6df9540071ddf822ec747c2dd00b43690 Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Fri, 19 Oct 2018 01:39:17 +0200
+Subject: Faudio: Archlinux mingw doesn't need $MINGWROOT
+
+
+diff --git a/cpp/scripts/cross_compile_32 b/cpp/scripts/cross_compile_32
+index 4dcc8d3..9c0000c 100755
+--- a/cpp/scripts/cross_compile_32
++++ b/cpp/scripts/cross_compile_32
+@@ -4,14 +4,13 @@
+ SDL_CROSS_PATH=/usr
+ 
+ MINGW=i686-w64-mingw32
+-MINGWROOT=sys-root/mingw
+ 
+-if [ ! -f $SDL_CROSS_PATH/$MINGW/$MINGWROOT/bin/sdl2-config ]; then
++if [ ! -f $SDL_CROSS_PATH/$MINGW/bin/sdl2-config ]; then
+ 	echo "Please check your mingw32 SDL installation"
+ 	return -1
+ fi
+ 
+-export PATH=$SDL_CROSS_PATH/$MINGW/$MINGWROOT/bin:$PATH
++export PATH=$SDL_CROSS_PATH/$MINGW/bin:$PATH
+ export CC=${MINGW}-gcc
+ export CXX=${MINGW}-g++
+ export AR=${MINGW}-ar
+diff --git a/cpp/scripts/cross_compile_64 b/cpp/scripts/cross_compile_64
+index 31ac6b5..982055c 100755
+--- a/cpp/scripts/cross_compile_64
++++ b/cpp/scripts/cross_compile_64
+@@ -4,14 +4,13 @@
+ SDL_CROSS_PATH=/usr
+ 
+ MINGW=x86_64-w64-mingw32
+-MINGWROOT=sys-root/mingw
+ 
+-if [ ! -f $SDL_CROSS_PATH/$MINGW/$MINGWROOT/bin/sdl2-config ]; then
++if [ ! -f $SDL_CROSS_PATH/$MINGW/bin/sdl2-config ]; then
+ 	echo "Please check your mingw32 SDL installation"
+ 	return -1
+ fi
+ 
+-export PATH=$SDL_CROSS_PATH/$MINGW/$MINGWROOT/bin:$PATH
++export PATH=$SDL_CROSS_PATH/$MINGW/bin:$PATH
+ export CC=${MINGW}-gcc
+ export CXX=${MINGW}-g++
+ export AR=${MINGW}-ar

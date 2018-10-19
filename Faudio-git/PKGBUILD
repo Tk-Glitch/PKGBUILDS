@@ -1,0 +1,175 @@
+# Created by: Tk-Glitch <ti3nou at gmail dot com>
+
+pkgname=('faudio-tkg-git' 'lib32-faudio-tkg-git')
+pkgver=830.6204f35
+pkgrel=1
+_where=$PWD # track basedir as different Arch based distros are moving srcdir around
+
+_faudiosrcdir='faudio'
+_user_patches_no_confirm='false'
+
+# custom faudio commit to pass to git
+_faudio_commit="#commit="
+
+pkgdesc='This is FAudio, an XAudio reimplementation that focuses solely on developing fully accurate DirectX Audio runtime libraries for the FNA project, including XAudio2, X3DAudio, XAPO, and XACT3.'
+url='https://github.com/FNA-XNA/FAudio'
+arch=('x86_64')
+license=('LGPL')
+depends=()
+makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
+    'gcc>=4.5.0-2'      'wine'
+    'mingw-w64-gcc'     'mingw-w64-sdl2'
+)
+
+source=("$_faudiosrcdir"::"git+https://github.com/FNA-XNA/FAudio.git${_faudio_commit}"
+        "faudio-arch.patch"
+)
+
+makedepends=(${makedepends[@]} ${depends[@]})
+
+user_patcher() {
+	# To patch the user because all your base are belong to us
+	if [[ $(find $_where -name "*.${_userpatch_ext}patch") ]]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
+	  read -p "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  fi
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
+	    for _f in $_where/*.${_userpatch_ext}patch; do
+	    if [ -e "${_f}" ]; then
+	      msg2 "######################################################"
+	      msg2 ""
+	      msg2 "Applying your own ${_userpatch_target} patch ${_f}"
+	      msg2 ""
+	      msg2 "######################################################"
+	      patch -Np1 < ${_f} && echo "Applied your own patch ${_f}" >> $_where/last_build_config.log
+	    fi
+	    done
+	  fi
+	fi
+	if [[ $(find $_where -name "*.${_userpatch_ext}revert") ]]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
+	  read -p "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  fi
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
+	    for _f in $_where/*.${_userpatch_ext}revert; do
+	    if [ -e "${_f}" ]; then
+	      msg2 "######################################################"
+	      msg2 ""
+	      msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
+	      msg2 ""
+	      msg2 "######################################################"
+	      patch -Np1 -R < ${_f} && echo "Reverted your own patch ${_f}" >> $_where/last_build_config.log
+	    fi
+	    done
+	  fi
+	fi
+}
+
+pkgver() {
+
+	# retrieve current version
+	cd "${srcdir}/${_faudiosrcdir}"
+	local _faudioVer="$(git rev-list --count HEAD)"."$(git rev-parse --short HEAD)"
+
+	# version string
+	printf '%s' "${_faudioVer}"
+}
+
+prepare() {
+	rm -fv $_where/last_build_config.log
+
+	cd "${srcdir}/${_faudiosrcdir}"
+
+	# faudio user patches
+	  _userpatch_target="faudio"
+	  _userpatch_ext="myfaudio"
+	  user_patcher
+
+	# create new build dirs / delete previous ones
+	rm -rf $srcdir/faudio-tkg-git
+	rm -rf $srcdir/lib32-faudio-tkg-git
+	mkdir -p $srcdir/faudio-tkg-git
+	mkdir -p $srcdir/lib32-faudio-tkg-git
+}
+
+build() {
+	cd "${srcdir}"/"${_faudiosrcdir}"
+
+	# arch mingw path
+	patch -Np1 < ../'faudio-arch.patch'
+
+	export CFLAGS="-march=native -O2"
+	export CXXFLAGS="-march=native -O2"
+	export LDFLAGS="-O2"
+
+	# 64
+	source cpp/scripts/cross_compile_64
+
+	make clean && make all # FAudio
+	cd cpp && make # C++/COM wrapper
+
+	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+
+	# 32
+	cd "${srcdir}"/"${_faudiosrcdir}"
+	source cpp/scripts/cross_compile_32
+
+	make clean && make all # FAudio
+	cd cpp && make # C++/COM wrapper
+
+	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/lib32-faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+}
+
+package_faudio-tkg-git() {
+  provides=("faudio-tkg=$pkgver")
+
+	msg2 'Packaging faudio 64...'
+	mkdir -p "${pkgdir}/usr/share"
+	cp -R "${srcdir}/${pkgname}" "${pkgdir}/usr/share"
+
+	mkdir -p "${pkgdir}/usr/bin"
+
+	# 64-bit
+	cp "${srcdir}/${_faudiosrcdir}/cpp/scripts/wine_setup_native" "${pkgdir}/usr/bin/setup_faudio64"
+	sed -i -e "s/dll_path=.*/dll_path=\"\/usr\/share\/$pkgname\"/g" "${pkgdir}/usr/bin/setup_faudio64"
+
+	chmod +x "${pkgdir}/usr/bin/setup_faudio64"
+
+	install -dm755 "${pkgdir}/usr/share/licenses/${pkgname}"
+	install -m644 "${srcdir}/${_faudiosrcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}"/
+}
+
+package_lib32-faudio-tkg-git() {
+  provides=("faudio-tkg=$pkgver")
+
+	msg2 'Packaging faudio 32...'
+	mkdir -p "${pkgdir}/usr/share"
+	cp -R "${srcdir}/${pkgname}" "${pkgdir}/usr/share"
+
+	mkdir -p "${pkgdir}/usr/bin"
+
+	# 32-bit
+	cp "${srcdir}/${_faudiosrcdir}/cpp/scripts/wine_setup_native" "${pkgdir}/usr/bin/setup_faudio32"
+	sed -i -e "s/dll_path=.*/dll_path=\"\/usr\/share\/$pkgname\"/g" "${pkgdir}/usr/bin/setup_faudio32"
+
+	# 32-bit on 64-bit
+	cp "${pkgdir}/usr/bin/setup_faudio32" "${pkgdir}/usr/bin/setup_faudio3264"
+	sed -i -e "s/system32/syswow64/g" "${pkgdir}/usr/bin/setup_faudio3264"
+
+	chmod +x "${pkgdir}/usr/bin/setup_faudio32"
+	chmod +x "${pkgdir}/usr/bin/setup_faudio3264"
+
+	install -dm755 "${pkgdir}/usr/share/licenses/${pkgname}"
+	install -m644 "${srcdir}/${_faudiosrcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+md5sums=('SKIP'
+         '4dc7ddf58028da1f4e7d86d6c8874ea7')
+
+function exit_cleanup {
+  # Sanitization
+  rm -rf $srcdir/$_faudiosrcdir
+  rm -rf $srcdir/*.patch
+  msg2 'exit cleanup done'
+}
+
+trap exit_cleanup EXIT
