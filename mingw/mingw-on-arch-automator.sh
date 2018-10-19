@@ -95,4 +95,10 @@ fi
 makepkg -si --noconfirm
 cd $_where
 
+# mingw-w64-sdl2
+git clone https://aur.archlinux.org/mingw-w64-sdl2.git
+cd mingw-w64-sdl2
+makepkg -si --noconfirm
+cd $_where
+
 echo "Done"
