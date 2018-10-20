@@ -25,9 +25,9 @@ _basever=418
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.18
-_sub=15
+_sub=16
 pkgver=${_basekernel}.${_sub}
-pkgrel=30
+pkgrel=31
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -62,7 +62,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-tr_gpu_passthrough_bus.patch
 )
 sha256sums=('19d8bcf49ef530cd4e364a45b4a22fa70714b70349c8100e7308488e26f1eaf1'
-            'b94445d2d8919adc01f840088b6a70b26a10dd1beb38c3b0217408e14a7e341d'
+            '01b3e00f733f60e1aa30db2f007aac6abbb7ac28d15ac951ee2a95279ee498fe'
             'SKIP'
             'e74f42259f4b5675c5b367cd2927d462a7874ea1fdacf3b0532580ea106547d3'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
