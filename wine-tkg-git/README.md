@@ -31,6 +31,8 @@ Also supports user patches for you to make even more exotic builds (more details
 
 Lutris esync (+staging +pba) builds are currently created using this pkgbuild - https://github.com/lutris/wine
 
+Some daily builds are available on http://lonewolf-builder.duckdns.org/chaotic-aur as pacman packages.
+
 
 # Quick how-to :
 
