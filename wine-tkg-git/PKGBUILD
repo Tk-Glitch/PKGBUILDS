@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r8.g8519a9ea
+pkgver=3.18.r10.g616bf112
 pkgrel=70
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -97,6 +97,7 @@ else
 fi
 
 if [[ $_INSTALL_TO_OPT == "true" ]]; then
+  pkgname="${pkgname/%-git/-opt-git}"
   msg2 "Installing to /opt/$pkgname"
 fi
 
