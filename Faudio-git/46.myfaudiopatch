@@ -1,7 +1,7 @@
 From 41cf4093fa3819c9f1af2cb5c81d412176d2b725 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Tue, 14 Aug 2018 10:38:03 -0500
-Subject: [PATCH 01/16] ffmpeg
+Subject: [PATCH 01/17] ffmpeg
 
 ---
  src/FAudio.c          | 62 +++++++++++++++++++++++++++++++++++++
@@ -177,7 +177,7 @@ index a2155bb..a2a9b21 100644
 From f25936201b9b5781ceb82c5339a52fc7c27ac786 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Thu, 11 Oct 2018 22:00:16 +0200
-Subject: [PATCH 02/16] Move Andrew's work to a separate file and get it to
+Subject: [PATCH 02/17] Move Andrew's work to a separate file and get it to
  compile.
 
 ---
@@ -586,7 +586,7 @@ index a2a9b21..04ce1f6 100644
 From 001d145148a64409039e1a34a4e58e808f0dbe5f Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Fri, 12 Oct 2018 18:25:37 +0200
-Subject: [PATCH 03/16] Planar float format's are also okay
+Subject: [PATCH 03/17] Planar float format's are also okay
 
 ---
  src/FAudio_ffmpeg.c | 2 +-
@@ -609,7 +609,7 @@ index 458ec78..50cc3ab 100644
 From 8091f87a51f6fd6f5d20f624848b7d7dbf98dd38 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Fri, 12 Oct 2018 18:26:35 +0200
-Subject: [PATCH 04/16] Buffer the WMA packet decoded by FFmpeg and give it to
+Subject: [PATCH 04/17] Buffer the WMA packet decoded by FFmpeg and give it to
  FAudio piece by piece
 
 ---
@@ -746,7 +746,7 @@ index 04ce1f6..6e15044 100644
 From 11e7a45b11a4c54acb1c6a68318c2884055267cd Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Fri, 12 Oct 2018 22:58:19 +0200
-Subject: [PATCH 05/16] SubmitSourceBuffer: require pBufferWMA for WMA
+Subject: [PATCH 05/17] SubmitSourceBuffer: require pBufferWMA for WMA
  formatted voices
 
 ---
@@ -771,7 +771,7 @@ index a3482e2..751cbbc 100644
 From f54273e6cd8e584dae018a4b24432f9a5bdee253 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Sun, 14 Oct 2018 21:17:06 +0200
-Subject: [PATCH 06/16]  WAVEFORMATEXTENSIBLE is used by games to create
+Subject: [PATCH 06/17]  WAVEFORMATEXTENSIBLE is used by games to create
  WMAUDIO2 voices
 
 ---
@@ -892,7 +892,7 @@ index 0dd7b2a..5601ba6 100644
 From a42a9e3bd2c9a010439fe45015f09bec26408543 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Mon, 15 Oct 2018 22:25:26 +0200
-Subject: [PATCH 07/16] Move FFmpeg variables from FAudioVoice to private
+Subject: [PATCH 07/17] Move FFmpeg variables from FAudioVoice to private
  struct
 
 ---
@@ -1206,7 +1206,7 @@ index 6e15044..e82efac 100644
 From eea5975fab61098d94eac26edb541eab4713f59a Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Mon, 15 Oct 2018 22:35:22 +0200
-Subject: [PATCH 08/16] Don't use voice->src.curBufferOffset to store position
+Subject: [PATCH 08/17] Don't use voice->src.curBufferOffset to store position
  in encoded stream.
 
 ---
@@ -1285,7 +1285,7 @@ index 42d2d07..cc6b892 100644
 From 962e460e28659065eced30c3a2298a9326b7df35 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Mon, 15 Oct 2018 22:41:51 +0200
-Subject: [PATCH 09/16] Free FFmpeg resources when destroying a SourceVoice
+Subject: [PATCH 09/17] Free FFmpeg resources when destroying a SourceVoice
 
 ---
  src/FAudio.c          |  6 ++++++
@@ -1352,7 +1352,7 @@ index e82efac..ce9eaa0 100644
 From 9e84e289d4df03b671a993b6959d34555f6df110 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Mon, 15 Oct 2018 22:54:29 +0200
-Subject: [PATCH 10/16] Save pBufferWMA, if supplied, so it can be usec by the
+Subject: [PATCH 10/17] Save pBufferWMA, if supplied, so it can be usec by the
  decoder.
 
 ---
@@ -1395,7 +1395,7 @@ index ce9eaa0..7561ff6 100644
 From 1d79237017dfb0a8318058dff9c56b9e253fa5dc Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Mon, 15 Oct 2018 23:29:49 +0200
-Subject: [PATCH 11/16] Support for PlayBegin/PlayLength
+Subject: [PATCH 11/17] Support for PlayBegin/PlayLength
 
 ---
  src/FAudio.c        |  7 +++++++
@@ -1479,7 +1479,7 @@ index d7f64cb..dd55501 100644
 From fe330ba8db2e4b58d23ca9c3341a628509b0a0ae Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Fri, 12 Oct 2018 18:25:11 +0200
-Subject: [PATCH 12/16] Test utility to play xWMA files with FAudio
+Subject: [PATCH 12/17] Test utility to play xWMA files with FAudio
 
 ---
  Makefile                    |  12 +-
@@ -1788,7 +1788,7 @@ index 0000000..16633b4
 From f3bdc84d41e7a55a67fbb455f7de735db5d4baa3 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Wed, 17 Oct 2018 23:22:48 +0200
-Subject: [PATCH 13/16] Refactoring and cleanup ffmpeg support
+Subject: [PATCH 13/17] Refactoring and cleanup ffmpeg support
 
 ---
  src/FAudio.c        |  4 +++-
@@ -1954,7 +1954,7 @@ index 45252e0..fa61890 100644
 From da6b37e482281777bf71575d979a8320c77d1ec9 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Thu, 18 Oct 2018 21:36:00 +0200
-Subject: [PATCH 14/16] Copy ffmpeg dlls when cross compiling
+Subject: [PATCH 14/17] Copy ffmpeg dlls when cross compiling
 
 ---
  cpp/Makefile | 4 ++++
@@ -1979,7 +1979,7 @@ index 25857cf..a32d762 100644
 From 3542c6912b406b541bfa120b5ba1002612c29b37 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Thu, 18 Oct 2018 21:36:29 +0200
-Subject: [PATCH 15/16] Fix empty translation unit warning when compiling utils
+Subject: [PATCH 15/17] Fix empty translation unit warning when compiling utils
 
 ---
  src/FAudio_ffmpeg.c | 4 ++++
@@ -2003,7 +2003,7 @@ index fa61890..c62209b 100644
 From a46b76325a693eaed517111630f63d89f210bc88 Mon Sep 17 00:00:00 2001
 From: Johan Smet <johan.smet@justcode.be>
 Date: Thu, 18 Oct 2018 21:48:10 +0200
-Subject: [PATCH 16/16] Add small README to explain FFmpeg support
+Subject: [PATCH 16/17] Add small README to explain FFmpeg support
 
 ---
  README.ffmpeg | 23 +++++++++++++++++++++++
@@ -2040,3 +2040,334 @@ index 0000000..3a4d28c
 +- add avutil.lib and avcodec.lib to the linker input
 +- add faudio_ffmpeg.c to the sources of the project 
 \ No newline at end of file
+
+From 8864fcae768b323704e1d81439e91500437a3120 Mon Sep 17 00:00:00 2001
+From: Johan Smet <johan.smet@justcode.be>
+Date: Fri, 19 Oct 2018 22:02:50 +0200
+Subject: [PATCH 17/17] Style fixes after code review
+
+---
+ src/FAudio_ffmpeg.c         | 66 ++++++++++++++++++-------------------
+ src/FAudio_internal.c       |  1 -
+ utils/testxwma/testxwma.cpp | 58 ++++++++++++++++----------------
+ 3 files changed, 62 insertions(+), 63 deletions(-)
+
+diff --git a/src/FAudio_ffmpeg.c b/src/FAudio_ffmpeg.c
+index c62209b..a44ae6c 100644
+--- a/src/FAudio_ffmpeg.c
++++ b/src/FAudio_ffmpeg.c
+@@ -30,8 +30,8 @@ typedef struct FAudioFFmpeg
+ 
+ uint32_t FAudio_FFMPEG_init(FAudioSourceVoice *pSourceVoice)
+ {
+-    AVCodecContext *av_ctx;
+-    AVFrame *av_frame;
++	AVCodecContext *av_ctx;
++	AVFrame *av_frame;
+ 	AVCodec *codec;
+ 
+ 	pSourceVoice->src.decode = FAudio_INTERNAL_DecodeFFMPEG;
+@@ -39,17 +39,17 @@ uint32_t FAudio_FFMPEG_init(FAudioSourceVoice *pSourceVoice)
+ 	/* initialize ffmpeg state */
+ 	codec = avcodec_find_decoder(AV_CODEC_ID_WMAV2);
+ 	if (!codec)
+-    {
++	{
+ 		FAudio_assert(0 && "WMAv2 codec not supported!");
+-	    return FAUDIO_E_UNSUPPORTED_FORMAT;
++		return FAUDIO_E_UNSUPPORTED_FORMAT;
+ 	}
+ 
+ 	av_ctx = avcodec_alloc_context3(codec);
+ 	if(!av_ctx)
+-    {
++	{
+ 		FAudio_assert(0 && "WMAv2 codec not supported!");
+-        return FAUDIO_E_UNSUPPORTED_FORMAT;
+-    }
++		return FAUDIO_E_UNSUPPORTED_FORMAT;
++	}
+ 
+ 	av_ctx->bit_rate = pSourceVoice->src.format->nAvgBytesPerSec * 8;
+ 	av_ctx->channels = pSourceVoice->src.format->nChannels;
+@@ -61,28 +61,28 @@ uint32_t FAudio_FFMPEG_init(FAudioSourceVoice *pSourceVoice)
+ 
+ 	/* pSourceVoice->src.format is actually pointing to a WAVEFORMATEXTENSIBLE struct, not just a WAVEFORMATEX struct.
+ 	   That means there's always at least 22 bytes following the struct, I assume the WMA data is behind that.
+-	   XXX-JS Need to verify! */
++	   Need to verify but haven't come across any samples data with cbSize > 22 -@JohanSmet! */
+ 	if (pSourceVoice->src.format->cbSize > 22)
+-    {
++	{
+ 		av_ctx->extradata = (uint8_t *) FAudio_malloc(pSourceVoice->src.format->cbSize + AV_INPUT_BUFFER_PADDING_SIZE - 22);
+ 		FAudio_memcpy(av_ctx->extradata, (&pSourceVoice->src.format->cbSize) + 23, pSourceVoice->src.format->cbSize - 22);
+ 	}
+-    else
+-    {
++	else
++	{
+ 		/* xWMA doesn't provide the extradata info that FFmpeg needs to
+ 		 * decode WMA data, so we create some fake extradata. This is taken
+ 		 * from <ffmpeg/libavformat/xwma.c>. */
+ 		av_ctx->extradata_size = 6;
+ 		av_ctx->extradata = (uint8_t *) FAudio_malloc(AV_INPUT_BUFFER_PADDING_SIZE);
+-        FAudio_zero(av_ctx->extradata, AV_INPUT_BUFFER_PADDING_SIZE);
++		FAudio_zero(av_ctx->extradata, AV_INPUT_BUFFER_PADDING_SIZE);
+ 		av_ctx->extradata[4] = 31;
+ 	}
+ 
+ 	if (avcodec_open2(av_ctx, codec, NULL) < 0)
+-    {
++	{
+ 		FAudio_free(av_ctx->extradata);
+ 		av_free(av_ctx);
+-        return FAUDIO_E_UNSUPPORTED_FORMAT;
++		return FAUDIO_E_UNSUPPORTED_FORMAT;
+ 	}
+ 
+ 	av_frame = av_frame_alloc();
+@@ -90,11 +90,11 @@ uint32_t FAudio_FFMPEG_init(FAudioSourceVoice *pSourceVoice)
+ 		avcodec_close(av_ctx);
+ 		FAudio_free(av_ctx->extradata);
+ 		av_free(av_ctx);
+-        return FAUDIO_E_UNSUPPORTED_FORMAT;
++		return FAUDIO_E_UNSUPPORTED_FORMAT;
+ 	}
+ 
+ 	if(av_ctx->sample_fmt != AV_SAMPLE_FMT_FLT && av_ctx->sample_fmt != AV_SAMPLE_FMT_FLTP)
+-    {
++	{
+ 		FAudio_assert(0 && "Got non-float format!!!");
+ 	}
+ 
+@@ -102,8 +102,8 @@ uint32_t FAudio_FFMPEG_init(FAudioSourceVoice *pSourceVoice)
+ 	FAudio_zero(pSourceVoice->src.ffmpeg, sizeof(FAudioFFmpeg));
+ 
+ 	pSourceVoice->src.ffmpeg->av_ctx = av_ctx;
+-    pSourceVoice->src.ffmpeg->av_frame = av_frame;
+-    return 0;
++	pSourceVoice->src.ffmpeg->av_frame = av_frame;
++	return 0;
+ }
+ 
+ void FAudio_FFMPEG_free(FAudioSourceVoice *voice)
+@@ -144,18 +144,18 @@ void FAudio_INTERNAL_FillConvertCache(FAudioVoice *voice, FAudioBuffer *buffer)
+ 	{
+ 		averr = avcodec_receive_frame(ffmpeg->av_ctx, ffmpeg->av_frame);
+ 		if (averr == AVERROR(EAGAIN))
+-        {
++		{
+ 			/* ffmpeg needs more data to decode */
+ 			avpkt.pts = avpkt.dts = AV_NOPTS_VALUE;
+ 
+-            if (ffmpeg->encOffset >= buffer->AudioBytes)
+-            {
++			if (ffmpeg->encOffset >= buffer->AudioBytes)
++			{
+ 				/* no more data in this buffer */
+ 				break;
+-            }
++			}
+ 
+ 			if (ffmpeg->encOffset + avpkt.size + AV_INPUT_BUFFER_PADDING_SIZE > buffer->AudioBytes)
+-            {
++			{
+ 				/* Unfortunately, the FFmpeg API requires that a number of
+ 				 * extra bytes must be available past the end of the buffer.
+ 				 * The xaudio2 client probably hasn't done this, so we have to
+@@ -163,9 +163,9 @@ void FAudio_INTERNAL_FillConvertCache(FAudioVoice *voice, FAudioBuffer *buffer)
+ 				size_t remain = buffer->AudioBytes - ffmpeg->encOffset;
+ 
+ 				if (ffmpeg->paddingBytes < remain + AV_INPUT_BUFFER_PADDING_SIZE)
+-                {
++				{
+ 					ffmpeg->paddingBytes = remain + AV_INPUT_BUFFER_PADDING_SIZE;
+-                    ffmpeg->paddingBuffer = (uint8_t *) FAudio_realloc(
++					ffmpeg->paddingBuffer = (uint8_t *) FAudio_realloc(
+ 						ffmpeg->paddingBuffer, 
+ 						ffmpeg->paddingBytes
+ 					);
+@@ -177,7 +177,7 @@ void FAudio_INTERNAL_FillConvertCache(FAudioVoice *voice, FAudioBuffer *buffer)
+ 
+ 			averr = avcodec_send_packet(ffmpeg->av_ctx, &avpkt);
+ 			if (averr)
+-            {
++			{
+ 				FAudio_assert(0 && "avcodec_send_packet failed" && averr);
+ 				break;
+ 			}
+@@ -190,9 +190,9 @@ void FAudio_INTERNAL_FillConvertCache(FAudioVoice *voice, FAudioBuffer *buffer)
+ 		}
+ 
+ 		if (averr) 
+-        {
+-            FAudio_assert(0 && "avcodec_receive_frame failed" && averr);
+-            return; 
++		{
++			FAudio_assert(0 && "avcodec_receive_frame failed" && averr);
++			return; 
+ 		}
+ 		else
+ 		{
+@@ -201,7 +201,7 @@ void FAudio_INTERNAL_FillConvertCache(FAudioVoice *voice, FAudioBuffer *buffer)
+ 	}
+ 
+ 	/* copy decoded samples to internal buffer, reordering if necessary */
+-    total_samples = ffmpeg->av_frame->nb_samples * ffmpeg->av_ctx->channels;
++	total_samples = ffmpeg->av_frame->nb_samples * ffmpeg->av_ctx->channels;
+ 
+ 	FAudio_INTERNAL_ResizeConvertCache(voice, total_samples);
+ 
+@@ -238,7 +238,7 @@ void FAudio_INTERNAL_DecodeFFMPEG(
+ 	FAudioFFmpeg *ffmpeg = voice->src.ffmpeg;
+ 	uint32_t decSampleSize = voice->src.format->nChannels * voice->src.format->wBitsPerSample / 8;
+ 	uint32_t outSampleSize = voice->src.format->nChannels * sizeof(float);
+-    uint32_t done = 0, available, todo;
++	uint32_t done = 0, available, todo;
+ 
+ 	/* check if we need to reposition in the stream */
+ 	if (voice->src.curBufferOffset != ffmpeg->decOffset)
+@@ -287,7 +287,7 @@ void FAudio_INTERNAL_DecodeFFMPEG(
+ 		ffmpeg->convertOffset += todo * voice->src.format->nChannels;
+ 	}
+ 
+-    *samples = done;
++	*samples = done;
+ 	voice->src.curBufferOffset += *samples;
+ 	ffmpeg->decOffset += *samples;
+ }
+@@ -296,4 +296,4 @@ void FAudio_INTERNAL_DecodeFFMPEG(
+ 
+ extern int this_tu_is_empty;
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/src/FAudio_internal.c b/src/FAudio_internal.c
+index d66ad77..3e618ae 100644
+--- a/src/FAudio_internal.c
++++ b/src/FAudio_internal.c
+@@ -1277,4 +1277,3 @@ void FAudio_INTERNAL_DecodeStereoMSADPCM(
+ 
+ 	*samples = done;
+ }
+-
+diff --git a/utils/testxwma/testxwma.cpp b/utils/testxwma/testxwma.cpp
+index 16633b4..7ec98f5 100644
+--- a/utils/testxwma/testxwma.cpp
++++ b/utils/testxwma/testxwma.cpp
+@@ -27,32 +27,32 @@ FAudioBufferWMA buffer_wma = {0};
+ 
+ uint32_t FindChunk(FILE *hFile, uint32_t fourcc, uint32_t *dwChunkSize, uint32_t *dwChunkDataPosition)
+ {
+-    uint32_t hr = 0;
++	uint32_t hr = 0;
+ 
+ 	if (fseek(hFile, 0, SEEK_SET) != 0)
+ 	{ 
+ 		return -1;
+ 	}
+ 
+-    uint32_t dwChunkType;
+-    uint32_t dwChunkDataSize;
+-    uint32_t dwRIFFDataSize = 0;
+-    uint32_t dwFileType;
+-    uint32_t bytesRead = 0;
+-    uint32_t dwOffset = 0;
++	uint32_t dwChunkType;
++	uint32_t dwChunkDataSize;
++	uint32_t dwRIFFDataSize = 0;
++	uint32_t dwFileType;
++	uint32_t bytesRead = 0;
++	uint32_t dwOffset = 0;
+ 
+-    while (hr == 0)
+-    {
++	while (hr == 0)
++	{
+ 		if (fread(&dwChunkType, sizeof(uint32_t), 1, hFile) < 1)
+ 			hr = 1;
+ 
+ 		if (fread(&dwChunkDataSize, sizeof(uint32_t), 1, hFile) < 1)
+ 			hr = 1;
+ 
+-        if (dwChunkType == fourccRIFF)
+-        {
+-            dwRIFFDataSize = dwChunkDataSize;
+-            dwChunkDataSize = 4;
++		if (dwChunkType == fourccRIFF)
++		{
++			dwRIFFDataSize = dwChunkDataSize;
++			dwChunkDataSize = 4;
+ 
+ 			if (fread(&dwFileType, sizeof(uint32_t), 1, hFile) < 1)
+ 				hr = 1;
+@@ -61,30 +61,30 @@ uint32_t FindChunk(FILE *hFile, uint32_t fourcc, uint32_t *dwChunkSize, uint32_t
+ 		{
+ 			if (fseek(hFile, dwChunkDataSize, SEEK_CUR) != 0)
+ 				return 1;
+-        }
++		}
+ 
+-        dwOffset += sizeof(uint32_t) * 2;
++		dwOffset += sizeof(uint32_t) * 2;
+ 
+-        if (dwChunkType == fourcc)
+-        {
+-            *dwChunkSize = dwChunkDataSize;
+-            *dwChunkDataPosition = dwOffset;
+-            return 0;
+-        }
++		if (dwChunkType == fourcc)
++		{
++			*dwChunkSize = dwChunkDataSize;
++			*dwChunkDataPosition = dwOffset;
++			return 0;
++		}
+ 
+-        dwOffset += dwChunkDataSize;
++		dwOffset += dwChunkDataSize;
+ 
+-        if (bytesRead >= dwRIFFDataSize) 
++		if (bytesRead >= dwRIFFDataSize) 
+ 			return 1;
+ 
+-    }
++	}
+ 
+-    return 1;
++	return 1;
+ }
+ 
+ uint32_t ReadChunkData(FILE *hFile, void * buffer, uint32_t buffersize, uint32_t bufferoffset)
+ {
+-    uint32_t hr = 0;
++	uint32_t hr = 0;
+ 
+ 	if (fseek(hFile, bufferoffset, SEEK_SET) != 0)
+ 		return 1;
+@@ -92,7 +92,7 @@ uint32_t ReadChunkData(FILE *hFile, void * buffer, uint32_t buffersize, uint32_t
+ 	if (fread(buffer, buffersize, 1, hFile) < 1)
+ 		hr = 1;
+ 
+-    return hr;
++	return hr;
+ }
+ 
+ uint32_t load_data(const char *filename)
+@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
+ 	/* process command line arguments. This is just a test program, didn't go too nuts with validation. */
+ 	if (argc < 2 || (argc > 4 && argc != 7)) {
+ 		printf("Usage: %s filename [PlayBegin] [PlayLength] [LoopBegin LoopLength LoopCount]\n", argv[0]);
+-		printf(" - filename (required): can be either a WAV or XMWA audio file.\n");
++		printf(" - filename (required): can be either a WAV or xWMA audio file.\n");
+ 		printf(" - PlayBegin (optional): start playing at this offset. (in seconds)\n");
+ 		printf(" - PlayLength (optional): duration of the region to be played. (in seconds)\n");
+ 		printf(" - LoopBegin (optional): start looping at this offset. (in seconds)\n");
+@@ -229,4 +229,4 @@ int main(int argc, char *argv[]) {
+ 	play();
+ 
+ 	return 0;
+-}
+\ No newline at end of file
++}
