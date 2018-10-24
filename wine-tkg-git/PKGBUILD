@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.18.r10.g616bf112
+pkgver=3.18.r12.g8710aa32
 pkgrel=70
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -70,9 +70,11 @@ else
     msg2 "Using esync (${_esync_version}) patchset"
   fi
 
-  if [[ $_use_pba == "true" ]]; then
-    pkgname="${pkgname/%-git/-pba-git}"
-    msg2 "Using pba patchset"
+  if [ -n "$_plain_version" ] || [ -n "$_staging_version" ]; then # Disable PBA on master as it's broken since 944e92b
+    if [[ $_use_pba == "true" ]]; then
+      pkgname="${pkgname/%-git/-pba-git}"
+      msg2 "Using pba patchset"
+    fi
   fi
 
   if [[ $_use_gallium_nine == "true" ]]; then
@@ -345,6 +347,12 @@ prepare() {
 
 	if [ $_use_esync == "true" ]; then
 	  echo "Using esync (${_esync_version}) patchset" >> $_where/last_build_config.log
+	fi
+
+	# If using a wine version that includes 944e92b, disable PBA
+	if [ 0 -eq $(git log | grep 944e92ba06ecadeb933d95e30035323483dfe7c7 > /dev/null 2> /dev/null; echo $?) ]; then #  wined3d: Pass the wined3d_buffer_desc structure directly to buffer_init()
+	  _use_pba="false"
+	  echo "Force disable PBA since commit 944e92b was found" >> $_where/last_build_config.log
 	fi
 
 	if [ $_use_pba == "true" ]; then
