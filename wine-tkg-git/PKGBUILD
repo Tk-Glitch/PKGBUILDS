@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.18.r14.g2802df41
-pkgrel=72
+pkgrel=73
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -510,13 +510,8 @@ prepare() {
 	done
 
 	if [ $_use_staging == "true" ]; then
-	  if [ $_use_esync == "true" ]; then
-	    # msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
-	    # server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName) needs the no_alloc_handle patch to not break esync
-	    _esync_exclusions="-W msvfw32-ICGetDisplayFormat"
-	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_ffxiv_mouse_fix $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
@@ -562,7 +557,7 @@ prepare() {
 	    git apply -C1 --verbose < ${_f}
 	  done
 
-	  # fix for server-Desktop_Refcount on esync staging
+	  # Fix for server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName)
 	  if [ $_use_staging == "true" ]; then
 	    msg2 "Applying esync-no_alloc_handle.patch"
 	    patch -Np1 < ../'esync-no_alloc_handle.patch'
