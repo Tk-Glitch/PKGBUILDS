@@ -496,7 +496,7 @@ prepare() {
 	    _esync_exclusions="-W msvfw32-ICGetDisplayFormat"
 	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all -W libs-Unicode_Collation -W kernel32-NormalizeString $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
