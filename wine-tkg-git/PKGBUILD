@@ -489,6 +489,20 @@ prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
+	# Removing CRLFs for libs-Unicode_Collation patchset
+	for _f in "${srcdir}"/"${_stgsrcdir}"/patches/libs-Unicode_Collation/*.patch; do
+	    if [ -e "${_f}" ]; then
+	      tr -d '\r' < ${_f} > temp; rm ${_f}; mv temp ${_f}
+	    fi
+	done
+
+	# Removing CRLFs for kernel32-NormalizeString
+	for _f in "${srcdir}"/"${_stgsrcdir}"/patches/kernel32-NormalizeString/*.patch; do
+	    if [ -e "${_f}" ]; then
+	      tr -d '\r' < ${_f} > temp; rm ${_f}; mv temp ${_f}
+	    fi
+	done
+
 	if [ $_use_staging == "true" ]; then
 	  if [ $_use_esync == "true" ]; then
 	    # msvfw32-ICGetDisplayFormat # esync already has its own implementation so it needs to be disabled
@@ -496,7 +510,7 @@ prepare() {
 	    _esync_exclusions="-W msvfw32-ICGetDisplayFormat"
 	  fi
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all -W libs-Unicode_Collation -W kernel32-NormalizeString $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_esync_exclusions $_ffxiv_mouse_fix $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
