@@ -25,6 +25,7 @@ With other patches available such as :
 - Use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server
 - "Launch with dedicated gpu" desktop entry
 - Halo Online fix for black vertices on negative Z axis
+- Bypass compositor in fullscreen mode
 - Gallium 9 support
 
 Also supports user patches for you to make even more exotic builds (more details at the end of the customization.cfg file).

@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.18.r14.g2802df41
-pkgrel=71
+pkgrel=72
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -233,7 +233,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
 		'launch-with-dedicated-gpu-desktop-entry.patch'
-		'dxvk-winelib.patch')
+		'dxvk-winelib.patch'
+		'FS_bypass_compositor.patch')
 
 if [[ $_INSTALL_TO_OPT != true ]]; then
   provides=(
@@ -429,6 +430,11 @@ prepare() {
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
 	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> $_where/last_build_config.log
+	fi
+
+	# Bypass compositor in fullscreen mode - Reduces stuttering and improves performance
+	if [ $_FS_bypass_compositor == "true" ]; then
+	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch" >> $_where/last_build_config.log
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
@@ -812,7 +818,8 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          '78ea7fa80abd8beb6e2afac27deb938f'
-         'd328bfd0d363434fe5f83f3a614849f7')
+         'd328bfd0d363434fe5f83f3a614849f7'
+         '5ca4ee142eafe2c8873d59b2feb51a7d')
 
 function exit_cleanup {
   rm -fv $_where/BIG_UGLY_COINMINER # state tracker end
