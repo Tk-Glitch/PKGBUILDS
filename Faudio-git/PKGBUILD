@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
-# Cross compile FFMPEG for WMA support - https://github.com/FNA-XNA/FAudio/pull/46
-_FFMPEG_CROSS=false
+# Cross compile FFMPEG for WMA support
+_FFMPEG_CROSS=true
 
 # custom faudio commit to pass to git
 _faudio_commit="#commit="
@@ -9,7 +9,7 @@ _faudio_commit="#commit="
 _user_patches_no_confirm='false'
 
 pkgname=('faudio-tkg-git' 'lib32-faudio-tkg-git')
-pkgver=832.b6be7c6
+pkgver=878.286a946
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _faudiosrcdir='faudio'
@@ -156,13 +156,16 @@ build() {
 	fi
 	source cpp/scripts/cross_compile_64
 
-	make clean && make all # FAudio
-	cd cpp && make # C++/COM wrapper
+	make clean && make # FAudio
+	#cd cpp && make # C++/COM wrapper wine
+	cd cpp && make -f Makefile.wine # C++/COM wrapper wine
 
-	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+	#cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_wine32/*.so "${srcdir}"/faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_wine64
 
 	if [ $_FFMPEG_CROSS == "true" ]; then
-	  cp -v "${srcdir}"/ffmpeg64tmp/bin/*.dll "${srcdir}"/faudio-tkg-git
+	  #cp -v "${srcdir}"/ffmpeg64tmp/bin/*.dll "${srcdir}"/faudio-tkg-git
+	  cp -v "${srcdir}"/ffmpeg64tmp/bin/*.so "${srcdir}"/faudio-tkg-git
 	fi
 
 	# 32
@@ -173,13 +176,16 @@ build() {
 	fi
 	source cpp/scripts/cross_compile_32
 
-	make clean && make all # FAudio
-	cd cpp && make # C++/COM wrapper
+	make clean && CFLAGS=-m32 make clean all # FAudio
+	#cd cpp && make all # C++/COM wrapper
+	cd cpp && ARCH=32 make -f Makefile.wine clean all # C++/COM wrapper wine
 
-	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/lib32-faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+	#cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32/*.dll "${srcdir}"/lib32-faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_win32
+	cp -v "${srcdir}"/"${_faudiosrcdir}"/cpp/build_wine32/*.so "${srcdir}"/lib32-faudio-tkg-git && rm -rf "${srcdir}"/"${_faudiosrcdir}"/cpp/build_wine32
 
 	if [ $_FFMPEG_CROSS == "true" ]; then
-	  cp -v "${srcdir}"/ffmpeg32tmp/bin/*.dll "${srcdir}"/lib32-faudio-tkg-git
+	  #cp -v "${srcdir}"/ffmpeg32tmp/bin/*.dll "${srcdir}"/lib32-faudio-tkg-git
+	  cp -v "${srcdir}"/ffmpeg32tmp/bin/*.so "${srcdir}"/lib32-faudio-tkg-git
 	fi
 }
 
@@ -251,12 +257,12 @@ package_lib32-faudio-tkg-git() {
 }
 md5sums=('SKIP'
          'SKIP'
-         '4dc7ddf58028da1f4e7d86d6c8874ea7'
+         '0b60c8f5c3d11542ccfefe644205ecff'
          'd60c8079de1d730c90d2d768a9134cb7')
 
 function exit_cleanup {
   # Sanitization
-  rm -rf $srcdir/$_faudiosrcdir
+  #rm -rf $srcdir/$_faudiosrcdir
   rm -rf $srcdir/*.patch
   msg2 'exit cleanup done'
 }

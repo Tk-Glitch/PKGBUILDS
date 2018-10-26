@@ -46,3 +46,23 @@ index 31ac6b5..982055c 100755
  export CC=${MINGW}-gcc
  export CXX=${MINGW}-g++
  export AR=${MINGW}-ar
+
+From 4bc4386841d7c78253fb9774c11275cd4470887f Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Thu, 25 Oct 2018 00:59:44 +0200
+Subject: Use lib32 dir instead of lib
+
+
+diff --git a/cpp/Makefile.wine b/cpp/Makefile.wine
+index 6dc539f..0453617 100644
+--- a/cpp/Makefile.wine
++++ b/cpp/Makefile.wine
+@@ -21,7 +21,7 @@ endif
+ # FIXME: try to detect the install directory of wine
+ WINEDIR = /usr
+ ifeq ($(ARCH), 32)
+-	WINELIBDIR = $(WINEDIR)/lib
++	WINELIBDIR = $(WINEDIR)/lib32
+ else
+ 	WINELIBDIR = $(WINEDIR)/lib64
+ endif

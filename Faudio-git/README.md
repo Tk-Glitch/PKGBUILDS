@@ -1,5 +1,7 @@
 # Faudio - git version, multilib with userpatches support
 
+## This is currently broken
+
 https://github.com/FNA-XNA/FAudio
 
 You'll need a working mingw-w64 install to build this. Using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/mingw is recommended.
