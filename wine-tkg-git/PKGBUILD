@@ -521,18 +521,16 @@ prepare() {
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-staging-fixes-r2.patch' && echo "Using esync staging 3.17+ compat fixes" >> $_where/last_build_config.log
 	      cd "${srcdir}"/"${_winesrcdir}"
+	    # if using a wine version that includes c099655, use 3.19+ addon fixes
+	    elif [ 0 -eq $(git log | grep c0996553a1d9056e1b89871fc8c3fb0bfb5a4f0c > /dev/null 2> /dev/null; echo $?) ]; then #  server: Support FILE_SKIP_COMPLETION_PORT_ON_SUCCESS on server-side asyncs
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-compat-fixes-r2.1.patch' && echo "Using esync 3.19+ compat addon fixes" >> $_where/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 
 	    cd "${srcdir}"/"${_esyncsrcdir}"
 	    patch -Np1 < ../'esync-compat-fixes-r2.patch' && echo "Using esync 3.17+ compat fixes" >> $_where/last_build_config.log
 	    cd "${srcdir}"/"${_winesrcdir}"
-
-	    # if using a wine version that includes c099655, use 3.19+ addon fixes
-	    if [ 0 -eq $(git log | grep c0996553a1d9056e1b89871fc8c3fb0bfb5a4f0c > /dev/null 2> /dev/null; echo $?) ]; then #  server: Support FILE_SKIP_COMPLETION_PORT_ON_SUCCESS on server-side asyncs
-	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-compat-fixes-r2.1.patch' && echo "Using esync 3.19+ compat addon fixes" >> $_where/last_build_config.log
-	      cd "${srcdir}"/"${_winesrcdir}"
-	    fi
 	  else
 	    # 3.10 - 3.16
 	    if [ $_use_staging == "true" ]; then
