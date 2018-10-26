@@ -371,7 +371,6 @@ prepare() {
 	  else
 	    _pba_version="313-"
 	  fi
-	  echo "Using pba (${_pba_version}) patchset" >> $_where/last_build_config.log
 	fi
 
 	if [ $_use_gallium_nine == "true" ]; then
@@ -598,6 +597,7 @@ prepare() {
 	  for _f in $(ls "${srcdir}"/"${_pbasrcdir}"/'patches'); do
 	      patch -Np1 < "${srcdir}"/"${_pbasrcdir}"/'patches'/${_f}
 	  done
+	  echo "Using pba (${_pba_version}) patchset" >> $_where/last_build_config.log
 	fi
 
 	# d3d9 patches
