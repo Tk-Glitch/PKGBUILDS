@@ -221,7 +221,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r1.patch'  # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-compat-fixes-r1.1.patch' # Addon for 3.14-3.16
 		'esync-compat-fixes-r2.patch' # For 3.17+
-		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+
+		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+ - non-staging only
 		'esync-no_alloc_handle.patch'
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
