@@ -219,6 +219,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r1.patch'  # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-compat-fixes-r1.1.patch' # Addon for 3.14-3.16
 		'esync-compat-fixes-r2.patch' # For 3.17+
+		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+
 		'esync-no_alloc_handle.patch'
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -517,6 +518,13 @@ prepare() {
 	    cd "${srcdir}"/"${_esyncsrcdir}"
 	    patch -Np1 < ../'esync-compat-fixes-r2.patch' && echo "Using esync 3.17+ compat fixes" >> $_where/last_build_config.log
 	    cd "${srcdir}"/"${_winesrcdir}"
+
+	    # if using a wine version that includes c099655, use 3.19+ addon fixes
+	    if [ 0 -eq $(git log | grep c0996553a1d9056e1b89871fc8c3fb0bfb5a4f0c > /dev/null 2> /dev/null; echo $?) ]; then #  server: Support FILE_SKIP_COMPLETION_PORT_ON_SUCCESS on server-side asyncs
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-compat-fixes-r2.1.patch' && echo "Using esync 3.19+ compat addon fixes" >> $_where/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
 	  else
 	    # 3.10 - 3.16
 	    if [ $_use_staging == "true" ]; then
@@ -787,6 +795,7 @@ md5sums=('SKIP'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
          'c4b104892b0501781789aadc5a95b261'
+         'e32c770f6aa964e6093fe734c7dd6c0a'
          '46f612602ee7698b840a4e757194cfa7'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
