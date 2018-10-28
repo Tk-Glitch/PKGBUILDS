@@ -1,0 +1,42 @@
+From e8c1fbc804c5b0c325d7962d50ecdc1efdffac00 Mon Sep 17 00:00:00 2001
+From: Brendan McGrath <brendan@redmandi.com>
+Date: Sun, 28 Oct 2018 20:59:31 +1100
+Subject: [PATCH] dinput: Use the same GUID for Instance and Product
+
+This matches the behaviour of DirectInput8 native and appears to be
+required for some games to recognise the mouse and keyboard as
+a mouse and keyboard.
+---
+ dlls/dinput/keyboard.c | 2 +-
+ dlls/dinput/mouse.c    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/dinput/keyboard.c b/dlls/dinput/keyboard.c
+index a64c59c6036..fcc85a90c9c 100644
+--- a/dlls/dinput/keyboard.c
++++ b/dlls/dinput/keyboard.c
+@@ -179,7 +179,7 @@ static void fill_keyboard_dideviceinstanceA(LPDIDEVICEINSTANCEA lpddi, DWORD ver
+ 
+     ddi.dwSize = dwSize;
+     ddi.guidInstance = GUID_SysKeyboard;/* DInput's GUID */
+-    ddi.guidProduct = DInput_Wine_Keyboard_GUID; /* Vendor's GUID */
++    ddi.guidProduct = GUID_SysKeyboard;
+     if (version >= 0x0800)
+         ddi.dwDevType = DI8DEVTYPE_KEYBOARD | (subtype << 8);
+     else
+diff --git a/dlls/dinput/mouse.c b/dlls/dinput/mouse.c
+index 6d3eff5d525..1d5309ee73c 100644
+--- a/dlls/dinput/mouse.c
++++ b/dlls/dinput/mouse.c
+@@ -121,7 +121,7 @@ static void fill_mouse_dideviceinstanceA(LPDIDEVICEINSTANCEA lpddi, DWORD versio
+ 
+     ddi.dwSize = dwSize;
+     ddi.guidInstance = GUID_SysMouse;/* DInput's GUID */
+-    ddi.guidProduct = DInput_Wine_Mouse_GUID; /* Vendor's GUID */
++    ddi.guidProduct = GUID_SysMouse;
+     if (version >= 0x0800)
+         ddi.dwDevType = DI8DEVTYPE_MOUSE | (DI8DEVTYPEMOUSE_TRADITIONAL << 8);
+     else
+-- 
+2.17.1
+

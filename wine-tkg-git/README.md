@@ -26,6 +26,7 @@ With other patches available such as :
 - "Launch with dedicated gpu" desktop entry
 - Halo Online fix for black vertices on negative Z axis
 - Bypass compositor in fullscreen mode
+- Dinput mouse and keyboard GUID fix (needed for Elite Dangerous..) - https://forums.frontier.co.uk/showthread.php/366894-How-to-install-ED-on-Linux-using-Wine-EXPERIMENTAL-NOT-OFFICIALLY-SUPPORTED?p=7112475&viewfull=1#post7112475
 - Gallium 9 support
 
 Also supports user patches for you to make even more exotic builds (more details at the end of the customization.cfg file).

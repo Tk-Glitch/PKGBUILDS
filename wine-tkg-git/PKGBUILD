@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.19.r0.g5a85ab07
-pkgrel=74
+pkgrel=75
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -210,11 +210,12 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
 		"esync${_esync_version}.tgz::https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		# game specific
-		'poe-fix.patch'
-		'f4skyrimse-fix.patch'
-		'fallout4.patch'
-		'fortnite.patch'
-		'halo-blackiness-fix.patch'
+		'poe-fix.patch' # Enable Path of Exile DX11 to work
+		'f4skyrimse-fix.patch' # Fo4 & Skyrim SE Script Extender fix
+		'fallout4.patch' # Fallout 4 dsound fix
+		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
+		'halo-blackiness-fix.patch' # Halo Online black vertices fix
+		'dinput-GUID.patch' # Fixes Elite : Dangerous inputs
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -229,15 +230,16 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA317+.patch' # For 3.17-3.18
 		'PBA318+.patch' # For 3.18+ (devel, up to 1596238)
 		# misc
-		'steam.patch'
+		'steam.patch' # auto-append --no-sandbox
 		'30-win32-aliases.conf'
-		'use_clock_monotonic.patch'
+		'use_clock_monotonic.patch' # Perf
 		'lowlatency_audio.patch'
 		'wine-binfmt.conf'
 		'CSMT-toggle.patch'
 		'launch-with-dedicated-gpu-desktop-entry.patch'
-		'dxvk-winelib.patch'
-		'FS_bypass_compositor.patch')
+		'dxvk-winelib.patch' # Enables DXVK winelib building
+		'FS_bypass_compositor.patch' # Perf
+)
 
 if [[ $_INSTALL_TO_OPT != true ]]; then
   provides=(
@@ -443,6 +445,12 @@ prepare() {
 	# Bypass compositor in fullscreen mode - Reduces stuttering and improves performance
 	if [ $_FS_bypass_compositor == "true" ]; then
 	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch" >> "$_where"/last_build_config.log
+	fi
+
+	# Use the same GUID for Instance and Product - This matches the behaviour of DirectInput8 native
+	# and appears to be required for some games to recognise the mouse and keyboard as a mouse and keyboard (Elite Dangerous..) - https://forums.frontier.co.uk/showthread.php/366894-How-to-install-ED-on-Linux-using-Wine-EXPERIMENTAL-NOT-OFFICIALLY-SUPPORTED?p=7112475&viewfull=1#post7112475
+	if [ $_dinput_GUID == "true" ]; then
+	  patch -Np1 < ../'dinput-GUID.patch' && echo "Applied dinput GUID fix patch" >> "$_where"/last_build_config.log
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
@@ -796,6 +804,7 @@ md5sums=('SKIP'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
          'a976b19df4e068c017e639f8a9d37c3e'
+         'e30481049a40694fa51f5eac2021fd54'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '3a263a0f6211287af53ea7db79b1f34f'
