@@ -1,0 +1,26 @@
+diff --git a/kernel/nvidia-drm/nvidia-drm-connector.c b/kernel/nvidia-drm/nvidia-drm-connector.c
+index dbda66dbd..5cc1eca95 100644
+--- a/kernel/nvidia-drm/nvidia-drm-connector.c
++++ b/kernel/nvidia-drm/nvidia-drm-connector.c
+@@ -226,7 +226,7 @@ static int nv_drm_connector_get_modes(struct drm_connector *connector)
+ 
+ 
+     if (nv_connector->edid != NULL) {
+-        drm_mode_connector_update_edid_property(
++        drm_connector_update_edid_property(
+             connector, nv_connector->edid);
+     }
+ 
+diff --git a/kernel/nvidia-drm/nvidia-drm-encoder.c b/kernel/nvidia-drm/nvidia-drm-encoder.c
+index 3dc240031..73ab1b61f 100644
+--- a/kernel/nvidia-drm/nvidia-drm-encoder.c
++++ b/kernel/nvidia-drm/nvidia-drm-encoder.c
+@@ -216,7 +216,7 @@ nv_drm_add_encoder(struct drm_device *dev, NvKmsKapiDisplay hDisplay)
+ 
+     /* Attach encoder and connector */
+ 
+-    ret = drm_mode_connector_attach_encoder(connector, encoder);
++    ret = drm_connector_attach_encoder(connector, encoder);
+ 
+     if (ret != 0) {
+         NV_DRM_DEV_LOG_ERR(

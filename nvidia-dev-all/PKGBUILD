@@ -14,7 +14,7 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
+  read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms (survives kernel updates)\n  2.regular\nchoice[1-2?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_dkms="0"' > options
     else
@@ -32,7 +32,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=396.54.09
-pkgrel=14
+pkgrel=15
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -46,11 +46,16 @@ _pkg="NVIDIA-Linux-x86_64-$pkgver"
 source=("NVIDIA-Linux-x86_64-$pkgver.run::http://developer.nvidia.com/linux-3965409"
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
-        'kernel-4.16.patch')
+        'kernel-4.16.patch'
+        'kernel-4.19.patch' # 4.19 workaround
+        'kernel-4.19.dkmsp' # 4.19 dkms workaround
+)
 md5sums=('eda9e2eb9e0d16ea7346659c255713a4'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
-         '84f1f2ecdccf377fc86323f8ad7b7469')
+         '84f1f2ecdccf377fc86323f8ad7b7469'
+         '846eb779f5d10f149278b1099b014b99'
+         '86107ffff42a37964c67973bdbde2f01')
 [ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='eda9e2eb9e0d16ea7346659c255713a4'
 
 # Auto-add *.patch files from $startdir to source=()
@@ -117,7 +122,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       _patch=$(echo $_p | grep -Po "\d+\.\d+")
 
       # Cd in place
-      cd kernel-$_kernel
+      cd "$srcdir"/"$_pkg"/kernel-$_kernel
 
       # Compare versions
       if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
@@ -126,10 +131,28 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       else
         msg2 "Skipping $_p..."  # List these, instead of ignoring silently
       fi
-
-      # Return
-      cd ..
     done
+
+    cd ..
+
+    # dkms-only patches
+    if [ "$_dkms" == "1" ]; then
+      for _dp in $(printf -- '%s\n' ${source[@]} | grep .dkmsp); do
+        _dpatch=$(echo $_dp | grep -Po "\d+\.\d+")
+
+        if (( $(vercmp "$_kernel" "$_dpatch") >= 0 )); then
+          msg2 "Kernel 4.19+ found !!!"
+          read -p "     There's a patch for you so the driver works with dkms, but that will break it on non-4.19+ kernels. Wanna apply it?`echo $'\n     (The regular package is also an option).\n     > N/y : '`" _CONDITION;
+            if [ "$_CONDITION" == "y" ]; then
+              msg2 "Applying $_dp for $_kernel..."
+              patch -Np1 < "$where"/$_dp
+            fi
+         else
+           msg2 "Skipping $_dp..."  # List these, instead of ignoring silently
+         fi
+      done
+    fi
+
   done
 }
 
