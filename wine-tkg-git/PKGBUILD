@@ -265,7 +265,7 @@ user_patcher() {
 	      msg2 "Applying your own ${_userpatch_target} patch ${_f}"
 	      msg2 ""
 	      msg2 "######################################################"
-	      patch -Np1 < ${_f}
+	      patch -Np1 < "${_f}"
 	      echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
 	    fi
 	    done
@@ -283,7 +283,7 @@ user_patcher() {
 	      msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
 	      msg2 ""
 	      msg2 "######################################################"
-	      patch -Np1 -R < ${_f}
+	      patch -Np1 -R < "${_f}"
 	      echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
 	    fi
 	    done
