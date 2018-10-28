@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.19.r0.g5a85ab07
-pkgrel=75
+pkgrel=76
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -70,11 +70,9 @@ else
     msg2 "Using esync (${_esync_version}) patchset"
   fi
 
-  if [ -n "$_plain_version" ] || [ -n "$_staging_version" ]; then # Disable PBA on master as it's broken since 1596238
-    if [[ $_use_pba == "true" ]]; then
-      pkgname="${pkgname/%-git/-pba-git}"
-      msg2 "Using pba patchset"
-    fi
+  if [[ $_use_pba == "true" ]]; then
+    pkgname="${pkgname/%-git/-pba-git}"
+    msg2 "Using pba patchset"
   fi
 
   if [[ $_use_gallium_nine == "true" ]]; then
@@ -229,6 +227,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA314+.patch' # For 3.14-3.16
 		'PBA317+.patch' # For 3.17-3.18
 		'PBA318+.patch' # For 3.18+ (devel, up to 1596238)
+		'PBA319+.patch' # For 3.19+
 		# misc
 		'steam.patch' # auto-append --no-sandbox
 		'30-win32-aliases.conf'
@@ -354,15 +353,12 @@ prepare() {
 	  echo "Using esync (${_esync_version}) patchset" >> "$_where"/last_build_config.log
 	fi
 
-	# If using a wine version that includes 1596238, disable PBA
-	if [ 0 -eq $(git log | grep 15962381e2d52a3e56a0ab352c6e208d80f7cde3 > /dev/null 2> /dev/null; echo $?) ]; then #  wined3d: Introduce a separate structure for OpenGL buffer information
-	  _use_pba="false"
-	  echo "Force disable PBA since commit 1596238 was found" >> "$_where"/last_build_config.log
-	fi
-
 	if [ $_use_pba == "true" ]; then
+	  # If using a wine version that includes 1596238, apply 3.19+ fixes
+	  if [ 0 -eq $(git log | grep 15962381e2d52a3e56a0ab352c6e208d80f7cde3 > /dev/null 2> /dev/null; echo $?) ]; then #  wined3d: Introduce a separate structure for OpenGL buffer information
+	    _pba_version="319+"
 	  # If using a wine version that includes 944e92b, apply 3.18+ fixes
-	  if [ 0 -eq $(git log | grep 944e92ba06ecadeb933d95e30035323483dfe7c7 > /dev/null 2> /dev/null; echo $?) ]; then #  wined3d: Pass the wined3d_buffer_desc structure directly to buffer_init()
+	  elif [ 0 -eq $(git log | grep 944e92ba06ecadeb933d95e30035323483dfe7c7 > /dev/null 2> /dev/null; echo $?) ]; then #  wined3d: Pass the wined3d_buffer_desc structure directly to buffer_init()
 	    _pba_version="318+"
 	  # If using a wine version that includes 580ea44, apply 3.17+ fixes
 	  elif [ 0 -eq $(git log | grep 580ea44bc65472c0304d74b7e873acfb7f680b85 > /dev/null 2> /dev/null; echo $?) ]; then # wined3d: Use query buffer objects for occlusion queries
@@ -592,7 +588,9 @@ prepare() {
 	  rm -rf "${srcdir}/${_pbasrcdir}"
 	  mkdir -p "${srcdir}/${_pbasrcdir}/patches"
 	  cd "${srcdir}/${_pbasrcdir}"
-	  if [ $_pba_version == "318+" ]; then
+	  if [ $_pba_version == "319+" ]; then
+	    patch -Np1 < ../'PBA319+.patch'
+	  elif [ $_pba_version == "318+" ]; then
 	    patch -Np1 < ../'PBA318+.patch'
 	  elif [ $_pba_version == "317+" ]; then
 	    patch -Np1 < ../'PBA317+.patch'
@@ -816,6 +814,7 @@ md5sums=('SKIP'
          'b76d64af20e1026f0303cc8cb5835815'
          '5a1e50fb432d1bbc6cf3db8cdb4cdc0c'
          '154c16552e72cd89ed2d0d7765d0382f'
+         'c2c22aca8d2635248ad0788d263c4104'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '1ff4e467f59409272088d92173a0f801'
          '517a67b31d26990e6704074ccb630f80'
