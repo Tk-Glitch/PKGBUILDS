@@ -10,7 +10,11 @@ Wine-staging : https://github.com/wine-staging/wine-staging
 
 Wine esync : https://github.com/zfigura/wine/tree/esync
 
-Wine-pba : https://github.com/Firerat/wine-pba
+Wine-pba : https://github.com/acomminos/wine-pba
+
+Thanks to @Firerat and @bobwya for their rebase work :
+- https://github.com/Firerat/wine-pba
+- https://github.com/bobwya/gentoo-wine-pba
 
 With other patches available such as :
 - CSMT-toggle fixed logic - https://github.com/wine-staging/wine-staging/pull/60/commits/ad474559590a659b3df72ec9965de20c7f51c3a8
