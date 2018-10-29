@@ -1,21 +1,76 @@
-From e8c1fbc804c5b0c325d7962d50ecdc1efdffac00 Mon Sep 17 00:00:00 2001
 From: Brendan McGrath <brendan@redmandi.com>
-Date: Sun, 28 Oct 2018 20:59:31 +1100
-Subject: [PATCH] dinput: Use the same GUID for Instance and Product
+Subject: [PATCH v2] dinput: Use the same GUID for Instance and Product
+Message-Id: <20181029194154.24315-1-brendan@redmandi.com>
+Date: Tue, 30 Oct 2018 06:41:54 +1100
 
 This matches the behaviour of DirectInput8 native and appears to be
 required for some games to recognise the mouse and keyboard as
 a mouse and keyboard.
----
- dlls/dinput/keyboard.c | 2 +-
- dlls/dinput/mouse.c    | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
 
+Signed-off-by: Brendan McGrath <brendan@redmandi.com>
+---
+Changes since v1:
+  a) Added the signed-off tag; and
+  b) Changed the Unicode equivalent to match the ASCII version
+
+This resulted in no more uses of those GUIDs, so I also cleaned up
+any reference to them
+
+ dlls/dinput/device_private.h |  3 ---
+ dlls/dinput/dinput_main.c    |  6 ++----
+ dlls/dinput/keyboard.c       | 11 +++--------
+ dlls/dinput/mouse.c          | 11 +++--------
+ 4 files changed, 8 insertions(+), 23 deletions(-)
+
+diff --git a/dlls/dinput/device_private.h b/dlls/dinput/device_private.h
+index 52bbec4490..d9e2997eaa 100644
+--- a/dlls/dinput/device_private.h
++++ b/dlls/dinput/device_private.h
+@@ -114,9 +114,6 @@ typedef struct
+     LPDIRECTINPUTEFFECT ref;
+ } effect_list_item;
+ 
+-extern const GUID DInput_Wine_Keyboard_GUID DECLSPEC_HIDDEN;
+-extern const GUID DInput_Wine_Mouse_GUID DECLSPEC_HIDDEN;
+-
+ /* Various debug tools */
+ extern void _dump_DIPROPHEADER(LPCDIPROPHEADER diph)  DECLSPEC_HIDDEN;
+ extern void _dump_OBJECTINSTANCEA(const DIDEVICEOBJECTINSTANCEA *ddoi)  DECLSPEC_HIDDEN;
+diff --git a/dlls/dinput/dinput_main.c b/dlls/dinput/dinput_main.c
+index 28e192af4e..6ed764e748 100644
+--- a/dlls/dinput/dinput_main.c
++++ b/dlls/dinput/dinput_main.c
+@@ -1747,12 +1747,10 @@ static DWORD WINAPI hook_thread_proc(void *param)
+                 {
+                     if (!dev->acquired || !dev->event_proc) continue;
+ 
+-                    if (IsEqualGUID( &dev->guid, &GUID_SysKeyboard ) ||
+-                        IsEqualGUID( &dev->guid, &DInput_Wine_Keyboard_GUID ))
++                    if (IsEqualGUID( &dev->guid, &GUID_SysKeyboard ))
+                         kbd_cnt++;
+                     else
+-                        if (IsEqualGUID( &dev->guid, &GUID_SysMouse ) ||
+-                            IsEqualGUID( &dev->guid, &DInput_Wine_Mouse_GUID ))
++                        if (IsEqualGUID( &dev->guid, &GUID_SysMouse ))
+                             mice_cnt++;
+                 }
+                 LeaveCriticalSection( &dinput->crit );
 diff --git a/dlls/dinput/keyboard.c b/dlls/dinput/keyboard.c
-index a64c59c6036..fcc85a90c9c 100644
+index a64c59c603..642d0c0beb 100644
 --- a/dlls/dinput/keyboard.c
 +++ b/dlls/dinput/keyboard.c
-@@ -179,7 +179,7 @@ static void fill_keyboard_dideviceinstanceA(LPDIDEVICEINSTANCEA lpddi, DWORD ver
+@@ -145,10 +145,6 @@ static int KeyboardCallback( LPDIRECTINPUTDEVICE8A iface, WPARAM wparam, LPARAM
+     return ret;
+ }
+ 
+-const GUID DInput_Wine_Keyboard_GUID = { /* 0ab8648a-7735-11d2-8c73-71df54a96441 */
+-    0x0ab8648a, 0x7735, 0x11d2, {0x8c, 0x73, 0x71, 0xdf, 0x54, 0xa9, 0x64, 0x41}
+-};
+-
+ static DWORD get_keyboard_subtype(void)
+ {
+     DWORD kbd_type, kbd_subtype, dev_subtype;
+@@ -179,7 +175,7 @@ static void fill_keyboard_dideviceinstanceA(LPDIDEVICEINSTANCEA lpddi, DWORD ver
  
      ddi.dwSize = dwSize;
      ddi.guidInstance = GUID_SysKeyboard;/* DInput's GUID */
@@ -24,11 +79,41 @@ index a64c59c6036..fcc85a90c9c 100644
      if (version >= 0x0800)
          ddi.dwDevType = DI8DEVTYPE_KEYBOARD | (subtype << 8);
      else
+@@ -203,7 +199,7 @@ static void fill_keyboard_dideviceinstanceW(LPDIDEVICEINSTANCEW lpddi, DWORD ver
+  
+     ddi.dwSize = dwSize;
+     ddi.guidInstance = GUID_SysKeyboard;/* DInput's GUID */
+-    ddi.guidProduct = DInput_Wine_Keyboard_GUID; /* Vendor's GUID */
++    ddi.guidProduct = GUID_SysKeyboard;
+     if (version >= 0x0800)
+         ddi.dwDevType = DI8DEVTYPE_KEYBOARD | (subtype << 8);
+     else
+@@ -308,8 +304,7 @@ static HRESULT keyboarddev_create_device(IDirectInputImpl *dinput, REFGUID rguid
+     TRACE("%p %s %s %p %i\n", dinput, debugstr_guid(rguid), debugstr_guid(riid), pdev, unicode);
+     *pdev = NULL;
+ 
+-    if (IsEqualGUID(&GUID_SysKeyboard, rguid) ||        /* Generic Keyboard */
+-        IsEqualGUID(&DInput_Wine_Keyboard_GUID, rguid)) /* Wine Keyboard */
++    if (IsEqualGUID(&GUID_SysKeyboard, rguid)) /* Wine Keyboard */
+     {
+         SysKeyboardImpl *This;
+ 
 diff --git a/dlls/dinput/mouse.c b/dlls/dinput/mouse.c
-index 6d3eff5d525..1d5309ee73c 100644
+index 6d3eff5d52..7133359351 100644
 --- a/dlls/dinput/mouse.c
 +++ b/dlls/dinput/mouse.c
-@@ -121,7 +121,7 @@ static void fill_mouse_dideviceinstanceA(LPDIDEVICEINSTANCEA lpddi, DWORD versio
+@@ -93,10 +93,6 @@ static inline IDirectInputDevice8W *IDirectInputDevice8W_from_impl(SysMouseImpl
+ 
+ static int dinput_mouse_hook( LPDIRECTINPUTDEVICE8A iface, WPARAM wparam, LPARAM lparam );
+ 
+-const GUID DInput_Wine_Mouse_GUID = { /* 9e573ed8-7734-11d2-8d4a-23903fb6bdf7 */
+-    0x9e573ed8, 0x7734, 0x11d2, {0x8d, 0x4a, 0x23, 0x90, 0x3f, 0xb6, 0xbd, 0xf7}
+-};
+-
+ static void _dump_mouse_state(const DIMOUSESTATE2 *m_state)
+ {
+     int i;
+@@ -121,7 +117,7 @@ static void fill_mouse_dideviceinstanceA(LPDIDEVICEINSTANCEA lpddi, DWORD versio
  
      ddi.dwSize = dwSize;
      ddi.guidInstance = GUID_SysMouse;/* DInput's GUID */
@@ -37,6 +122,26 @@ index 6d3eff5d525..1d5309ee73c 100644
      if (version >= 0x0800)
          ddi.dwDevType = DI8DEVTYPE_MOUSE | (DI8DEVTYPEMOUSE_TRADITIONAL << 8);
      else
+@@ -145,7 +141,7 @@ static void fill_mouse_dideviceinstanceW(LPDIDEVICEINSTANCEW lpddi, DWORD versio
+ 
+     ddi.dwSize = dwSize;
+     ddi.guidInstance = GUID_SysMouse;/* DInput's GUID */
+-    ddi.guidProduct = DInput_Wine_Mouse_GUID; /* Vendor's GUID */
++    ddi.guidProduct = GUID_SysMouse;
+     if (version >= 0x0800)
+         ddi.dwDevType = DI8DEVTYPE_MOUSE | (DI8DEVTYPEMOUSE_TRADITIONAL << 8);
+     else
+@@ -257,8 +253,7 @@ static HRESULT mousedev_create_device(IDirectInputImpl *dinput, REFGUID rguid, R
+     TRACE("%p %s %s %p %i\n", dinput, debugstr_guid(rguid), debugstr_guid(riid), pdev, unicode);
+     *pdev = NULL;
+ 
+-    if (IsEqualGUID(&GUID_SysMouse, rguid) ||        /* Generic Mouse */
+-        IsEqualGUID(&DInput_Wine_Mouse_GUID, rguid)) /* Wine Mouse */
++    if (IsEqualGUID(&GUID_SysMouse, rguid)) /* Wine Mouse */
+     {
+         SysMouseImpl *This;
+ 
+
 -- 
 2.17.1
 
