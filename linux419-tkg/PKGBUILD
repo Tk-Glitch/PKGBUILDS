@@ -57,7 +57,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-glitched-muqss.patch
         0007-patch-4.18-ck1
         0008-glitched-pds.patch
-        0008-v4.19_pds099b.patch
+        0008-v4.19_pds099c.patch
         0009-add-acs-overrides_iommu.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
@@ -74,7 +74,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
-            '8dfea46d7627e76a949ae292f4046ec19fb910b323050228db5778cada02d765'
+            '94843f75e28b7beaf5ab8efc2b651fa7423b707b108f65a1fde4c51d959b9d03'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8')
 
 prepare() {
@@ -132,7 +132,7 @@ prepare() {
     patch -Np1 -i ../0007-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0008-v4.19_pds099b.patch
+    patch -Np1 -i ../0008-v4.19_pds099c.patch
     patch -Np1 -i ../0008-glitched-pds.patch
   fi
 
