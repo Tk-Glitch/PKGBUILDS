@@ -238,6 +238,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'dxvk-winelib.patch' # Enables DXVK winelib building
 		'FS_bypass_compositor.patch' # Perf
+		'faudio-exp.patch'
 )
 
 if [[ $_INSTALL_TO_OPT != true ]]; then
@@ -446,6 +447,10 @@ prepare() {
 	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch" >> "$_where"/last_build_config.log
 	fi
 
+	# Use faudio for xaudio2 - https://github.com/aeikum/wine/commits/faudio-fixups
+	if [ $_use_faudio == "true" ] && [ $_use_staging == "true" ]; then
+	  patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
+	  _faudio="-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-OnVoiceProcessingPassStart -W xaudio2_7-WMA_support -W xaudio2_CommitChanges" # Disable xaudio2 staging patchsets for faudio
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
@@ -508,7 +513,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_ffxiv_mouse_fix $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_faudio $_ffxiv_mouse_fix $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
@@ -824,7 +829,8 @@ md5sums=('SKIP'
          '830a78ea35e124536cdbc8291102ffaa'
          '78ea7fa80abd8beb6e2afac27deb938f'
          'd328bfd0d363434fe5f83f3a614849f7'
-         '5ca4ee142eafe2c8873d59b2feb51a7d')
+         '5ca4ee142eafe2c8873d59b2feb51a7d'
+         'b666fa12288cc139cf946b202d0cd7da')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_COINMINER # state tracker end
