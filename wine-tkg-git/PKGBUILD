@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.19.r3.ga423a708
-pkgrel=79
+pkgrel=80
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -452,7 +452,7 @@ prepare() {
 	# Use faudio for xaudio2 - https://github.com/aeikum/wine/commits/faudio-fixups
 	if [ $_use_faudio == "true" ] && [ $_use_staging == "true" ]; then
 	  patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
-	  _faudio="-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-OnVoiceProcessingPassStart -W xaudio2_7-WMA_support -W xaudio2_CommitChanges" # Disable xaudio2 staging patchsets for faudio
+	  _faudio="-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-OnVoiceProcessingPassStart -W xaudio2_7-WMA_support -W xaudio2_CommitChanges -W winepulse-PulseAudio_Support" # Disable xaudio2 & winepulse staging patchsets for faudio
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
@@ -832,7 +832,7 @@ md5sums=('SKIP'
          '78ea7fa80abd8beb6e2afac27deb938f'
          'd328bfd0d363434fe5f83f3a614849f7'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
-         'b666fa12288cc139cf946b202d0cd7da')
+         'ca20a25d759425fadb030c513859ac2b')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_COINMINER # state tracker end
