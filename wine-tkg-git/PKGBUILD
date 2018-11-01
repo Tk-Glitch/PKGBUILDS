@@ -174,7 +174,7 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'sdl2'                  'lib32-sdl2'
     'samba'                 'schedtool'
     'meson'                 'ninja'
-    'glslang'
+    'glslang'               'wget'
 )
 if [[ $_use_dxvk == true ]]; then
   makedepends=("${makedepends[@]}" wine)
