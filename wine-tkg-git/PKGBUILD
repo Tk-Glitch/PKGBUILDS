@@ -10,6 +10,8 @@ _esyncsrcdir='esync'
 _dxvksrcdir='dxvk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
+cp "$_where"/wine-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+
 source "$_where"/customization.cfg # load default configuration from file
 
 # Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
@@ -844,6 +846,10 @@ if [ $_NUKR == "true" ]; then
   rm -rf "$srcdir"/*.conf
   msg2 'exit cleanup done'
 fi
+
+  # Remove temporarily copied patches
+  rm -rf "$_where"/*.patch
+  rm -rf "$_where"/*.conf
 }
 
 trap exit_cleanup EXIT
