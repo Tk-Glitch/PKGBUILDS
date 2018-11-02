@@ -8146,14 +8146,7 @@ index 461ac56ffe..8d4a25d775 100644
   *
   * This library is free software; you can redistribute it and/or
   * modify it under the terms of the GNU Lesser General Public
-@@ -17,30 +18,27 @@
-  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
-  */
- 
-+#include "config.h"
-+
- #include <stdarg.h>
- 
+@@ -23,25 +23,20 @@
  #define NONAMELESSUNION
  #define COBJMACROS
  
