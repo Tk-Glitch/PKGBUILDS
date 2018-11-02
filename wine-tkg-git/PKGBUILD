@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.19.r3.ga423a708
-pkgrel=80
+pkgrel=81
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -218,6 +218,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
+		'esync-staging-fixes-r3.patch' # For 3.20+
 		'esync-compat-fixes-r1.patch'  # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-compat-fixes-r1.1.patch' # Addon for 3.14-3.16
 		'esync-compat-fixes-r2.patch' # For 3.17+
@@ -523,8 +524,15 @@ prepare() {
 
 	# esync
 	if [ $_use_esync == "true" ]; then
+	  if [ 0 -eq $(git log | grep 2600ecd4edfdb71097105c74312f83845305a4f2 > /dev/null 2> /dev/null; echo $?) ]; then # Esync ce79346
+	    if [ $_use_staging == "true" ]; then
+	      # fixes for esync patches to apply to staging
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-staging-fixes-r3.patch' && echo "Using esync staging 3.20+ compat fixes" >> "$_where"/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
-	  if [ 0 -eq $(git log | grep aec7befb5115d866724149bbc5576c7259fef820 > /dev/null 2> /dev/null; echo $?) ]; then # server: Avoid potential size overflow for empty object attributes
+	  elif [ 0 -eq $(git log | grep aec7befb5115d866724149bbc5576c7259fef820 > /dev/null 2> /dev/null; echo $?) ]; then # server: Avoid potential size overflow for empty object attributes
 	    if [ $_use_staging == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
@@ -812,6 +820,7 @@ md5sums=('SKIP'
          'a976b19df4e068c017e639f8a9d37c3e'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
+         'ccb629f59c368ceaa2950020ec9a58bb'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
          'c4b104892b0501781789aadc5a95b261'
