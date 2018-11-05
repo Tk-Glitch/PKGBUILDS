@@ -36601,7 +36601,7 @@ index 041f3a022122..5ed70eb1ad3a 100644
  menu "General setup"
  
 +config ZENIFY
-+	bool "Tune kernel for interactivity"
++	bool "A selection of patches from Zen/Liquorix kernel and additional tweaks for a better gaming experience"
 +	default y
 +	help
 +	  Tunes the kernel for responsiveness at the cost of throughput and power usage.
