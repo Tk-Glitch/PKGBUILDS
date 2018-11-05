@@ -25,7 +25,7 @@ _basever=419
 pkgbase=linux${_basever}${TkGExt}
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=0
+_sub=1
 pkgver=${_basekernel}.${_sub}
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -40,8 +40,8 @@ else
   options=('!strip' 'makeflags')
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
-        #"https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
-        #"aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}.11+"
+        "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
+        "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
         'config.x86_64' # arch config with minor tweaks
         'linux419-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -61,6 +61,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-add-acs-overrides_iommu.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
+            'bc426a43063b0bf5f9bc59be969338e34276e4a0dbbdb50914beae59a28a3fc1'
+            'SKIP'
             '92dbbc76553e32f8c5f8b3f5c5be61ed3d86166f5634ea47739e9f4ec2d1151b'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -70,7 +72,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
             '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
-            'abd480af2d06145977a254f10d8ee7f87ec2eb9327854792305379beebd100d2'
+            '5d02a03d70cfb03c6e3d8e91a5e27ad2d08054c24cebd0b175242026fc573603'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
@@ -83,22 +85,22 @@ prepare() {
   ln -s "${where}/cpuschedset" "${srcdir}" # workaround for non-pure Arch
 
   # AUFS
-#  cd "${srcdir}/aufs"
-#  rm -v -f $(find . -type f -name '*.orig')
-#  rm -rf "../tmp/linux-${_basekernel}"
-#  mkdir -p "../tmp/linux-${_basekernel}"
-#  cp -a fs "../tmp/linux-${_basekernel}"
-#  cp -a include "../tmp/linux-${_basekernel}"
-#  cp -a Documentation "../tmp/linux-${_basekernel}"
-#  rm "../tmp/linux-${_basekernel}/include/uapi/linux/Kbuild"
-#  cd "../tmp"
-#  diff -Naur null linux-${_basekernel}  | filterdiff | \
-#  sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-'"${_basekernel}"'-old\1|;s|^--- null.*|--- /dev/null|;\|linux-'"${_basekernel}"'/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs${_basekernel}.patch
-#  mv *patch* "${srcdir}"
-#  cd "${srcdir}/aufs"
-#  mv *patch* "${srcdir}"
-#  cd "${srcdir}"
-#  rm -rf tmp aufs
+  cd "${srcdir}/aufs"
+  rm -v -f $(find . -type f -name '*.orig')
+  rm -rf "../tmp/linux-${_basekernel}"
+  mkdir -p "../tmp/linux-${_basekernel}"
+  cp -a fs "../tmp/linux-${_basekernel}"
+  cp -a include "../tmp/linux-${_basekernel}"
+  cp -a Documentation "../tmp/linux-${_basekernel}"
+  rm "../tmp/linux-${_basekernel}/include/uapi/linux/Kbuild"
+  cd "../tmp"
+  diff -Naur null linux-${_basekernel}  | filterdiff | \
+  sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-'"${_basekernel}"'-old\1|;s|^--- null.*|--- /dev/null|;\|linux-'"${_basekernel}"'/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs${_basekernel}.patch
+  mv *patch* "${srcdir}"
+  cd "${srcdir}/aufs"
+  mv *patch* "${srcdir}"
+  cd "${srcdir}"
+  rm -rf tmp aufs
 
   cd "${srcdir}/linux-${_basekernel}"
   
@@ -109,14 +111,14 @@ prepare() {
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
 
   # AUFS Patches
-#  patch -Np1 -i ../aufs${_basekernel}.patch
-#  patch -Np1 -i ../aufs4-base.patch
-#  patch -Np1 -i ../aufs4-kbuild.patch
-#  patch -Np1 -i ../aufs4-loopback.patch
-#  patch -Np1 -i ../aufs4-mmap.patch
-#  patch -Np1 -i ../aufs4-standalone.patch
-#  patch -Np1 -i ../tmpfs-idr.patch
-#  patch -Np1 -i ../vfs-ino.patch
+  patch -Np1 -i ../aufs${_basekernel}.patch
+  patch -Np1 -i ../aufs4-base.patch
+  patch -Np1 -i ../aufs4-kbuild.patch
+  patch -Np1 -i ../aufs4-loopback.patch
+  patch -Np1 -i ../aufs4-mmap.patch
+  patch -Np1 -i ../aufs4-standalone.patch
+  patch -Np1 -i ../tmpfs-idr.patch
+  patch -Np1 -i ../vfs-ino.patch
 
   # TkG
   patch -Np1 -i ../0002-pci-pme-wakeups.patch
