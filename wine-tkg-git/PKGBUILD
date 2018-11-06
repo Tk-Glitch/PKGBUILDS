@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.19.r4.gac5710e7
-pkgrel=83
+pkgver=3.19.r6.ge4a3b5fc
+pkgrel=84
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -814,7 +814,7 @@ md5sums=('SKIP'
          'a976b19df4e068c017e639f8a9d37c3e'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
-         'ccb629f59c368ceaa2950020ec9a58bb'
+         '3b6ad01382954b0c8baa5e6a1449d953'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
          'c4b104892b0501781789aadc5a95b261'
