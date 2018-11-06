@@ -23,7 +23,6 @@ With other patches available such as :
 - Fortnite crash fix - https://github.com/Guy1524/fortnite-wine - "Working once every fortnite" ~FeetOnGrass
 - Fallout 4 and Skyrim SE Script Extender fix - https://github.com/hdmap/wine-hackery/tree/master/f4se
 - Fallout 4 Direct sound fix - https://bugs.winehq.org/show_bug.cgi?id=41271
-- Final Fantasy XIV/Crysis 3/Warframe (...) mouse jitter fix
 - Winepulse disable patch (fix for various sound issues related to winepulse/pulsaudio)
 - Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency
 - Use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server

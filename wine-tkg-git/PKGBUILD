@@ -486,12 +486,6 @@ prepare() {
 	  patch -Np1 < ../'halo-blackiness-fix.patch' && echo "Applied Halo Online black vertices fix" >> "$_where"/last_build_config.log
 	fi
 
-	# FFXIV mouse jitter fix
-	if [ $_ffxiv_mouse_patch == "true" ] && [ $_use_staging == "true" ]; then
-	  _ffxiv_mouse_fix="-W server-send_hardware_message"
-	  echo "Applied FFXIV mouse jittering fix" >> "$_where"/last_build_config.log
-	fi
-
 	# Disable winepulse pulseaudio patchset
 	if [ $_staging_pulse_disable == "true" ] && [ $_use_staging == "true" ]; then
 	  _winepulse_disable="-W winepulse-PulseAudio_Support"
@@ -516,7 +510,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_faudio $_ffxiv_mouse_fix $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_faudio $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
