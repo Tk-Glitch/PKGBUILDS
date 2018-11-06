@@ -223,6 +223,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r1.1.patch' # Addon for 3.14-3.16
 		'esync-compat-fixes-r2.patch' # For 3.17+
 		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+ - non-staging only
+		'esync-compat-fixes-r3.patch' # For 3.20+
 		'esync-no_alloc_handle.patch'
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -525,6 +526,10 @@ prepare() {
 	      patch -Np1 < ../'esync-staging-fixes-r3.patch' && echo "Using esync staging 3.20+ compat fixes" >> "$_where"/last_build_config.log
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
+
+	    cd "${srcdir}"/"${_esyncsrcdir}"
+	    patch -Np1 < ../'esync-compat-fixes-r3.patch' && echo "Using esync 3.20+ compat fixes" >> "$_where"/last_build_config.log
+	    cd "${srcdir}"/"${_winesrcdir}"
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
 	  elif [ 0 -eq $(git log | grep aec7befb5115d866724149bbc5576c7259fef820 > /dev/null 2> /dev/null; echo $?) ]; then # server: Avoid potential size overflow for empty object attributes
 	    if [ $_use_staging == "true" ]; then
@@ -814,11 +819,12 @@ md5sums=('SKIP'
          'a976b19df4e068c017e639f8a9d37c3e'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
-         '3b6ad01382954b0c8baa5e6a1449d953'
+         '374ffc1d29488dd3fdac7d01f55964d4'
          '3a263a0f6211287af53ea7db79b1f34f'
          '4e1b9cc09a01749c07230c7241526371'
          'c4b104892b0501781789aadc5a95b261'
          'e32c770f6aa964e6093fe734c7dd6c0a'
+         'd86e0feaeb690efe521ac3cc852fac12'
          '46f612602ee7698b840a4e757194cfa7'
          '9fc474e08b6e312333aac6bea9319dd6'
          'b76d64af20e1026f0303cc8cb5835815'
