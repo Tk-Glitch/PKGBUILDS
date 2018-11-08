@@ -7,26 +7,26 @@
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
 # CPU SCHED selector
-if [ ! -e $where/cpuschedset ]; then
+if [ ! -e "$where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
   read -p "`echo $'  > 1.PDS\n    2.CFS\nchoice[1-2?]: '`" CONDITION;
 #  if [ "$CONDITION" == "2" ]; then
-#    echo "TkGExt=\"-tkg-muqss\"" > $where/cpuschedset
+#    echo "TkGExt=\"-tkg-muqss\"" > "$where"/cpuschedset
   if [ "$CONDITION" == "2" ]; then
-    echo "TkGExt=\"-tkg-cfs\"" > $where/cpuschedset
+    echo "TkGExt=\"-tkg-cfs\"" > "$where"/cpuschedset
   else
-    echo "TkGExt=\"-tkg-pds\"" > $where/cpuschedset
+    echo "TkGExt=\"-tkg-pds\"" > "$where"/cpuschedset
   fi
 fi
 
-source $where/cpuschedset
+source "$where"/cpuschedset
 
 _basever=419
-pkgbase=linux${_basever}${TkGExt}
+pkgbase=linux"${_basever}""${TkGExt}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=1
-pkgver=${_basekernel}.${_sub}
+pkgver="${_basekernel}"."${_sub}"
 pkgrel=2
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -105,13 +105,13 @@ prepare() {
   cd "${srcdir}/linux-${_basekernel}"
   
   # add upstream patch
-  patch -p1 -i ../patch-${pkgver}
+  patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
 
   # AUFS Patches
-  patch -Np1 -i ../aufs${_basekernel}.patch
+  patch -Np1 -i ../aufs"${_basekernel}".patch
   patch -Np1 -i ../aufs4-base.patch
   patch -Np1 -i ../aufs4-kbuild.patch
   patch -Np1 -i ../aufs4-loopback.patch
@@ -227,7 +227,7 @@ build() {
   cd "${srcdir}/linux-${_basekernel}"
 
   # build!
-  time schedtool -B -n 1 -e ionice -n 1 make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+  time schedtool -B -n 1 -e ionice -n 1 make "${MAKEFLAGS}" LOCALVERSION= bzImage modules
 }
 
 hackbase() {
@@ -263,7 +263,7 @@ hackbase() {
     install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_extramodules}/version"
 
   # remove build and source links
-  rm "${pkgdir}"/usr/lib/modules/${_kernver}/{source,build}
+  rm "${pkgdir}"/usr/lib/modules/"${_kernver}"/{source,build}
 
   # now we call depmod...
   depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
@@ -280,10 +280,10 @@ hackbase() {
 
   # hack to allow specifying an initially nonexisting install file
   sed "${_subst}" "${startdir}/${install}" > "${startdir}/${install}.pkg"
-  true && install=${install}.pkg
+  true && install="${install}".pkg
 
   # install mkinitcpio preset file
-  sed "${_subst}" ${srcdir}/linux${_basever}-tkg.preset |
+  sed "${_subst}" "${srcdir}"/linux"${_basever}"-tkg.preset |
     install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 
   # install pacman hooks
@@ -357,8 +357,7 @@ hackheaders() {
     /usr/bin/strip ${_strip} "${_binary}"
   done < <(find "${_builddir}/scripts" -type f -perm -u+w -print0 2>/dev/null)
 
-  rm -rf $srcdir # Nuke the entire src folder so it'll get regenerated clean on next build
-  rm -v $where/cpuschedset # state tracker end
+  rm -rf "$srcdir" # Nuke the entire src folder so it'll get regenerated clean on next build
 }
 
 package_linux419-tkg-pds() {
@@ -385,5 +384,11 @@ package_linux419-tkg-cfs-headers() {
 hackheaders
 }
 
-# Remove the state tracker on failed/stopped compilation
-trap "{ rm -f $where/cpuschedset; rm -f $srcdir/cpuschedset; }" EXIT
+function exit_cleanup {
+  # Remove the state tracker on failed/stopped compilation
+  rm -fv "$where"/cpuschedset
+  rm -fv "$srcdir"/cpuschedset
+  msg2 'exit cleanup done'
+}
+
+trap exit_cleanup EXIT
