@@ -1,0 +1,13 @@
+diff --git a/dlls/ntdll/thread.c b/wine.patched/dlls/ntdll/thread.c
+index c4e02da..53a796e 100644
+--- a/dlls/ntdll/thread.c
++++ b/dlls/ntdll/thread.c
+@@ -929,7 +929,7 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
+ 
+     if (ret == STATUS_PENDING)
+     {
+-        for (i = 0; i < 100; i++)
++        for (i = 0; i < 1000; i++)
+         {
+             SERVER_START_REQ( get_thread_context )
+             {
