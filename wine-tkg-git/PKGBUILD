@@ -3,7 +3,6 @@
 pkgname=wine-tkg-git
 pkgver=3.20.r0.ga1b38470
 pkgrel=85
-
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
