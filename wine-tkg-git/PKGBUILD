@@ -591,13 +591,13 @@ prepare() {
 	  patch -Np1 < ../'fortnite.patch' && echo "Applied Fortnite crashfix" >> "$_where"/last_build_config.log
 	fi
 
-  # MTGA fix
+	# MTGA fix
 	if [ $_mtga_fix == "true" ]; then
-      if [ $_use_staging == "true" ]; then
-        patch -Np1 < ../'mtga-staging.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
-      else
-	       patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
-      fi
+		if [ $_use_staging == "true" ]; then
+			patch -Np1 < ../'mtga-staging.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
+		else
+			patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
+		fi
 	fi
 
 	# apply wine-pba patches
