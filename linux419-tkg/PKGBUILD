@@ -227,7 +227,7 @@ build() {
   cd "${srcdir}/linux-${_basekernel}"
 
   # build!
-  time schedtool -B -n 1 -e ionice -n 1 make "${MAKEFLAGS}" LOCALVERSION= bzImage modules
+  time schedtool -B -n 1 -e ionice -n 1 make ${MAKEFLAGS} LOCALVERSION= bzImage modules
 }
 
 hackbase() {
