@@ -214,8 +214,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'f4skyrimse-fix.patch' # Fo4 & Skyrim SE Script Extender fix
 		'fallout4.patch' # Fallout 4 dsound fix
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
-		'mtga.patch'
-		'mtga-staging.patch'
+		'mtga.patch' # Magic The Gathering: Arena crashfix
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -476,6 +475,11 @@ prepare() {
 	  patch -Np1 < ../'fallout4.patch' && echo "Applied Fallout 4 Dsound workaround" >> "$_where"/last_build_config.log
 	fi
 
+	# Magic The Gathering: Arena crash fix
+	if [ $_mtga_fix == "true" ]; then
+	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
+	fi
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $_steam_fix == "true" ]; then
@@ -589,15 +593,6 @@ prepare() {
 	# Fortnite Fix - Currently not working anymore
 	if [ $_fortnite_fix == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch' && echo "Applied Fortnite crashfix" >> "$_where"/last_build_config.log
-	fi
-
-	# MTGA fix
-	if [ $_mtga_fix == "true" ]; then
-		if [ $_use_staging == "true" ]; then
-			patch -Np1 < ../'mtga-staging.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
-		else
-			patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
-		fi
 	fi
 
 	# apply wine-pba patches
@@ -820,7 +815,6 @@ md5sums=('SKIP'
          'ecada2fc8abda49c6bb788c25f05a822'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
-         'c730ad48f0c2dbc148f6bbf90567427a'
          '85c8f0db6895ad7c2868afd367439b4d'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
