@@ -32,7 +32,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=396.54.09
-pkgrel=16
+pkgrel=17
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -141,8 +141,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         _dpatch=$(echo $_dp | grep -Po "\d+\.\d+")
 
         if (( $(vercmp "$_kernel" "$_dpatch") >= 0 )); then
-          msg2 "Applying $_dp for $_kernel..."
-          patch -Np1 < "$where"/$_dp
+          _dkms_patch="1" # 4.19 kernel detected
         else
            msg2 "Skipping $_dp..."  # List these, instead of ignoring silently
         fi
@@ -150,6 +149,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     fi
 
   done
+
+  # Patch the dkms tree for 4.19 when detected
+  if [ "$_dkms_patch" == "1" ]; then
+    msg2 "Applying $_dp for dkms on 4.19 kernel(s)..."
+    patch -Np1 < "$where"/$_dp
+  fi
 }
 
 build() {
