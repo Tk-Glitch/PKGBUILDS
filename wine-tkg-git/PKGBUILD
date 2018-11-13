@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.20.r0.ga1b38470
-pkgrel=85
+pkgver=3.20.r1.g84f6fd6c
+pkgrel=86
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -243,6 +243,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'dxvk-winelib.patch' # Enables DXVK winelib building
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch'
+		'valve_proton_fullscreen_hack-staging.patch'
 )
 
 if [[ $_INSTALL_TO_OPT != true ]]; then
@@ -637,6 +638,11 @@ prepare() {
 	  _withd3d9nine='--with-d3d9-nine'
 	fi
 
+	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
+	if [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ]; then
+	  patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	fi
+
 	# wine user patches
 	if [ $_user_patches == "true" ]; then
 	  _userpatch_target="plain-wine"
@@ -840,7 +846,8 @@ md5sums=('SKIP'
          '78ea7fa80abd8beb6e2afac27deb938f'
          'd328bfd0d363434fe5f83f3a614849f7'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
-         'a14ecda90103c476b486c187beebf7ad')
+         'a14ecda90103c476b486c187beebf7ad'
+         'b712b61af7ecfe09ecfced5fc2a9ea13')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_COINMINER # state tracker end
