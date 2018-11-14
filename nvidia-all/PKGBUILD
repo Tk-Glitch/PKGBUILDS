@@ -32,7 +32,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=415.13
-pkgrel=10
+pkgrel=11
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -195,12 +195,14 @@ package_nvidia-utils-tkg() {
 
     # GLX extension module for X
     install -D -m755 "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.${pkgver}"
-    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so.1"	# X doesn't find glx otherwise
-    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so"	# X doesn't find glx otherwise
+    # Ensure that X finds glx
+    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.1"
+    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so"
+
+    # X wrapped software rendering
+    install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
 
     install -D -m755 "libGLX_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/libGLX_nvidia.so.${pkgver}"
-    # now in mesa driver
-    #ln -s "libGLX_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/libGLX_indirect.so.0"
 
     # OpenGL libraries
     install -D -m755 "libEGL_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/libEGL_nvidia.so.${pkgver}"
@@ -235,7 +237,6 @@ package_nvidia-utils-tkg() {
 
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-tls.so.${pkgver}"
-    #install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/tls/libnvidia-tls.so.${pkgver}"
     
     # CUDA
     install -D -m755 "libcuda.so.${pkgver}" "${pkgdir}/usr/lib/libcuda.so.${pkgver}"
@@ -353,6 +354,7 @@ package_nvidia-tkg() {
   done
 
   # Blacklist Nouveau
+  mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
 	rm -v ${where}/options
@@ -411,7 +413,6 @@ package_lib32-nvidia-utils-tkg() {
 
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-tls.so.${pkgver}"
-    #install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib32/tls/libnvidia-tls.so.${pkgver}"
 
     # CUDA
     install -D -m755 "libcuda.so.${pkgver}" "${pkgdir}/usr/lib32/libcuda.so.${pkgver}"
@@ -444,6 +445,7 @@ package_nvidia-dkms-tkg() {
     cp -dr --no-preserve='ownership' kernel-dkms "${pkgdir}/usr/src/nvidia-${pkgver}"
 
   # Blacklist Nouveau
+  mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
