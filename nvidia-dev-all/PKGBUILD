@@ -153,7 +153,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
   # Patch the dkms tree for 4.19 when detected
   if [ "$_dkms_patch" == "1" ]; then
     msg2 "Applying $_dp for dkms on 4.19 kernel(s)..."
-    patch -Np1 < "$where"/$_dp
+    patch -Np1 < "$where"/"$_dp"
   fi
 }
 
@@ -212,7 +212,7 @@ package_nvidia-utils-dev-tkg() {
   conflicts=('nvidia-utils' 'nvidia-settings' 'nvidia-libgl')
   backup=('etc/X11/xorg.conf.d/20-nvidia.conf')
   install=$pkgname.install
-  cd $_pkg
+  cd "$_pkg"
 
     # X driver
     install -D -m755 nvidia_drv.so "${pkgdir}/usr/lib/xorg/modules/drivers/nvidia_drv.so"
@@ -372,9 +372,10 @@ package_nvidia-dev-tkg() {
   done
 
   # Blacklist Nouveau
+  mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
-	rm -v ${where}/options
+	rm -v "${where}"/options
 }
 fi
 
@@ -463,10 +464,11 @@ package_nvidia-dev-dkms-tkg() {
     cp -dr --no-preserve='ownership' kernel-dkms "${pkgdir}/usr/src/nvidia-${pkgver}"
 
   # Blacklist Nouveau
+  mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
 
-	rm -v ${where}/options
+	rm -v "${where}"/options
 }
 fi
