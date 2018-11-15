@@ -75,7 +75,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '5d02a03d70cfb03c6e3d8e91a5e27ad2d08054c24cebd0b175242026fc573603'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             '395be2297dcf632c661f4a0a7e9a8c8a08677d3e312d911d9d9fe2a6be2d5588'
-            'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
+            'a6cbac638ba16276413d5d1056aae3dfa666e5572d951b268c67588e77a7f054'
             '665713c3720a96d4b755e7c940a244fc2d727b7855630c033fa7db19990c7a68'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8')
 
@@ -387,7 +387,7 @@ hackheaders
 function exit_cleanup {
   # Remove the state tracker on failed/stopped compilation
   rm -f "$where"/cpuschedset
-  rm -f "$srcdir"/cpuschedset
+  rm -rf "$srcdir"/*
   msg2 'exit cleanup done'
 }
 

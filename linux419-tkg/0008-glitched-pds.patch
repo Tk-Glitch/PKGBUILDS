@@ -86,15 +86,3 @@ index f27383bb3a423..7437ca5dccdbb 100644
  int rr_interval __read_mostly = SCHED_DEFAULT_RR;
  
  static int __init rr_interval_set(char *str)
-@@ -156,7 +160,11 @@ static const u64 sched_prio2deadline[NICE_WIDTH] = {
-  * are allowed to run five seconds as real time tasks. This is the total over
-  * all online cpus.
-  */
-+#ifdef CONFIG_ZENIFY
-+int sched_iso_cpu __read_mostly = 25;
-+#else
- int sched_iso_cpu __read_mostly = 70;
-+#endif
- 
- /**
-  * sched_yield_type - Choose what sort of yield sched_yield will perform.
