@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.20.r1.g84f6fd6c
-pkgrel=86
+pkgver=3.20.r9.g9d04d98e
+pkgrel=87
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -40,7 +40,7 @@ else
       msg2 'some or all of its values.'
     fi
     msg2 ''
-    msg2 'Set _OPTIMIZED to "false" if you want to share the package !'
+    msg2 'Set _LOCAL_OPTIMIZED to "false" if you want to share the package !'
     msg2 ''
     msg2 "Current path is '$_where'"
     msg2 ''
@@ -92,9 +92,11 @@ else
     msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
   fi
 
-  if [[ $_OPTIMIZED == "true" ]]; then
+  if [[ $_LOCAL_OPTIMIZED == "true" ]]; then
     pkgname="${pkgname/%-git/-optimized-git}"
     msg2 "Using native processor optimizations"
+  else
+    msg2 "Using makepkg.conf optimization flags"
   fi
 fi
 
@@ -400,7 +402,7 @@ prepare() {
 	  export CC="clang"
 	  export CXX="clang++"
 	  echo "Using clang compiler" >> "$_where"/last_build_config.log
-	  if [ $_OPTIMIZED == 'true' ]; then
+	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
@@ -408,7 +410,7 @@ prepare() {
 	  export CC="zapcc"
 	  export CXX="zapcc++"
 	  echo "Using zapcc compiler" >> "$_where"/last_build_config.log
-	  if [ $_OPTIMIZED == 'true' ]; then
+	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
@@ -416,22 +418,24 @@ prepare() {
 	  export CC="gcc-7"
 	  export CXX="g++-7"
 	  echo "Using gcc7 compiler" >> "$_where"/last_build_config.log
-	  if [ $_OPTIMIZED == 'true' ]; then
+	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-march=native -pipe -Os"
 	    export LDFLAGS="-Os"
 	  fi
 	else
 	  echo "Using gcc compiler" >> "$_where"/last_build_config.log
-	  if [ $_OPTIMIZED == 'true' ]; then
+	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	    export COMMON_FLAGS="-march=native -pipe -Os"
 	    export LDFLAGS="-Os"
 	  fi
 	fi
 
-	if [ $_OPTIMIZED == 'true' ]; then
+	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	  export CFLAGS="${COMMON_FLAGS}"
 	  export CXXFLAGS="${COMMON_FLAGS}"
-	  echo "With native optimizations" >> "$_where"/last_build_config.log
+	  echo "With predefined optimizations (including -march=native)" >> "$_where"/last_build_config.log
+	else
+	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
 	fi
 
 	echo "" >> "$_where"/last_build_config.log
@@ -726,8 +730,14 @@ build() {
 		#--disable-tests
 		# Gstreamer was disabled for FS#33655
 
-    # make using all available threads
-	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	  # make using all available threads
+	  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	else
+	  # make using makepkg settings
+	  schedtool -B -n 1 -e ionice -n 1 make
+	fi
+
 
 	# build wine 32-bit
 	export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
@@ -744,8 +754,13 @@ build() {
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
 		#--disable-tests
 
-    # make using all available threads
-	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	  # make using all available threads
+	  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	else
+	  # make using makepkg settings
+	  schedtool -B -n 1 -e ionice -n 1 make
+	fi
 
 	# Build DXVK winelib
 	if [ $_use_dxvk == "true" ]; then
