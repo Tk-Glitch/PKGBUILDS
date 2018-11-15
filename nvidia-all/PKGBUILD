@@ -14,11 +14,20 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
+  read -p "What driver version do you want?`echo $'\n> 1.415.13 beta\n  2.410.78 stable\nchoice[1-2?]: '`" CONDITION;
+    if [ "$CONDITION" == "2" ]; then
+      echo '_driver_version=410.78' > options
+      echo '_md5sum=5486d21e82fe16b88f43363981dc09d4' >> options
+    else
+      echo '_driver_version=415.13' > options
+      echo '_md5sum=68f0aea15f4d7017480de04b9590b8e5' >> options
+    fi
+# Package type selector
   read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
-      echo '_dkms="0"' > options
+      echo '_dkms="0"' >> options
     else
-      echo '_dkms="1"' > options
+      echo '_dkms="1"' >> options
     fi
 fi
 
@@ -31,8 +40,8 @@ else
 fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
-pkgver=415.13
-pkgrel=11
+pkgver=$_driver_version
+pkgrel=12
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -47,11 +56,11 @@ source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'kernel-4.16.patch')
-md5sums=('68f0aea15f4d7017480de04b9590b8e5'
+md5sums=('SKIP'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '84f1f2ecdccf377fc86323f8ad7b7469')
-[ "$_pkg" == "NVIDIA-Linux-x86_64-$pkgver" ] && md5sums[0]='68f0aea15f4d7017480de04b9590b8e5'
+[ "$_pkg" == "NVIDIA-Linux-x86_64-410.78" ] && [ "$_md5sum" == "5486d21e82fe16b88f43363981dc09d4" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-415.13" ] && [ "$_md5sum" == "68f0aea15f4d7017480de04b9590b8e5" ]
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
@@ -453,3 +462,12 @@ package_nvidia-dkms-tkg() {
 	rm -v ${where}/options
 }
 fi
+
+function exit_cleanup {
+  # Sanitization
+  rm -f "$where"/options
+  rm -rf "$where"/src/*
+  msg2 'exit cleanup done'
+}
+
+trap exit_cleanup EXIT
