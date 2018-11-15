@@ -9,10 +9,10 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 # CPU SCHED selector
 if [ ! -e "$where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -p "`echo $'  > 1.PDS\n    2.CFS\nchoice[1-2?]: '`" CONDITION;
-#  if [ "$CONDITION" == "2" ]; then
-#    echo "TkGExt=\"-tkg-muqss\"" > "$where"/cpuschedset
+  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-2?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
+    echo "TkGExt=\"-tkg-muqss\"" > "$where"/cpuschedset
+  elif [ "$CONDITION" == "3" ]; then
     echo "TkGExt=\"-tkg-cfs\"" > "$where"/cpuschedset
   else
     echo "TkGExt=\"-tkg-pds\"" > "$where"/cpuschedset
@@ -55,7 +55,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0005-perf.patch
         0006-glitched-base.patch
         0007-glitched-muqss.patch
-        0007-patch-4.18-ck1
+        0007-patch-4.19-ck1
         0008-glitched-pds.patch
         0008-v4.19_pds099c.patch
         0009-add-acs-overrides_iommu.patch
@@ -74,7 +74,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
             '5d02a03d70cfb03c6e3d8e91a5e27ad2d08054c24cebd0b175242026fc573603'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
-            '15e4195621e8c66ee79714fd4753a7b757f524192ac1e9895389fcc70853ceb8'
+            '395be2297dcf632c661f4a0a7e9a8c8a08677d3e312d911d9d9fe2a6be2d5588'
             'caa29c3ad491107e534de1556e72ed70fc1c1e4949f878047dbe83456ddb51cd'
             '94843f75e28b7beaf5ab8efc2b651fa7423b707b108f65a1fde4c51d959b9d03'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8')
@@ -130,7 +130,7 @@ prepare() {
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
-    patch -Np1 -i ../0007-patch-4.18-ck1
+    patch -Np1 -i ../0007-patch-4.19-ck1
     patch -Np1 -i ../0007-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
