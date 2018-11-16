@@ -41,7 +41,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=12
+pkgrel=13
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -246,7 +246,11 @@ package_nvidia-utils-tkg() {
 
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-tls.so.${pkgver}"
-    
+
+    if [ "$pkgver" == "410.78" ]; then
+      install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/tls/libnvidia-tls.so.${pkgver}"
+    fi
+
     # CUDA
     install -D -m755 "libcuda.so.${pkgver}" "${pkgdir}/usr/lib/libcuda.so.${pkgver}"
     install -D -m755 "libnvcuvid.so.${pkgver}" "${pkgdir}/usr/lib/libnvcuvid.so.${pkgver}"
@@ -423,6 +427,10 @@ package_lib32-nvidia-utils-tkg() {
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-tls.so.${pkgver}"
 
+    if [ "$pkgver" == "410.78" ]; then
+      install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib32/tls/libnvidia-tls.so.${pkgver}"
+    fi
+
     # CUDA
     install -D -m755 "libcuda.so.${pkgver}" "${pkgdir}/usr/lib32/libcuda.so.${pkgver}"
     install -D -m755 "libnvcuvid.so.${pkgver}" "${pkgdir}/usr/lib32/libnvcuvid.so.${pkgver}"
@@ -459,14 +467,14 @@ package_nvidia-dkms-tkg() {
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
 
-	rm -v ${where}/options
+	rm -fv "${where}"/options
 }
 fi
 
 function exit_cleanup {
   # Sanitization
-  rm -f "$where"/options
-  rm -rf "$where"/src/*
+  rm -f "${where}"/options
+  rm -rf "${where}"/src/*
   msg2 'exit cleanup done'
 }
 
