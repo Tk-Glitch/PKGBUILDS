@@ -862,7 +862,7 @@ md5sums=('SKIP'
          'd328bfd0d363434fe5f83f3a614849f7'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          'a14ecda90103c476b486c187beebf7ad'
-         'b712b61af7ecfe09ecfced5fc2a9ea13')
+         'f9797a9b65087b37022d9e92e49b6080')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_COINMINER # state tracker end
