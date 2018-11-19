@@ -227,7 +227,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r2.patch' # For 3.17+
 		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+ - non-staging only
 		'esync-compat-fixes-r3.patch' # For 3.20+
-		'esync-no_alloc_handle.patch'
+		'esync-no_alloc_handle.patch' # esync staging extended support patch
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
 		'PBA314+.patch' # For 3.14-3.16
@@ -237,16 +237,16 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA320+.patch' # For 3.19+ (devel)
 		# misc
 		'steam.patch' # auto-append --no-sandbox
-		'30-win32-aliases.conf'
+		'30-win32-aliases.conf' # 32-bit font antialiasing
 		'use_clock_monotonic.patch' # Perf
-		'lowlatency_audio.patch'
-		'wine-binfmt.conf'
-		'CSMT-toggle.patch'
+		'lowlatency_audio.patch' # wine osu! lowlat patch
+		'wine-binfmt.conf' # Enables launching windows executables directly
+		'CSMT-toggle.patch' # Corrected CSMT switch logic
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'dxvk-winelib.patch' # Enables DXVK winelib building
 		'FS_bypass_compositor.patch' # Perf
-		'faudio-exp.patch'
-		'valve_proton_fullscreen_hack-staging.patch'
+		'faudio-exp.patch' # Faudio experimental support
+		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
 )
 
 if [[ $_INSTALL_TO_OPT != true ]]; then
