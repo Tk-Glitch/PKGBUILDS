@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.20.r9.g9d04d98e
-pkgrel=87
+pkgver=3.20.r14.gf215d139
+pkgrel=88
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -217,6 +217,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fallout4.patch' # Fallout 4 dsound fix
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
+		'sims_4_PathCchCanonicalizeEx.patch' # Sims 4 fix
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -485,6 +486,12 @@ prepare() {
 	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
 	fi
 
+	# PathCchCanonicalizeEx patch, needed for "The Sims 4" to work - replaces staging partial implementation
+	if [ $_sims4_fix == "true" ]; then
+	  _sims4="-W kernelbase-PathCchCombineEx"
+	  patch -Np1 < ../'sims_4_PathCchCanonicalizeEx.patch' && echo "Applied The Sims 4 fix" >> "$_where"/last_build_config.log
+	fi
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ $_steam_fix == "true" ]; then
@@ -515,7 +522,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_faudio $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims4 $_faudio $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
@@ -837,6 +844,7 @@ md5sums=('SKIP'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
          '85c8f0db6895ad7c2868afd367439b4d'
+         'ea3dc5f05071f8dce341b14ce622027e'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
