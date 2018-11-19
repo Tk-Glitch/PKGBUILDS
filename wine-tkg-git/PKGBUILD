@@ -486,7 +486,7 @@ prepare() {
 	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
 	fi
 
-	# PathCchCanonicalizeEx patch, needed for "The Sims 4" to work - replaces staging partial implementation
+	# PathCchCanonicalizeEx patch, needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
 	if [ $_sims4_fix == "true" ]; then
 	  _sims4="-W kernelbase-PathCchCombineEx"
 	  patch -Np1 < ../'sims_4_PathCchCanonicalizeEx.patch' && echo "Applied The Sims 4 fix" >> "$_where"/last_build_config.log
