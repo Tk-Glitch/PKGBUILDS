@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.20.r14.gf215d139
-pkgrel=88
+pkgrel=89
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -650,7 +650,10 @@ prepare() {
 	fi
 
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
-	if [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ]; then
+	if [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ] && [ $_FS_bypass_compositor == "true" ]; then
+	  patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	elif [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ] && [ $_FS_bypass_compositor == "false" ]; then # Force-enable FS_bypass_compositor patch if disabled as it's a dependency Proton Fullscreen patch
+	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" >> "$_where"/last_build_config.log
 	  patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
 	fi
 
