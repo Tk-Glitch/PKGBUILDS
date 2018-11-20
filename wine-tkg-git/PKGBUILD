@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.20.r14.gf215d139
-pkgrel=89
+pkgver=3.20.r16.g32dcf07c
+pkgrel=90
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -243,6 +243,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'wine-binfmt.conf' # Enables launching windows executables directly
 		'CSMT-toggle.patch' # Corrected CSMT switch logic
 		'launch-with-dedicated-gpu-desktop-entry.patch'
+		'plasma_systray_fix.patch' # Systray fix for winex11
 		'dxvk-winelib.patch' # Enables DXVK winelib building
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
@@ -450,6 +451,11 @@ prepare() {
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
 	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> "$_where"/last_build_config.log
+	fi
+
+	# Fixes (partially) systray on plasma 5 - https://bugs.winehq.org/show_bug.cgi?id=38409
+	if [ $_plasma_systray_fix == "true" ]; then
+	  patch -Np1 < ../'plasma_systray_fix.patch' && echo "Applied plasma 5 systray fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Bypass compositor in fullscreen mode - Reduces stuttering and improves performance
@@ -870,6 +876,7 @@ md5sums=('SKIP'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
          '78ea7fa80abd8beb6e2afac27deb938f'
+         '927f39348cd29ce9876871e4edb15a09'
          'd328bfd0d363434fe5f83f3a614849f7'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          'a14ecda90103c476b486c187beebf7ad'
