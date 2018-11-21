@@ -25,9 +25,9 @@ _basever=419
 pkgbase=linux"${_basever}""${TkGExt}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=2
+_sub=3
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -61,7 +61,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-add-acs-overrides_iommu.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            '51603f6bd4549f97d99a8c8f7e898f6f2b53b2347cb37ed404bf210e2f83f81d'
+            '26e4dc58f4943a95fd95ba7bbe5bcc9204e8fdc8209e2e44bba26821394992e8'
             'SKIP'
             '92dbbc76553e32f8c5f8b3f5c5be61ed3d86166f5634ea47739e9f4ec2d1151b'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
