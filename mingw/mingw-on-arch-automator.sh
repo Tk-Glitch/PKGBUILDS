@@ -5,7 +5,8 @@
 _where=$PWD
 _dwarf2=true
 _fortran=true
-_cloog_git=false
+_cloog_git=true
+_pgp_auto=true
 
  echo '#################################################################'
  echo ''
@@ -17,7 +18,16 @@ _cloog_git=false
 # cleanup
 echo "Cleaning up"
 rm -rf mingw-w64-*
-rm -rf cloog-git
+rm -rf cloo*
+rm -rf osl
+rm -rf isl
+
+# PGP keys
+if [ $_pgp_auto == "true" ]; then
+  gpg --recv-keys 13FCEF89DD9E3C4F
+  gpg --recv-keys 93BDB53CD4EBC740
+  gpg --recv-keys A328C3A2C3C45C06
+fi
 
 sudo pacman -Rscnd mingw-w64 --noconfirm
 
@@ -29,7 +39,24 @@ if [ $_cloog_git == "true" ]; then
   makepkg -si --noconfirm
   cd $_where
 else
-  sudo pacman -S cloog --noconfirm
+  # osl
+  git clone https://aur.archlinux.org/osl.git
+  cd osl
+  makepkg -si --noconfirm
+  cd $_where
+
+  #isl
+  git clone https://aur.archlinux.org/isl.git
+  cd isl
+  makepkg -si --noconfirm
+  cd $_where
+
+  # cloog
+  sudo pacman -Rscnd cloog --noconfirm
+  git clone https://aur.archlinux.org/cloog.git
+  cd cloog
+  makepkg -si --noconfirm
+  cd $_where
 fi
 
 # mingw-w64-binutils
@@ -95,10 +122,22 @@ fi
 makepkg -si --noconfirm
 cd $_where
 
+# mingw-w64-pkg-config
+git clone https://aur.archlinux.org/mingw-w64-pkg-config.git
+cd mingw-w64-pkg-config
+makepkg -si --noconfirm
+cd $_where
+
+# mingw-w64-configure
+git clone https://aur.archlinux.org/mingw-w64-configure.git
+cd mingw-w64-configure
+makepkg -si --noconfirm
+cd $_where
+
 # mingw-w64-sdl2
 git clone https://aur.archlinux.org/mingw-w64-sdl2.git
 cd mingw-w64-sdl2
 makepkg -si --noconfirm
 cd $_where
 
-echo "Done"
+echo "mingw-on-arch done"
