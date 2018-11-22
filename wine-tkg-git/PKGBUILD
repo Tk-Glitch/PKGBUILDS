@@ -717,7 +717,7 @@ prepare() {
 	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
 
 	# delete old build dirs (from previous builds)
-	rm	-rfv "${srcdir}"/wine-tkg-*-{32,64}-build
+	rm	-rf "${srcdir}"/wine-tkg-*-{32,64}-build
 
 	# no compilation
 	if [ $_NOCOMPILE == "true" ]; then
