@@ -12,8 +12,6 @@ index 0000000..40f2d53
 @@ -0,0 +1,48 @@
 +#!/bin/bash
 +
-+set -e
-+
 +if [ -z "$1" ] || [ -z "$2" ]; then
 +  echo "Usage: package-release-wine.sh version destdir [--no-package]"
 +  exit 1
@@ -53,6 +51,7 @@ index 0000000..40f2d53
 +  cp "$DXVK_BUILD_DIR/install.$1/lib/d3d11.dll.so" "$DXVK_BUILD_DIR/x$1/d3d11.dll.so"
 +  cp "$DXVK_BUILD_DIR/install.$1/lib/dxgi.dll.so" "$DXVK_BUILD_DIR/x$1/dxgi.dll.so"
 +
++  rm -R "$DXVK_BUILD_DIR/wine.$1"
 +  rm -R "$DXVK_BUILD_DIR/build.$1"
 +  rm -R "$DXVK_BUILD_DIR/install.$1"
 +}
