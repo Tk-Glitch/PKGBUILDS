@@ -1,5 +1,5 @@
 diff --git a/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec b/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec
-index 0524e7c304..796b57f457 100644
+index 0524e7c304..4f375e0c30 100644
 --- a/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec
 +++ b/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec
 @@ -1,22 +1,22 @@
@@ -10,12 +10,13 @@ index 0524e7c304..796b57f457 100644
  @ stdcall PathCchAddBackslash(wstr long) kernelbase.PathCchAddBackslash
  @ stdcall PathCchAddBackslashEx(wstr long ptr ptr) kernelbase.PathCchAddBackslashEx
  @ stdcall PathCchAddExtension(wstr long wstr) kernelbase.PathCchAddExtension
- @ stub PathCchAppend
+-@ stub PathCchAppend
 -@ stub PathCchAppendEx
 -@ stub PathCchCanonicalize
 -@ stub PathCchCanonicalizeEx
 -@ stub PathCchCombine
 -@ stub PathCchCombineEx
++@ stdcall PathCchAppend(wstr long wstr) kernelbase.PathCchAppend
 +@ stdcall PathCchAppendEx(wstr long wstr long) kernelbase.PathCchAppendEx
 +@ stdcall PathCchCanonicalize(ptr long wstr) kernelbase.PathCchCanonicalize
 +@ stdcall PathCchCanonicalizeEx(ptr long wstr long) kernelbase.PathCchCanonicalizeEx
@@ -41,7 +42,7 @@ index 0524e7c304..796b57f457 100644
 +@ stdcall PathCchStripToRoot(wstr long) kernelbase.PathCchStripToRoot
 +@ stdcall PathIsUNCEx(wstr ptr) kernelbase.PathIsUNCEx
 diff --git a/dlls/kernelbase/kernelbase.spec b/dlls/kernelbase/kernelbase.spec
-index 286dae0001..04023e31b6 100644
+index 286dae0001..d1bff9fec5 100644
 --- a/dlls/kernelbase/kernelbase.spec
 +++ b/dlls/kernelbase/kernelbase.spec
 @@ -1023,8 +1023,8 @@
@@ -55,15 +56,17 @@ index 286dae0001..04023e31b6 100644
  @ stdcall PathAppendA(str str) shlwapi.PathAppendA
  @ stdcall PathAppendW(wstr wstr) shlwapi.PathAppendW
  @ stdcall PathCanonicalizeA(ptr str) shlwapi.PathCanonicalizeA
-@@ -1033,21 +1033,21 @@
+@@ -1032,22 +1032,22 @@
+ @ stdcall PathCchAddBackslash(wstr long)
  @ stdcall PathCchAddBackslashEx(wstr long ptr ptr)
  @ stdcall PathCchAddExtension(wstr long wstr)
- # @ stub PathCchAppend
+-# @ stub PathCchAppend
 -# @ stub PathCchAppendEx
 -# @ stub PathCchCanonicalize
 -# @ stub PathCchCanonicalizeEx
 -# @ stub PathCchCombine
 -# @ stub PathCchCombineEx
++@ stdcall PathCchAppend(wstr long wstr)
 +@ stdcall PathCchAppendEx(wstr long wstr long)
 +@ stdcall PathCchCanonicalize(ptr long wstr)
 +@ stdcall PathCchCanonicalizeEx(ptr long wstr long)
@@ -99,7 +102,7 @@ index 286dae0001..04023e31b6 100644
  @ stdcall PathIsUNCServerShareA(str) shlwapi.PathIsUNCServerShareA
  @ stdcall PathIsUNCServerShareW(wstr) shlwapi.PathIsUNCServerShareW
 diff --git a/dlls/kernelbase/path.c b/dlls/kernelbase/path.c
-index 047017eb47..22eeb7e594 100644
+index 047017eb47..a1deb18551 100644
 --- a/dlls/kernelbase/path.c
 +++ b/dlls/kernelbase/path.c
 @@ -38,6 +38,341 @@ static SIZE_T strnlenW(const WCHAR *string, SIZE_T maxlen)
@@ -444,10 +447,17 @@ index 047017eb47..22eeb7e594 100644
  HRESULT WINAPI PathCchAddBackslash(WCHAR *path, SIZE_T size)
  {
      return PathCchAddBackslashEx(path, size, NULL, NULL);
-@@ -119,6 +454,120 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
+@@ -119,6 +454,127 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
      return S_OK;
  }
  
++HRESULT WINAPI PathCchAppend(WCHAR *path1, SIZE_T size, const WCHAR *path2)
++{
++    TRACE("%s %lu %s\n", wine_dbgstr_w(path1), size, wine_dbgstr_w(path2));
++
++    return PathCchAppendEx(path1, size, path2, PATHCCH_NONE);
++}
++
 +HRESULT WINAPI PathCchAppendEx(WCHAR *path1, SIZE_T size, const WCHAR *path2, DWORD flags)
 +{
 +    HRESULT hr;
@@ -565,7 +575,7 @@ index 047017eb47..22eeb7e594 100644
  HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR **extension)
  {
      const WCHAR *lastpoint = NULL;
-@@ -152,6 +601,93 @@ HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR
+@@ -152,6 +608,93 @@ HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR
      return S_OK;
  }
  
@@ -659,7 +669,7 @@ index 047017eb47..22eeb7e594 100644
  HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
  {
      const WCHAR *extension;
-@@ -171,6 +707,43 @@ HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
+@@ -171,6 +714,43 @@ HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
      return next == extension ? S_FALSE : S_OK;
  }
  
@@ -703,7 +713,7 @@ index 047017eb47..22eeb7e594 100644
  HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *extension)
  {
      HRESULT hr;
-@@ -183,3 +756,113 @@ HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *ext
+@@ -183,3 +763,113 @@ HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *ext
      hr = PathCchAddExtension(path, size, extension);
      return FAILED(hr) ? hr : S_OK;
  }
@@ -818,10 +828,10 @@ index 047017eb47..22eeb7e594 100644
 +    return result ? TRUE : FALSE;
 +}
 diff --git a/dlls/kernelbase/tests/path.c b/dlls/kernelbase/tests/path.c
-index 1d6f44ee76..7eff319ae4 100644
+index 1d6f44ee76..d7c075791b 100644
 --- a/dlls/kernelbase/tests/path.c
 +++ b/dlls/kernelbase/tests/path.c
-@@ -30,21 +30,340 @@
+@@ -30,21 +30,341 @@
  
  #include "wine/test.h"
  
@@ -830,6 +840,7 @@ index 1d6f44ee76..7eff319ae4 100644
  HRESULT (WINAPI *pPathCchAddBackslash)(WCHAR *out, SIZE_T size);
  HRESULT (WINAPI *pPathCchAddBackslashEx)(WCHAR *out, SIZE_T size, WCHAR **endptr, SIZE_T *remaining);
  HRESULT (WINAPI *pPathCchAddExtension)(WCHAR *path, SIZE_T size, const WCHAR *extension);
++HRESULT (WINAPI *pPathCchAppend)(WCHAR *path1, SIZE_T size, const WCHAR *path2);
 +HRESULT (WINAPI *pPathCchAppendEx)(WCHAR *path1, SIZE_T size, const WCHAR *path2, DWORD flags);
 +HRESULT (WINAPI *pPathCchCombine)(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2);
 +HRESULT (WINAPI *pPathCchCombineEx)(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2, DWORD flags);
@@ -1167,7 +1178,7 @@ index 1d6f44ee76..7eff319ae4 100644
  {
      /* normal paths */
      {"C:\\",  "a",     "C:\\a" },
-@@ -52,38 +371,197 @@ combine_test[] =
+@@ -52,38 +372,197 @@ combine_test[] =
      {"C:",    "a",     "C:\\a" },
      {"C:\\",  ".",     "C:\\" },
      {"C:\\",  "..",    "C:\\" },
@@ -1372,7 +1383,7 @@ index 1d6f44ee76..7eff319ae4 100644
  
      memset(output, 0xff, sizeof(output));
      hr = pPathCchCombineEx(output, 0, p1, p2, 0);
-@@ -100,6 +578,14 @@ static void test_PathCchCombineEx(void)
+@@ -100,6 +579,14 @@ static void test_PathCchCombineEx(void)
      ok(hr == STRSAFE_E_INSUFFICIENT_BUFFER, "Expected STRSAFE_E_INSUFFICIENT_BUFFER, got %08x\n", hr);
      ok(output[0] == 0x0, "Expected output buffer to contain NULL string\n");
  
@@ -1387,7 +1398,7 @@ index 1d6f44ee76..7eff319ae4 100644
      memset(output, 0xff, sizeof(output));
      hr = pPathCchCombineEx(output, 5, p1, p2, 0);
      ok(hr == S_OK, "Expected S_OK, got %08x\n", hr);
-@@ -107,11 +593,11 @@ static void test_PathCchCombineEx(void)
+@@ -107,11 +594,11 @@ static void test_PathCchCombineEx(void)
          "Combination of %s + %s returned %s, expected %s\n",
          wine_dbgstr_w(p1), wine_dbgstr_w(p2), wine_dbgstr_w(output), wine_dbgstr_w(expected));
  
@@ -1403,7 +1414,7 @@ index 1d6f44ee76..7eff319ae4 100644
  
          hr = pPathCchCombineEx(output, MAX_PATH, p1, p2, 0);
          ok(hr == S_OK, "Expected S_OK, got %08x\n", hr);
-@@ -302,6 +788,126 @@ static const struct addextension_test addextension_tests[] =
+@@ -302,6 +789,173 @@ static const struct addextension_test addextension_tests[] =
      {"C:\\1.exe", " ", NULL, E_INVALIDARG}
  };
  
@@ -1475,6 +1486,53 @@ index 1d6f44ee76..7eff319ae4 100644
 +    {"a", "b", "a\\b"}
 +};
 +
++static void test_PathCchAppend(void)
++{
++    WCHAR path1W[PATHCCH_MAX_CCH];
++    WCHAR path2W[PATHCCH_MAX_CCH];
++    CHAR path1A[PATHCCH_MAX_CCH];
++    HRESULT hr;
++    INT i;
++
++    if (!pPathCchAppend)
++    {
++        win_skip("PathCchAppend() is not available.\n");
++        return;
++    }
++
++    MultiByteToWideChar(CP_ACP, 0, "\\a", -1, path1W, ARRAY_SIZE(path1W));
++    MultiByteToWideChar(CP_ACP, 0, "\\b", -1, path2W, ARRAY_SIZE(path2W));
++    hr = pPathCchAppend(NULL, PATHCCH_MAX_CCH, path2W);
++    ok(hr == E_INVALIDARG, "expect hr %#x, got %#x\n", E_INVALIDARG, hr);
++
++    hr = pPathCchAppend(path1W, 0, path2W);
++    ok(hr == E_INVALIDARG, "expect hr %#x, got %#x\n", E_INVALIDARG, hr);
++
++    hr = pPathCchAppend(path1W, PATHCCH_MAX_CCH + 1, path2W);
++    ok(hr == E_INVALIDARG, "expect hr %#x, got %#x\n", E_INVALIDARG, hr);
++
++    hr = pPathCchAppend(path1W, PATHCCH_MAX_CCH, NULL);
++    ok(hr == S_OK, "expect hr %#x, got %#x\n", S_OK, hr);
++    WideCharToMultiByte(CP_ACP, 0, path1W, -1, path1A, ARRAY_SIZE(path1A), NULL, NULL);
++    ok(!lstrcmpA(path1A, "\\a"), "expect \\a, got %s\n", path1A);
++
++    for (i = 0; i < ARRAY_SIZE(append_tests); i++)
++    {
++        const struct append_test *t = append_tests + i;
++
++        MultiByteToWideChar(CP_ACP, 0, t->path1, -1, path1W, ARRAY_SIZE(path1W));
++        MultiByteToWideChar(CP_ACP, 0, t->path2, -1, path2W, ARRAY_SIZE(path2W));
++        hr = pPathCchAppend(path1W, PATHCCH_MAX_CCH, path2W);
++        ok(hr == S_OK, "append \"%s\" \"%s\" expect hr %#x, got %#x\n", t->path1, t->path2, S_OK, hr);
++        if (SUCCEEDED(hr))
++        {
++            WideCharToMultiByte(CP_ACP, 0, path1W, -1, path1A, ARRAY_SIZE(path1A), NULL, NULL);
++            ok(!lstrcmpA(path1A, t->result), "append \"%s\" \"%s\" expect result \"%s\", got \"%s\"\n", t->path1,
++               t->path2, t->result, path1A);
++        }
++    }
++}
++
 +static void test_PathCchAppendEx(void)
 +{
 +    WCHAR path1W[PATHCCH_MAX_CCH];
@@ -1530,7 +1588,7 @@ index 1d6f44ee76..7eff319ae4 100644
  static void test_PathCchAddExtension(void)
  {
      WCHAR pathW[PATHCCH_MAX_CCH + 1];
-@@ -355,6 +961,248 @@ static void test_PathCchAddExtension(void)
+@@ -355,6 +1009,248 @@ static void test_PathCchAddExtension(void)
      }
  }
  
@@ -1779,7 +1837,7 @@ index 1d6f44ee76..7eff319ae4 100644
  struct findextension_test
  {
      const CHAR *path;
-@@ -473,6 +1321,231 @@ static void test_PathCchFindExtension(void)
+@@ -473,6 +1369,231 @@ static void test_PathCchFindExtension(void)
      }
  }
  
@@ -2011,7 +2069,7 @@ index 1d6f44ee76..7eff319ae4 100644
  struct removeextension_test
  {
      const CHAR *path;
-@@ -555,6 +1628,129 @@ static void test_PathCchRemoveExtension(void)
+@@ -555,6 +1676,129 @@ static void test_PathCchRemoveExtension(void)
      }
  }
  
@@ -2141,7 +2199,7 @@ index 1d6f44ee76..7eff319ae4 100644
  struct renameextension_test
  {
      const CHAR *path;
-@@ -632,23 +1828,445 @@ static void test_PathCchRenameExtension(void)
+@@ -632,23 +1876,447 @@ static void test_PathCchRenameExtension(void)
      }
  }
  
@@ -2549,6 +2607,7 @@ index 1d6f44ee76..7eff319ae4 100644
      pPathCchAddBackslash = (void *)GetProcAddress(hmod, "PathCchAddBackslash");
      pPathCchAddBackslashEx = (void *)GetProcAddress(hmod, "PathCchAddBackslashEx");
      pPathCchAddExtension = (void *)GetProcAddress(hmod, "PathCchAddExtension");
++    pPathCchAppend = (void *)GetProcAddress(hmod, "PathCchAppend");
 +    pPathCchAppendEx = (void *)GetProcAddress(hmod, "PathCchAppendEx");
 +    pPathCchCanonicalize = (void *)GetProcAddress(hmod, "PathCchCanonicalize");
 +    pPathCchCanonicalizeEx = (void *)GetProcAddress(hmod, "PathCchCanonicalizeEx");
@@ -2572,6 +2631,7 @@ index 1d6f44ee76..7eff319ae4 100644
      test_PathCchAddBackslash();
      test_PathCchAddBackslashEx();
      test_PathCchAddExtension();
++    test_PathCchAppend();
 +    test_PathCchAppendEx();
 +    test_PathCchCanonicalize();
 +    test_PathCchCanonicalizeEx();
@@ -2590,10 +2650,10 @@ index 1d6f44ee76..7eff319ae4 100644
 +    test_PathIsUNCEx();
  }
 diff --git a/include/pathcch.h b/include/pathcch.h
-index 3057b6c1ec..18f065c4c6 100644
+index 3057b6c1ec..0c2dc63c41 100644
 --- a/include/pathcch.h
 +++ b/include/pathcch.h
-@@ -22,13 +22,28 @@
+@@ -22,13 +22,29 @@
  #define PATHCCH_FORCE_DISABLE_LONG_NAME_PROCESS 0x04
  #define PATHCCH_DO_NOT_NORMALIZE_SEGMENTS       0x08
  #define PATHCCH_ENSURE_IS_EXTENDED_LENGTH_PATH  0x10
@@ -2606,6 +2666,7 @@ index 3057b6c1ec..18f065c4c6 100644
  HRESULT WINAPI PathCchAddBackslash(WCHAR *path, SIZE_T size);
  HRESULT WINAPI PathCchAddBackslashEx(WCHAR *path, SIZE_T size, WCHAR **end, SIZE_T *remaining);
  HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extension);
++HRESULT WINAPI PathCchAppend(WCHAR *path1, SIZE_T size, const WCHAR *path2);
 +HRESULT WINAPI PathCchAppendEx(WCHAR *path1, SIZE_T size, const WCHAR *path2, DWORD flags);
 +HRESULT WINAPI PathCchCanonicalize(WCHAR *out, SIZE_T size, const WCHAR *in);
 +HRESULT WINAPI PathCchCanonicalizeEx(WCHAR *out, SIZE_T size, const WCHAR *in, DWORD flags);
