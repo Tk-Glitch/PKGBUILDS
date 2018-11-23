@@ -217,7 +217,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fallout4.patch' # Fallout 4 dsound fix
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
-		'sims_4_PathCchCanonicalizeEx.patch' # Sims 4 fix
+		'kernelbase_PathCchCanonicalizeEx.patch' # Python/Sims 4 fix
 		'sims_2-fix.patch' # Sims 2 fix
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
@@ -502,10 +502,10 @@ prepare() {
 	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
 	fi
 
-	# PathCchCanonicalizeEx patch, needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
-	if [ $_sims4_fix == "true" ]; then
-	  _sims4="-W kernelbase-PathCchCombineEx"
-	  patch -Np1 < ../'sims_4_PathCchCanonicalizeEx.patch' && echo "Applied The Sims 4 fix" >> "$_where"/last_build_config.log
+	# PathCchCanonicalizeEx patch, fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
+	if [ $_python_fix == "true" ]; then
+	  _python_fix="-W kernelbase-PathCchCombineEx"
+	  patch -Np1 < ../'kernelbase_PathCchCanonicalizeEx.patch' && echo "Applied Python/The Sims 4 fix" >> "$_where"/last_build_config.log
 	fi
 
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets - The actual patch is applied after staging
@@ -543,7 +543,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_sims4 $_faudio $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_python_fix $_faudio $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
