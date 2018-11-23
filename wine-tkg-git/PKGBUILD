@@ -59,7 +59,7 @@ else
 fi
 
 if [ -n "$_PKGNAME_OVERRIDE" ]; then
-  pkgname="${pkgname}-${_PKGNAME_OVERRIDE}"
+  pkgname="${_PKGNAME_OVERRIDE}"
   msg2 "Overriding default pkgname. New pkgname: ${pkgname}"
 else
   if [[ $_use_staging == "true" ]]; then
