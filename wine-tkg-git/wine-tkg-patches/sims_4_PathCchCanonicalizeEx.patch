@@ -1,8 +1,8 @@
 diff --git a/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec b/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec
-index 0524e7c304..4f375e0c30 100644
+index 61eb22031e..4f375e0c30 100644
 --- a/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec
 +++ b/dlls/api-ms-win-core-path-l1-1-0/api-ms-win-core-path-l1-1-0.spec
-@@ -1,22 +1,22 @@
+@@ -1,20 +1,20 @@
 -@ stub PathAllocCanonicalize
 -@ stub PathAllocCombine
 +@ stdcall PathAllocCanonicalize(wstr long ptr) kernelbase.PathAllocCanonicalize
@@ -23,26 +23,19 @@ index 0524e7c304..4f375e0c30 100644
 +@ stdcall PathCchCombine(ptr long wstr wstr) kernelbase.PathCchCombine
 +@ stdcall PathCchCombineEx(ptr long wstr wstr long) kernelbase.PathCchCombineEx
  @ stdcall PathCchFindExtension(wstr long ptr) kernelbase.PathCchFindExtension
--@ stub PathCchIsRoot
+ @ stdcall PathCchIsRoot(wstr) kernelbase.PathCchIsRoot
 -@ stub PathCchRemoveBackslash
 -@ stub PathCchRemoveBackslashEx
-+@ stdcall PathCchIsRoot(wstr) kernelbase.PathCchIsRoot
 +@ stdcall PathCchRemoveBackslash(wstr long) kernelbase.PathCchRemoveBackslash
 +@ stdcall PathCchRemoveBackslashEx(wstr long ptr ptr) kernelbase.PathCchRemoveBackslashEx
  @ stdcall PathCchRemoveExtension(wstr long) kernelbase.PathCchRemoveExtension
 -@ stub PathCchRemoveFileSpec
 +@ stdcall PathCchRemoveFileSpec(wstr long) kernelbase.PathCchRemoveFileSpec
  @ stdcall PathCchRenameExtension(wstr long wstr) kernelbase.PathCchRenameExtension
--@ stub PathCchSkipRoot
--@ stub PathCchStripPrefix
--@ stub PathCchStripToRoot
--@ stub PathIsUNCEx
-+@ stdcall PathCchSkipRoot(wstr ptr) kernelbase.PathCchSkipRoot
-+@ stdcall PathCchStripPrefix(wstr long) kernelbase.PathCchStripPrefix
-+@ stdcall PathCchStripToRoot(wstr long) kernelbase.PathCchStripToRoot
-+@ stdcall PathIsUNCEx(wstr ptr) kernelbase.PathIsUNCEx
+ @ stdcall PathCchSkipRoot(wstr ptr) kernelbase.PathCchSkipRoot
+ @ stdcall PathCchStripPrefix(wstr long) kernelbase.PathCchStripPrefix
 diff --git a/dlls/kernelbase/kernelbase.spec b/dlls/kernelbase/kernelbase.spec
-index 286dae0001..d1bff9fec5 100644
+index ffb5a95721..d1bff9fec5 100644
 --- a/dlls/kernelbase/kernelbase.spec
 +++ b/dlls/kernelbase/kernelbase.spec
 @@ -1023,8 +1023,8 @@
@@ -56,7 +49,7 @@ index 286dae0001..d1bff9fec5 100644
  @ stdcall PathAppendA(str str) shlwapi.PathAppendA
  @ stdcall PathAppendW(wstr wstr) shlwapi.PathAppendW
  @ stdcall PathCanonicalizeA(ptr str) shlwapi.PathCanonicalizeA
-@@ -1032,22 +1032,22 @@
+@@ -1032,18 +1032,18 @@
  @ stdcall PathCchAddBackslash(wstr long)
  @ stdcall PathCchAddBackslashEx(wstr long ptr ptr)
  @ stdcall PathCchAddExtension(wstr long wstr)
@@ -73,132 +66,25 @@ index 286dae0001..d1bff9fec5 100644
 +@ stdcall PathCchCombine(ptr long wstr wstr)
 +@ stdcall PathCchCombineEx(ptr long wstr wstr long)
  @ stdcall PathCchFindExtension(wstr long ptr)
--# @ stub PathCchIsRoot
+ @ stdcall PathCchIsRoot(wstr)
 -# @ stub PathCchRemoveBackslash
 -# @ stub PathCchRemoveBackslashEx
-+@ stdcall PathCchIsRoot(wstr)
 +@ stdcall PathCchRemoveBackslash(wstr long)
 +@ stdcall PathCchRemoveBackslashEx(wstr long ptr ptr)
  @ stdcall PathCchRemoveExtension(wstr long)
 -# @ stub PathCchRemoveFileSpec
 +@ stdcall PathCchRemoveFileSpec(wstr long)
  @ stdcall PathCchRenameExtension(wstr long wstr)
--# @ stub PathCchSkipRoot
--# @ stub PathCchStripPrefix
--# @ stub PathCchStripToRoot
-+@ stdcall PathCchSkipRoot(wstr ptr)
-+@ stdcall PathCchStripPrefix(wstr long)
-+@ stdcall PathCchStripToRoot(wstr long)
- @ stdcall PathCombineA(ptr str str) shlwapi.PathCombineA
- @ stdcall PathCombineW(ptr wstr wstr) shlwapi.PathCombineW
- @ stdcall PathCommonPrefixA(str str ptr) shlwapi.PathCommonPrefixA
-@@ -1082,7 +1082,7 @@
- @ stdcall PathIsSameRootA(str str) shlwapi.PathIsSameRootA
- @ stdcall PathIsSameRootW(wstr wstr) shlwapi.PathIsSameRootW
- @ stdcall PathIsUNCA(str) shlwapi.PathIsUNCA
--# @ stub PathIsUNCEx
-+@ stdcall PathIsUNCEx(wstr ptr)
- @ stdcall PathIsUNCServerA(str) shlwapi.PathIsUNCServerA
- @ stdcall PathIsUNCServerShareA(str) shlwapi.PathIsUNCServerShareA
- @ stdcall PathIsUNCServerShareW(wstr) shlwapi.PathIsUNCServerShareW
+ @ stdcall PathCchSkipRoot(wstr ptr)
+ @ stdcall PathCchStripPrefix(wstr long)
 diff --git a/dlls/kernelbase/path.c b/dlls/kernelbase/path.c
-index 047017eb47..a1deb18551 100644
+index ff8e0dddd1..a1deb18551 100644
 --- a/dlls/kernelbase/path.c
 +++ b/dlls/kernelbase/path.c
-@@ -38,6 +38,341 @@ static SIZE_T strnlenW(const WCHAR *string, SIZE_T maxlen)
-     return i;
+@@ -128,6 +128,251 @@ static const WCHAR *get_root_end(const WCHAR *path)
+         return NULL;
  }
  
-+static BOOL is_prefixed_unc(const WCHAR *string)
-+{
-+    static const WCHAR prefixed_unc[] = {'\\', '\\', '?', '\\', 'U', 'N', 'C', '\\'};
-+    return !memicmpW(string, prefixed_unc, ARRAY_SIZE(prefixed_unc));
-+}
-+
-+static BOOL is_prefixed_disk(const WCHAR *string)
-+{
-+    static const WCHAR prefix[] = {'\\', '\\', '?', '\\'};
-+    return !memcmp(string, prefix, sizeof(prefix)) && isalphaW(string[4]) && string[5] == ':';
-+}
-+
-+static BOOL is_prefixed_volume(const WCHAR *string)
-+{
-+    static const WCHAR prefixed_volume[] = {'\\', '\\', '?', '\\', 'V', 'o', 'l', 'u', 'm', 'e'};
-+    const WCHAR *guid;
-+    INT ret;
-+    INT i = 0;
-+
-+    ret = memicmpW(string, prefixed_volume, ARRAY_SIZE(prefixed_volume));
-+    if (ret) return FALSE;
-+
-+    guid = string + ARRAY_SIZE(prefixed_volume);
-+
-+    while (i <= 37)
-+    {
-+        switch (i)
-+        {
-+        case 0:
-+            if (guid[i] != '{') return FALSE;
-+            break;
-+        case 9:
-+        case 14:
-+        case 19:
-+        case 24:
-+            if (guid[i] != '-') return FALSE;
-+            break;
-+        case 37:
-+            if (guid[i] != '}') return FALSE;
-+            break;
-+        default:
-+            if (!isalnumW(guid[i])) return FALSE;
-+            break;
-+        }
-+        i++;
-+    }
-+
-+    return TRUE;
-+}
-+
-+/* Get the next character beyond end of the segment.
-+   Return TRUE if the last segment ends with a backslash */
-+static BOOL get_next_segment(const WCHAR *next, const WCHAR **next_segment)
-+{
-+    while (*next && *next != '\\') next++;
-+    if (*next == '\\')
-+    {
-+        *next_segment = next + 1;
-+        return TRUE;
-+    }
-+    else
-+    {
-+        *next_segment = next;
-+        return FALSE;
-+    }
-+}
-+
-+/* Find the last character of the root in a path, if there is one, without any segments */
-+static const WCHAR *get_root_end(const WCHAR *path)
-+{
-+    /* Find path root */
-+    if (is_prefixed_volume(path))
-+        return path[48] == '\\' ? path + 48 : path + 47;
-+    else if (is_prefixed_unc(path))
-+        return path + 7;
-+    else if (is_prefixed_disk(path))
-+        return path[6] == '\\' ? path + 6 : path + 5;
-+    /* \\ */
-+    else if (path[0] == '\\' && path[1] == '\\')
-+        return path + 1;
-+    /* \ */
-+    else if (path[0] == '\\')
-+        return path;
-+    /* X:\ */
-+    else if (isalphaW(path[0]) && path[1] == ':')
-+        return path[2] == '\\' ? path + 2 : path + 1;
-+    else
-+        return NULL;
-+}
-+
 +HRESULT WINAPI PathAllocCanonicalize(const WCHAR *path_in, DWORD flags, WCHAR **path_out)
 +{
 +    WCHAR *buffer, *dst;
@@ -447,7 +333,7 @@ index 047017eb47..a1deb18551 100644
  HRESULT WINAPI PathCchAddBackslash(WCHAR *path, SIZE_T size)
  {
      return PathCchAddBackslashEx(path, size, NULL, NULL);
-@@ -119,6 +454,127 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
+@@ -209,6 +454,127 @@ HRESULT WINAPI PathCchAddExtension(WCHAR *path, SIZE_T size, const WCHAR *extens
      return S_OK;
  }
  
@@ -575,48 +461,10 @@ index 047017eb47..a1deb18551 100644
  HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR **extension)
  {
      const WCHAR *lastpoint = NULL;
-@@ -152,6 +608,93 @@ HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR
-     return S_OK;
+@@ -280,6 +646,55 @@ BOOL WINAPI PathCchIsRoot(const WCHAR *path)
+         return FALSE;
  }
  
-+BOOL WINAPI PathCchIsRoot(const WCHAR *path)
-+{
-+    const WCHAR *root_end;
-+    const WCHAR *next;
-+    BOOL is_unc;
-+
-+    TRACE("%s\n", wine_dbgstr_w(path));
-+
-+    if (!path || !*path) return FALSE;
-+
-+    root_end = get_root_end(path);
-+    if (!root_end) return FALSE;
-+
-+    if ((is_unc = is_prefixed_unc(path)) || (path[0] == '\\' && path[1] == '\\' && path[2] != '?'))
-+    {
-+        next = root_end + 1;
-+        /* No extra segments */
-+        if ((is_unc && !*next) || (!is_unc && !*next)) return TRUE;
-+
-+        /* Has first segment with an ending backslash but no remaining characters */
-+        if (get_next_segment(next, &next) && !*next) return FALSE;
-+        /* Has first segment with no ending backslash */
-+        else if (!*next)
-+            return TRUE;
-+        /* Has first segment with an ending backslash and has remaining characters*/
-+        else
-+        {
-+            next++;
-+            /* Second segment must have no backslash and no remaining characters */
-+            return !get_next_segment(next, &next) && !*next;
-+        }
-+    }
-+    else if (*root_end == '\\' && !root_end[1])
-+        return TRUE;
-+    else
-+        return FALSE;
-+}
-+
 +HRESULT WINAPI PathCchRemoveBackslash(WCHAR *path, SIZE_T path_size)
 +{
 +    WCHAR *path_end;
@@ -669,7 +517,7 @@ index 047017eb47..a1deb18551 100644
  HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
  {
      const WCHAR *extension;
-@@ -171,6 +714,43 @@ HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
+@@ -299,6 +714,43 @@ HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size)
      return next == extension ? S_FALSE : S_OK;
  }
  
@@ -713,125 +561,11 @@ index 047017eb47..a1deb18551 100644
  HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *extension)
  {
      HRESULT hr;
-@@ -183,3 +763,113 @@ HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *ext
-     hr = PathCchAddExtension(path, size, extension);
-     return FAILED(hr) ? hr : S_OK;
- }
-+
-+HRESULT WINAPI PathCchSkipRoot(const WCHAR *path, const WCHAR **root_end)
-+{
-+    static const WCHAR unc_prefix[] = {'\\', '\\', '?'};
-+
-+    TRACE("%s %p\n", debugstr_w(path), root_end);
-+
-+    if (!path || !path[0] || !root_end
-+        || (!memicmpW(unc_prefix, path, ARRAY_SIZE(unc_prefix)) && !is_prefixed_volume(path) && !is_prefixed_unc(path)
-+            && !is_prefixed_disk(path)))
-+        return E_INVALIDARG;
-+
-+    *root_end = get_root_end(path);
-+    if (*root_end)
-+    {
-+        (*root_end)++;
-+        if (is_prefixed_unc(path))
-+        {
-+            get_next_segment(*root_end, root_end);
-+            get_next_segment(*root_end, root_end);
-+        }
-+        else if (path[0] == '\\' && path[1] == '\\' && path[2] != '?')
-+        {
-+            /* Skip share server */
-+            get_next_segment(*root_end, root_end);
-+            /* If mount point is empty, don't skip over mount point */
-+            if (**root_end != '\\') get_next_segment(*root_end, root_end);
-+        }
-+    }
-+
-+    return *root_end ? S_OK : E_INVALIDARG;
-+}
-+
-+HRESULT WINAPI PathCchStripPrefix(WCHAR *path, SIZE_T size)
-+{
-+    TRACE("%s %lu\n", wine_dbgstr_w(path), size);
-+
-+    if (!path || !size || size > PATHCCH_MAX_CCH) return E_INVALIDARG;
-+
-+    if (is_prefixed_unc(path))
-+    {
-+        /* \\?\UNC\a -> \\a */
-+        if (size < strlenW(path + 8) + 3) return E_INVALIDARG;
-+        strcpyW(path + 2, path + 8);
-+        return S_OK;
-+    }
-+    else if (is_prefixed_disk(path))
-+    {
-+        /* \\?\C:\ -> C:\ */
-+        if (size < strlenW(path + 4) + 1) return E_INVALIDARG;
-+        strcpyW(path, path + 4);
-+        return S_OK;
-+    }
-+    else
-+        return S_FALSE;
-+}
-+
-+HRESULT WINAPI PathCchStripToRoot(WCHAR *path, SIZE_T size)
-+{
-+    const WCHAR *root_end;
-+    WCHAR *segment_end;
-+    BOOL is_unc;
-+
-+    TRACE("%s %lu\n", wine_dbgstr_w(path), size);
-+
-+    if (!path || !*path || !size || size > PATHCCH_MAX_CCH) return E_INVALIDARG;
-+
-+    /* \\\\?\\UNC\\* and \\\\* have to have at least two extra segments to be striped,
-+     * e.g. \\\\?\\UNC\\a\\b\\c -> \\\\?\\UNC\\a\\b
-+     *      \\\\a\\b\\c         -> \\\\a\\b         */
-+    if ((is_unc = is_prefixed_unc(path)) || (path[0] == '\\' && path[1] == '\\' && path[2] != '?'))
-+    {
-+        root_end = is_unc ? path + 8 : path + 3;
-+        if (!get_next_segment(root_end, &root_end)) return S_FALSE;
-+        if (!get_next_segment(root_end, &root_end)) return S_FALSE;
-+
-+        if (root_end - path >= size) return E_INVALIDARG;
-+
-+        segment_end = path + (root_end - path) - 1;
-+        *segment_end = 0;
-+        return S_OK;
-+    }
-+    else if (PathCchSkipRoot(path, &root_end) == S_OK)
-+    {
-+        if (root_end - path >= size) return E_INVALIDARG;
-+
-+        segment_end = path + (root_end - path);
-+        if (!*segment_end) return S_FALSE;
-+
-+        *segment_end = 0;
-+        return S_OK;
-+    }
-+    else
-+        return E_INVALIDARG;
-+}
-+
-+BOOL WINAPI PathIsUNCEx(const WCHAR *path, const WCHAR **server)
-+{
-+    const WCHAR *result = NULL;
-+
-+    TRACE("%s %p\n", wine_dbgstr_w(path), server);
-+
-+    if (is_prefixed_unc(path))
-+        result = path + 8;
-+    else if (path[0] == '\\' && path[1] == '\\' && path[2] != '?')
-+        result = path + 2;
-+
-+    if (server) *server = result;
-+    return result ? TRUE : FALSE;
-+}
 diff --git a/dlls/kernelbase/tests/path.c b/dlls/kernelbase/tests/path.c
-index 1d6f44ee76..d7c075791b 100644
+index 6d37bbf8ef..d7c075791b 100644
 --- a/dlls/kernelbase/tests/path.c
 +++ b/dlls/kernelbase/tests/path.c
-@@ -30,21 +30,341 @@
+@@ -30,26 +30,341 @@
  
  #include "wine/test.h"
  
@@ -848,16 +582,16 @@ index 1d6f44ee76..d7c075791b 100644
 +HRESULT (WINAPI *pPathCchCanonicalizeEx)(WCHAR *out, SIZE_T size, const WCHAR *in, DWORD flags);
  HRESULT (WINAPI *pPathCchCombineEx)(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2, DWORD flags);
  HRESULT (WINAPI *pPathCchFindExtension)(const WCHAR *path, SIZE_T size, const WCHAR **extension);
-+BOOL    (WINAPI *pPathCchIsRoot)(const WCHAR *path);
+ BOOL    (WINAPI *pPathCchIsRoot)(const WCHAR *path);
 +HRESULT (WINAPI *pPathCchRemoveBackslash)(WCHAR *path, SIZE_T path_size);
 +HRESULT (WINAPI *pPathCchRemoveBackslashEx)(WCHAR *path, SIZE_T path_size, WCHAR **path_end, SIZE_T *free_size);
  HRESULT (WINAPI *pPathCchRemoveExtension)(WCHAR *path, SIZE_T size);
 +HRESULT (WINAPI *pPathCchRemoveFileSpec)(WCHAR *path, SIZE_T size);
  HRESULT (WINAPI *pPathCchRenameExtension)(WCHAR *path, SIZE_T size, const WCHAR *extension);
-+HRESULT (WINAPI *pPathCchSkipRoot)(const WCHAR *path, const WCHAR **root_end);
-+HRESULT (WINAPI *pPathCchStripPrefix)(WCHAR *path, SIZE_T size);
-+HRESULT (WINAPI *pPathCchStripToRoot)(WCHAR *path, SIZE_T size);
-+BOOL    (WINAPI *pPathIsUNCEx)(const WCHAR *path, const WCHAR **server);
+ HRESULT (WINAPI *pPathCchSkipRoot)(const WCHAR *path, const WCHAR **root_end);
+ HRESULT (WINAPI *pPathCchStripPrefix)(WCHAR *path, SIZE_T size);
+ HRESULT (WINAPI *pPathCchStripToRoot)(WCHAR *path, SIZE_T size);
+ BOOL    (WINAPI *pPathIsUNCEx)(const WCHAR *path, const WCHAR **server);
  
 -static const struct
 +struct alloccanonicalize_test
@@ -1178,7 +912,7 @@ index 1d6f44ee76..d7c075791b 100644
  {
      /* normal paths */
      {"C:\\",  "a",     "C:\\a" },
-@@ -52,38 +372,197 @@ combine_test[] =
+@@ -57,38 +372,197 @@ combine_test[] =
      {"C:",    "a",     "C:\\a" },
      {"C:\\",  ".",     "C:\\" },
      {"C:\\",  "..",    "C:\\" },
@@ -1383,7 +1117,7 @@ index 1d6f44ee76..d7c075791b 100644
  
      memset(output, 0xff, sizeof(output));
      hr = pPathCchCombineEx(output, 0, p1, p2, 0);
-@@ -100,6 +579,14 @@ static void test_PathCchCombineEx(void)
+@@ -105,6 +579,14 @@ static void test_PathCchCombineEx(void)
      ok(hr == STRSAFE_E_INSUFFICIENT_BUFFER, "Expected STRSAFE_E_INSUFFICIENT_BUFFER, got %08x\n", hr);
      ok(output[0] == 0x0, "Expected output buffer to contain NULL string\n");
  
@@ -1398,7 +1132,7 @@ index 1d6f44ee76..d7c075791b 100644
      memset(output, 0xff, sizeof(output));
      hr = pPathCchCombineEx(output, 5, p1, p2, 0);
      ok(hr == S_OK, "Expected S_OK, got %08x\n", hr);
-@@ -107,11 +594,11 @@ static void test_PathCchCombineEx(void)
+@@ -112,11 +594,11 @@ static void test_PathCchCombineEx(void)
          "Combination of %s + %s returned %s, expected %s\n",
          wine_dbgstr_w(p1), wine_dbgstr_w(p2), wine_dbgstr_w(output), wine_dbgstr_w(expected));
  
@@ -1414,7 +1148,7 @@ index 1d6f44ee76..d7c075791b 100644
  
          hr = pPathCchCombineEx(output, MAX_PATH, p1, p2, 0);
          ok(hr == S_OK, "Expected S_OK, got %08x\n", hr);
-@@ -302,6 +789,173 @@ static const struct addextension_test addextension_tests[] =
+@@ -307,6 +789,173 @@ static const struct addextension_test addextension_tests[] =
      {"C:\\1.exe", " ", NULL, E_INVALIDARG}
  };
  
@@ -1588,7 +1322,7 @@ index 1d6f44ee76..d7c075791b 100644
  static void test_PathCchAddExtension(void)
  {
      WCHAR pathW[PATHCCH_MAX_CCH + 1];
-@@ -355,6 +1009,248 @@ static void test_PathCchAddExtension(void)
+@@ -360,6 +1009,248 @@ static void test_PathCchAddExtension(void)
      }
  }
  
@@ -1837,76 +1571,10 @@ index 1d6f44ee76..d7c075791b 100644
  struct findextension_test
  {
      const CHAR *path;
-@@ -473,6 +1369,231 @@ static void test_PathCchFindExtension(void)
+@@ -544,6 +1435,165 @@ static void test_PathCchIsRoot(void)
      }
  }
  
-+struct isroot_test
-+{
-+    const CHAR *path;
-+    BOOL ret;
-+};
-+
-+static const struct isroot_test isroot_tests[] =
-+{
-+    {"", FALSE},
-+    {"a", FALSE},
-+    {"C:", FALSE},
-+    {"C:\\", TRUE},
-+    {"C:\\a", FALSE},
-+    {"\\\\?\\C:\\", TRUE},
-+    {"\\\\?\\C:", FALSE},
-+    {"\\\\?\\C:\\a", FALSE},
-+    {"\\", TRUE},
-+    {"\\a\\", FALSE},
-+    {"\\a\\b", FALSE},
-+    {"\\\\", TRUE},
-+    {"\\\\a", TRUE},
-+    {"\\\\a\\", FALSE},
-+    {"\\\\a\\b", TRUE},
-+    {"\\\\a\\b\\", FALSE},
-+    {"\\\\a\\b\\c", FALSE},
-+    {"\\\\?\\UNC\\", TRUE},
-+    {"\\\\?\\UNC\\a", TRUE},
-+    {"\\\\?\\UNC\\a\\", FALSE},
-+    {"\\\\?\\UNC\\a\\b", TRUE},
-+    {"\\\\?\\UNC\\a\\b\\", FALSE},
-+    {"\\\\?\\UNC\\a\\b\\c", FALSE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}", FALSE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", TRUE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\a", FALSE},
-+    {"..\\a", FALSE},
-+
-+    /* Wrong MSDN examples */
-+    {"\\a", FALSE},
-+    {"X:", FALSE},
-+    {"\\server", FALSE}
-+};
-+
-+static void test_PathCchIsRoot(void)
-+{
-+    WCHAR pathW[MAX_PATH];
-+    BOOL ret;
-+    INT i;
-+
-+    if (!pPathCchIsRoot)
-+    {
-+        win_skip("PathCchIsRoot() is not available.\n");
-+        return;
-+    }
-+
-+    ret = pPathCchIsRoot(NULL);
-+    ok(ret == FALSE, "expect return FALSE\n");
-+
-+    for (i = 0; i < ARRAY_SIZE(isroot_tests); i++)
-+    {
-+        const struct isroot_test *t = isroot_tests + i;
-+        MultiByteToWideChar(CP_ACP, 0, t->path, -1, pathW, ARRAY_SIZE(pathW));
-+        ret = pPathCchIsRoot(pathW);
-+        ok(ret == t->ret, "path %s expect return %d, got %d\n", t->path, t->ret, ret);
-+    }
-+}
-+
 +struct removebackslashex_test
 +{
 +    const CHAR *path_in;
@@ -2069,7 +1737,7 @@ index 1d6f44ee76..d7c075791b 100644
  struct removeextension_test
  {
      const CHAR *path;
-@@ -555,6 +1676,129 @@ static void test_PathCchRemoveExtension(void)
+@@ -626,6 +1676,129 @@ static void test_PathCchRemoveExtension(void)
      }
  }
  
@@ -2199,405 +1867,7 @@ index 1d6f44ee76..d7c075791b 100644
  struct renameextension_test
  {
      const CHAR *path;
-@@ -632,23 +1876,447 @@ static void test_PathCchRenameExtension(void)
-     }
- }
- 
-+struct skiproot_test
-+{
-+    const char *path;
-+    int root_offset;
-+    HRESULT hr;
-+};
-+
-+static const struct skiproot_test skiproot_tests [] =
-+{
-+    /* Basic combination */
-+    {"", 0, E_INVALIDARG},
-+    {"C:\\", 3, S_OK},
-+    {"\\", 1, S_OK},
-+    {"\\\\.\\", 4, S_OK},
-+    {"\\\\?\\UNC\\", 8, S_OK},
-+    {"\\\\?\\C:\\", 7, S_OK},
-+
-+    /* Basic + \ */
-+    {"C:\\\\", 3, S_OK},
-+    {"\\\\", 2, S_OK},
-+    {"\\\\.\\\\", 4, S_OK},
-+    {"\\\\?\\UNC\\\\", 9, S_OK},
-+    {"\\\\?\\C:\\\\", 7, S_OK},
-+
-+    /* Basic + a */
-+    {"a", 0, E_INVALIDARG},
-+    {"C:\\a", 3, S_OK},
-+    {"\\a", 1, S_OK},
-+    {"\\\\.\\a", 5, S_OK},
-+    {"\\\\?\\UNC\\a", 9, S_OK},
-+
-+    /* Basic + \a */
-+    {"\\a", 1, S_OK},
-+    {"C:\\\\a", 3, S_OK},
-+    {"\\\\a", 3, S_OK},
-+    {"\\\\.\\\\a", 4, S_OK},
-+    {"\\\\?\\UNC\\\\a", 10, S_OK},
-+    {"\\\\?\\C:\\\\a", 7, S_OK},
-+
-+    /* Basic + a\ */
-+    {"a\\", 0, E_INVALIDARG},
-+    {"C:\\a\\", 3, S_OK},
-+    {"\\a\\", 1, S_OK},
-+    {"\\\\.\\a\\", 6, S_OK},
-+    {"\\\\?\\UNC\\a\\", 10, S_OK},
-+    {"\\\\?\\C:\\a\\", 7, S_OK},
-+
-+    /* Network share */
-+    {"\\\\\\\\", 3, S_OK},
-+    {"\\\\a\\", 4, S_OK},
-+    {"\\\\a\\b", 5, S_OK},
-+    {"\\\\a\\b\\", 6, S_OK},
-+    {"\\\\a\\b\\\\", 6, S_OK},
-+    {"\\\\a\\b\\\\c", 6, S_OK},
-+    {"\\\\a\\b\\c", 6, S_OK},
-+    {"\\\\a\\b\\c\\", 6, S_OK},
-+    {"\\\\a\\b\\c\\d", 6, S_OK},
-+    {"\\\\a\\\\b\\c\\", 4, S_OK},
-+    {"\\\\aa\\bb\\cc\\", 8, S_OK},
-+
-+    /* UNC */
-+    {"\\\\?\\UNC\\\\", 9, S_OK},
-+    {"\\\\?\\UNC\\a\\b", 11, S_OK},
-+    {"\\\\?\\UNC\\a\\b", 11, S_OK},
-+    {"\\\\?\\UNC\\a\\b\\", 12, S_OK},
-+    {"\\\\?\\UNC\\a\\b\\c", 12, S_OK},
-+    {"\\\\?\\UNC\\a\\b\\c\\", 12, S_OK},
-+    {"\\\\?\\UNC\\a\\b\\c\\d", 12, S_OK},
-+    {"\\\\?\\C:", 6, S_OK},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}", 48, S_OK},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", 49, S_OK},
-+    {"\\\\?\\unc\\a\\b", 11, S_OK},
-+    {"\\\\?\\volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", 49, S_OK},
-+    {"\\\\?\\volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\a", 49, S_OK},
-+
-+    /* Malformed */
-+    {"C:", 2, S_OK},
-+    {":", 0, E_INVALIDARG},
-+    {":\\", 0, E_INVALIDARG},
-+    {"C\\", 0, E_INVALIDARG},
-+    {"\\?", 1, S_OK},
-+    {"\\?\\UNC", 1, S_OK},
-+    {"\\\\?\\", 0, E_INVALIDARG},
-+    {"\\\\?\\UNC", 0, E_INVALIDARG},
-+    {"\\\\?\\::\\", 0, E_INVALIDARG},
-+    {"\\\\?\\Volume", 0, E_INVALIDARG},
-+    {"\\.", 1, S_OK},
-+    {"\\\\..", 4, S_OK},
-+    {"\\\\..a", 5, S_OK}
-+};
-+
-+static void test_PathCchSkipRoot(void)
-+{
-+    WCHAR pathW[MAX_PATH];
-+    const WCHAR *root_end;
-+    HRESULT hr;
-+    INT i;
-+
-+    if (!pPathCchSkipRoot)
-+    {
-+        win_skip("PathCchSkipRoot() is not available.\n");
-+        return;
-+    }
-+
-+    root_end = (const WCHAR *)0xdeadbeef;
-+    hr = pPathCchSkipRoot(NULL, &root_end);
-+    ok(hr == E_INVALIDARG, "Expect result %#x, got %#x\n", E_INVALIDARG, hr);
-+    ok(root_end == (const WCHAR *)0xdeadbeef, "Expect root_end 0xdeadbeef, got %p\n", root_end);
-+
-+    MultiByteToWideChar(CP_ACP, 0, "C:\\", -1, pathW, ARRAY_SIZE(pathW));
-+    hr = pPathCchSkipRoot(pathW, NULL);
-+    ok(hr == E_INVALIDARG, "Expect result %#x, got %#x\n", E_INVALIDARG, hr);
-+
-+    for (i = 0; i < ARRAY_SIZE(skiproot_tests); i++)
-+    {
-+        const struct skiproot_test *t = skiproot_tests + i;
-+        MultiByteToWideChar(CP_ACP, 0, t->path, -1, pathW, ARRAY_SIZE(pathW));
-+        hr = pPathCchSkipRoot(pathW, &root_end);
-+        ok(hr == t->hr, "path %s expect result %#x, got %#x\n", t->path, t->hr, hr);
-+        if (SUCCEEDED(hr))
-+            ok(root_end - pathW == t->root_offset, "path %s expect root offset %d, got %d\n", t->path, t->root_offset,
-+               root_end - pathW);
-+    }
-+}
-+
-+struct stripprefix_test
-+{
-+    const CHAR *path;
-+    const CHAR *stripped_path;
-+    HRESULT hr;
-+    SIZE_T size;
-+};
-+
-+static const struct stripprefix_test stripprefix_tests[] =
-+{
-+    {"\\\\?\\UNC\\", "\\\\", S_OK},
-+    {"\\\\?\\UNC\\a", "\\\\a", S_OK},
-+    {"\\\\?\\C:", "C:", S_OK},
-+    {"\\\\?\\C:\\", "C:\\", S_OK},
-+    {"\\\\?\\C:\\a", "C:\\a", S_OK},
-+    {"\\\\?\\unc\\", "\\\\", S_OK},
-+    {"\\\\?\\c:\\", "c:\\", S_OK},
-+
-+    {"\\", "\\", S_FALSE},
-+    {"\\\\", "\\\\", S_FALSE},
-+    {"\\\\a", "\\\\a", S_FALSE},
-+    {"\\\\a\\", "\\\\a\\", S_FALSE},
-+    {"\\\\?\\a", "\\\\?\\a", S_FALSE},
-+    {"\\\\?\\UNC", "\\\\?\\UNC", S_FALSE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", S_FALSE},
-+
-+    /* Size Tests */
-+    {"C:\\", NULL, E_INVALIDARG, PATHCCH_MAX_CCH + 1},
-+    {"C:\\", "C:\\", S_FALSE, PATHCCH_MAX_CCH},
-+    /* Size < original path actual length + 1, read beyond size */
-+    {"\\\\?\\C:\\", "C:\\", S_OK, ARRAY_SIZE("\\\\?\\C:\\") - 1},
-+    /* Size < stripped path length + 1 */
-+    {"\\\\?\\C:\\", NULL, E_INVALIDARG, ARRAY_SIZE("C:\\") - 1},
-+    {"\\\\?\\UNC\\", NULL, E_INVALIDARG, ARRAY_SIZE("\\\\") - 1}
-+};
-+
-+static void test_PathCchStripPrefix(void)
-+{
-+    WCHAR pathW[PATHCCH_MAX_CCH + 1] = {0};
-+    CHAR stripped_pathA[PATHCCH_MAX_CCH];
-+    SIZE_T size;
-+    HRESULT hr;
-+    INT i;
-+
-+    if (!pPathCchStripPrefix)
-+    {
-+        win_skip("PathCchStripPrefix(() is not available.\n");
-+        return;
-+    }
-+
-+    /* Null arguments */
-+    hr = pPathCchStripPrefix(NULL, PATHCCH_MAX_CCH);
-+    ok(hr == E_INVALIDARG, "expect %#x, got %#x\n", E_INVALIDARG, hr);
-+
-+    hr = pPathCchStripPrefix(pathW, 0);
-+    ok(hr == E_INVALIDARG, "expect %#x, got %#x\n", E_INVALIDARG, hr);
-+
-+    for (i = 0; i < ARRAY_SIZE(stripprefix_tests); i++)
-+    {
-+        const struct stripprefix_test *t = stripprefix_tests + i;
-+
-+        MultiByteToWideChar(CP_ACP, 0, t->path, -1, pathW, ARRAY_SIZE(pathW));
-+        size = t->size ? t->size : PATHCCH_MAX_CCH;
-+        hr = pPathCchStripPrefix(pathW, size);
-+        ok(hr == t->hr, "path %s expect result %#x, got %#x\n", t->path, t->hr, hr);
-+        if (SUCCEEDED(hr))
-+        {
-+            WideCharToMultiByte(CP_ACP, 0, pathW, -1, stripped_pathA, ARRAY_SIZE(stripped_pathA), NULL, NULL);
-+            ok(!lstrcmpA(stripped_pathA, t->stripped_path), "path %s expect stripped path %s, got %s\n", t->path,
-+               t->stripped_path, stripped_pathA);
-+        }
-+    }
-+}
-+
-+struct striptoroot_test
-+{
-+    const CHAR *path;
-+    const CHAR *root;
-+    HRESULT hr;
-+    SIZE_T size;
-+};
-+
-+static const struct striptoroot_test striptoroot_tests[] =
-+{
-+    /* Invalid */
-+    {"", "", E_INVALIDARG},
-+    {"C", NULL, E_INVALIDARG},
-+    {"\\\\?\\UNC", NULL, E_INVALIDARG},
-+
-+    /* Size */
-+    {"C:\\", NULL, E_INVALIDARG, PATHCCH_MAX_CCH + 1},
-+    {"C:\\", "C:\\", S_FALSE, PATHCCH_MAX_CCH},
-+    /* Size < original path length + 1, read beyond size */
-+    {"C:\\a", "C:\\", S_OK, ARRAY_SIZE("C:\\a") - 1},
-+    /* Size < stripped path length + 1 */
-+    {"C:\\a", "C:\\", E_INVALIDARG, ARRAY_SIZE("C:\\") - 1},
-+    {"\\\\a\\b\\c", NULL, E_INVALIDARG, ARRAY_SIZE("\\\\a\\b") - 1},
-+
-+    /* X: */
-+    {"C:", "C:", S_FALSE},
-+    {"C:a", "C:", S_OK},
-+    {"C:a\\b", "C:", S_OK},
-+    {"C:a\\b\\c", "C:", S_OK},
-+
-+    /* X:\ */
-+    {"C:\\", "C:\\", S_FALSE},
-+    {"C:\\a", "C:\\", S_OK},
-+    {"C:\\a\\b", "C:\\", S_OK},
-+    {"C:\\a\\b\\c", "C:\\", S_OK},
-+
-+    /* \ */
-+    {"\\", "\\", S_FALSE},
-+    {"\\a", "\\", S_OK},
-+    {"\\a\\b", "\\", S_OK},
-+    {"\\a\\b\\c", "\\", S_OK},
-+
-+    /* \\ */
-+    {"\\\\", "\\\\", S_FALSE},
-+    {"\\\\a", "\\\\a", S_FALSE},
-+    {"\\\\a\\b", "\\\\a\\b", S_FALSE},
-+    {"\\\\a\\b\\c", "\\\\a\\b", S_OK},
-+
-+    /* UNC */
-+    {"\\\\?\\UNC\\", "\\\\?\\UNC\\", S_FALSE},
-+    {"\\\\?\\UNC\\a", "\\\\?\\UNC\\a", S_FALSE},
-+    {"\\\\?\\UNC\\a\\b", "\\\\?\\UNC\\a\\b", S_FALSE},
-+    {"\\\\?\\UNC\\a\\b\\", "\\\\?\\UNC\\a\\b", S_OK},
-+    {"\\\\?\\UNC\\a\\b\\c", "\\\\?\\UNC\\a\\b", S_OK},
-+
-+    /* Prefixed X: */
-+    {"\\\\?\\C:", "\\\\?\\C:", S_FALSE},
-+    {"\\\\?\\C:a", "\\\\?\\C:", S_OK},
-+    {"\\\\?\\C:a\\b", "\\\\?\\C:", S_OK},
-+    {"\\\\?\\C:a\\b\\c", "\\\\?\\C:", S_OK},
-+
-+    /* Prefixed X:\ */
-+    {"\\\\?\\C:\\", "\\\\?\\C:\\", S_FALSE},
-+    {"\\\\?\\C:\\a", "\\\\?\\C:\\", S_OK},
-+    {"\\\\?\\C:\\a\\b", "\\\\?\\C:\\", S_OK},
-+    {"\\\\?\\C:\\a\\b\\c", "\\\\?\\C:\\", S_OK},
-+
-+    /* UNC Volume */
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}", S_FALSE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}a",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}", S_OK},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}a\\b",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}", S_OK},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}a\\b\\c",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}", S_OK},
-+
-+    /* UNC Volume with backslash */
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", S_FALSE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\a",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", S_OK},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\a\\b",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", S_OK},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\a\\b\\c",
-+     "\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", S_OK},
-+};
-+
-+static void test_PathCchStripToRoot(void)
-+{
-+    WCHAR pathW[PATHCCH_MAX_CCH];
-+    CHAR rootA[PATHCCH_MAX_CCH];
-+    SIZE_T size;
-+    HRESULT hr;
-+    INT i;
-+
-+    if (!pPathCchStripToRoot)
-+    {
-+        win_skip("PathCchStripToRoot() is not available.\n");
-+        return;
-+    }
-+
-+    /* Null arguments */
-+    hr = pPathCchStripToRoot(NULL, ARRAY_SIZE(pathW));
-+    ok(hr == E_INVALIDARG, "Expect result %#x, got %#x\n", E_INVALIDARG, hr);
-+
-+    MultiByteToWideChar(CP_ACP, 0, "C:\\a", -1, pathW, ARRAY_SIZE(pathW));
-+    hr = pPathCchStripToRoot(pathW, 0);
-+    ok(hr == E_INVALIDARG, "Expect result %#x, got %#x\n", E_INVALIDARG, hr);
-+
-+    for (i = 0; i < ARRAY_SIZE(striptoroot_tests); i++)
-+    {
-+        const struct striptoroot_test *t = striptoroot_tests + i;
-+        MultiByteToWideChar(CP_ACP, 0, t->path, -1, pathW, ARRAY_SIZE(pathW));
-+        size = t->size ? t->size : ARRAY_SIZE(pathW);
-+        hr = pPathCchStripToRoot(pathW, size);
-+        ok(hr == t->hr, "path %s expect result %#x, got %#x\n", t->path, t->hr, hr);
-+        if (SUCCEEDED(hr))
-+        {
-+            WideCharToMultiByte(CP_ACP, 0, pathW, -1, rootA, ARRAY_SIZE(rootA), NULL, NULL);
-+            ok(!lstrcmpA(rootA, t->root), "path %s expect stripped path %s, got %s\n", t->path, t->root, rootA);
-+        }
-+    }
-+}
-+
-+struct isuncex_test
-+{
-+    const CHAR *path;
-+    INT server_offset;
-+    BOOL ret;
-+};
-+
-+static const struct isuncex_test isuncex_tests[] =
-+{
-+    {"\\\\", 2, TRUE},
-+    {"\\\\a\\", 2, TRUE},
-+    {"\\\\.\\", 2, TRUE},
-+    {"\\\\?\\UNC\\", 8, TRUE},
-+    {"\\\\?\\UNC\\a", 8, TRUE},
-+    {"\\\\?\\unc\\", 8, TRUE},
-+    {"\\\\?\\unc\\a", 8, TRUE},
-+
-+    {"", 0, FALSE},
-+    {"\\", 0, FALSE},
-+    {"C:\\", 0, FALSE},
-+    {"\\??\\", 0, FALSE},
-+    {"\\\\?\\", 0, FALSE},
-+    {"\\\\?\\UNC", 0, FALSE},
-+    {"\\\\?\\C:", 0, FALSE},
-+    {"\\\\?\\C:\\", 0, FALSE},
-+    {"\\\\?\\C:\\a", 0, FALSE},
-+    {"\\\\?\\Volume{e51a1864-6f2d-4019-b73d-f4e60e600c26}\\", 0, FALSE}
-+};
-+
-+static void test_PathIsUNCEx(void)
-+{
-+    WCHAR pathW[MAX_PATH];
-+    const WCHAR *server;
-+    BOOL ret;
-+    INT i;
-+
-+    if (!pPathIsUNCEx)
-+    {
-+        win_skip("PathIsUNCEx(() is not available.\n");
-+        return;
-+    }
-+
-+    /* No NULL check for path pointers on Windows */
-+    if (0)
-+    {
-+        ret = pPathIsUNCEx(NULL, &server);
-+        ok(ret == FALSE, "expect FALSE\n");
-+    }
-+
-+    MultiByteToWideChar(CP_ACP, 0, "C:\\", -1, pathW, ARRAY_SIZE(pathW));
-+    ret = pPathIsUNCEx(pathW, NULL);
-+    ok(ret == FALSE, "expect FALSE\n");
-+
-+    for (i = 0; i < ARRAY_SIZE(isuncex_tests); i++)
-+    {
-+        const struct isuncex_test *t = isuncex_tests + i;
-+
-+        MultiByteToWideChar(CP_ACP, 0, t->path, -1, pathW, ARRAY_SIZE(pathW));
-+        server = (const WCHAR *)0xdeadbeef;
-+        ret = pPathIsUNCEx(pathW, &server);
-+        ok(ret == t->ret, "path \"%s\" expect return %d, got %d\n", t->path, t->ret, ret);
-+        if (ret)
-+            ok(server == pathW + t->server_offset, "path \"%s\" expect server offset %d, got %d\n", t->path,
-+               t->server_offset, server - pathW);
-+        else
-+            ok(!server, "expect server is null, got %p\n", server);
-+    }
-+}
-+
- START_TEST(path)
+@@ -1101,26 +2274,46 @@ START_TEST(path)
  {
      HMODULE hmod = LoadLibraryA("kernelbase.dll");
  
@@ -2614,16 +1884,16 @@ index 1d6f44ee76..d7c075791b 100644
 +    pPathCchCombine = (void *)GetProcAddress(hmod, "PathCchCombine");
 +    pPathCchCombineEx = (void *)GetProcAddress(hmod, "PathCchCombineEx");
      pPathCchFindExtension = (void *)GetProcAddress(hmod, "PathCchFindExtension");
-+    pPathCchIsRoot = (void *)GetProcAddress(hmod, "PathCchIsRoot");
+     pPathCchIsRoot = (void *)GetProcAddress(hmod, "PathCchIsRoot");
 +    pPathCchRemoveBackslash = (void *)GetProcAddress(hmod, "PathCchRemoveBackslash");
 +    pPathCchRemoveBackslashEx = (void *)GetProcAddress(hmod, "PathCchRemoveBackslashEx");
      pPathCchRemoveExtension = (void *)GetProcAddress(hmod, "PathCchRemoveExtension");
 +    pPathCchRemoveFileSpec = (void *)GetProcAddress(hmod, "PathCchRemoveFileSpec");
      pPathCchRenameExtension = (void *)GetProcAddress(hmod, "PathCchRenameExtension");
-+    pPathCchSkipRoot = (void *)GetProcAddress(hmod, "PathCchSkipRoot");
-+    pPathCchStripPrefix = (void *)GetProcAddress(hmod, "PathCchStripPrefix");
-+    pPathCchStripToRoot = (void *)GetProcAddress(hmod, "PathCchStripToRoot");
-+    pPathIsUNCEx = (void *)GetProcAddress(hmod, "PathIsUNCEx");
+     pPathCchSkipRoot = (void *)GetProcAddress(hmod, "PathCchSkipRoot");
+     pPathCchStripPrefix = (void *)GetProcAddress(hmod, "PathCchStripPrefix");
+     pPathCchStripToRoot = (void *)GetProcAddress(hmod, "PathCchStripToRoot");
+     pPathIsUNCEx = (void *)GetProcAddress(hmod, "PathIsUNCEx");
  
 -    test_PathCchCombineEx();
 +    test_PathAllocCanonicalize();
@@ -2638,22 +1908,19 @@ index 1d6f44ee76..d7c075791b 100644
 +    test_PathCchCombine();
 +    test_PathCchCombineEx();
      test_PathCchFindExtension();
-+    test_PathCchIsRoot();
+     test_PathCchIsRoot();
 +    test_PathCchRemoveBackslash();
 +    test_PathCchRemoveBackslashEx();
      test_PathCchRemoveExtension();
 +    test_PathCchRemoveFileSpec();
      test_PathCchRenameExtension();
-+    test_PathCchSkipRoot();
-+    test_PathCchStripPrefix();
-+    test_PathCchStripToRoot();
-+    test_PathIsUNCEx();
- }
+     test_PathCchSkipRoot();
+     test_PathCchStripPrefix();
 diff --git a/include/pathcch.h b/include/pathcch.h
-index 3057b6c1ec..0c2dc63c41 100644
+index 443ccd3a4f..0c2dc63c41 100644
 --- a/include/pathcch.h
 +++ b/include/pathcch.h
-@@ -22,13 +22,29 @@
+@@ -22,16 +22,27 @@
  #define PATHCCH_FORCE_DISABLE_LONG_NAME_PROCESS 0x04
  #define PATHCCH_DO_NOT_NORMALIZE_SEGMENTS       0x08
  #define PATHCCH_ENSURE_IS_EXTENDED_LENGTH_PATH  0x10
@@ -2673,13 +1940,11 @@ index 3057b6c1ec..0c2dc63c41 100644
 +HRESULT WINAPI PathCchCombine(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2);
  HRESULT WINAPI PathCchCombineEx(WCHAR *out, SIZE_T size, const WCHAR *path1, const WCHAR *path2, DWORD flags);
  HRESULT WINAPI PathCchFindExtension(const WCHAR *path, SIZE_T size, const WCHAR **extension);
-+BOOL    WINAPI PathCchIsRoot(const WCHAR *path);
+ BOOL    WINAPI PathCchIsRoot(const WCHAR *path);
 +HRESULT WINAPI PathCchRemoveBackslash(WCHAR *path, SIZE_T path_size);
 +HRESULT WINAPI PathCchRemoveBackslashEx(WCHAR *path, SIZE_T path_size, WCHAR **path_end, SIZE_T *free_size);
  HRESULT WINAPI PathCchRemoveExtension(WCHAR *path, SIZE_T size);
 +HRESULT WINAPI PathCchRemoveFileSpec(WCHAR *path, SIZE_T size);
  HRESULT WINAPI PathCchRenameExtension(WCHAR *path, SIZE_T size, const WCHAR *extension);
-+HRESULT WINAPI PathCchSkipRoot(const WCHAR *path, const WCHAR **root_end);
-+HRESULT WINAPI PathCchStripPrefix(WCHAR *path, SIZE_T size);
-+HRESULT WINAPI PathCchStripToRoot(WCHAR *path, SIZE_T size);
-+BOOL    WINAPI PathIsUNCEx(const WCHAR *path, const WCHAR **server);
+ HRESULT WINAPI PathCchSkipRoot(const WCHAR *path, const WCHAR **root_end);
+ HRESULT WINAPI PathCchStripPrefix(WCHAR *path, SIZE_T size);
