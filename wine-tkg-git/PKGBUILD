@@ -504,7 +504,7 @@ prepare() {
 
 	# PathCchCanonicalizeEx patch, fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
 	if [ $_python_fix == "true" ]; then
-	  _python_fix="-W kernelbase-PathCchCombineEx"
+	  _python="-W kernelbase-PathCchCombineEx"
 	  patch -Np1 < ../'kernelbase_PathCchCanonicalizeEx.patch' && echo "Applied Python/The Sims 4 fix" >> "$_where"/last_build_config.log
 	fi
 
@@ -543,7 +543,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_python_fix $_faudio $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_python $_faudio $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
