@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.20.r26.gd373c19f
-pkgrel=95
+pkgrel=96
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -217,7 +217,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fallout4.patch' # Fallout 4 dsound fix
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
-		'kernelbase_PathCchCanonicalizeEx.patch' # Python/Sims 4 fix
 		'sims_2-fix.patch' # Sims 2 fix
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
@@ -502,12 +501,6 @@ prepare() {
 	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
 	fi
 
-	# PathCchCanonicalizeEx patch, fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
-	if [ $_python_fix == "true" ]; then
-	  _python="-W kernelbase-PathCchCombineEx"
-	  patch -Np1 < ../'kernelbase_PathCchCanonicalizeEx.patch' && echo "Applied Python/The Sims 4 fix" >> "$_where"/last_build_config.log
-	fi
-
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets - The actual patch is applied after staging
 	if [ $_sims2_fix == "true" ]; then
 	  _sims2="-W wined3d-WINED3D_RS_COLORWRITEENABLE -W wined3d-Indexed_Vertex_Blending"
@@ -543,7 +536,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_python $_faudio $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_faudio $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
@@ -875,7 +868,6 @@ md5sums=('SKIP'
          'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
          '85c8f0db6895ad7c2868afd367439b4d'
-         '4c95aa5e8651b4fca7470e5cc5ebc541'
          '6e301f262f004b930ffc3000839d837b'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
