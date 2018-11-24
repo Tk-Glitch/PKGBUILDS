@@ -1,0 +1,68 @@
+From 7b028b6366d353f57be0ac9f4c20142e7c96394d Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Sat, 24 Nov 2018 18:06:37 +0100
+Subject: dotnet20 x64
+
+Rebased against winetricks-tkg-git.
+Originally from: Austin English <austinenglish@gmail.com>
+Date: Sat, 25 Aug 2018 15:06:06 -0500
+Subject: [PATCH] dotnet20: first pass at 64-bit support
+
+diff --git a/src/winetricks b/src/winetricks
+index 96d290a..72d1d43 100755
+--- a/src/winetricks
++++ b/src/winetricks
+@@ -7452,24 +7452,34 @@ w_metadata dotnet20 dlls \
+     media="download" \
+     conflicts="dotnet11" \
+     file1="dotnetfx.exe" \
+-    installed_file1="c:/windows/Microsoft.NET/Framework/v2.0.50727/Microsoft .NET Framework 2.0/install.exe"
++    installed_file1="c:/windows/Microsoft.NET/Framework/v2.0.50727/MSBuild.exe"
+ 
+ load_dotnet20()
+ {
+-    w_package_unsupported_win64
++    # FIXME: broken in 3.13, maybe 3.14?
+ 
+     # https://www.microsoft.com/en-us/download/details.aspx?id=19
+-    w_download https://download.lenovo.com/ibmdl/pub/pc/pccbbs/thinkvantage_en/dotnetfx.exe 46693d9b74d12454d117cc61ff2e9481cabb100b4d74eb5367d3cf88b89a0e71
++    case "$W_ARCH" in
++        "win32")
++            w_download https://download.lenovo.com/ibmdl/pub/pc/pccbbs/thinkvantage_en/dotnetfx.exe 46693d9b74d12454d117cc61ff2e9481cabb100b4d74eb5367d3cf88b89a0e71
++            _W_dotnet20_file="dotnetfx.exe"
++            ;;
++        "win64")
++            w_download http://download.microsoft.com/download/a/3/f/a3f1bf98-18f3-4036-9b68-8e6de530ce0a/NetFx64.exe 7ea86dca8eeaedcaa4a17370547ca2cea9e9b6774972b8e03d2cb1fb0e798669
++            _W_dotnet20_file="NetFx64.exe"
++            ;;
++        *) w_die "Invalid WINE_ARCH $WINE_ARCH" ;;
++    esac
+ 
+     w_call remove_mono
+     w_call fontfix
+ 
+     # Needed for https://bugs.winehq.org/show_bug.cgi?id=12401
+-    w_set_winver win2k
++    if [ "$WINE_ARCH" = "win32" ] ; then w_set_winver win2k ; fi
+ 
+     w_try_cd "$W_CACHE"/"$W_PACKAGE"
+-    w_try "$WINE" dotnetfx.exe ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"}
+-    w_unset_winver
++    w_try "$WINE" "$_W_dotnet20_file" ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"}
++    if [ "$WINE_ARCH" = "win32" ] ; then w_unset_winver ; fi
+ 
+     # We can't stop installing dotnet20 in win2k mode until Wine supports
+     # reparse/junction points
+@@ -7477,9 +7487,11 @@ load_dotnet20()
+     # so for now just remove the bogus msvc*80.dll files it installs.
+     # See also https://bugs.winehq.org/show_bug.cgi?id=16577
+     # This affects Victoria 2 demo, see https://forum.paradoxplaza.com/forum/showthread.php?p=11523967
+-    rm -f "$W_SYSTEM32_DLLS"/msvc?80.dll
++    w_try rm -f "$W_SYSTEM32_DLLS"/msvc?80.dll
+ 
+     W_NGEN_CMD="w_try $WINE $W_DRIVE_C/windows/Microsoft.NET/Framework/v2.0.50727/ngen.exe executequeueditems"
++
++    unset _W_dotnet20_file
+ }
+ 
+ verify_dotnet20()

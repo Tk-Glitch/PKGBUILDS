@@ -47,8 +47,8 @@ WINETRICKS_VERSION=20180815-next
 #    sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 #    sudo dnf install binutils cabextract p7zip-plugins unrar unzip wget wine zenity
 #
-# See http://winetricks.org for documentation and tutorials, including
-# how to contribute changes to winetricks.
+# See https://github.com/Winetricks/winetricks for documentation and tutorials,
+# including how to contribute changes to winetricks.
 #
 #--------------------------------------------------------------------
 #
@@ -99,7 +99,7 @@ WINETRICKS_VERSION=20180815-next
 # - Portability matters, as this script is run on many operating systems
 # - No bash, zsh, or csh extensions; only use features from
 #   the POSIX standard shell and utilities; see
-#   http://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html
+#   https://pubs.opengroup.org/onlinepubs/009695399/utilities/xcu_chap02.html
 # - 'checkbashisms -p -x winetricks' should show no warnings (per Debian policy)
 # - Prefer classic sh idioms as described in e.g.
 #   "Portable Shell Programming" by Bruce Blinn, ISBN: 0-13-451494-7
@@ -3329,6 +3329,7 @@ winetricks_prefixmenu()
              _W_msg_games='Установить игру'
              _W_msg_benchmarks='Установить приложение для оценки производительности'
              _W_msg_default="Выберите путь для wine по умолчанию"
+             _W_msg_mkprefix="Создать новый путь wine"
              _W_msg_unattended0="Отключить автоматическую установку"
              _W_msg_unattended1="Включить автоматическую установку"
              _W_msg_showbroken0="Спрятать нерабочие программы (например, использующие DRM)"
@@ -3341,6 +3342,7 @@ winetricks_prefixmenu()
              _W_msg_games='Встановити гру'
              _W_msg_benchmarks='Встановити benchmark'
              _W_msg_default="Вибрати wineprefix за замовчуванням"
+             _W_msg_mkprefix="створити новий wineprefix"
              _W_msg_unattended0="Вимкнути автоматичне встановлення"
              _W_msg_unattended1="Увімкнути автоматичне встановлення"
              _W_msg_showbroken0="Сховати нестабільні додатки (наприклад з проблемами з DRM)"
@@ -3353,6 +3355,7 @@ winetricks_prefixmenu()
              _W_msg_games='安装一个游戏'
              _W_msg_benchmarks='安装一个基准测试软件'
              _W_msg_default="选择默认的 wine 容器"
+             _W_msg_mkprefix="创建新的 wine 容器"
              _W_msg_unattended0="禁用静默安装"
              _W_msg_unattended1="启用静默安装"
              _W_msg_showbroken0="隐藏有问题的程序 (例如那些有数字版权问题)"
@@ -3365,6 +3368,7 @@ winetricks_prefixmenu()
              _W_msg_games='安裝一個遊戲'
              _W_msg_benchmarks='安裝一個基准測試軟體'
              _W_msg_default="選取預設的 wine 容器"
+             _W_msg_mkprefix="创建新的 wine 容器"
              _W_msg_unattended0="禁用靜默安裝"
              _W_msg_unattended1="啟用靜默安裝"
              _W_msg_showbroken0="隱藏有問題的程式 (例如那些有數字版權問題)"
@@ -3377,6 +3381,7 @@ winetricks_prefixmenu()
              _W_msg_games='Ein Spiel installieren'
              _W_msg_benchmarks='Einen Benchmark-Test installieren'
              _W_msg_default="Standard wineprefix auswählen"
+             _W_msg_mkprefix="Neuen wineprefix erstellen"
              _W_msg_unattended0="Automatische Installation deaktivieren"
              _W_msg_unattended1="Automatische Installation aktivieren"
              _W_msg_showbroken0="Defekte Programme nicht anzeigen (z.B. solche mit DRM Problemen)"
@@ -3389,6 +3394,7 @@ winetricks_prefixmenu()
              _W_msg_games='Zainstalować grę'
              _W_msg_benchmarks='Zainstalować program sprawdzający wydajność komputera'
              _W_msg_default="Wybrać domyślny prefiks Wine"
+             _W_msg_mkprefix="Stwórz nowy prefiks Wine"
              _W_msg_unattended0="Wyłącz cichą instalację"
              _W_msg_unattended1="Włącz cichą instalację"
              _W_msg_showbroken0="Ukrywaj uszkodzone aplikacje (np. z problemami z DRM)"
@@ -3401,6 +3407,7 @@ winetricks_prefixmenu()
              _W_msg_games='Install a game'
              _W_msg_benchmarks='Install a benchmark'
              _W_msg_default="Select the default wineprefix"
+             _W_msg_mkprefix="Create new wineprefix"
              _W_msg_unattended0="Disable silent install"
              _W_msg_unattended1="Enable silent install"
              _W_msg_showbroken0="Hide broken apps (e.g. those with DRM problems)"
@@ -3435,6 +3442,7 @@ winetricks_prefixmenu()
                 FALSE benchmarks '$_W_msg_benchmarks' \
                 FALSE games      '$_W_msg_games' \
                 TRUE  main       '$_W_msg_default' \
+                FALSE mkprefix   '$_W_msg_mkprefix' \
                 " \
                 > "$WINETRICKS_WORKDIR"/zenity.sh
 
@@ -3474,7 +3482,9 @@ winetricks_prefixmenu()
                 games      '$_W_msg_games'      off \
                 benchmarks '$_W_msg_benchmarks' off \
                 apps       '$_W_msg_apps'       off \
-                main       '$_W_msg_default'    on "
+                main       '$_W_msg_default'    on  \
+                mkprefix   '$_W_msg_mkprefix'   off \
+                "
             if ls -d "$W_PREFIXES_ROOT"/*/dosdevices > /dev/null 2>&1; then
                 for prefix in "$W_PREFIXES_ROOT"/*/dosdevices
                 do
@@ -3488,6 +3498,8 @@ winetricks_prefixmenu()
                     printf %s "prefix='$p' 'Select $_W_msg_name' off "
                 done
             fi
+            printf %s " $_W_cmd_unattended '$_W_msg_unattended' off"
+            printf %s " $_W_cmd_showbroken '$_W_msg_showbroken' off"
             ) > "$WINETRICKS_WORKDIR"/kdialog.sh
             sh "$WINETRICKS_WORKDIR"/kdialog.sh
             ;;
@@ -3495,11 +3507,46 @@ winetricks_prefixmenu()
     unset _W_msg_help _W_msg_body _W_msg_title _W_msg_new _W_msg_default _W_msg_name
 }
 
+# Graphically create new custom wineprefix.
+# This returns two verbs: arch and prefix, e.g. "arch=32 prefix=test".
+winetricks_mkprefixmenu()
+{
+    case $LANG in
+        # TODO: translate to other languages
+        de)  _W_msg_title="Winetricks - Neues Wineprefix erstellen"
+             _W_msg_name="Name"
+             _W_msg_arch="Architektur"
+             ;;
+        *)   _W_msg_title="Winetricks - create new wineprefix"
+             _W_msg_name="Name"
+             _W_msg_arch="Architecture"
+             ;;
+    esac
+
+    case $WINETRICKS_GUI in
+        zenity)
+            zenity --forms --text="" --title "$_W_msg_title" \
+                --add-combo="$_W_msg_arch" --combo-values=32\|64 \
+                --add-entry="$_W_msg_name" \
+                | sed -e 's/^\s*|/64|/' -e 's/^/arch=/' -e 's/|/ prefix=/'
+            ;;
+        kdialog)
+            kdialog --title="$_W_msg_title" \
+                --radiolist="$_W_msg_arch" 32 32bit off 64 64bit on \
+                | sed -e 's/^$/64/' -e 's/^/arch=/'
+            kdialog --title="$_W_msg_title" --inputbox="$_W_msg_name" \
+                | sed -e 's/^/prefix=/'
+            ;;
+    esac
+
+    unset _W_msg_title _W_msg_name _W_msg_arch
+}
+
 # Display main menu, get which submenu the user wants
 winetricks_mainmenu()
 {
     case $LANG in
-        da*) _W_msg_title='Vælg en pakke-kategori'
+        da*) _W_msg_title="Vælg en pakke-kategori - Nuværende præfiks er \"$WINEPREFIX\""
              _W_msg_body='Hvad ønsker du at gøre?'
              _W_msg_dlls="Install a Windows DLL"
              _W_msg_fonts='Install a font'
@@ -3507,12 +3554,13 @@ winetricks_mainmenu()
              _W_msg_winecfg='Run winecfg'
              _W_msg_regedit='Run regedit'
              _W_msg_taskmgr='Run taskmgr'
+             _W_msg_explorer='Run explorer'
              _W_msg_uninstaller='Run uninstaller'
              _W_msg_shell='Run a commandline shell (for debugging)'
              _W_msg_folder='Browse files'
              _W_msg_annihilate="Delete ALL DATA AND APPLICATIONS INSIDE THIS WINEPREFIX"
              ;;
-        de*) _W_msg_title='Pakettyp auswählen'
+        de*) _W_msg_title="Pakettyp auswählen - Aktueller Präfix ist \"$WINEPREFIX\""
              _W_msg_body='Was möchten Sie tun?'
              _W_msg_dlls="Windows-DLL installieren"
              _W_msg_fonts='Schriftart installieren'
@@ -3520,6 +3568,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='winecfg starten'
              _W_msg_regedit='regedit starten'
              _W_msg_taskmgr='taskmgr starten'
+             _W_msg_explorer='explorer starten'
              _W_msg_uninstaller='uninstaller starten'
              _W_msg_shell='Eine Kommandozeile zum debuggen starten'
              _W_msg_folder='Ordner durchsuchen'
@@ -3533,6 +3582,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='Uruchomić winecfg'
              _W_msg_regedit='Uruchomić edytor rejestru'
              _W_msg_taskmgr='Uruchomić menedżer zadań'
+             _W_msg_explorer='Uruchomić explorer'
              _W_msg_uninstaller='Uruchomić program odinstalowujący'
              _W_msg_shell='Uruchomić powłokę wiersza poleceń (dla debugowania)'
              _W_msg_folder='Przeglądać pliki'
@@ -3546,6 +3596,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='Запустить winecfg (редактор настроек wine)'
              _W_msg_regedit='Запустить regedit (редактор реестра)'
              _W_msg_taskmgr='Запустить taskmgr (менеджер задач)'
+             _W_msg_explorer='Запустить explorer'
              _W_msg_uninstaller='Запустить uninstaller (деинсталлятор)'
              _W_msg_shell='Запустить графический терминал (для отладки)'
              _W_msg_folder='Проводник файлов'
@@ -3559,6 +3610,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='Запустити winecfg'
              _W_msg_regedit='Запустити regedit'
              _W_msg_taskmgr='Запустити taskmgr'
+             _W_msg_explorer='Запустити explorer'
              _W_msg_uninstaller='Встановлення/видалення програм'
              _W_msg_shell='Запуск командної оболонки (для налагодження)'
              _W_msg_folder='Перегляд файлів'
@@ -3572,6 +3624,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='运行 winecfg'
              _W_msg_regedit='运行注册表'
              _W_msg_taskmgr='运行任务管理器'
+             _W_msg_explorer='运行资源管理器'
              _W_msg_uninstaller='运行卸载程序'
              _W_msg_shell='运行命令提示窗口 (作为调试)'
              _W_msg_folder='浏览容器中的文件'
@@ -3585,6 +3638,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='執行 winecfg'
              _W_msg_regedit='執行註冊表'
              _W_msg_taskmgr='執行工作管理者'
+             _W_msg_explorer='執行資源經理'
              _W_msg_uninstaller='執行反安裝程式'
              _W_msg_shell='執行指令輔助說明視窗 (作為除錯)'
              _W_msg_folder='瀏覽容器中的檔案'
@@ -3598,6 +3652,7 @@ winetricks_mainmenu()
              _W_msg_winecfg='Run winecfg'
              _W_msg_regedit='Run regedit'
              _W_msg_taskmgr='Run taskmgr'
+             _W_msg_explorer='Run explorer'
              _W_msg_uninstaller='Run uninstaller'
              _W_msg_shell='Run a commandline shell (for debugging)'
              _W_msg_folder='Browse files'
@@ -3625,6 +3680,7 @@ winetricks_mainmenu()
                     FALSE winecfg     '$_W_msg_winecfg' \
                     FALSE regedit     '$_W_msg_regedit' \
                     FALSE taskmgr     '$_W_msg_taskmgr' \
+                    FALSE explorer    '$_W_msg_explorer' \
                     FALSE uninstaller '$_W_msg_uninstaller' \
                     FALSE shell       '$_W_msg_shell' \
                     FALSE folder      '$_W_msg_folder' \
@@ -3647,6 +3703,7 @@ winetricks_mainmenu()
                     winecfg     "$_W_msg_winecfg" off \
                     regedit     "$_W_msg_regedit" off \
                     taskmgr     "$_W_msg_taskmgr" off \
+                    explorer    "$_W_msg_explorer" off \
                     uninstaller "$_W_msg_uninstaller" off \
                     shell       "$_W_msg_shell" off \
                     folder      "$_W_msg_folder" off \
@@ -3662,10 +3719,10 @@ winetricks_settings_menu()
 {
     # FIXME: these translations should really be centralized/reused:
     case $LANG in
-        da*) _W_msg_title='Vælg en pakke'
+        da*) _W_msg_title="Vælg en pakke - Nuværende præfiks er \"$WINEPREFIX\""
              _W_msg_body='Which settings would you like to change?'
              ;;
-        de*) _W_msg_title="Winetricks - Aktueller Prefix ist \"$WINEPREFIX\""
+        de*) _W_msg_title="Winetricks - Aktueller Präfix ist \"$WINEPREFIX\""
              _W_msg_body='Welche Einstellungen möchten Sie ändern?'
              ;;
         pl*) _W_msg_title="Winetricks - obecny prefiks to \"$WINEPREFIX\""
@@ -4236,7 +4293,7 @@ winetricks_list_all()
 {
     # Note: doh123 relies on 'winetricks list' to list main menu categories
     case $WINETRICKS_CURMENU in
-        prefix|main) echo "$WINETRICKS_CATEGORIES" | tr ' ' '\012' ; return;;
+        prefix|main|mkprefix) echo "$WINETRICKS_CATEGORIES" | sed 's/ mkprefix//' | tr ' ' '\012' ; return;;
     esac
 
     case $LANG in
@@ -4814,7 +4871,7 @@ winetricks_set_unattended()
     # We shouldn't use all these extra variables.  Instead, we should
     # use ${foo:+bar} to jam in commandline options for silent install
     # only if W_OPT_UNATTENDED is nonempty.  See
-    # http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_02
+    # https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_02
     # So in attended mode, W_OPT_UNATTENDED should be empty.
 
     case "$1" in
@@ -4858,6 +4915,20 @@ winetricks_print_wineprefix_info()
     for regfile in "${WINEPREFIX}"/*.reg; do
         printf "%s:%s\\n" "${regfile}" "$(grep '#arch=' "${regfile}")"
     done
+}
+
+# Force creation of 32 or 64bit wineprefix on 64 bit systems.
+# On 32bit systems, trying to create a 64bit wineprefix will fail.
+# This must be called prior to winetricks_set_wineprefix()
+winetricks_set_winearch()
+{
+    if [ "$1" = "32" ] || [ "$1" = "win32" ]; then
+        export WINEARCH=win32
+    elif [ "$1" = "64" ] || [ "$1" = "win64" ]; then
+        export WINEARCH=win64
+    else
+        w_die "arch: Invalid architecture: $1"
+    fi
 }
 
 # Usage: winetricks_set_wineprefix [bottlename]
@@ -5012,6 +5083,11 @@ winetricks_set_wineprefix()
         WINE_ARCH="${WINE}"
         WINE_MULTI="${WINE}"
     fi
+
+    # Unset WINEARCH which might be set from winetricks_set_winearch().
+    # It is no longer necessary after the new wineprefix was created
+    # and even may cause trouble when using 64bit wineprefixes afterwards.
+    unset WINEARCH
 }
 
 winetricks_annihilate_wineprefix()
@@ -5070,7 +5146,7 @@ winetricks_init()
     WINETRICKS_METADATA="$WINETRICKS_WORKDIR/metadata"
 
     # The list of categories is also hardcoded in winetricks_mainmenu() :-(
-    WINETRICKS_CATEGORIES="apps benchmarks dlls fonts games settings"
+    WINETRICKS_CATEGORIES="apps benchmarks dlls fonts games settings mkprefix"
     for _W_cat in $WINETRICKS_CATEGORIES
     do
         mkdir -p "$WINETRICKS_METADATA/$_W_cat"
@@ -5238,9 +5314,10 @@ winetricks_init()
     # wine-2.8
     _wine_version_stripped="$(echo "$WINETRICKS_WINE_VERSION" | cut -d ' ' -f1 | sed -e 's/wine-//' -e 's/-rc.*//')"
 
-    # If WINE is < 2.0, warn user:
-    if w_wine_version_in 2.0, ; then
-        w_warn "Your version of wine $_wine_version_stripped is no longer supported upstream. You should upgrade to 2.x"
+    # If WINE is < 3.0, warn user:
+    # 3.0 doesn't do what I thought it would
+    if w_wine_version_in 2.99, ; then
+        w_warn "Your version of wine $_wine_version_stripped is no longer supported upstream. You should upgrade to 3.x"
     fi
 
     if [ ! "$WINETRICKS_SUPER_QUIET" ] ; then
@@ -5307,6 +5384,9 @@ list-cached           Verben für bereits gecachte Installers auflisten
 list-download         Verben für automatisch herunterladbare Anwendungen auflisten
 list-manual-download  Verben für vom Benutzer herunterladbare Anwendungen auflisten
 list-installed        Bereits installierte Verben auflisten
+arch=32|64            Neues wineprefix mit 32 oder 64 bit erstellen, diese Option
+                      muss vor prefix=foobar angegeben werden und funktioniert
+                      nicht im Falle des Standard Wineprefix.
 prefix=foobar         WINEPREFIX=$W_PREFIXES_ROOT/foobar auswählen
 annihilate            ALLE DATEIEN UND PROGRAMME IN DIESEM WINEPREFIX Löschen
 _EOF_
@@ -5346,6 +5426,9 @@ list-cached           list cached-and-ready-to-install verbs
 list-download         list verbs which download automatically
 list-manual-download  list verbs which download with some help from the user
 list-installed        list already-installed verbs
+arch=32|64            create wineprefix with 32 or 64 bit, this option must be
+                      given before prefix=foobar and will not work in case of
+                      the default wineprefix.
 prefix=foobar         select WINEPREFIX=$W_PREFIXES_ROOT/foobar
 annihilate            Delete ALL DATA AND APPLICATIONS INSIDE THIS WINEPREFIX
 _EOF_
@@ -5586,8 +5669,9 @@ load_adobeair()
 
     # See https://bugs.winehq.org/show_bug.cgi?id=43506
     # and https://github.com/Winetricks/winetricks/issues/821
+    # Note: must be -silent, not /silent. /silent gives error 'too many arguments'
     if w_workaround_wine_bug 43506 "Forcing quiet install"; then
-        w_try "$WINE" AdobeAIRInstaller.exe -silent
+        w_try "$WINE" AdobeAIRInstaller.exe $W_UNATTENDED_DASH_SILENT
     else
         w_try "$WINE" AdobeAIRInstaller.exe $W_UNATTENDED_DASH_SILENT
     fi
@@ -5860,6 +5944,33 @@ load_d3dcompiler_43()
     fi
 
     w_override_dlls native $dllname
+}
+
+#----------------------------------------------------------------
+
+w_metadata d3dcompiler_47 dlls \
+    title="MS d3dcompiler_47.dll" \
+    publisher="Microsoft" \
+    year="FIXME" \
+    media="download" \
+    file1="FirefoxSetup62.0.3-win32.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dcompiler_47.dll"
+
+load_d3dcompiler_47()
+{
+    # FIXME: would be awesome to find a small download that has both 32/64bit dlls, but this works for now:
+
+    w_download https://download-installer.cdn.mozilla.net/pub/firefox/releases/62.0.3/win32/ach/Firefox%20Setup%2062.0.3.exe "d6edb4ff0a713f417ebd19baedfe07527c6e45e84a6c73ed8c66a33377cc0aca" "FirefoxSetup62.0.3-win32.exe"
+    w_try_7z "$W_TMP/win32" "$W_CACHE/d3dcompiler_47/FirefoxSetup62.0.3-win32.exe" "core/d3dcompiler_47.dll"
+    w_try cp "$W_TMP/win32/core/d3dcompiler_47.dll" "$W_SYSTEM32_DLLS/d3dcompiler_47.dll"
+
+    if [ "$W_ARCH" = "win64" ]; then
+        w_download https://download-installer.cdn.mozilla.net/pub/firefox/releases/62.0.3/win64/ach/Firefox%20Setup%2062.0.3.exe "721977f36c008af2b637aedd3f1b529f3cfed6feb10f68ebe17469acb1934986" "FirefoxSetup62.0.3-win64.exe"
+        w_try_7z "$W_TMP/win64" "$W_CACHE/d3dcompiler_47/FirefoxSetup62.0.3-win64.exe" "core/d3dcompiler_47.dll"
+        w_try cp "$W_TMP/win64/core/d3dcompiler_47.dll" "$W_SYSTEM64_DLLS/d3dcompiler_47.dll"
+    fi
+
+    w_override_dlls native d3dcompiler_47
 }
 
 #----------------------------------------------------------------
@@ -6541,12 +6652,20 @@ load_directx9()
 
     # How many of these do we really need?
     # We should probably remove most of these...?
+    w_call devenum
+    w_call quartz
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "msdmo.dll" "$W_TMP/dxnt.cab"
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "qcap.dll" "$W_TMP/dxnt.cab"
+    w_try_regsvr qcap.dll
+
     w_override_dlls native d3dim d3drm d3dx8 d3dx9_24 d3dx9_25 d3dx9_26 d3dx9_27 d3dx9_28 d3dx9_29
     w_override_dlls native d3dx9_30 d3dx9_31 d3dx9_32 d3dx9_33 d3dx9_34 d3dx9_35 d3dx9_36 d3dx9_37
     w_override_dlls native d3dx9_38 d3dx9_39 d3dx9_40 d3dx9_41 d3dx9_42 d3dx9_43 d3dxof
-    w_override_dlls native dciman32 ddrawex devenum dmband dmcompos dmime dmloader dmscript dmstyle
+    w_override_dlls native dciman32 ddrawex dmband dmcompos dmime dmloader dmscript dmstyle
     w_override_dlls native dmsynth dmusic dmusic32 dplay dplayx dpnaddr dpnet dpnhpast dpnlobby
-    w_override_dlls native dswave dxdiagn msdmo qcap quartz streamci
+    w_override_dlls native dswave dxdiagn msdmo qcap streamci
     w_override_dlls native dxdiag.exe
     w_override_dlls builtin d3d8 d3d9 dinput dinput8 dsound
 
@@ -6888,7 +7007,10 @@ w_metadata dxvk80 dlls \
 load_dxvk80()
 {
     # https://github.com/doitsujin/dxvk
-    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.80/dxvk-0.80.tar.gz" f9e736cdbf1e83e45ca748652a94a3a189fc5accde1eac549b2ba5af8f7acacb
+    # 2018/09/23: f9e736cdbf1e83e45ca748652a94a3a189fc5accde1eac549b2ba5af8f7acacb
+    # 2018/11/17: 7058a834bb006cad5462933110449b434df561e67d83f68d3965ecc74e2e1cbc
+    # See: https://github.com/doitsujin/dxvk/issues/773
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.80/dxvk-0.80.tar.gz" 7058a834bb006cad5462933110449b434df561e67d83f68d3965ecc74e2e1cbc
     helper_dxvk "$file1" "d3d10_enabled" "3.10" "1.0.76"
 }
 
@@ -6927,6 +7049,44 @@ load_dxvk90()
 {
     # https://github.com/doitsujin/dxvk
     w_download "https://github.com/doitsujin/dxvk/releases/download/v0.90/dxvk-0.90.tar.gz" 15bce7b282065054ff9233b33738bf1d2c74b16829361cbd6843bc2f5dfe4509
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
+w_metadata dxvk91 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.91)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.91.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk91()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.91/dxvk-0.91.tar.gz" 5296106ac3a8c631d7f26fa46dbff4be1332cda14fa493fd89ccf97e050c4855
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
+w_metadata dxvk92 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.92)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.92.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk92()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.92/dxvk-0.92.tar.gz" e22c0ae4693aac88562c7a9a97b3316e086b9048c9f8f9e128923ac1611a5c49
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 
@@ -7293,25 +7453,34 @@ w_metadata dotnet20 dlls \
     media="download" \
     conflicts="dotnet11" \
     file1="dotnetfx.exe" \
-    installed_file1="c:/windows/Microsoft.NET/Framework/v2.0.50727/Microsoft .NET Framework 2.0/install.exe"
+    installed_file1="c:/windows/Microsoft.NET/Framework/v2.0.50727/MSBuild.exe"
 
 load_dotnet20()
 {
-    w_package_unsupported_win64
+    # FIXME: broken in 3.13, maybe 3.14?
 
     # https://www.microsoft.com/en-us/download/details.aspx?id=19
-    w_download https://download.lenovo.com/ibmdl/pub/pc/pccbbs/thinkvantage_en/dotnetfx.exe 46693d9b74d12454d117cc61ff2e9481cabb100b4d74eb5367d3cf88b89a0e71
+    case "$W_ARCH" in
+        "win32")
+            w_download https://download.lenovo.com/ibmdl/pub/pc/pccbbs/thinkvantage_en/dotnetfx.exe 46693d9b74d12454d117cc61ff2e9481cabb100b4d74eb5367d3cf88b89a0e71
+            _W_dotnet20_file="dotnetfx.exe"
+            ;;
+        "win64")
+            w_download http://download.microsoft.com/download/a/3/f/a3f1bf98-18f3-4036-9b68-8e6de530ce0a/NetFx64.exe 7ea86dca8eeaedcaa4a17370547ca2cea9e9b6774972b8e03d2cb1fb0e798669
+            _W_dotnet20_file="NetFx64.exe"
+            ;;
+        *) w_die "Invalid WINE_ARCH $WINE_ARCH" ;;
+    esac
 
     w_call remove_mono
     w_call fontfix
 
-    # Recipe from https://bugs.winehq.org/show_bug.cgi?id=10467#c57
-    # and https://bugs.winehq.org/show_bug.cgi?id=30845#c10
-    w_set_winver win2k
+    # Needed for https://bugs.winehq.org/show_bug.cgi?id=12401
+    if [ "$WINE_ARCH" = "win32" ] ; then w_set_winver win2k ; fi
 
     w_try_cd "$W_CACHE"/"$W_PACKAGE"
-    w_try "$WINE" dotnetfx.exe ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"}
-    w_unset_winver
+    w_try "$WINE" "$_W_dotnet20_file" ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"}
+    if [ "$WINE_ARCH" = "win32" ] ; then w_unset_winver ; fi
 
     # We can't stop installing dotnet20 in win2k mode until Wine supports
     # reparse/junction points
@@ -7319,9 +7488,11 @@ load_dotnet20()
     # so for now just remove the bogus msvc*80.dll files it installs.
     # See also https://bugs.winehq.org/show_bug.cgi?id=16577
     # This affects Victoria 2 demo, see https://forum.paradoxplaza.com/forum/showthread.php?p=11523967
-    rm -f "$W_SYSTEM32_DLLS"/msvc?80.dll
+    w_try rm -f "$W_SYSTEM32_DLLS"/msvc?80.dll
 
     W_NGEN_CMD="w_try $WINE $W_DRIVE_C/windows/Microsoft.NET/Framework/v2.0.50727/ngen.exe executequeueditems"
+
+    unset _W_dotnet20_file
 }
 
 verify_dotnet20()
@@ -7420,16 +7591,11 @@ load_dotnet20sp1()
 
     w_call remove_mono
 
-    w_call dotnet20
-
     WINEDLLOVERRIDES=
     w_warn "Setting windows version so installer works"
-    # Stop services
-    # Recipe from https://bugs.winehq.org/show_bug.cgi?id=16956
-    w_wineserver -k
-    # Fight a race condition, see bug 16956 comment 43
+
     w_set_winver win2k
-    w_wineserver -w
+
     WINEDLLOVERRIDES=ngen.exe,regsvcs.exe,mscorsvw.exe=b
     export WINEDLLOVERRIDES
 
@@ -7486,30 +7652,10 @@ load_dotnet20sp2()
 
     w_call remove_mono
 
-    w_call dotnet20
-    w_wineserver -w
+    w_set_winver winxp
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run, NetFx20SP2_x86.exe ${W_OPT_UNATTENDED:+ /q /c:"install.exe /q"}
-
-        Loop
-        {
-            sleep 1000
-            ifwinexist,, cannot be uninstalled
-            {
-                WinClose,, cannot be uninstalled
-                continue
-            }
-            Process, exist, NetFx20SP2_x86.exe
-            dotnet_pid = %ErrorLevel%
-            if dotnet_pid = 0
-            {
-                break
-            }
-        }
-    "
+    w_try "$WINE" NetFx20SP2_x86.exe ${W_OPT_UNATTENDED:+ /q /c:"install.exe /q"}
     status=$?
 
     case $status in
@@ -7567,8 +7713,6 @@ load_dotnet30()
             esac
             ;;
     esac
-
-    w_call dotnet20
 
     # AF's workaround to avoid long pause
     LANGPACKS_BASE_PATH="${W_WINDIR_UNIX}/SYSMSICache/Framework/v3.0"
@@ -7675,8 +7819,7 @@ load_dotnet35()
 
     w_call remove_mono
 
-    w_call dotnet30sp1
-    w_wineserver -w
+    w_set_winver winxp
 
     # See also https://blogs.msdn.microsoft.com/astebner/2008/07/17/scenarios-where-net-framework-3-5-setup-tries-to-connect-to-the-internet-and-how-to-avoid-them/
     w_try_cd "$W_TMP"
@@ -7720,36 +7863,10 @@ load_dotnet35sp1()
 
     w_call remove_mono
 
-    w_call dotnet35
-    w_wineserver -w
-    w_call dotnet20sp2
-    w_wineserver -w
-
-    # Work around hang in https://bugs.winehq.org/show_bug.cgi?id=25060#c19
-    WINEDLLOVERRIDES=ngen.exe,mscorsvw.exe=b
-    export WINEDLLOVERRIDES
+    w_set_winver winxp
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run, dotnetfx35.exe /lang:ENU $W_UNATTENDED_SLASH_Q
-
-        Loop
-        {
-            sleep 1000
-            ifwinexist,, cannot be uninstalled
-            {
-                WinClose,, cannot be uninstalled
-                continue
-            }
-            Process, exist, dotnetfx35.exe
-            dotnet_pid = %ErrorLevel%
-            if dotnet_pid = 0
-            {
-                break
-            }
-        }
-    "
+    "$WINE" dotnetfx35.exe /lang:ENU $W_UNATTENDED_SLASH_Q
 
     # Doesn't install any ngen.exe
     # W_NGEN_CMD=""
@@ -8030,17 +8147,10 @@ load_dotnet462()
 {
     w_package_warn_win64
 
-    if w_workaround_wine_bug 42170 "Running un-official repacked .NET 4.6.2 setup until the official version is fixed."; then
-        # Un-official slim version. See https://repacks.net/forum/viewtopic.php?t=7
-        file_package="dotNetFx462_Full_x86_x64_Slim.exe"
-        w_download https://www.dropbox.com/s/1bdocgbate8hc8z/dotNetFx462_Full_x86_x64_Slim.exe?dl=1 8f03c8a9b2f4666c3707abe2d70145f200cb2f0f3b792626e64d167d1ad0565f $file_package
-        unattended_args="/ai /gm2"
-    else
-        # Official version. See https://www.microsoft.com/en-us/download/details.aspx?id=53344
-        w_download https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe 28886593e3b32f018241a4c0b745e564526dbb3295cb2635944e3a393f4278d4
-        file_package="NDP462-KB3151800-x86-x64-AllOS-ENU.exe"
-        unattended_args="/sfxlang:1027 /q /norestart"
-    fi
+    # Official version. See https://www.microsoft.com/en-us/download/details.aspx?id=53344
+    w_download https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/NDP462-KB3151800-x86-x64-AllOS-ENU.exe 28886593e3b32f018241a4c0b745e564526dbb3295cb2635944e3a393f4278d4
+    file_package="NDP462-KB3151800-x86-x64-AllOS-ENU.exe"
+    unattended_args="/sfxlang:1027 /q /norestart"
 
     w_call remove_mono
 
@@ -9523,6 +9633,28 @@ load_python26()
 
 #----------------------------------------------------------------
 
+w_metadata qasf dlls \
+    title="qasf.dll (from Directx 9 user redistributable)" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_feb2010_redist.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/qasf.dll"
+
+load_qasf()
+{
+    helper_directx_dl
+
+    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
+    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F qasf.dll "$W_TMP/dxnt.cab"
+
+    w_try_regsvr qasf.dll
+
+    w_override_dlls native qasf
+}
+
+#----------------------------------------------------------------
+
 w_metadata qdvd dlls \
     title="qdvd.dll" \
     publisher="Microsoft" \
@@ -9766,6 +9898,8 @@ w_metadata secur32 dlls \
 
 load_secur32()
 {
+    w_warn "Installing native secur32 may lead to stack overflow crashes, see https://bugs.winehq.org/show_bug.cgi?id=45344"
+
     helper_win7sp1 x86_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_a851f4adbb0d5141/secur32.dll
     w_try cp "$W_TMP/x86_microsoft-windows-lsa_31bf3856ad364e35_6.1.7601.17514_none_a851f4adbb0d5141/secur32.dll" "$W_SYSTEM32_DLLS/secur32.dll"
 
@@ -9932,7 +10066,8 @@ load_vb2run()
     # See ftp://ftp.microsoft.com/Softlib/index.txt
     # 2014/05/31: Microsoft FTP is down ftp://$ftp_microsoft_com/Softlib/MSLFILES/VBRUN200.EXE
     # 2015/08/10: chatnfiles is down, conradshome.com is up (and has a LOT of old MS installers archived!)
-    w_download https://www.conradshome.com/win31/archive/softlib/vbrun200.exe 4b0811d8fdcac1fd9411786c9119dc8d98d0540948211bdbc1ac682fbe5c0228
+    # 2018/11/15: now conradshome is down ,but quaddicted.com also has it (and a lot more)
+    w_download https://www.quaddicted.com/files/mirrors/ftp.planetquake.com/aoe/downloads/VBRUN200.EXE 4b0811d8fdcac1fd9411786c9119dc8d98d0540948211bdbc1ac682fbe5c0228
     w_try_unzip "$W_TMP" "$W_CACHE"/vb2run/VBRUN200.EXE
     w_try cp -f "$W_TMP/VBRUN200.DLL" "$W_SYSTEM32_DLLS"
 }
@@ -10722,15 +10857,44 @@ load_winhttp()
 w_metadata wininet dlls \
     title="MS Windows Internet API" \
     publisher="Microsoft" \
+    year="2011" \
+    media="download" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/wininet.dll"
+
+load_wininet()
+{
+    helper_win7sp1 x86_microsoft-windows-i..tocolimplementation_31bf3856ad364e35_8.0.7601.17514_none_1eaaa4a07717236e/wininet.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-i..tocolimplementation_31bf3856ad364e35_8.0.7601.17514_none_1eaaa4a07717236e/wininet.dll" "$W_SYSTEM32_DLLS/wininet.dll"
+    helper_win7sp1 x86_microsoft-windows-ie-runtimeutilities_31bf3856ad364e35_8.0.7601.17514_none_64655b7c61c841cb/iertutil.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-ie-runtimeutilities_31bf3856ad364e35_8.0.7601.17514_none_64655b7c61c841cb/iertutil.dll" "$W_SYSTEM32_DLLS/iertutil.dll"
+
+    if [ "$W_ARCH" = "win64" ]; then
+        helper_win7sp1_x64 amd64_microsoft-windows-i..tocolimplementation_31bf3856ad364e35_8.0.7601.17514_none_7ac940242f7494a4/wininet.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-i..tocolimplementation_31bf3856ad364e35_8.0.7601.17514_none_7ac940242f7494a4/wininet.dll" "$W_SYSTEM64_DLLS/wininet.dll"
+        helper_win7sp1_x64 amd64_microsoft-windows-ie-runtimeutilities_31bf3856ad364e35_8.0.7601.17514_none_c083f7001a25b301/iertutil.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-ie-runtimeutilities_31bf3856ad364e35_8.0.7601.17514_none_c083f7001a25b301/iertutil.dll" "$W_SYSTEM64_DLLS/iertutil.dll"
+    fi
+
+    w_override_dlls native,builtin wininet
+    w_override_dlls native,builtin iertutil
+}
+
+#----------------------------------------------------------------
+
+w_metadata wininet_win2k dlls \
+    title="MS Windows Internet API" \
+    publisher="Microsoft" \
     year="2008" \
     media="download" \
     file1="../win2ksp4/W2KSP4_EN.EXE" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/wininet.dll"
 
-load_wininet()
+load_wininet_win2k()
 {
     helper_win2ksp4 i386/wininet.dl_
     w_try_cabextract --directory="$W_SYSTEM32_DLLS" "$W_TMP"/i386/wininet.dl_
+
     w_override_dlls native,builtin wininet
 }
 
@@ -10997,7 +11161,7 @@ load_baekmuk()
 {
     # See http://kldp.net/projects/baekmuk for project page
     # Need to download from Debian as the project page has unique captcha tokens per visitor
-    w_download "http://http.debian.net/debian/pool/main/f/fonts-baekmuk/fonts-baekmuk_2.2.orig.tar.gz" 08ab7dffb55d5887cc942ce370f5e33b756a55fbb4eaf0b90f244070e8d51882
+    w_download "https://deb.debian.org/debian/pool/main/f/fonts-baekmuk/fonts-baekmuk_2.2.orig.tar.gz" 08ab7dffb55d5887cc942ce370f5e33b756a55fbb4eaf0b90f244070e8d51882
 
     w_try_cd "$W_TMP"
     w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1" baekmuk-ttf-2.2/ttf
@@ -11731,7 +11895,7 @@ w_metadata lucida fonts \
 
 load_lucida()
 {
-    w_download "ftp://ftp.fu-berlin.de/pc/security/ms-patches/winnt/usa/NT40TSE/hotfixes-postSP3/Euro-fix/eurofixi.exe" 41f272a33521f6e15f2cce9ff1e049f2badd5ff0dc327fc81b60825766d5b6c7
+    w_download "https://ftpmirror.your.org/pub/misc/ftp.microsoft.com/bussys/winnt/winnt-public/fixes/usa/NT40TSE/hotfixes-postSP3/Euro-fix/eurofixi.exe" 41f272a33521f6e15f2cce9ff1e049f2badd5ff0dc327fc81b60825766d5b6c7
     w_try_cabextract -d "$W_TMP" -F "lucon.ttf" "$W_CACHE"/lucida/eurofixi.exe
     w_try_cp_font_files "$W_TMP" "$W_FONTSDIR_UNIX"
     w_register_font lucon.ttf "Lucida Console"
@@ -11752,7 +11916,7 @@ load_opensymbol()
     # The OpenSymbol fonts are a replacement for the Windows Wingdings font from OpenOffice.org.
     # Need to w_download Debian since I can't find a standalone download from OpenOffice
     # Note: The source download package on debian is for _all_ of OpenOffice, which is 266 MB.
-    w_download "http://security.debian.org/debian-security/pool/updates/main/libr/libreoffice/fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u11_all.deb" b105ec27c738f92bd9801962f10fd05125c38224c92e702f84b00cbb482dfce7
+    w_download "https://deb.debian.org/debian-security/pool/updates/main/libr/libreoffice/fonts-opensymbol_102.2+LibO3.5.4+dfsg2-0+deb7u11_all.deb" b105ec27c738f92bd9801962f10fd05125c38224c92e702f84b00cbb482dfce7
 
     w_try_cd "$W_TMP"
     w_try_ar "$W_CACHE/$W_PACKAGE/$file1" data.tar.xz
@@ -11773,7 +11937,7 @@ w_metadata tahoma fonts \
 
 load_tahoma()
 {
-    # Formerly at http://download.microsoft.com/download/ie55sp2/Install/5.5_SP2/WIN98Me/EN-US/IELPKTH.CAB
+    # Formerly at https://download.microsoft.com/download/ie55sp2/Install/5.5_SP2/WIN98Me/EN-US/IELPKTH.CAB
     w_download https://downloads.sourceforge.net/corefonts/OldFiles/IELPKTH.CAB c1be3fb8f0042570be76ec6daa03a99142c88367c1bc810240b85827c715961a
 
     w_try_cabextract -d "$W_TMP" "$W_CACHE/$W_PACKAGE/$file1"
@@ -12668,7 +12832,7 @@ load_ie8()
     w_call msls31
 
     # Change the override to the native so we are sure we use and register them
-    w_override_dlls native,builtin itircl itss jscript msctf mshtml shdoclc shdocvw shlwapi urlmon wininet xmllite
+    w_override_dlls native,builtin ieproxy itircl itss jscript msctf mshtml shdoclc shdocvw shlwapi urlmon wininet xmllite
 
     # IE8 installer will check the version number of iexplore.exe which causes IE8 installer to fail on wine-1.9.0+
     w_override_dlls native iexplore.exe
@@ -12741,6 +12905,12 @@ REGEDIT4
 _EOF_
         w_try_regedit "$W_TMP_WIN"\\set-tabprocgrowth.reg
     fi
+
+    # Builtin ieproxy is in system32, but ie8's lives in Program Files. Native
+    # CLSID path will get overwritten on prefix update. Setting ieproxy to
+    # native doesn't help because setupapi ignores DLL overrides. To work
+    # around this problem, copy native ieproxy to system32.
+    w_try cp -f "${W_PROGRAMS_X86_UNIX}/Internet Explorer/ieproxy.dll" "$W_SYSTEM32_DLLS"
 
     # Seeing is believing
     case $WINETRICKS_GUI in
@@ -13549,7 +13719,7 @@ w_metadata qq apps \
  file1="QQ8.9.1.exe" \
  file2="QQ.tar.gz"\
  installed_exe1="$W_PROGRAMS_X86_WIN/Tencent/QQ/Bin/QQScLauncher.exe" \
- homepage="http://www.qq.com" \
+ homepage="https://www.qq.com/" \
  unattended="no"
 
 load_qq()
@@ -13774,7 +13944,7 @@ w_metadata uplay apps \
 load_uplay()
 {
     # Changes too frequently, don't check anymore
-    w_download http://static3.cdn.ubi.com/orbit/launcher_installer/UplayInstaller.exe
+    w_download https://static3.cdn.ubi.com/orbit/launcher_installer/UplayInstaller.exe
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
     # NSIS installer
@@ -14040,7 +14210,7 @@ w_metadata winamp apps \
     media="download" \
     file1="winamp5666_full_all_redux.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/Winamp/winamp.exe" \
-    homepage="http://www.winamp.com"
+    homepage="https://www.winamp.com/"
 
 load_winamp()
 {
@@ -14480,7 +14650,7 @@ load_stalker_pripyat_bench()
 {
     # Much faster
     w_download_manual http://www.bigdownload.com/games/stalker-call-of-pripyat/pc/stalker-call-of-pripyat-benchmark stkcop-bench-setup.exe 8c810fba1bbb9c58fc01f4f602479886680c9f4b491dd0afe935e27083f54845
-    #w_download http://files.gsc-game.com/st/bench/stkcop-bench-setup.exe 8c810fba1bbb9c58fc01f4f602479886680c9f4b491dd0afe935e27083f54845
+    #w_download https://files.gsc-game.com/st/bench/stkcop-bench-setup.exe 8c810fba1bbb9c58fc01f4f602479886680c9f4b491dd0afe935e27083f54845
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
@@ -14773,7 +14943,7 @@ load_acreedbro()
         WinWaitClose
     "
 
-    w_download http://static3.cdn.ubi.com/ac_brotherhood/ac_brotherhood_1.01_ww.exe a8027b08840a7438a0bd1a1c17f962fcc386a2cb9fd1d3055de2486bf95778c2
+    w_download https://static3.cdn.ubi.com/ac_brotherhood/ac_brotherhood_1.01_ww.exe a8027b08840a7438a0bd1a1c17f962fcc386a2cb9fd1d3055de2486bf95778c2
 
     # FIXME: figure out why these executables don't exit, and do a proper workaround or fix
     sleep 10
@@ -15134,69 +15304,6 @@ load_bfbc2()
         # shellcheck disable=SC2016
         w_warn 'If the game says "No CD/DVD error", try "sudo mount -o remount,unhide,uid=$(uid -u)".  See https://bugs.winehq.org/show_bug.cgi?id=22961 for more info.'
     fi
-}
-
-#----------------------------------------------------------------
-
-w_metadata cnc_tiberian_sun games \
-    title="Command & Conquer: Tiberian Sun (2010 edition)" \
-    publisher="EA" \
-    year="1999" \
-    media="download" \
-    file1="OfficialCnCTiberianSun.rar" \
-    installed_exe1="$W_PROGRAMS_X86_WIN\\EA Games\\Command & Conquer The First Decade\\Command & Conquer(tm) Tiberian Sun(tm)\\SUN\\Game.exe"
-
-load_cnc_tiberian_sun()
-{
-    w_download http://download.fileplanet.com/ftp1/022010/OfficialCnCTiberianSun.rar b04219e715511de9baa2feb9827013c8e106f8d6b9b563936b8a2f650305dec5
-
-    w_try_cd "$W_PROGRAMS_X86_UNIX"
-    # FIXME: we need a progress indicator when unpacking large archives
-    w_info "Unpacking rar file.  This will take a minute."
-    w_try_unrar "$W_CACHE/$W_PACKAGE/$file1"
-}
-
-#----------------------------------------------------------------
-
-w_metadata cnc3_demo games \
-    title="Command & Conquer 3 Demo" \
-    publisher="EA" \
-    year="2007" \
-    media="download" \
-    file1="CnC3Demo.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/Command & Conquer 3 Tiberium Wars Demo/CNC3Demo.exe"
-
-load_cnc3_demo()
-{
-    w_download "http://largedownloads.ea.com/pub/demos/CommandandConquer3/CnC3Demo.exe" 1e2499f441ef1fc3cbe447ac16361ad4247a02b9b8ec05f504161e7b5b1254e5
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run, CnC3Demo.exe
-        winwait, Conquer 3, free space to install
-        if ( w_opt_unattended > 0 ) {
-            controlclick, button1
-            winwait, WinZip, After installation
-            controlclick, button1
-            winwait, Conquer 3, InstallShield
-            controlclick, button1
-            winwait, Conquer 3, license
-            controlclick, button3
-            controlclick, button5
-            winwait, Conquer 3, setup type
-            controlclick, button5
-            winwait, Conquer 3, EA Link
-            controlclick, button1
-            winwait, Conquer 3, GameSpy
-            controlclick, button1
-        }
-        winwait, Conquer 3, Launch the program
-        if ( w_opt_unattended > 0 )
-            controlclick, button1
-
-        winwaitclose, Conquer 3, Launch the program
-    "
 }
 
 #----------------------------------------------------------------
@@ -16974,54 +17081,6 @@ load_gta_vc()
         # this is a hack, hopefully the wine bug will be fixed soon
         sed -i "s,Exec=.*,$myexec," "$mymenu"
     fi
-}
-
-#----------------------------------------------------------------
-
-w_metadata hphbp_demo games \
-    title="Harry Potter and the Half-Blood Prince Demo" \
-    publisher="EA" \
-    year="2009" \
-    media="download" \
-    file1="Release_HBP_demo_PC_DD_DEMO_Final_348428.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/Harry Potter and the Half-Blood Prince Demo/pc/hp6_demo.exe"
-
-load_hphbp_demo()
-{
-    case "$LANG" in
-        ""|"C") w_die "Harry Potter will not install in the POSIX locale; please do 'export LANG=en_US.UTF-8' or something like that" ;;
-    esac
-
-    w_download http://largedownloads.ea.com/pub/demos/HarryPotter/Release_HBP_demo_PC_DD_DEMO_Final_348428.exe eca6c5eb49dc2f778175a36e07b0b1d3f33db75fdb5fda8bfefd2c1648fbbd53
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run, Release_HBP_demo_PC_DD_DEMO_FINAL_348428.exe
-        winwait, Harry Potter, Install
-        if ( w_opt_unattended > 0 ) {
-            controlclick, Button1, Harry Potter
-            winwait, Setup, License
-            controlclick, Button1
-            controlclick, Button3
-            winwait, Setup, License
-            controlclick, Button1
-            controlclick, Button3
-            winwait, Setup, Destination
-            controlclick, Button1
-            winwait, Setup, begin
-            controlclick, Button1
-        }
-        winwait, Setup, Finish
-        if ( w_opt_unattended > 0 )
-            controlclick, Button1
-        winwaitclose
-    "
-
-    # Work around locale issues by symlinking the app's directory to not have a funny char
-    # Won't really work on Cygwin, but that's ok.
-    w_try_cd "$W_PROGRAMS_X86_UNIX/Electronic Arts"
-    ln -s "Harry Potter and the Half-Blood Prince"* "Harry Potter and the Half-Blood Prince Demo"
 }
 
 #----------------------------------------------------------------
@@ -20593,12 +20652,14 @@ execute_command()
         attended) winetricks_set_unattended 0 ;;
         showbroken) W_OPT_SHOWBROKEN=1 ;;
         hidebroken) W_OPT_SHOWBROKEN=0 ;;
+        arch=*) winetricks_set_winearch "$arg" ;;
         prefix=*) winetricks_set_wineprefix "$arg" ;;
         annihilate) winetricks_annihilate_wineprefix ;;
         folder) w_open_folder "$WINEPREFIX" ;;
         winecfg) "$WINE" winecfg ;;
         regedit) "$WINE" regedit ;;
         taskmgr) "$WINE" taskmgr & ;;
+        explorer) "$WINE" explorer & ;;
         uninstaller) "$WINE" uninstaller ;;
         shell) winetricks_shell ;;
 
@@ -20710,6 +20771,7 @@ then
                             unattended) winetricks_set_unattended 1 ; continue;;
                         esac
                         ;;
+                    mkprefix) verbs=$(winetricks_mkprefixmenu) ;;
                     settings) verbs=$(winetricks_settings_menu) ;;
                     *) verbs="$(winetricks_showmenu)" ;;
                 esac
@@ -20727,10 +20789,16 @@ then
                     winetricks_stats_init
                     # Otherwise user picked one or more real verbs.
                     case "$verbs" in
-                        prefix=*)
+                        prefix=*|arch=*)
                             # prefix menu is special, it only returns one verb, and the
-                            # verb can contain spaces
-                            execute_command "$verbs"
+                            # verb can contain spaces. If a 32bit wineprefix is created via
+                            # the GUI, this may have an "arch=* " prefix
+                            _W_arch=$(echo "$verbs" | grep -o 'arch=.*' | cut -d' ' -f1)
+                            _W_prefix=$(echo "$verbs" | grep -o 'prefix=.*')
+                            if [ -n "$_W_arch" ]; then
+                                execute_command "$_W_arch"
+                            fi
+                            execute_command "$_W_prefix"
                             # after picking a prefix, want to land in main.
                             WINETRICKS_CURMENU=main ;;
                         *)
