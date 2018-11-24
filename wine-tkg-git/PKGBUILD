@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.20.r26.gd373c19f
-pkgrel=96
+pkgver=3.20.r27.g0a0998b3
+pkgrel=97
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -222,6 +222,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
 		'sims_2-fix.patch' # Sims 2 fix
+		'starcitizen.patch' # Workaround for star citizen splash freeze
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -508,6 +509,11 @@ prepare() {
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets - The actual patch is applied after staging
 	if [ $_sims2_fix == "true" ]; then
 	  _sims2="-W wined3d-WINED3D_RS_COLORWRITEENABLE -W wined3d-Indexed_Vertex_Blending"
+	fi
+
+	# Star Citizen workaround for the freezing on splashscreen since 25acfbb40b5316a8c87989d4e61ce9edef2a04aa - https://bugs.winehq.org/show_bug.cgi?id=46099
+	if [ $_starcitizen_fix == "true" ]; then
+	  patch -Np1 < ../'starcitizen.patch' && echo "Applied Star Citizen workaround" >> "$_where"/last_build_config.log
 	fi
 
 	# steam crossover hack for store/web functionality
