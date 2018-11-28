@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.21.r6.gd792ec8a
-pkgrel=98
+pkgrel=99
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -522,6 +522,16 @@ prepare() {
 	  patch -Np1 < ../'steam.patch' && echo "Applied steam crossover hack" >> "$_where"/last_build_config.log
 	fi
 
+	# Disable server-send_hardware_message staging patchset if found - Fixes FFXIV/Warframe/Crysis 3 (...) mouse jittering issues on 3.19 staging and lower.
+	if [ $_server_send_hwmsg_disable == "true" ] && [ $_use_staging == "true" ]; then
+	  if [ -d "${srcdir}"/"${_stgsrcdir}"/patches/server-send_hardware_message ]; then # ghetto check for server-send_hardware_message staging patchset presence
+	    _server_send_disable="-W server-send_hardware_message"
+	    echo "server-send_hardware_message staging patchset disabled (mouse jittering fix)" >> "$_where"/last_build_config.log
+	  else
+	    echo "server-send_hardware_message staging patchset wasn't found, so _server_send_hwmsg_disable setting was ignored" >> "$_where"/last_build_config.log
+	  fi
+	fi
+
 	# Disable winepulse pulseaudio patchset
 	if [ $_staging_pulse_disable == "true" ] && [ $_use_staging == "true" ]; then
 	  _winepulse_disable="-W winepulse-PulseAudio_Support"
@@ -546,7 +556,7 @@ prepare() {
 
 	if [ $_use_staging == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
-	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_faudio $_winepulse_disable
+	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all $_sims2 $_server_send_disable $_faudio $_winepulse_disable
 
 	  # Remove staging version tag
 	  sed -i "s/  (Staging)//g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
