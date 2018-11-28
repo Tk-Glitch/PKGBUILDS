@@ -1,4 +1,4 @@
-# Nvidia driver 415.18 (short lived) & 410.78 (long lived)
+# Nvidia driver 415.18.02 (Vulkan dev), 415.18 (short lived) & 410.78 (long lived)
 
 LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (you will still be asked if you want to use the regular package). Installs for all currently installed kernels.
 
