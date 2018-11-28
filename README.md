@@ -29,3 +29,6 @@ That will grab the required dependencies, build, then install the newly created 
 
 
  * For bash scripts, just run them from their respective directory.
+
+
+If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch
