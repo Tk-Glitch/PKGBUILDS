@@ -1,10 +1,34 @@
+diff --git a/dlls/ole32/compobj.c b/dlls/ole32/compobj.c
+index 3487cca572..f3dac68bde 100644
 --- a/dlls/ole32/compobj.c
 +++ b/dlls/ole32/compobj.c
-@@ -3217,6 +3217,7 @@
- {
-     MULTI_QI multi_qi = { iid };
-     HRESULT hres;
-+    CoInitialize(NULL);
+@@ -3314,17 +3314,23 @@ HRESULT WINAPI DECLSPEC_HOTPATCH CoCreateInstanceEx(
  
-     TRACE("(rclsid=%s, pUnkOuter=%p, dwClsContext=%08x, riid=%s, ppv=%p)\n", debugstr_guid(rclsid),
-           pUnkOuter, dwClsContext, debugstr_guid(iid), ppv);
+     init_multi_qi(cmq, pResults, E_NOINTERFACE);
+ 
+-    hres = CoGetTreatAsClass(rclsid, &clsid);
+-    if(FAILED(hres))
+-        clsid = *rclsid;
+-
+     if (!(apt = apartment_get_current_or_mta()))
+     {
+-        ERR("apartment not initialised\n");
+-        return CO_E_NOTINITIALIZED;
++        WARN("apartment not initialised; initializing now\n");
++        CoInitialize(NULL);
++
++        if (!(apt = apartment_get_current_or_mta()))
++        {
++            ERR("apartment still not initialised\n");
++            return CO_E_NOTINITIALIZED;
++        }
+     }
+     apartment_release(apt);
+ 
++    hres = CoGetTreatAsClass(rclsid, &clsid);
++    if(FAILED(hres))
++        clsid = *rclsid;
++
+     /*
+      * The Standard Global Interface Table (GIT) object is a process-wide singleton.
+      */
