@@ -398,22 +398,22 @@ prepare() {
 
 	if [ $_use_pba == "true" ]; then
 	  # If using a wine version that includes f17544a, apply 3.21+ fixes
-	  if git log | grep f17544a77c0e56d61a72220119c187e0d25278e4 &> /dev/null; then # wined3d: Get rid of vram_bytes from struct wined3d_adapter
+	  if git merge-base --is-ancestor f17544a77c0e56d61a72220119c187e0d25278e4 HEAD; then # wined3d: Get rid of vram_bytes from struct wined3d_adapter
 	    _pba_version="321+"
 	  # If using a wine version that includes 45bf952, apply 3.20+ fixes
-	  elif git log | grep 45bf95278d669779e6ca3cde9215556a043a8cf8 &> /dev/null; then # wined3d: Store resource bind flags in the wined3d_resource structure
+	  elif git merge-base --is-ancestor 45bf95278d669779e6ca3cde9215556a043a8cf8 HEAD; then # wined3d: Store resource bind flags in the wined3d_resource structure
 	    _pba_version="320+"
 	  # If using a wine version that includes 1596238, apply 3.19+ fixes
-	  elif git log | grep 15962381e2d52a3e56a0ab352c6e208d80f7cde3 &> /dev/null; then # wined3d: Introduce a separate structure for OpenGL buffer information
+	  elif git merge-base --is-ancestor 15962381e2d52a3e56a0ab352c6e208d80f7cde3 HEAD; then # wined3d: Introduce a separate structure for OpenGL buffer information
 	    _pba_version="319+"
 	  # If using a wine version that includes 944e92b, apply 3.18+ fixes
-	  elif git log | grep 944e92ba06ecadeb933d95e30035323483dfe7c7 &> /dev/null; then # wined3d: Pass the wined3d_buffer_desc structure directly to buffer_init()
+	  elif git merge-base --is-ancestor 944e92ba06ecadeb933d95e30035323483dfe7c7 HEAD; then # wined3d: Pass the wined3d_buffer_desc structure directly to buffer_init()
 	    _pba_version="318+"
 	  # If using a wine version that includes 580ea44, apply 3.17+ fixes
-	  elif git log | grep 580ea44bc65472c0304d74b7e873acfb7f680b85 &> /dev/null; then # wined3d: Use query buffer objects for occlusion queries
+	  elif git merge-base --is-ancestor 580ea44bc65472c0304d74b7e873acfb7f680b85 HEAD; then # wined3d: Use query buffer objects for occlusion queries
 	    _pba_version="317+"
 	  # If using a wine version that includes cf9536b, apply 3.14+ fixes
-	  elif git log | grep cf9536b6bfbefbf5003c7633446a91f6e399c4de &> /dev/null; then # wined3d: Move OpenGL initialisation code to adapter_gl.c
+	  elif git merge-base --is-ancestor cf9536b6bfbefbf5003c7633446a91f6e399c4de HEAD; then # wined3d: Move OpenGL initialisation code to adapter_gl.c
 	    _pba_version="314+"
 	  else
 	    _pba_version="313-"
@@ -593,7 +593,7 @@ prepare() {
 
 	# esync
 	if [ $_use_esync == "true" ]; then
-	  if git log | grep 2600ecd4edfdb71097105c74312f83845305a4f2 &> /dev/null; then # Esync ce79346
+	  if git merge-base --is-ancestor 2600ecd4edfdb71097105c74312f83845305a4f2 HEAD; then # Esync ce79346
 	    if [ $_use_staging == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
@@ -605,14 +605,14 @@ prepare() {
 	    patch -Np1 < ../'esync-compat-fixes-r3.patch' && echo "Using esync 3.20+ compat fixes" >> "$_where"/last_build_config.log
 	    cd "${srcdir}"/"${_winesrcdir}"
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
-	  elif git log | grep aec7befb5115d866724149bbc5576c7259fef820 &> /dev/null; then # server: Avoid potential size overflow for empty object attributes
+	  elif git merge-base --is-ancestor aec7befb5115d866724149bbc5576c7259fef820 HEAD; then # server: Avoid potential size overflow for empty object attributes
 	    if [ $_use_staging == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-staging-fixes-r2.patch' && echo "Using esync staging 3.17+ compat fixes" >> "$_where"/last_build_config.log
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    # if using a wine version that includes c099655, use 3.19+ addon fixes
-	    elif git log | grep c0996553a1d9056e1b89871fc8c3fb0bfb5a4f0c &> /dev/null; then #  server: Support FILE_SKIP_COMPLETION_PORT_ON_SUCCESS on server-side asyncs
+	    elif git merge-base --is-ancestor c0996553a1d9056e1b89871fc8c3fb0bfb5a4f0c HEAD; then #  server: Support FILE_SKIP_COMPLETION_PORT_ON_SUCCESS on server-side asyncs
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-compat-fixes-r2.1.patch' && echo "Using esync 3.19+ compat addon fixes" >> "$_where"/last_build_config.log
 	      cd "${srcdir}"/"${_winesrcdir}"
@@ -634,7 +634,7 @@ prepare() {
 	    cd "${srcdir}"/"${_winesrcdir}"
 
 	    # if using a wine version that includes 57212f6, apply 3.14+ additional fixes
-	    if git log | grep 57212f64f8e4fef0c63c633940e13d407c0f2069 &> /dev/null; then # kernel32: Add AttachConsole implementation
+	    if git merge-base --is-ancestor 57212f64f8e4fef0c63c633940e13d407c0f2069 HEAD; then # kernel32: Add AttachConsole implementation
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-compat-fixes-r1.1.patch' && echo "Using esync 3.14+ additional compat fixes" >> "$_where"/last_build_config.log
 	      cd "${srcdir}"/"${_winesrcdir}"
