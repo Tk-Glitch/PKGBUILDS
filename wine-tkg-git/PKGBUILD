@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.21.r6.gd792ec8a
-pkgrel=99
+pkgver=3.21.r7.g3fe5e9d9
+pkgrel=100
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -190,6 +190,11 @@ fi
 # vkd3d deps
 if [[ $_use_vkd3d == true ]]; then
   makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
+fi
+
+# faudio deps
+if [[ $_use_faudio == true ]]; then
+  makedepends=("${makedepends[@]}" faudio-git lib32-faudio-git)
 fi
 optdepends=(
     'giflib'                'lib32-giflib'
@@ -486,6 +491,7 @@ prepare() {
 	if [ $_use_faudio == "true" ] && [ $_use_staging == "true" ]; then
 	  patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
 	  _faudio="-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges -W winepulse-PulseAudio_Support" # Disable xaudio2 & winepulse staging patchsets for faudio
+	  _withfaudio='--with-faudio'
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
@@ -783,6 +789,7 @@ build() {
 		--with-xattr \
 		$_withd3d9nine \
 		$_withvkd3d \
+		$_withfaudio \
 		#--disable-tests
 		# Gstreamer was disabled for FS#33655
 
@@ -807,6 +814,7 @@ build() {
 		--with-xattr \
 		$_withd3d9nine \
 		$_withvkd3d \
+		$_withfaudio \
 		--with-wine64="${srcdir}/${pkgname}"-64-build \
 		#--disable-tests
 
@@ -921,7 +929,7 @@ md5sums=('SKIP'
          '927f39348cd29ce9876871e4edb15a09'
          'd328bfd0d363434fe5f83f3a614849f7'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
-         'a14ecda90103c476b486c187beebf7ad'
+         '1687534ebe656942a19914bfd87edf07'
          'f9797a9b65087b37022d9e92e49b6080')
 
 function exit_cleanup {
