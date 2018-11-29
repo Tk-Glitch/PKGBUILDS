@@ -182,8 +182,14 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'meson'                 'ninja'
     'glslang'               'wget'
 )
+# We need wine installed to build DXVK winelib
 if [[ $_use_dxvk == true ]]; then
   makedepends=("${makedepends[@]}" wine)
+fi
+
+# vkd3d deps
+if [[ $_use_vkd3d == true ]]; then
+  makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
 fi
 optdepends=(
     'giflib'                'lib32-giflib'
@@ -209,7 +215,6 @@ optdepends=(
     'cups'                  'zapcc'
     'samba'                 'clang'
     'dosbox'                'ccache'
-    'vkd3d'                 'lib32-vkd3d'
 )
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
