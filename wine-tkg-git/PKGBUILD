@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.21.r7.g3fe5e9d9
-pkgrel=100
+pkgver=3.21.r8.g4e9b9940
+pkgrel=101
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -233,6 +233,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'mtga.patch' # Magic The Gathering: Arena crashfix
 		'sims_2-fix.patch' # Sims 2 fix
 		'starcitizen.patch' # Workaround for star citizen splash freeze
+		'RtlWaitOnAddress-race.patch' # Better fix for star citizen, for mainline
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -524,7 +525,11 @@ prepare() {
 
 	# Star Citizen workaround for the freezing on splashscreen since 25acfbb40b5316a8c87989d4e61ce9edef2a04aa - https://bugs.winehq.org/show_bug.cgi?id=46099
 	if [ $_starcitizen_fix == "true" ]; then
-	  patch -Np1 < ../'starcitizen.patch' && echo "Applied Star Citizen workaround" >> "$_where"/last_build_config.log
+	  if [ $_use_staging == "true" ]; then
+	    patch -Np1 < ../'starcitizen.patch' && echo "Applied Star Citizen workaround (staging)" >> "$_where"/last_build_config.log
+	  else
+	    patch -Np1 < ../'RtlWaitOnAddress-race.patch' && echo "Applied Star Citizen fix" >> "$_where"/last_build_config.log
+	  fi
 	fi
 
 	# steam crossover hack for store/web functionality
@@ -903,6 +908,7 @@ md5sums=('SKIP'
          '85c8f0db6895ad7c2868afd367439b4d'
          '6e301f262f004b930ffc3000839d837b'
          'a976c2120651052c3a93ed9a433da1c8'
+         'adc13bda680aed9d1b6c15c9b37ff2a4'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
