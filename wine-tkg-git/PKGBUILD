@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=3.21.r10.gce62e30e
-pkgrel=101
+pkgrel=102
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -913,7 +913,7 @@ md5sums=('SKIP'
          '85c8f0db6895ad7c2868afd367439b4d'
          '6e301f262f004b930ffc3000839d837b'
          'a976c2120651052c3a93ed9a433da1c8'
-         'adc13bda680aed9d1b6c15c9b37ff2a4'
+         '99697f9588d6cc01c2a029438d1e4685'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
