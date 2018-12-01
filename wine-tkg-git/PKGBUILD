@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=3.21.r8.g4e9b9940
+pkgver=3.21.r10.gce62e30e
 pkgrel=101
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
