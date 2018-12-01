@@ -69,20 +69,3 @@ index 9270a4370d54..30d01e647417 100644
  /*
   * The total number of pages which are beyond the high watermark within all
   * zones.
-
-diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
-index f27383bb3a423..7437ca5dccdbb 100644
---- a/kernel/sched/pds.c
-+++ b/kernel/sched/pds.c
-@@ -118,7 +118,11 @@ static inline int task_on_rq_migrating(struct task_struct *p)
-  * Value is in ms and set to a minimum of 6ms. Scales with number of cpus.
-  * Tunable via /proc interface.
-  */
-+#ifdef CONFIG_ZENIFY
-+#define SCHED_DEFAULT_RR (3)
-+#else
- #define SCHED_DEFAULT_RR (6)
-+#endif
- int rr_interval __read_mostly = SCHED_DEFAULT_RR;
- 
- static int __init rr_interval_set(char *str)
