@@ -96,6 +96,11 @@ else
     msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
   fi
 
+  if [[ $_use_faudio == "true" ]]; then
+    pkgname="${pkgname/%-git/-faudio-git}"
+    msg2 "Using Faudio for xaudio2"
+  fi
+
   if [[ $_LOCAL_OPTIMIZED == "true" ]]; then
     pkgname="${pkgname/%-git/-optimized-git}"
     msg2 "Using native processor optimizations"
