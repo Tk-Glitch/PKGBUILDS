@@ -3,7 +3,9 @@
 This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
 
 Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
-Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/vkd3d-git is recommended) - https://source.winehq.org/git/vkd3d.git/
+
+Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/vkd3d-git is recommended) - https://source.winehq.org/git/vkd3d.git
+
 Can be built with Faudio (requires both faudio-git and lib32-faudio-git packages from AUR) - https://github.com/FNA-XNA/FAudio
 
 Wine : https://github.com/wine-mirror/wine
