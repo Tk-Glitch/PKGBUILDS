@@ -6,6 +6,10 @@
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
+# Set to anything else than "true" to limit cleanup operations and keep source and files generated during compilation.
+# Default is "true".
+_NUKR="true"
+
 # user patches
 _user_patches="true"
 _user_patches_no_confirm="false"
@@ -31,7 +35,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=6
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=13
+pkgrel=14
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -194,17 +198,17 @@ prepare() {
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
-  # MuQSS default config
-  sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_MUQSS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
+    # MuQSS default config
+    sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_MUQSS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
-  # PDS default config
-  sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_PDS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
+    # PDS default config
+    sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_PDS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
   else
-  # CFS default config
-  sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
-  sed -i -e 's/# CONFIG_CFS_BANDWIDTH is not set/CONFIG_CFS_BANDWIDTH=y/' ./.config
-  sed -i -e 's/# CONFIG_CGROUP_CPUACCT is not set/CONFIG_CGROUP_CPUACCT=y/' ./.config
-  sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
+    # CFS default config
+    sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
+    sed -i -e 's/# CONFIG_CFS_BANDWIDTH is not set/CONFIG_CFS_BANDWIDTH=y/' ./.config
+    sed -i -e 's/# CONFIG_CGROUP_CPUACCT is not set/CONFIG_CGROUP_CPUACCT=y/' ./.config
+    sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
   fi
 
   plain ""
@@ -222,16 +226,16 @@ prepare() {
   plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
-  # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
-  sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
-      -i -e '/CONFIG_AMD_NUMA=y/d' \
-      -i -e '/CONFIG_X86_64_ACPI_NUMA=y/d' \
-      -i -e '/CONFIG_NODES_SPAN_OTHER_NODES=y/d' \
-      -i -e '/# CONFIG_NUMA_EMU is not set/d' \
-      -i -e '/CONFIG_NODES_SHIFT=6/d' \
-      -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
-      -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
-      -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
+    # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
+    sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
+        -i -e '/CONFIG_AMD_NUMA=y/d' \
+        -i -e '/CONFIG_X86_64_ACPI_NUMA=y/d' \
+        -i -e '/CONFIG_NODES_SPAN_OTHER_NODES=y/d' \
+        -i -e '/# CONFIG_NUMA_EMU is not set/d' \
+        -i -e '/CONFIG_NODES_SHIFT=6/d' \
+        -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
+        -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
+        -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
   fi
 
   plain ""
@@ -419,7 +423,9 @@ hackheaders() {
     /usr/bin/strip ${_strip} "${_binary}"
   done < <(find "${_builddir}/scripts" -type f -perm -u+w -print0 2>/dev/null)
 
-  rm -rf "$srcdir" # Nuke the entire src folder so it'll get regenerated clean on next build
+  if [ $_NUKR == "true" ]; then
+    rm -rf "$srcdir" # Nuke the entire src folder so it'll get regenerated clean on next build
+  fi
 }
 
 package_linux419-tkg-pds() {
@@ -447,9 +453,56 @@ hackheaders
 }
 
 function exit_cleanup {
-  # Remove the state tracker on failed/stopped compilation
-  rm -f "$where"/cpuschedset
-  rm -rf "$where"/src/*
+    # Remove the state/config tracker on failed/stopped compilation
+    rm -f "$where"/cpuschedset
+    rm -f "$srcdir"/cpuschedset
+
+  if [ $_NUKR == "true" ]; then
+    rm -rf "$where"/src/*
+  else
+    # Meh
+    rm -rf "$srcdir"/linux-${_basekernel}/Documentation/filesystems/aufs/*
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/ABI/testing/*-aufs
+    rm -rf "$srcdir"/linux-${_basekernel}/fs/aufs/*
+    rm -f "$srcdir"/linux-${_basekernel}/include/uapi/linux/aufs*
+
+    rm -f "$srcdir"/linux-${_basekernel}/mm/prfile.c
+
+    rm -f "$srcdir"/linux-${_basekernel}/block/bfq*
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/tp_smapi.txt
+
+    rm -f "$srcdir"/linux-${_basekernel}/drivers/platform/x86/thinkpad_ec.c
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/thinkpad_ec.h
+    rm -f "$srcdir"/linux-${_basekernel}/drivers/platform/x86/tp_smapi.c
+
+    rm -rf "$srcdir"/linux-${_basekernel}/drivers/scsi/vhba/*
+
+    rm -rf "$srcdir"/linux-${_basekernel}/fs/exfat/*
+    rm -f "$srcdir"/linux-${_basekernel}/include/trace/events/fs.h
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-PDS-mq.txt
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/skip_list.h
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/pds.c
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/pds_sched.h
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-BFS.txt
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-MuQSS.txt
+    rm -rf "$srcdir"/linux-${_basekernel}/arch/blackfin/*
+    rm -f "$srcdir"/linux-${_basekernel}/arch/powerpc/configs/c2k_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/arch/score/configs/spct6600_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/arch/tile/configs/tilegx_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/arch/tile/configs/tilepro_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/drivers/staging/lustre/lnet/lnet/lib-eq.c
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/MuQSS*
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/skip_list.c
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/vm/uksm.txt
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/sradix-tree.h
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/uksm.h
+    rm -f "$srcdir"/linux-${_basekernel}/lib/sradix-tree.c
+    rm -f "$srcdir"/linux-${_basekernel}/mm/uksm.c
+  fi
+
   msg2 'exit cleanup done'
 }
 
