@@ -9,7 +9,7 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 # CPU SCHED selector
 if [ ! -e "$where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-2?]: '`" CONDITION;
+  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
     echo "TkGExt=\"-tkg-muqss\"" > "$where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
