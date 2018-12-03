@@ -5,6 +5,11 @@
 # Includes DKMS support, libglvnd compat and building for all kernels currently installed
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
+# If you want to ignore some packages, set them to "false". Default is all set to "true" for a complete installation.
+_lib32="true"
+_opencl="true"
+_eglwayland="true"
+
 # Some people seem to believe making blank headers is a good idea
 if [ $(pacman -Qs linux-headers | head -c1 | wc -c) -eq 0 ]; then
   error "A (correctly made?) linux-headers package can't be found."
@@ -28,23 +33,42 @@ if [ ! -e options ]; then
 # Package type selector
   read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
-      echo '_dkms="0"' >> options
+      echo '_dkms="false"' >> options
     else
-      echo '_dkms="1"' >> options
+      echo '_dkms="true"' >> options
     fi
 fi
 
 source options
 
-if [ "$_dkms" == "1" ]; then
-  pkgname=('nvidia-dkms-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
+# packages
+if [ "$_dkms" == "true" ]; then
+  _nv_base='nvidia-dkms-tkg'
 else
-  pkgname=('nvidia-tkg' 'nvidia-utils-tkg' 'nvidia-egl-wayland-tkg' 'opencl-nvidia-tkg' 'lib32-nvidia-utils-tkg' 'lib32-opencl-nvidia-tkg')
+  _nv_base='nvidia-tkg'
 fi
+
+_nv_utils='nvidia-utils-tkg'
+if [ "$_lib32" == "true" ]; then
+  _lib32_nv_utils='lib32-nvidia-utils-tkg'
+fi
+
+if [ "$_opencl" == "true" ]; then
+  _nv_opencl='opencl-nvidia-tkg'
+  if [ "$_lib32" == "true" ]; then
+    _lib32_nv_opencl='lib32-opencl-nvidia-tkg'
+  fi
+fi
+
+if [ "$_eglwayland" == "true" ]; then
+  _nv_eglwayland='nvidia-egl-wayland-tkg'
+fi
+
+pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_utils} ${_lib32_nv_opencl})
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=16
+pkgrel=17
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -335,7 +359,7 @@ package_nvidia-utils-tkg() {
     _create_links
 }
 
-if [ "$_dkms" == "0" ]; then
+if [ "$_dkms" == "false" ]; then
 package_nvidia-tkg() {
   pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries)"
   depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
@@ -458,7 +482,7 @@ package_lib32-nvidia-utils-tkg() {
     ln -s $_pkgbasename "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 
-if [ "$_dkms" == "1" ]; then
+if [ "$_dkms" == "true" ]; then
 package_nvidia-dkms-tkg() {
   pkgdesc="NVIDIA kernel module sources (DKMS)"
   depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
