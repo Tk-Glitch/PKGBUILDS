@@ -1,9 +1,7 @@
-# Based on nvidia-beta-all: https://aur.archlinux.org/packages/nvidia-beta-all/,
-#          nvidia-utils-beta: https://aur.archlinux.org/packages/nvidia-utils-beta/ and
-#          lib32-nvidia-utils-beta: https://aur.archlinux.org/packages/lib32-nvidia-utils-beta/
-# 
-# Includes DKMS support, libglvnd compat and building for all kernels currently installed
-# Contributor: Tk-Glitch <ti3nou at gmail dot com>
+# Created by: Tk-Glitch <ti3nou at gmail dot com>
+# Originally based on https://aur.archlinux.org/packages/nvidia-beta-all/
+
+# Includes DKMS support, libglvnd compat, 32-bit libs and building for all kernels currently installed
 
 # If you want to ignore some packages, set them to "false". Default is all set to "true" for a complete installation.
 _lib32="true"
@@ -19,16 +17,30 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.415.18.04 (vulkan dev)\n  2.415.18 (short lived)\n  3.410.78 (long lived)\nchoice[1-3?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.415.18.04 (vulkan dev)\n  2.415.18 (short lived)\n  3.410.78 (long lived)\n  4.Custom version (396.45 to 415.xx series)\nchoice[1-4?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.18' > options
       echo '_md5sum=0928fa28b4805b95f41e6b74a463823c' >> options
+      echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "3" ]; then
       echo '_driver_version=410.78' > options
       echo '_md5sum=5486d21e82fe16b88f43363981dc09d4' >> options
+      echo '_driver_branch=regular' >> options
+    elif [ "$CONDITION" == "4" ]; then
+      echo '_driver_version=custom' > options
+      read -p "What branch do you want?`echo $'\n> 1.Stable or regular beta\n  2.Vulkan dev\nchoice[1-2?]: '`" CONDITION;
+      if [ "$CONDITION" == "2" ]; then
+        echo '_driver_branch=vulkandev' >> options
+        read -p "Type the desired version number (examples: 415.18.02, 396.54.09): " _driver_version;
+      else
+        echo '_driver_branch=regular' >> options
+        read -p "Type the desired version number (examples: 410.57, 396.51): " _driver_version;
+      fi
+      echo "_driver_version=$_driver_version" >> options
     else
       echo '_driver_version=415.18.04' > options
       echo '_md5sum=7f07186ab6af0ee239258151c1243c50' >> options
+      echo '_driver_branch=vulkandev' >> options
     fi
 # Package type selector
   read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
@@ -68,7 +80,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=17
+pkgrel=18
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -79,21 +91,44 @@ options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
 
 # Source
-if [ "$pkgver" == "415.18.04" ]; then
-  source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/vulkan-beta-4151804-linux"
-          '10-nvidia-drm-outputclass.conf'
-          '20-nvidia.conf'
-          'kernel-4.16.patch')
+if [ "$_driver_branch" == "vulkandev" ]; then
+  if [[ $pkgver == 396* ]]; then
+    source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-${pkgver//.}"
+            '10-nvidia-drm-outputclass.conf'
+            '20-nvidia.conf'
+            'kernel-4.16.patch'
+            'kernel-4.19.patch' # 4.19 workaround
+            'kernel-4.19.dkmsp') # 4.19 dkms workaround
+  elif [[ $pkgver == 415* ]]; then
+    source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/vulkan-beta-${pkgver//.}-linux"
+            '10-nvidia-drm-outputclass.conf'
+            '20-nvidia.conf'
+            'kernel-4.16.patch')
+  else
+    msg2 'Gandalf refuses to get the driver version you asked for.'
+    YOU_SHALL_NOT_PASS
+  fi
 else
-  source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
-          '10-nvidia-drm-outputclass.conf'
-          '20-nvidia.conf'
-          'kernel-4.16.patch')
+  if [[ $pkgver == 396* ]]; then
+    source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
+            '10-nvidia-drm-outputclass.conf'
+            '20-nvidia.conf'
+            'kernel-4.16.patch'
+            'kernel-4.19.patch' # 4.19 workaround
+            'kernel-4.19.dkmsp') # 4.19 dkms workaround
+  else
+    source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
+            '10-nvidia-drm-outputclass.conf'
+            '20-nvidia.conf'
+            'kernel-4.16.patch')
+  fi
 fi
 md5sums=('SKIP'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
-         '84f1f2ecdccf377fc86323f8ad7b7469')
+         '84f1f2ecdccf377fc86323f8ad7b7469'
+         '4bc92732727482b545b60589aacd44d8'
+         '8c56c81b736b7a5387870b7391401e28')
 [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18.04" ] && [ "$_md5sum" == "7f07186ab6af0ee239258151c1243c50" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-410.78" ] && [ "$_md5sum" == "5486d21e82fe16b88f43363981dc09d4" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18" ] && [ "$_md5sum" == "0928fa28b4805b95f41e6b74a463823c" ]
 
 # Auto-add *.patch files from $startdir to source=()
@@ -160,7 +195,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       _patch=$(echo $_p | grep -Po "\d+\.\d+")
 
       # Cd in place
-      cd kernel-$_kernel
+      cd "$srcdir"/"$_pkg"/kernel-$_kernel
 
       # Compare versions
       if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
@@ -169,11 +204,30 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       else
         msg2 "Skipping $_p..."  # List these, instead of ignoring silently
       fi
-
-      # Return
-      cd ..
     done
+
+    cd ..
+
+    # dkms-only patches
+    if [[ $pkgver == 396* ]] && [ "$_dkms" == "true" ]; then
+      for _dp in $(printf -- '%s\n' ${source[@]} | grep .dkmsp); do
+        _dpatch=$(echo $_dp | grep -Po "\d+\.\d+")
+
+        if (( $(vercmp "$_kernel" "$_dpatch") >= 0 )); then
+          _dkms_patch="1" # 4.19 kernel detected
+        else
+           msg2 "Skipping $_dp..."  # List these, instead of ignoring silently
+        fi
+      done
+    fi
+
   done
+
+  # Patch the dkms tree
+  if [ "$_dkms_patch" == "1" ]; then
+    msg2 "Applying $_dp for dkms..."
+    patch -Np1 < "$where"/"$_dp"
+  fi
 }
 
 build() {
@@ -215,8 +269,13 @@ package_nvidia-egl-wayland-tkg() {
   conflicts=('egl-wayland')
   cd $_pkg
 
-  install -Dm755 libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.0
-  ln -s libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
+  if [[ $pkgver == 396* ]]; then
+    install -Dm755 libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.0.3
+    ln -s libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
+  else
+    install -Dm755 libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.0
+    ln -s libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
+  fi
 }
 
 package_nvidia-utils-tkg() {
@@ -236,14 +295,21 @@ package_nvidia-utils-tkg() {
     # X driver
     install -D -m755 nvidia_drv.so "${pkgdir}/usr/lib/xorg/modules/drivers/nvidia_drv.so"
 
-    # GLX extension module for X
-    install -D -m755 "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.${pkgver}"
-    # Ensure that X finds glx
-    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.1"
-    ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so"
+    if [[ $pkgver == 396* ]]; then
+      # GLX extension module for X
+      install -D -m755 "libglx.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so.${pkgver}"
+      ln -s "libglx.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so.1"	# X doesn't find glx otherwise
+      ln -s "libglx.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglx.so"	# X doesn't find glx otherwise
+    else
+      # GLX extension module for X
+      install -D -m755 "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.${pkgver}"
+      # Ensure that X finds glx
+      ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.1"
+      ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so"
 
-    # X wrapped software rendering
-    install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
+      # X wrapped software rendering
+      install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
+    fi
 
     install -D -m755 "libGLX_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/libGLX_nvidia.so.${pkgver}"
 
@@ -267,10 +333,12 @@ package_nvidia-utils-tkg() {
     install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
     install -D -m755 "libnvidia-glvkspirv.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-glvkspirv.so.${pkgver}"
     
-    # Ray tracing
-    install -D -m755 "libnvoptix.so.${pkgver}" "${pkgdir}/usr/lib/libnvoptix.so.${pkgver}"
-    install -D -m755 "libnvidia-rtcore.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-rtcore.so.${pkgver}"
-    install -D -m755 "libnvidia-cbl.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-cbl.so.${pkgver}"
+    if [[ $pkgver != 396* ]]; then
+      # Ray tracing
+      install -D -m755 "libnvoptix.so.${pkgver}" "${pkgdir}/usr/lib/libnvoptix.so.${pkgver}"
+      install -D -m755 "libnvidia-rtcore.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-rtcore.so.${pkgver}"
+      install -D -m755 "libnvidia-cbl.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-cbl.so.${pkgver}"
+    fi
 
     # Vulkan ICD
     install -D -m644 "nvidia_icd.json.template" "${pkgdir}/usr/share/vulkan/icd.d/nvidia_icd.json"
@@ -281,7 +349,7 @@ package_nvidia-utils-tkg() {
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-tls.so.${pkgver}"
 
-    if [ "$pkgver" == "410.78" ]; then
+    if [[ $pkgver == 396* ]] || [[ $pkgver == 410* ]]; then
       install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib/tls/libnvidia-tls.so.${pkgver}"
     fi
 
@@ -461,7 +529,7 @@ package_lib32-nvidia-utils-tkg() {
     # nvidia-tls library
     install -D -m755 "libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-tls.so.${pkgver}"
 
-    if [ "$pkgver" == "410.78" ]; then
+    if [[ $pkgver == 396* ]] || [[ $pkgver == 410* ]]; then
       install -D -m755 "tls/libnvidia-tls.so.${pkgver}" "${pkgdir}/usr/lib32/tls/libnvidia-tls.so.${pkgver}"
     fi
 
