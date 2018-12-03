@@ -14,7 +14,7 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.415.18.02 (vulkan dev)\n  2.415.18 (short lived)\n  3.410.78 (long lived)\nchoice[1-3?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.415.18.04 (vulkan dev)\n  2.415.18 (short lived)\n  3.410.78 (long lived)\nchoice[1-3?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.18' > options
       echo '_md5sum=0928fa28b4805b95f41e6b74a463823c' >> options
@@ -22,8 +22,8 @@ if [ ! -e options ]; then
       echo '_driver_version=410.78' > options
       echo '_md5sum=5486d21e82fe16b88f43363981dc09d4' >> options
     else
-      echo '_driver_version=415.18.02' > options
-      echo '_md5sum=d1a2430bdc67e661cbff2417ccf0f935' >> options
+      echo '_driver_version=415.18.04' > options
+      echo '_md5sum=7f07186ab6af0ee239258151c1243c50' >> options
     fi
 # Package type selector
   read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
@@ -44,7 +44,7 @@ fi
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=15
+pkgrel=16
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -55,8 +55,8 @@ options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
 
 # Source
-if [ "$pkgver" == "415.18.02" ]; then
-  source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/vulkan-beta-4151802-linux"
+if [ "$pkgver" == "415.18.04" ]; then
+  source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/vulkan-beta-4151804-linux"
           '10-nvidia-drm-outputclass.conf'
           '20-nvidia.conf'
           'kernel-4.16.patch')
@@ -70,7 +70,7 @@ md5sums=('SKIP'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '84f1f2ecdccf377fc86323f8ad7b7469')
-[ "$_pkg" == "NVIDIA-Linux-x86_64-415.18.02" ] && [ "$_md5sum" == "d1a2430bdc67e661cbff2417ccf0f935" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-410.78" ] && [ "$_md5sum" == "5486d21e82fe16b88f43363981dc09d4" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18" ] && [ "$_md5sum" == "0928fa28b4805b95f41e6b74a463823c" ]
+[ "$_pkg" == "NVIDIA-Linux-x86_64-415.18.04" ] && [ "$_md5sum" == "7f07186ab6af0ee239258151c1243c50" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-410.78" ] && [ "$_md5sum" == "5486d21e82fe16b88f43363981dc09d4" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18" ] && [ "$_md5sum" == "0928fa28b4805b95f41e6b74a463823c" ]
 
 # Auto-add *.patch files from $startdir to source=()
 for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
