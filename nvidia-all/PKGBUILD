@@ -8,6 +8,9 @@ _lib32="true"
 _opencl="true"
 _eglwayland="true"
 
+# Auto-add kernel userpatches to source
+_autoaddpatch="false"
+
 # Some people seem to believe making blank headers is a good idea
 if [ $(pacman -Qs linux-headers | head -c1 | wc -c) -eq 0 ]; then
   error "A (correctly made?) linux-headers package can't be found."
@@ -80,7 +83,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=19
+pkgrel=20
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -119,14 +122,16 @@ md5sums=('SKIP'
          '8c56c81b736b7a5387870b7391401e28')
 [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18.04" ] && [ "$_md5sum" == "7f07186ab6af0ee239258151c1243c50" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-410.78" ] && [ "$_md5sum" == "5486d21e82fe16b88f43363981dc09d4" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18" ] && [ "$_md5sum" == "0928fa28b4805b95f41e6b74a463823c" ]
 
-# Auto-add *.patch files from $startdir to source=()
-for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
-  # Don't duplicate already listed ones
-  if [[ ! " ${source[@]} " =~ " $_patch " ]]; then  # https://stackoverflow.com/a/15394738/1821548
-    source+=("$_patch")
-    md5sums+=('SKIP')
-  fi
+if [ $_autoaddpatch == "true" ]; then
+  # Auto-add *.patch files from $startdir to source=()
+  for _patch in $(find "$startdir" -maxdepth 1 -name '*.patch' -printf "%f\n"); do
+    # Don't duplicate already listed ones
+    if [[ ! " ${source[@]} " =~ " $_patch " ]]; then  # https://stackoverflow.com/a/15394738/1821548
+      source+=("$_patch")
+      md5sums+=('SKIP')
+    fi
 done
+fi
 
 _create_links() {
   # create missing soname links
@@ -186,11 +191,15 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       cd "$srcdir"/"$_pkg"/kernel-$_kernel
 
       # Compare versions
-      if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
-        msg2 "Applying $_p for $_kernel..."
-        patch -p2 -i "$srcdir"/$_p
+      if [[ $pkgver != 396* ]] && [ "$_p" == "kernel-4.19.patch" ]; then
+        msg2 "Skipping $_p as it doesn't apply to this driver version..."
       else
-        msg2 "Skipping $_p..."  # List these, instead of ignoring silently
+        if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
+          msg2 "Applying $_p for $_kernel..."
+          patch -p2 -i "$srcdir"/$_p
+        else
+          msg2 "Skipping $_p..."  # List these, instead of ignoring silently
+        fi
       fi
     done
 
