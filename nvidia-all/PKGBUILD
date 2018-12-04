@@ -208,21 +208,25 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     cd ..
 
     # dkms-only patches
-    if [[ $pkgver == 396* ]] && [ "$_dkms" == "true" ]; then
+    if [ "$_dkms" == "true" ]; then
       for _dp in $(printf -- '%s\n' ${source[@]} | grep .dkmsp); do
         _dpatch=$(echo $_dp | grep -Po "\d+\.\d+")
 
-        if (( $(vercmp "$_kernel" "$_dpatch") >= 0 )); then
-          _dkms_patch="1" # 4.19 kernel detected
+        if [[ $pkgver != 396* ]] && [ "$_dp" == "kernel-4.19.dkmsp" ]; then
+          msg2 "Skipping $_dp as it doesn't apply to this driver version..."
         else
-           msg2 "Skipping $_dp..."  # List these, instead of ignoring silently
+          if (( $(vercmp "$_kernel" "$_dpatch") >= 0 )); then
+            _dkms_patch="1"
+          else
+             msg2 "Skipping $_dp..."  # List these, instead of ignoring silently
+          fi
         fi
       done
     fi
 
   done
 
-  # Patch the dkms tree
+  # Patch the dkms tree... Only once
   if [ "$_dkms_patch" == "1" ]; then
     msg2 "Applying $_dp for dkms..."
     patch -Np1 < "$where"/"$_dp"
