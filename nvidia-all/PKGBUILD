@@ -157,12 +157,12 @@ prepare() {
   sh $_pkg.run -x
   cd $_pkg
 
-    cp -a kernel kernel-dkms
-    cd kernel-dkms
-    sed -i "s/__VERSION_STRING/${pkgver}/" dkms.conf
-    sed -i 's/__JOBS/`nproc`/' dkms.conf
-    sed -i 's/__DKMS_MODULES//' dkms.conf
-    sed -i '$iBUILT_MODULE_NAME[0]="nvidia"\
+  cp -a kernel kernel-dkms
+  cd kernel-dkms
+  sed -i "s/__VERSION_STRING/${pkgver}/" dkms.conf
+  sed -i 's/__JOBS/`nproc`/' dkms.conf
+  sed -i 's/__DKMS_MODULES//' dkms.conf
+  sed -i '$iBUILT_MODULE_NAME[0]="nvidia"\
 DEST_MODULE_LOCATION[0]="/kernel/drivers/video"\
 BUILT_MODULE_NAME[1]="nvidia-uvm"\
 DEST_MODULE_LOCATION[1]="/kernel/drivers/video"\
@@ -171,12 +171,12 @@ DEST_MODULE_LOCATION[2]="/kernel/drivers/video"\
 BUILT_MODULE_NAME[3]="nvidia-drm"\
 DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
-    # Gift for linux-rt guys
-    sed -i 's/NV_EXCLUDE_BUILD_MODULES/IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES/' dkms.conf
+  # Gift for linux-rt guys
+  sed -i 's/NV_EXCLUDE_BUILD_MODULES/IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES/' dkms.conf
 
   cd ../
   bsdtar -xf nvidia-persistenced-init.tar.bz2
-  
+
   sed -i 's/__NV_VK_ICD__/libGLX_nvidia.so.0/' nvidia_icd.json.template
 
   # Loop kernels (4.15.0-1-ARCH, 4.14.5-1-ck, ...)
@@ -331,7 +331,7 @@ package_nvidia-utils-tkg() {
     install -D -m755 "libnvidia-ml.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-ml.so.${pkgver}"
     install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
     install -D -m755 "libnvidia-glvkspirv.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-glvkspirv.so.${pkgver}"
-    
+
     if [[ $pkgver != 396* ]]; then
       # Ray tracing
       install -D -m755 "libnvoptix.so.${pkgver}" "${pkgdir}/usr/lib/libnvoptix.so.${pkgver}"
@@ -420,59 +420,59 @@ package_nvidia-utils-tkg() {
 
     # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
     install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
-    
+
     #install -Dm644 "$srcdir"/nvidia-utils.sysusers "$pkgdir"/usr/lib/sysusers.d/$pkgname.conf
 
     _create_links
 }
 
 if [ "$_dkms" == "false" ]; then
-package_nvidia-tkg() {
-  pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries)"
-  depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
-  provides=("nvidia=$pkgver")
-  conflicts=('nvidia-96xx' 'nvidia-173xx' 'nvidia')
-  install=$pkgname.install
+  package_nvidia-tkg() {
+    pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries)"
+    depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
+    provides=("nvidia=$pkgver")
+    conflicts=('nvidia-96xx' 'nvidia-173xx' 'nvidia')
+    install=$pkgname.install
 
-  # Install for all kernels
-  for _path in $(find /usr/lib/modules/extramodules-*/version -printf '%h\n'); do
-    _extramodules=$(cat $_path/version)
+    # Install for all kernels
+    for _path in $(find /usr/lib/modules/extramodules-*/version -printf '%h\n'); do
+      _extramodules=$(cat $_path/version)
 
-  # Nvidia kernel module; provides low-level access to your NVIDIA hardware for the other components. Generally
-  # loaded into the kernel when the X server is started, to be used by the X driver and OpenGL. Consists of two
-  # pieces: the binary-only core, and a kernel interface that must be compiled specifically for your kernel version,
-  # because the Linux kernel doesn't have a consistent binary interface like the X server.
-  install -Dm644 $_pkg/kernel-$_extramodules/nvidia.ko \
-         "$pkgdir"/$_path/nvidia.ko
+      # Nvidia kernel module; provides low-level access to your NVIDIA hardware for the other components. Generally
+      # loaded into the kernel when the X server is started, to be used by the X driver and OpenGL. Consists of two
+      # pieces: the binary-only core, and a kernel interface that must be compiled specifically for your kernel version,
+      # because the Linux kernel doesn't have a consistent binary interface like the X server.
+      install -Dm644 $_pkg/kernel-$_extramodules/nvidia.ko \
+             "$pkgdir"/$_path/nvidia.ko
 
-  # NVIDIA Unified Memory kernel module; provides functionality for sharing memory between the CPU and GPU in
-  # CUDA programs. Generally loaded into the kernel when a CUDA program is started, and used by the CUDA
-  # driver on supported platforms: http://devblogs.nvidia.com/parallelforall/unified-memory-in-cuda-6/
-  install -Dm644 $_pkg/kernel-$_extramodules/nvidia-uvm.ko \
-         "$pkgdir"/$_path/nvidia-uvm.ko
+      # NVIDIA Unified Memory kernel module; provides functionality for sharing memory between the CPU and GPU in
+      # CUDA programs. Generally loaded into the kernel when a CUDA program is started, and used by the CUDA
+      # driver on supported platforms: http://devblogs.nvidia.com/parallelforall/unified-memory-in-cuda-6/
+      install -Dm644 $_pkg/kernel-$_extramodules/nvidia-uvm.ko \
+             "$pkgdir"/$_path/nvidia-uvm.ko
 
-  # Kernel module responsible for programming the display engine of the GPU. User-mode NVIDIA driver components
-  # such as the NVIDIA X driver, OpenGL driver, and VDPAU driver communicate with nvidia-modeset.ko through the
-  # /dev/nvidia-modeset device file.
-  install -Dm644 $_pkg/kernel-$_extramodules/nvidia-modeset.ko \
-         "$pkgdir"/$_path/nvidia-modeset.ko
+      # Kernel module responsible for programming the display engine of the GPU. User-mode NVIDIA driver components
+      # such as the NVIDIA X driver, OpenGL driver, and VDPAU driver communicate with nvidia-modeset.ko through the
+      # /dev/nvidia-modeset device file.
+      install -Dm644 $_pkg/kernel-$_extramodules/nvidia-modeset.ko \
+             "$pkgdir"/$_path/nvidia-modeset.ko
 
-  # NVIDIA DRM kernel module; registers as a DRM driver to provide GEM and PRIME DRM capabilities
-  # for atomic DRM KMS and graphics display offload on Optimus notebooks:
-  # https://devtalk.nvidia.com/default/topic/925605/linux/nvidia-364-12-release-vulkan-glvnd-drm-kms-and-eglstreams/
-  install -Dm644 $_pkg/kernel-$_extramodules/nvidia-drm.ko \
-         "$pkgdir"/$_path/nvidia-drm.ko
+      # NVIDIA DRM kernel module; registers as a DRM driver to provide GEM and PRIME DRM capabilities
+      # for atomic DRM KMS and graphics display offload on Optimus notebooks:
+      # https://devtalk.nvidia.com/default/topic/925605/linux/nvidia-364-12-release-vulkan-glvnd-drm-kms-and-eglstreams/
+      install -Dm644 $_pkg/kernel-$_extramodules/nvidia-drm.ko \
+             "$pkgdir"/$_path/nvidia-drm.ko
 
-    # Compress
-    gzip "$pkgdir"/$_path/nvidia*.ko
-  done
+      # Compress
+      gzip "$pkgdir"/$_path/nvidia*.ko
+    done
 
   # Blacklist Nouveau
   mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
-	rm -v ${where}/options
-}
+  rm -v ${where}/options
+  }
 fi
 
 package_lib32-opencl-nvidia-tkg() {
@@ -550,26 +550,26 @@ package_lib32-nvidia-utils-tkg() {
 }
 
 if [ "$_dkms" == "true" ]; then
-package_nvidia-dkms-tkg() {
-  pkgdesc="NVIDIA kernel module sources (DKMS)"
-  depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
-  provides=("nvidia=${pkgver}" 'nvidia-dkms')
-  conflicts=('nvidia')
-  options=('!strip')
-  install=${pkgname}.install
+  package_nvidia-dkms-tkg() {
+    pkgdesc="NVIDIA kernel module sources (DKMS)"
+    depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
+    provides=("nvidia=${pkgver}" 'nvidia-dkms')
+    conflicts=('nvidia')
+    options=('!strip')
+    install=${pkgname}.install
 
     cd ${_pkg}
     install -dm 755 "${pkgdir}"/usr/{lib/modprobe.d,src}
     cp -dr --no-preserve='ownership' kernel-dkms "${pkgdir}/usr/src/nvidia-${pkgver}"
 
-  # Blacklist Nouveau
-  mkdir -p "${pkgdir}/usr/lib/modprobe.d"
-  echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
+    # Blacklist Nouveau
+    mkdir -p "${pkgdir}/usr/lib/modprobe.d"
+    echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
 
-	rm -fv "${where}"/options
-}
+    rm -fv "${where}"/options
+  }
 fi
 
 function exit_cleanup {

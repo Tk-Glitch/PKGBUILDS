@@ -153,7 +153,7 @@ prepare() {
   rm -rf tmp aufs
 
   cd "${srcdir}/linux-${_basekernel}"
-  
+
   # add upstream patch
   patch -p1 -i ../patch-"${pkgver}"
 
@@ -175,7 +175,7 @@ prepare() {
   patch -Np1 -i ../0003-intel_idle-tweak-cpuidle-cstates.patch
   patch -Np1 -i ../0004-smpboot-reuse-timer-calibration.patch
   patch -Np1 -i ../0005-perf.patch
-  
+
   patch -Np1 -i ../0006-glitched-base.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
@@ -189,7 +189,7 @@ prepare() {
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
-  
+
   # LOCALVERSION
   sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${TkGExt}\"|g" ./.config
   sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
@@ -312,14 +312,14 @@ hackbase() {
   install=linux${_basever}-tkg.install
 
   cd "${srcdir}/linux-${_basekernel}"
-  
+
   # get kernel version
   _kernver="$(make LOCALVERSION= kernelrelease)"
 
   mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
   make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
   cp arch/x86/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgbase}"
-  
+
   # make room for external modules
   local _extramodules="extramodules-${_basekernel}${TkGExt}"
   ln -s "../${_extramodules}" "${pkgdir}/usr/lib/modules/${_kernver}/extramodules"
@@ -453,9 +453,9 @@ hackheaders
 }
 
 function exit_cleanup {
-    # Remove the state/config tracker on failed/stopped compilation
-    rm -f "$where"/cpuschedset
-    rm -f "$srcdir"/cpuschedset
+  # Remove the state/config tracker on failed/stopped compilation
+  rm -f "$where"/cpuschedset
+  rm -f "$srcdir"/cpuschedset
 
   if [ $_NUKR == "true" ]; then
     rm -rf "$where"/src/*
