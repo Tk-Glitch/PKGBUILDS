@@ -39,6 +39,7 @@ if [ ! -e options ]; then
         echo '_driver_branch=regular' >> options
         read -p "Type the desired version number (examples: 410.57, 396.51): " _driver_version;
       fi
+      echo "_md5sum='SKIP'" >> options
       echo "_driver_version=$_driver_version" >> options
     else
       echo '_driver_version=415.18.04' > options
@@ -114,13 +115,14 @@ source=($_source_name
         'kernel-4.19.patch' # 4.19 workaround
         'kernel-4.19.dkmsp') # 4.19 dkms workaround
 
-md5sums=('SKIP'
+msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
+
+md5sums=("$_md5sum"
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '84f1f2ecdccf377fc86323f8ad7b7469'
          '4bc92732727482b545b60589aacd44d8'
          '8c56c81b736b7a5387870b7391401e28')
-[ "$_pkg" == "NVIDIA-Linux-x86_64-415.18.04" ] && [ "$_md5sum" == "7f07186ab6af0ee239258151c1243c50" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-410.78" ] && [ "$_md5sum" == "5486d21e82fe16b88f43363981dc09d4" ] || [ "$_pkg" == "NVIDIA-Linux-x86_64-415.18" ] && [ "$_md5sum" == "0928fa28b4805b95f41e6b74a463823c" ]
 
 if [ $_autoaddpatch == "true" ]; then
   # Auto-add *.patch files from $startdir to source=()
