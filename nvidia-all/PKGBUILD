@@ -130,7 +130,7 @@ if [ $_autoaddpatch == "true" ]; then
       source+=("$_patch")
       md5sums+=('SKIP')
     fi
-done
+  done
 fi
 
 _create_links() {
