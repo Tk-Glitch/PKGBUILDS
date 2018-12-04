@@ -9,25 +9,25 @@ index c5b0089..41b1f96 100644
 --- a/files/verbs/all.txt
 +++ b/files/verbs/all.txt
 @@ -142,6 +142,7 @@ dotnet452                MS .NET 4.5.2 (Microsoft, 2012) [downloadable]
- dotnet46                 MS .NET 4.6 (Microsoft, 2015) [downloadable]
  dotnet461                MS .NET 4.6.1 (Microsoft, 2015) [downloadable]
  dotnet462                MS .NET 4.6.2 (Microsoft, 2016) [downloadable]
+ dotnet46                 MS .NET 4.6 (Microsoft, 2015) [downloadable]
 +dotnet471                MS .NET 4.7.1 (Microsoft, 2017) [downloadable]
+ dotnet472                MS .NET 4.7.2 (Microsoft, 2018) [downloadable]
  dotnet_verifier          MS .NET Verifier (Microsoft, 2016) [downloadable]
  dpvoice                  Microsoft dpvoice dpvvox dpvacm Audio dlls (Microsoft, 2002) [downloadable]
- dsdmo                    MS dsdmo.dll (Microsoft, 2010) [downloadable]
 diff --git a/files/verbs/dlls.txt b/files/verbs/dlls.txt
 index 66464a6..fcccf0e 100644
 --- a/files/verbs/dlls.txt
 +++ b/files/verbs/dlls.txt
 @@ -74,6 +74,7 @@ dotnet452                MS .NET 4.5.2 (Microsoft, 2012) [downloadable]
- dotnet46                 MS .NET 4.6 (Microsoft, 2015) [downloadable]
  dotnet461                MS .NET 4.6.1 (Microsoft, 2015) [downloadable]
  dotnet462                MS .NET 4.6.2 (Microsoft, 2016) [downloadable]
+ dotnet46                 MS .NET 4.6 (Microsoft, 2015) [downloadable]
 +dotnet471                MS .NET 4.7.1 (Microsoft, 2017) [downloadable]
+ dotnet472                MS .NET 4.7.2 (Microsoft, 2018) [downloadable]
  dotnet_verifier          MS .NET Verifier (Microsoft, 2016) [downloadable]
  dpvoice                  Microsoft dpvoice dpvvox dpvacm Audio dlls (Microsoft, 2002) [downloadable]
- dsdmo                    MS dsdmo.dll (Microsoft, 2010) [downloadable]
 diff --git a/files/verbs/download.txt b/files/verbs/download.txt
 index eda684d..97a76ba 100644
 --- a/files/verbs/download.txt
@@ -37,9 +37,9 @@ index eda684d..97a76ba 100644
  dotnet461
  dotnet462
 +dotnet471
+ dotnet472
  dotnet_verifier
  dpvoice
- dragonage2_demo
 diff --git a/src/winetricks b/src/winetricks
 index 582f37a..79f19c0 100755
 --- a/src/winetricks

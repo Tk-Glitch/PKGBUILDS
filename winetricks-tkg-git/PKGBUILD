@@ -4,7 +4,7 @@
 # Contributor: Tk-Glitch <ti3nou@gmail.com>
 
 pkgname=winetricks-tkg-git
-pkgver=20180815.r69.g5908a44
+pkgver=20181203.r3.gaf538d6
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'
@@ -46,4 +46,4 @@ package() {
 
 md5sums=('SKIP'
          '88d731e3e0eb9d699d6d2dc40996819d'
-         'b048239973fdfc9cdccc1c0d6040d8ba')
+         '27ca3b6aee0ce7310db9da3b194f2aaf')
