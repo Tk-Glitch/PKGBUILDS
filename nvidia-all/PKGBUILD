@@ -80,7 +80,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=18
+pkgrel=19
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -93,36 +93,24 @@ _pkg="NVIDIA-Linux-x86_64-$pkgver"
 # Source
 if [ "$_driver_branch" == "vulkandev" ]; then
   if [[ $pkgver == 396* ]]; then
-    source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-${pkgver//.}"
-            '10-nvidia-drm-outputclass.conf'
-            '20-nvidia.conf'
-            'kernel-4.16.patch'
-            'kernel-4.19.patch' # 4.19 workaround
-            'kernel-4.19.dkmsp') # 4.19 dkms workaround
+    _source_name="NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/linux-${pkgver//.}"
   elif [[ $pkgver == 415* ]]; then
-    source=("NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/vulkan-beta-${pkgver//.}-linux"
-            '10-nvidia-drm-outputclass.conf'
-            '20-nvidia.conf'
-            'kernel-4.16.patch')
+    _source_name="NVIDIA-Linux-x86_64-$pkgver.run::https://developer.nvidia.com/vulkan-beta-${pkgver//.}-linux"
   else
     msg2 'Gandalf refuses to get the driver version you asked for.'
     YOU_SHALL_NOT_PASS
   fi
 else
-  if [[ $pkgver == 396* ]]; then
-    source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
-            '10-nvidia-drm-outputclass.conf'
-            '20-nvidia.conf'
-            'kernel-4.16.patch'
-            'kernel-4.19.patch' # 4.19 workaround
-            'kernel-4.19.dkmsp') # 4.19 dkms workaround
-  else
-    source=("http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
-            '10-nvidia-drm-outputclass.conf'
-            '20-nvidia.conf'
-            'kernel-4.16.patch')
-  fi
+    _source_name="http://us.download.nvidia.com/XFree86/Linux-x86_64/$pkgver/NVIDIA-Linux-x86_64-$pkgver.run"
 fi
+
+source=($_source_name
+        '10-nvidia-drm-outputclass.conf'
+        '20-nvidia.conf'
+        'kernel-4.16.patch'
+        'kernel-4.19.patch' # 4.19 workaround
+        'kernel-4.19.dkmsp') # 4.19 dkms workaround
+
 md5sums=('SKIP'
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
