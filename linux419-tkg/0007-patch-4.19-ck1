@@ -5366,14 +5366,9 @@ diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
 index 1a0be022f91d..cfa268364ec7 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -1009,10 +1009,26 @@ config SCHED_SMT
- 	depends on SMP
- 	---help---
- 	  SMT scheduler support improves the CPU scheduler's decision making
--	  when dealing with Intel Pentium 4 chips with HyperThreading at a
-+	  when dealing with Intel P4/Core 2 chips with HyperThreading at a
- 	  cost of slightly increased overhead in some places. If unsure say
- 	  N here.
+@@ -1003,6 +1003,21 @@ config NR_CPUS
+ config SCHED_SMT
+ 	def_bool y if SMP
  
 +config SMT_NICE
 +	bool "SMT (Hyperthreading) aware nice priority and policy support"
@@ -5389,7 +5384,6 @@ index 1a0be022f91d..cfa268364ec7 100644
 +	  of slightly increased overhead.
 +
 +	  If unsure say Y here.
-+
 +
  config SCHED_MC
  	def_bool y
