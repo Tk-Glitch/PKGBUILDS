@@ -111,3 +111,25 @@ index 0421a050d61c52d795898b3f1a46c9dcd7bcd69e..cddf591a1603cbf73c54d0d754c2ba08
  	if (!sched_smp_initialized)
  		return 0;
  
+diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
+index cddf591a1603cbf73c54d0d754c2ba0836cec716..5a5ad448f23c281370d2863886ac70734ae4f41b 100644
+--- a/kernel/sched/pds.c
++++ b/kernel/sched/pds.c
+@@ -619,7 +619,7 @@ static inline void update_sched_rq_queued_masks(struct rq *rq)
+ 		return;
+ 
+ #ifdef CONFIG_SCHED_SMT
+-	if (~0 == per_cpu(sched_sibling_cpu, cpu))
++	if (cpu == per_cpu(sched_sibling_cpu, cpu))
+ 		return;
+ 
+ 	if (SCHED_RQ_EMPTY == last_level) {
+@@ -6103,7 +6103,7 @@ void __init sched_init(void)
+ 		rq->queued_level = SCHED_RQ_EMPTY;
+ 		rq->pending_level = SCHED_RQ_EMPTY;
+ #ifdef CONFIG_SCHED_SMT
+-		per_cpu(sched_sibling_cpu, i) = ~0;
++		per_cpu(sched_sibling_cpu, i) = i;
+ 		rq->active_balance = 0;
+ #endif
+ #endif
