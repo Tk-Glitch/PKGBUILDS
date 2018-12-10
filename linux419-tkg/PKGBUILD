@@ -35,7 +35,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=8
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=16
+pkgrel=17
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -66,7 +66,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-glitched-muqss.patch
         0007-patch-4.19-ck1
         0008-glitched-pds.patch
-        0008-v4.19_pds099f.patch
+        0008-v4.19_pds099g.patch
         0009-add-acs-overrides_iommu.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
@@ -85,8 +85,8 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '5d02a03d70cfb03c6e3d8e91a5e27ad2d08054c24cebd0b175242026fc573603'
             'f270b3dae7f1df07fd2117825f8d0cfe051e282954aec221869549960938f4c3'
             '3d0fc0452bb2f2475c1acc9d9164fd6a3392de55d325aff86c41bd95ba342b1f'
-            '6e37901f4f70ff76bf80c6b7c74ddf0bf70084865c26e171402126b207bcba16'
-            'b5872b6a6ec1118b502649f0965ac176f8bf809f099f58660a9380ac8b235e87'
+            '4a13104da5191baff40b763de66368a496539ae5f79969004c0d67e5e9745e19'
+            '08190bf03b5d1934ecb0e9b02de8b13f46f311ae2f749906e898472ddcbae744'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8')
 
 user_patcher() {
@@ -184,7 +184,7 @@ prepare() {
     patch -Np1 -i ../0007-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0008-v4.19_pds099f.patch
+    patch -Np1 -i ../0008-v4.19_pds099g.patch
     patch -Np1 -i ../0008-glitched-pds.patch
   fi
 

@@ -1161,10 +1161,10 @@ index 16f84142f2f4..3ed250aebe56 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..0421a050d61c
+index 000000000000..3066135a5430
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6426 @@
+@@ -0,0 +1,6442 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1251,7 +1251,7 @@ index 000000000000..0421a050d61c
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99f by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99g by Alfred Chen.\n");
 +}
 +
 +/* task_struct::on_rq states: */
@@ -1357,6 +1357,7 @@ index 000000000000..0421a050d61c
 +DEFINE_PER_CPU(cpumask_t *, sched_cpu_affinity_chk_end_masks);
 +
 +#ifdef CONFIG_SCHED_SMT
++DEFINE_STATIC_KEY_FALSE(sched_smt_present);
 +DEFINE_PER_CPU(int, sched_sibling_cpu);
 +
 +static cpumask_t sched_cpu_sg_idle_mask ____cacheline_aligned_in_smp;
@@ -1785,7 +1786,7 @@ index 000000000000..0421a050d61c
 +		return;
 +
 +#ifdef CONFIG_SCHED_SMT
-+	if (~0 == per_cpu(sched_sibling_cpu, cpu))
++	if (cpu == per_cpu(sched_sibling_cpu, cpu))
 +		return;
 +
 +	if (SCHED_RQ_EMPTY == last_level) {
@@ -7020,6 +7021,13 @@ index 000000000000..0421a050d61c
 +	struct rq *rq = cpu_rq(cpu);
 +	unsigned long flags;
 +
++#ifdef CONFIG_SCHED_SMT
++	/*
++	 * When going up, increment the number of cores with SMT present.
++	 */
++	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
++		static_branch_inc_cpuslocked(&sched_smt_present);
++#endif
 +	set_cpu_active(cpu, true);
 +
 +	if (sched_smp_initialized)
@@ -7054,6 +7062,14 @@ index 000000000000..0421a050d61c
 +	 * Do sync before park smpboot threads to take care the rcu boost case.
 +	 */
 +	synchronize_rcu_mult(call_rcu, call_rcu_sched);
++
++#ifdef CONFIG_SCHED_SMT
++	/*
++	 * When going down, decrement the number of cores with SMT present.
++	 */
++	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
++		static_branch_dec_cpuslocked(&sched_smt_present);
++#endif
 +
 +	if (!sched_smp_initialized)
 +		return 0;
@@ -7254,7 +7270,7 @@ index 000000000000..0421a050d61c
 +		rq->queued_level = SCHED_RQ_EMPTY;
 +		rq->pending_level = SCHED_RQ_EMPTY;
 +#ifdef CONFIG_SCHED_SMT
-+		per_cpu(sched_sibling_cpu, i) = ~0;
++		per_cpu(sched_sibling_cpu, i) = i;
 +		rq->active_balance = 0;
 +#endif
 +#endif
