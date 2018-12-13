@@ -263,6 +263,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'lowlatency_audio.patch' # wine osu! lowlat patch
 		'wine-binfmt.conf' # Enables launching windows executables directly
 		'CSMT-toggle.patch' # Corrected CSMT switch logic
+		'GLSL-toggle.patch' # Toggles OpenGL shading language
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'plasma_systray_fix.patch' # Systray fix for winex11
 		'dxvk-winelib.patch' # Enables DXVK winelib building
@@ -643,6 +644,11 @@ prepare() {
 	fi
 	# /esync
 
+	# GLSL toggle patch - Allows for use of ARB instead of GLSL
+	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ]; then
+	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
+	fi
+	
 	# Launch with dedicated gpu desktop entry patch
 	if [ $_launch_with_dedicated_gpu == "true" ]; then
 	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch' && echo "Applied launch with dedicated gpu desktop entry patch" >> "$_where"/last_build_config.log
