@@ -22,6 +22,7 @@ Thanks to @Firerat and @bobwya for their rebase work :
 
 With other patches available such as :
 - CSMT-toggle fixed logic - https://github.com/wine-staging/wine-staging/pull/60/commits/ad474559590a659b3df72ec9965de20c7f51c3a8
+- GLSL-toggle for wined3d
 - Path of Exile DX11 fix
 - Steam --no-sandbox auto fix (for store support on higher than winxp mode)
 - The Sims 2 fix
