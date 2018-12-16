@@ -545,6 +545,12 @@ w_try_regsvr()
     w_try "$WINE" regsvr32 $W_UNATTENDED_SLASH_S "$@"
 }
 
+w_try_regsvr64()
+{
+    # shellcheck disable=SC2086
+    w_try "$WINE64" regsvr32 $W_UNATTENDED_SLASH_S "$@"
+}
+
 w_try_unrar()
 {
     # $1 - zipfile to extract (keeping internal paths, in cwd)
@@ -5688,13 +5694,13 @@ load_amstream()
 {
     helper_win7sp1 x86_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_0f58f1e53efca91e/amstream.dll
     w_try cp "$W_TMP/x86_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_0f58f1e53efca91e/amstream.dll" "$W_SYSTEM32_DLLS/amstream.dll"
+    w_try_regsvr amstream.dll
 
     if [ "$W_ARCH" = "win64" ]; then
         helper_win7sp1_x64 amd64_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_6b778d68f75a1a54/amstream.dll
         w_try cp "$W_TMP/amd64_microsoft-windows-directshow-other_31bf3856ad364e35_6.1.7601.17514_none_6b778d68f75a1a54/amstream.dll" "$W_SYSTEM64_DLLS/amstream.dll"
+        w_try_regsvr64 amstream.dll
     fi
-
-    w_try_regsvr amstream.dll
 
     w_override_dlls native,builtin amstream
 }
@@ -7106,6 +7112,25 @@ load_dxvk93()
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 
+w_metadata dxvk94 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.94)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.94.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk94()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.94/dxvk-0.94.tar.gz" 1f06bfac5b435b62b972806fb3bbd86f7ccae2399b4451e85ae414e03d3712a3
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
 
 #----------------------------------------------------------------
 
@@ -8390,10 +8415,12 @@ load_dxdiagn()
 {
     helper_win7sp1 x86_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_25cb021dbc0611db/dxdiagn.dll
     w_try cp "$W_TMP/x86_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_25cb021dbc0611db/dxdiagn.dll" "$W_SYSTEM32_DLLS/dxdiagn.dll"
+    w_try_regsvr dxdiagn.dll
 
     if [ "$W_ARCH" = "win64" ]; then
         helper_win7sp1_x64 amd64_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_81e99da174638311/dxdiagn.dll
         w_try cp "$W_TMP/amd64_microsoft-windows-d..x-directxdiagnostic_31bf3856ad364e35_6.1.7601.17514_none_81e99da174638311/dxdiagn.dll" "$W_SYSTEM64_DLLS/dxdiagn.dll"
+        w_try_regsvr64 dxdiagn.dll
     fi
 
     w_override_dlls native,builtin dxdiagn
@@ -8416,6 +8443,7 @@ load_dxdiagn_feb2010()
 
     w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
     w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'dxdiagn.dll' "$W_TMP/dxnt.cab"
+    w_try_regsvr dxdiagn.dll
     w_override_dlls native dxdiagn
 }
 
@@ -9688,23 +9716,26 @@ load_python26()
 #----------------------------------------------------------------
 
 w_metadata qasf dlls \
-    title="qasf.dll (from Directx 9 user redistributable)" \
+    title="qasf.dll" \
     publisher="Microsoft" \
-    year="2010" \
+    year="2011" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/qasf.dll"
 
 load_qasf()
 {
-    helper_directx_dl
-
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F qasf.dll "$W_TMP/dxnt.cab"
-
+    helper_win7sp1 x86_microsoft-windows-directshow-asf_31bf3856ad364e35_6.1.7601.17514_none_1cc4e9c15ccc8ae8/qasf.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-directshow-asf_31bf3856ad364e35_6.1.7601.17514_none_1cc4e9c15ccc8ae8/qasf.dll" "$W_SYSTEM32_DLLS/qasf.dll"
     w_try_regsvr qasf.dll
 
-    w_override_dlls native qasf
+    if [ "$W_ARCH" = "win64" ]; then
+        helper_win7sp1_x64 amd64_microsoft-windows-directshow-asf_31bf3856ad364e35_6.1.7601.17514_none_78e385451529fc1e/qasf.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-directshow-asf_31bf3856ad364e35_6.1.7601.17514_none_78e385451529fc1e/qasf.dll" "$W_SYSTEM64_DLLS/qasf.dll"
+        w_try_regsvr64 qasf.dll
+    fi
+
+    w_override_dlls native,builtin qasf
 }
 
 #----------------------------------------------------------------
@@ -9744,10 +9775,12 @@ load_qedit()
 {
     helper_win7sp1 x86_microsoft-windows-qedit_31bf3856ad364e35_6.1.7601.17514_none_5ca34698a5a970d2/qedit.dll
     w_try cp "$W_TMP/x86_microsoft-windows-qedit_31bf3856ad364e35_6.1.7601.17514_none_5ca34698a5a970d2/qedit.dll" "$W_SYSTEM32_DLLS/qedit.dll"
+    w_try_regsvr qedit.dll
 
     if [ "$W_ARCH" = "win64" ]; then
         helper_win7sp1_x64 amd64_microsoft-windows-qedit_31bf3856ad364e35_6.1.7601.17514_none_b8c1e21c5e06e208/qedit.dll
         w_try cp "$W_TMP/amd64_microsoft-windows-qedit_31bf3856ad364e35_6.1.7601.17514_none_b8c1e21c5e06e208/qedit.dll" "$W_SYSTEM64_DLLS/qedit.dll"
+        w_try_regsvr64 qedit.dll
     fi
 
     w_override_dlls native,builtin qedit
@@ -9756,23 +9789,26 @@ load_qedit()
 #----------------------------------------------------------------
 
 w_metadata quartz dlls \
-    title="quartz.dll (from Directx 9 user redistributable)" \
+    title="quartz.dll" \
     publisher="Microsoft" \
-    year="2010" \
+    year="2011" \
     media="download" \
-    file1="../directx9/directx_feb2010_redist.exe" \
+    file1="../win7sp1/windows6.1-KB976932-X86.exe" \
     installed_file1="$W_SYSTEM32_DLLS_WIN/quartz.dll"
 
 load_quartz()
 {
-    helper_directx_dl
-
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F quartz.dll "$W_TMP/dxnt.cab"
-
+    helper_win7sp1 x86_microsoft-windows-directshow-core_31bf3856ad364e35_6.1.7601.17514_none_a877a1cc4c284497/quartz.dll
+    w_try cp "$W_TMP/x86_microsoft-windows-directshow-core_31bf3856ad364e35_6.1.7601.17514_none_a877a1cc4c284497/quartz.dll" "$W_SYSTEM32_DLLS/quartz.dll"
     w_try_regsvr quartz.dll
 
-    w_override_dlls native quartz
+    if [ "$W_ARCH" = "win64" ]; then
+        helper_win7sp1_x64 amd64_microsoft-windows-directshow-core_31bf3856ad364e35_6.1.7601.17514_none_04963d500485b5cd/quartz.dll
+        w_try cp "$W_TMP/amd64_microsoft-windows-directshow-core_31bf3856ad364e35_6.1.7601.17514_none_04963d500485b5cd/quartz.dll" "$W_SYSTEM64_DLLS/quartz.dll"
+        w_try_regsvr64 quartz.dll
+    fi
+
+    w_override_dlls native,builtin quartz
 }
 
 #----------------------------------------------------------------
@@ -20806,11 +20842,16 @@ then
             winetricks_volname "${1#volnameof=}"
             ;;
         "")
-            if test x"$DISPLAY" = x""; then
-                echo "DISPLAY not set, not defaulting to gui"
-                winetricks_usage
-                exit 0
+            if [ -z "$DISPLAY" ]; then
+                if [ "$(uname -s)" = "Darwin" ]; then
+                    echo "Running on OSX, but DISPLAY is not set...probably using Mac Driver."
+                else
+                    echo "DISPLAY not set, not defaulting to gui"
+                    winetricks_usage
+                    exit 0
+                fi
             fi
+
             # GUI case
             # No non-option arguments given, so read them from GUI, and loop until user quits
             winetricks_detect_gui
