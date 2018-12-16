@@ -645,7 +645,7 @@ prepare() {
 	# /esync
 
 	# GLSL toggle patch - Allows for use of ARB instead of GLSL
-	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ]; then
+	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ] && [ $_use_gallium_nine == "false"]; then
 	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
 	fi
 	
