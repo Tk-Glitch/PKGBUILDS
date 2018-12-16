@@ -31,7 +31,7 @@
 + static void glsl_set(BOOL status)
 + {
 +     set_reg_key(config_key, "Direct3D", "UseGLSL", status ? "disabled" : "enabled");
-+     set_reg_key(config_key, "Direct3D", "MaxVersionGL", status ? "30001" : NULL);
++     set_reg_key_dword(config_key, "Direct3D", "MaxVersionGL", status ? 0x00030001 : NULL);
 + }
 +
  static void load_staging_settings(HWND dialog)
