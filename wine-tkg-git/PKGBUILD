@@ -1,8 +1,8 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.0rc2.r0.gc119ae9e
-pkgrel=103
+pkgver=4.0rc2.r6.g9e8d000f
+pkgrel=104
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -704,7 +704,7 @@ prepare() {
 	fi
 
         # GLSL toggle patch - Allows for use of ARB instead of GLSL
-        if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ] && [ $_use_gallium_nine == "false"]; then
+        if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ] && [ $_use_gallium_nine == "false" ]; then
           patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
         fi
 
