@@ -473,11 +473,6 @@ prepare() {
 	export CFLAGS="${CFLAGS/-fno-plt/}"
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
 
-	# Revert 0e279d2 to fix DXVK winelib compilation on 3.20 devel - https://github.com/wine-mirror/wine/commit/0e279d26b8386fc878f17bd6768e46e1cf9c5128
-	if [ $_dxvk_winelib_fix == "true" ] && git log | grep 0e279d26b8386fc878f17bd6768e46e1cf9c5128 &> /dev/null; then # winegcc: Add -I for the prefix's include dir.
-	  git revert --no-commit 0e279d26b8386fc878f17bd6768e46e1cf9c5128 && echo "Reverted 0e279d2 (3.20 DXVK winelib fix)" >> $_where/last_build_config.log
-	fi
-
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
 	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> "$_where"/last_build_config.log
