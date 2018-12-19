@@ -2,7 +2,7 @@
 
 pkgname=wine-tkg-git
 pkgver=4.0rc2.r6.g9e8d000f
-pkgrel=104
+pkgrel=105
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _pbasrcdir='wine-pba'
@@ -109,9 +109,13 @@ else
   fi
 fi
 
-if [[ $_INSTALL_TO_OPT == "true" ]]; then
-  pkgname="${pkgname/%-git/-opt-git}"
-  msg2 "Installing to /opt/$pkgname"
+# External install
+if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+  pkgname="${pkgname/%-git/-$_EXTERNAL_INSTALL_TYPE-git}"
+  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
+    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
+  fi
+  msg2 "Installing to $_DEFAULT_EXTERNAL_PATH/$pkgname"
 fi
 
 # custom plain wine commit to pass to git
@@ -272,7 +276,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
 )
 
-if [[ $_INSTALL_TO_OPT != true ]]; then
+if [[ $_EXTERNAL_INSTALL != "true" ]]; then
   provides=(
     "wine=$pkgver"
     "wine-wow64=$pkgver"
@@ -779,8 +783,13 @@ build() {
 	cd "${srcdir}"
 
 	local _prefix=/usr
-	if [[ $_INSTALL_TO_OPT == true ]]; then
-	  _prefix=/opt/"$pkgname"
+
+	# External install
+	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+	  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
+	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
+	  fi
+	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$pkgver"
 	fi
 
 	# build wine 64-bit
@@ -845,8 +854,13 @@ build() {
 package() {
 
 	local _prefix=/usr
-	if [[ $_INSTALL_TO_OPT == true ]]; then
-	  _prefix=/opt/$pkgname
+
+	# External install
+	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+	  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
+	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
+	  fi
+	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$pkgver"
 	fi
 
 	# package wine 32-bit
@@ -870,7 +884,7 @@ package() {
 	ln -s "../conf.avail/30-$pkgname-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.d/30-$pkgname-win32-aliases.conf"
 
 	# wine binfmt
-	if [[ $_INSTALL_TO_OPT == true ]]; then
+	if [[ $_EXTERNAL_INSTALL == true ]]; then
 	  mkdir -p "${pkgdir}/usr/lib/binfmt.d"
 	  # change binfmt.conf to actual installed path
 	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
@@ -894,8 +908,11 @@ package() {
 	  msg2 '##########################################################################################################################'
 	fi
 
-	if [[ $_INSTALL_TO_OPT == "true" ]]; then
+	# External install
+	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
 	  msg2 "### This wine will be installed to: $_prefix"
+	fi
+	if [[ $_EXTERNAL_INSTALL_TYPE != "lutris" ]]; then
 	  msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
 	fi
 }
