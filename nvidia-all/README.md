@@ -8,6 +8,4 @@ You may need/want to add a pacman hook for nvidia depending on your setup : http
 
 415.22.01 : https://developer.nvidia.com/vulkan-driver (Vulkan dev drivers page)
 
-415.25 : https://www.nvidia.com/download/driverResults.aspx/141448/en-us
-
-410.78 : https://www.nvidia.com/download/driverResults.aspx/140135/en-us
+415.25 & 410.78 : https://www.nvidia.com/object/unix.html
