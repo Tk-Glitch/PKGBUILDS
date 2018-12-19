@@ -246,6 +246,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
 		'sims_2-fix.patch' # Sims 2 fix
+		'sims_3-oldnvidia.patch' # No.
 		'RtlWaitOnAddress-race.patch' # Better fix for star citizen
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
@@ -530,6 +531,11 @@ prepare() {
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets - The actual patch is applied after staging
 	if [ $_sims2_fix == "true" ]; then
 	  _sims2="-W wined3d-WINED3D_RS_COLORWRITEENABLE -W wined3d-Indexed_Vertex_Blending"
+	fi
+
+	# The Sims 3 fix - reverts 6823abd521c0c12d20d9171fb5ae8b300009d082 to fix Sims 3 on older than 415.xx nvidia drivers - https://bugs.winehq.org/show_bug.cgi?id=45361
+	if [ $_sims3_fix == "true" ]; then
+	  patch -Np1 < ../'sims_3-oldnvidia.patch' && echo "Applied The Sims 3 Debian&co nvidia fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Star Citizen workaround for the freezing on splashscreen since 25acfbb40b5316a8c87989d4e61ce9edef2a04aa - https://bugs.winehq.org/show_bug.cgi?id=46099
@@ -931,6 +937,7 @@ md5sums=('SKIP'
          'f50501943759c8731d40eb521e36e6da'
          '85c8f0db6895ad7c2868afd367439b4d'
          '6e301f262f004b930ffc3000839d837b'
+         '342a6e02f73c06120ce01cc887489d9c'
          '78cc875f33c8aeefb000f5063323768b'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
