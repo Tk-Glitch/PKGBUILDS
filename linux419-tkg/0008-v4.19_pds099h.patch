@@ -400,7 +400,7 @@ index b36f4cf38111..46bbab702a3b 100644
  extern void cpu_load_update_nohz_stop(void);
  #else
 diff --git a/include/linux/sched/prio.h b/include/linux/sched/prio.h
-index 7d64feafc408..d98cab2a0efb 100644
+index 7d64feafc408..162c2e649d0f 100644
 --- a/include/linux/sched/prio.h
 +++ b/include/linux/sched/prio.h
 @@ -20,7 +20,18 @@
@@ -413,8 +413,8 @@ index 7d64feafc408..d98cab2a0efb 100644
 +
 +#define MAX_RT_PRIO		((MAX_USER_RT_PRIO) + 1)
 +
-+#define NORMAL_PRIO		((MAX_USER_RT_PRIO) + 1)
-+#define IDLE_PRIO		((MAX_USER_RT_PRIO) + 2)
++#define NORMAL_PRIO		(MAX_RT_PRIO)
++#define IDLE_PRIO		((MAX_RT_PRIO) + 1)
 +#define PRIO_LIMIT		((IDLE_PRIO) + 1)
 +#else /* !CONFIG_SCHED_PDS */
  #define MAX_RT_PRIO		MAX_USER_RT_PRIO
@@ -1161,10 +1161,10 @@ index 16f84142f2f4..3ed250aebe56 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..3066135a5430
+index 000000000000..59804f449487
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6442 @@
+@@ -0,0 +1,6439 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1251,7 +1251,7 @@ index 000000000000..3066135a5430
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99g by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99h by Alfred Chen.\n");
 +}
 +
 +/* task_struct::on_rq states: */
@@ -1562,6 +1562,20 @@ index 000000000000..3066135a5430
 +static inline u64 static_deadline_diff(int static_prio)
 +{
 +	return sched_prio2deadline[USER_PRIO(static_prio)];
++}
++
++/*
++ * The time_slice is only refilled when it is empty and that is when we set a
++ * new deadline for non-rt tasks.
++ */
++static inline void time_slice_expired(struct task_struct *p, struct rq *rq)
++{
++	p->time_slice = timeslice();
++
++	if (p->prio >= NORMAL_PRIO) {
++		p->deadline = rq->clock + task_deadline_diff(p);
++		update_task_priodl(p);
++	}
 +}
 +
 +static inline struct task_struct *rq_first_queued_task(struct rq *rq)
@@ -3214,8 +3228,6 @@ index 000000000000..3066135a5430
 +	return try_to_wake_up(p, state, 0);
 +}
 +
-+static void time_slice_expired(struct task_struct *p, struct rq *rq);
-+
 +/*
 + * Perform scheduler related setup for a newly forked process p.
 + * p is forked by current.
@@ -4042,6 +4054,10 @@ index 000000000000..3066135a5430
 +	cpumask_t chk;
 +	int i;
 +
++	/* Only online cpu will do sg balance checking */
++	if (unlikely(!rq->online))
++		return;
++
 +	/* Only cpu in slibing idle group will do the checking */
 +	if (!cpumask_test_cpu(cpu_of(rq), &sched_cpu_sg_idle_mask))
 +		return;
@@ -4260,25 +4276,6 @@ index 000000000000..3066135a5430
 +static inline void preempt_latency_start(int val) { }
 +static inline void preempt_latency_stop(int val) { }
 +#endif
-+
-+/*
-+ * The time_slice is only refilled when it is empty and that is when we set a
-+ * new deadline.
-+ */
-+static void time_slice_expired(struct task_struct *p, struct rq *rq)
-+{
-+	p->time_slice = timeslice();
-+
-+	if (unlikely(task_has_rt_policy(p)))
-+		return;
-+	if (p->policy == SCHED_NORMAL) {
-+		p->deadline /= 2;
-+		p->deadline += (rq->clock + task_deadline_diff(p)) / 2;
-+	} else
-+		p->deadline = rq->clock + task_deadline_diff(p);
-+
-+	update_task_priodl(p);
-+}
 +
 +/*
 + * Timeslices below RESCHED_US are considered as good as expired as there's no
