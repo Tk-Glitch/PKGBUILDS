@@ -280,6 +280,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
+		'large_address_aware.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
+		'large_address_aware-staging.patch' # Same as above, for staging
 )
 
 if [[ $_EXTERNAL_INSTALL != "true" ]]; then
@@ -731,6 +733,13 @@ prepare() {
 	  patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
 	fi
 
+	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
+	if [ $_large_address_aware == "true" ] && [ $_use_staging == "false" ]; then
+	  patch -Np1 < ../'large_address_aware.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	elif [ $_large_address_aware == "true" ] && [ $_use_staging == "true" ]; then
+	  patch -Np1 < ../'large_address_aware-staging.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	fi
+
 	# wine user patches
 	if [ $_user_patches == "true" ]; then
 	  _userpatch_target="plain-wine"
@@ -967,7 +976,9 @@ md5sums=('SKIP'
          'd328bfd0d363434fe5f83f3a614849f7'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '1687534ebe656942a19914bfd87edf07'
-         'f9797a9b65087b37022d9e92e49b6080')
+         'f9797a9b65087b37022d9e92e49b6080'
+         '3cb83a83c7ed9335eddbef665f4d89f9'
+         '25e20e66ee3b2896f2979ba4e16ff767')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_COINMINER # state tracker end
