@@ -3,9 +3,10 @@
 pkgname=wine-tkg-git
 pkgver=4.0rc3.r0.gb1066c70
 
-# workaround for pkgrel overwritten on regen, part 1
+# workaround for pkgrel overwritten on regen
 _truepkgrel=106
 pkgrel=1
+eval "pkgrel=$_truepkgrel"
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
