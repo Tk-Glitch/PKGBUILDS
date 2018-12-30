@@ -195,6 +195,7 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'samba'                 'schedtool'
     'meson'                 'ninja'
     'glslang'               'wget'
+    'ocl-id'		    'lib32-ocl-icd'
 )
 # We need wine installed to build DXVK winelib
 if [[ $_use_dxvk == true ]]; then
