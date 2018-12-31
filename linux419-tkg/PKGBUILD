@@ -42,10 +42,10 @@ license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool' 'patchutils' 'flex')
 if pacman -Qq ccache &> /dev/null; then
   msg2 'ccache was found and will be used'
-  options=('!strip' 'ccache' 'makeflags')
+  options=('!strip' 'ccache')
 else
   msg2 'ccache was not found and will not be used'
-  options=('!strip' 'makeflags')
+  options=('!strip')
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
@@ -292,7 +292,7 @@ build() {
   cd "${srcdir}/linux-${_basekernel}"
 
   # build!
-  time schedtool -B -n 1 -e ionice -n 1 make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+  time schedtool -B -n 1 -e ionice -n 1 make LOCALVERSION= bzImage modules
 }
 
 hackbase() {
