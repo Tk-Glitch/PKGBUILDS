@@ -239,6 +239,13 @@ prepare() {
   fi
 
   plain ""
+  plain "Enable Device Tree and Open Firmware support?"
+  read -p "`echo $'    > N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
+    sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
+  fi
+
+  plain ""
   plain "Use ACS override patch?"
   plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
   read -p "`echo $'    > N/y : '`" CONDITION;
@@ -276,14 +283,6 @@ prepare() {
   if [ "$CONDITION" == "y" ]; then
     make LSMOD=$HOME/.config/modprobed.db localmodconfig
   fi
-
-  # load configuration
-  # Configure the kernel. Replace the line below with one of your choice.
-  #make menuconfig # CLI menu for configuration
-  #make nconfig # new CLI menu for configuration
-  #make xconfig # X-based configuration
-  #make oldconfig # using old config from previous kernel version
-  # ... or manually edit .config
 
   # rewrite configuration
   yes "" | make config >/dev/null
