@@ -1,7 +1,8 @@
 A custom Linux kernel 4.20.y with specific PDS and MuQSS CPU schedulers related patchsets selector (stock CFS is also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
 ```diff
-- 4.20 kernel is unstable on my main machine, so to not keep you waiting for too long, testing has been done on my C2D-based laptop. Please report issues you may encounter.
+- 4.20 kernel is unstable on my main machine, so to not keep you waiting for too long,
+- testing has been done on my C2D-based laptop. Please report issues you may encounter.
 ```
 
 Various personnalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
