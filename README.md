@@ -32,3 +32,4 @@ That will grab the required dependencies, build, then install the newly created 
 
 
 If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch
+Also feel free to join the Frog Family discord server : https://discord.gg/jRy3Nxk
