@@ -84,7 +84,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=24
+pkgrel=25
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -111,6 +111,7 @@ fi
 source=($_source_name
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
+        'nvidia-utils-tkg.sysusers'
         'kernel-4.16.patch'
         'kernel-4.19.patch' # 4.19 workaround
         'kernel-4.19.dkmsp') # 4.19 dkms workaround
@@ -120,6 +121,7 @@ msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If 
 md5sums=("$_md5sum"
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
+         'dbf01e238f982c4f5b961da7c4d6a0ba'
          '84f1f2ecdccf377fc86323f8ad7b7469'
          '4bc92732727482b545b60589aacd44d8'
          '8c56c81b736b7a5387870b7391401e28')
@@ -292,7 +294,7 @@ package_nvidia-utils-tkg() {
   provides=("nvidia-utils=$pkgver" "nvidia-settings=$pkgver" 'vulkan-driver' 'opengl-driver' 'nvidia-libgl')
   conflicts=('nvidia-utils' 'nvidia-settings' 'nvidia-libgl')
   backup=('etc/X11/xorg.conf.d/20-nvidia.conf')
-  install=$pkgname.install
+  install=nvidia-utils-tkg.install
   cd $_pkg
 
     # X driver
@@ -425,7 +427,7 @@ package_nvidia-utils-tkg() {
     # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
     install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
 
-    #install -Dm644 "$srcdir"/nvidia-utils.sysusers "$pkgdir"/usr/lib/sysusers.d/$pkgname.conf
+    install -Dm644 "$srcdir"/nvidia-utils-tkg.sysusers "$pkgdir"/usr/lib/sysusers.d/$pkgname.conf
 
     _create_links
 }
@@ -436,7 +438,7 @@ if [ "$_dkms" == "false" ]; then
     depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
     provides=("nvidia=$pkgver")
     conflicts=('nvidia-96xx' 'nvidia-173xx' 'nvidia')
-    install=$pkgname.install
+    install=nvidia-tkg.install
 
     # Install for all kernels
     for _path in $(find /usr/lib/modules/extramodules-*/version -printf '%h\n'); do
@@ -559,8 +561,6 @@ if [ "$_dkms" == "true" ]; then
     depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
     provides=("nvidia=${pkgver}" 'nvidia-dkms')
     conflicts=('nvidia')
-    options=('!strip')
-    install=${pkgname}.install
 
     cd ${_pkg}
     install -dm 755 "${pkgdir}"/usr/{lib/modprobe.d,src}
