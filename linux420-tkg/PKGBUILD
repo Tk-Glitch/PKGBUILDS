@@ -35,7 +35,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=1
+pkgrel=2
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -73,7 +73,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '2da4d705fe5be8ac9b5af68c48ddb5b925f2f756cb84c4c66ad05279676503a1'
-            'c26c3dc279c97e07f79983d5c476de4f71fb8fc66bc6a02d900afec51fc08ba2'
+            'a2087025344e2336466b6cfaae999b6f1b7acdee7718b5df4cf0751ab6a31797'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -244,6 +244,14 @@ prepare() {
         -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
         -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
         -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
+  fi
+
+  plain ""
+  plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
+  read -p "`echo $'    > N/y : '`" CONDITION;
+  if [ "$CONDITION" == "y" ]; then
+    sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
+    sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
   fi
 
   plain ""
