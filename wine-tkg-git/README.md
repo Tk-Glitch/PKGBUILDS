@@ -2,7 +2,7 @@
 
 This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
 
-** Since this is a -git package, wine and wine-staging sources will be pulled from latest master branch by default. You can define specific releases commit in the cfg file if needed. **
+**Since this is a -git package, wine and wine-staging sources will be pulled from latest master branch by default. You can define specific releases commit in the cfg file if needed.**
 
 Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
 
