@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0rc4.r3.g4d4e02e2
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=107
+_truepkgrel=108
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
