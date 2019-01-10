@@ -10,6 +10,9 @@ where=$PWD # track basedir as different Arch based distros are moving srcdir aro
 # Default is "true".
 _NUKR="true"
 
+# Enable Device Tree and Open Firmware support?
+_OFenable="false"
+
 # user patches
 _user_patches="true"
 _user_patches_no_confirm="false"
@@ -35,7 +38,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=14
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=27
+pkgrel=28
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -253,10 +256,8 @@ prepare() {
     sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
   fi
 
-  plain ""
-  plain "Enable Device Tree and Open Firmware support?"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # Open Firmware support
+  if [ "$_OFenable" == "true" ]; then
     sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
   fi
 
