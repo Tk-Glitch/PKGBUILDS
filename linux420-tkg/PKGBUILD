@@ -35,7 +35,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -69,12 +69,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-v4.20_pds099k.patch
         0009-add-acs-overrides_iommu.patch
         0010-exFAT-support.patch
+        0011-ipv4-tcpbuffer.patch
         0012-bcachefs.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '14a9eb9b899ada7ce203957aa760a185b746fde3120d67d483fa1be96b477489'
             '2da4d705fe5be8ac9b5af68c48ddb5b925f2f756cb84c4c66ad05279676503a1'
-            'fc76982aefea809ce245a77ce5eec58e50cbe88370a8e582b78e4e4592f27ff0'
+            '672a287e6ced9ca715545f237cfb61d0f62b95fba1b75af339f8eeb59e339810'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -83,13 +84,14 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
             '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
-            'afb694c7dfc87a70567b369d091f6d1b0d59bfae4aeee0a7f5a0a61ce7ca1c59'
+            'b57fe329c04136b64e829ed26b0ef71f89a2afe008e6aa3e8364609a4ad70d99'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             'fcbc7ef3ab1bb17d941908db388b6493080369757835ddbb5ee0c8ade1f6d97a'
             '4a13104da5191baff40b763de66368a496539ae5f79969004c0d67e5e9745e19'
             '923a5b1e0c99972421bc4d99cb73533932fe6d18ff99d6aa2e15927cb2700f0d'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
+            '386e4df9c5259648b907e6f35231ead63920b0e37bf09c29382e843142fc3ed4'
             '72a278508dbde8caca3594833b59491267aeb5a5781857fdd1c71e11f4de0048')
 
 user_patcher() {
@@ -183,6 +185,9 @@ prepare() {
 
   # exFAT
   patch -Np1 -i ../0010-exFAT-support.patch
+
+  # ipv4 bigger TCP buffer
+  patch -Np1 -i ../0011-ipv4-tcpbuffer.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS

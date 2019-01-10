@@ -35,7 +35,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=14
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=26
+pkgrel=27
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -69,12 +69,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-v4.19_pds099h.patch
         0009-add-acs-overrides_iommu.patch
         0010-bcachefs.patch
+        0011-ipv4-tcpbuffer.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'c3e0f6d40a4dbe0ebb8f9c7d7e245d03f18f7a3ff9f9bb44502c9a6b2d82beb3'
             'SKIP'
             'ec617b1718e6cadfad02c75aca9c4b0e6b6f944bc1a93b7e4d82c847c04b5653'
-            'f88d46ce42f9da502bb0663635286ea9425ad43d1891deb263e5852522ea1e93'
+            '46867012bc676b022756a69d495bab438b9f51056292d2a22998fd2490a7336f'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -83,13 +84,14 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
             '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
             '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
-            '5d02a03d70cfb03c6e3d8e91a5e27ad2d08054c24cebd0b175242026fc573603'
+            '2a016c77d782f925cb54f4e308e26eda89a5d83c1b762654444c7b8d2ea80f4d'
             'f270b3dae7f1df07fd2117825f8d0cfe051e282954aec221869549960938f4c3'
             '3d0fc0452bb2f2475c1acc9d9164fd6a3392de55d325aff86c41bd95ba342b1f'
             '4a13104da5191baff40b763de66368a496539ae5f79969004c0d67e5e9745e19'
             '151ca04701045a1a1c45da6ec067add84618c7b0e0cb9de6a5964b1acd674b89'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
-            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb')
+            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
+            '386e4df9c5259648b907e6f35231ead63920b0e37bf09c29382e843142fc3ed4')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -179,6 +181,9 @@ prepare() {
   patch -Np1 -i ../0005-perf.patch
 
   patch -Np1 -i ../0006-glitched-base.patch
+
+  # ipv4 bigger TCP buffer
+  patch -Np1 -i ../0011-ipv4-tcpbuffer.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS

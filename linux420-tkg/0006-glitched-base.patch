@@ -24090,3 +24090,24 @@ index e84a10b..21d62b7 100644
  	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG)|
  	(1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
  
+diff --git a/net/sched/Kconfig b/net/sched/Kconfig
+--- a/net/sched/Kconfig
++++ b/net/sched/Kconfig
+@@ -429,6 +429,9 @@
+	  Select the queueing discipline that will be used by default
+	  for all network devices.
+ 
++	config DEFAULT_CAKE
++ 		bool "Common Applications Kept Enhanced" if NET_SCH_CAKE
++
+	config DEFAULT_FQ
+		bool "Fair Queue" if NET_SCH_FQ
+ 
+@@ -448,6 +451,7 @@
+ config DEFAULT_NET_SCH
+	string
+	default "pfifo_fast" if DEFAULT_PFIFO_FAST
++	default "cake" if DEFAULT_CAKE
+	default "fq" if DEFAULT_FQ
+	default "fq_codel" if DEFAULT_FQ_CODEL
+	default "sfq" if DEFAULT_SFQ
