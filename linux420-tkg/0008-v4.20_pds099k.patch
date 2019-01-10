@@ -914,50 +914,21 @@ index 0e21e6d21f35..81d3e2a398d3 100644
  	__unhash_process(tsk, group_dead);
  	write_sequnlock(&sig->stats_lock);
 diff --git a/kernel/livepatch/transition.c b/kernel/livepatch/transition.c
-index 5bc349805e03..af6575efd28c 100644
+index 5bc349805e03..d48c6a01e714 100644
 --- a/kernel/livepatch/transition.c
 +++ b/kernel/livepatch/transition.c
-@@ -298,7 +298,12 @@ static int klp_check_stack(struct task_struct *task, char *err_buf)
- static bool klp_try_switch_task(struct task_struct *task)
- {
- 	struct rq *rq;
-+#ifdef	CONFIG_SCHED_PDS
-+	raw_spinlock_t *lock;
-+	unsigned long flags;
-+#else
- 	struct rq_flags flags;
-+#endif
- 	int ret;
- 	bool success = false;
- 	char err_buf[STACK_ERR_BUF_SIZE];
-@@ -314,9 +319,15 @@ static bool klp_try_switch_task(struct task_struct *task)
- 	 * functions.  If all goes well, switch the task to the target patch
- 	 * state.
+@@ -316,7 +316,11 @@ static bool klp_try_switch_task(struct task_struct *task)
  	 */
-+#ifdef	CONFIG_SCHED_PDS
-+	rq = task_access_lock_irqsave(task, &lock, &flags);
-+
-+	if (task_running(task) && task != current) {
-+#else
  	rq = task_rq_lock(task, &flags);
  
++#ifdef	CONFIG_SCHED_PDS
++	if (task_running(task) && task != current) {
++#else
  	if (task_running(rq, task) && task != current) {
 +#endif
  		snprintf(err_buf, STACK_ERR_BUF_SIZE,
  			 "%s: %s:%d is running\n", __func__, task->comm,
  			 task->pid);
-@@ -333,7 +344,11 @@ static bool klp_try_switch_task(struct task_struct *task)
- 	task->patch_state = klp_target_state;
- 
- done:
-+#ifdef	CONFIG_SCHED_PDS
-+	task_access_unlock_irqrestore(task, lock, &flags);
-+#else
- 	task_rq_unlock(rq, task, &flags);
-+#endif
- 
- 	/*
- 	 * Due to console deadlock issues, pr_debug() can't be used while
 diff --git a/kernel/locking/rtmutex.c b/kernel/locking/rtmutex.c
 index 581edcc63c26..d4442fedd047 100644
 --- a/kernel/locking/rtmutex.c
@@ -1063,7 +1034,7 @@ index 3fffad3bc8a8..5a521ee6596e 100644
  		kthread_stop(thread);
  		pr_warn("%s: failed to set SCHED_DEADLINE\n", __func__);
 diff --git a/kernel/sched/cputime.c b/kernel/sched/cputime.c
-index 0796f938c4f0..d3b4d1528614 100644
+index 0796f938c4f0..43606b14d746 100644
 --- a/kernel/sched/cputime.c
 +++ b/kernel/sched/cputime.c
 @@ -121,7 +121,12 @@ void account_user_time(struct task_struct *p, u64 cputime)
@@ -1091,32 +1062,16 @@ index 0796f938c4f0..d3b4d1528614 100644
  		cpustat[CPUTIME_NICE] += cputime;
  		cpustat[CPUTIME_GUEST_NICE] += cputime;
  	} else {
-@@ -268,7 +277,23 @@ static inline u64 account_other_time(u64 max)
+@@ -268,7 +277,7 @@ static inline u64 account_other_time(u64 max)
  #ifdef CONFIG_64BIT
  static inline u64 read_sum_exec_runtime(struct task_struct *t)
  {
 -	return t->se.sum_exec_runtime;
 +	return tsk_seruntime(t);
-+}
-+#else
-+
-+#ifdef	CONFIG_SCHED_PDS
-+static u64 read_sum_exec_runtime(struct task_struct *t)
-+{
-+	u64 ns;
-+	struct rq *rq;
-+	raw_spinlock_t *lock;
-+	unsigned long flags;
-+
-+	rq = task_access_lock_irqsave(t, &lock, &flags);
-+	ns = tsk_seruntime(t);
-+	task_access_unlock_irqrestore(t, lock, &flags);
-+
-+	return ns;
  }
  #else
  static u64 read_sum_exec_runtime(struct task_struct *t)
-@@ -278,13 +303,15 @@ static u64 read_sum_exec_runtime(struct task_struct *t)
+@@ -278,7 +287,7 @@ static u64 read_sum_exec_runtime(struct task_struct *t)
  	struct rq *rq;
  
  	rq = task_rq_lock(t, &rf);
@@ -1125,15 +1080,7 @@ index 0796f938c4f0..d3b4d1528614 100644
  	task_rq_unlock(rq, t, &rf);
  
  	return ns;
- }
- #endif
- 
-+#endif
-+
- /*
-  * Accumulate raw cputime values of dead tasks (sig->[us]time) and live
-  * tasks (sum on group iteration) belonging to @tsk's group.
-@@ -662,7 +689,7 @@ void cputime_adjust(struct task_cputime *curr, struct prev_cputime *prev,
+@@ -662,7 +671,7 @@ void cputime_adjust(struct task_cputime *curr, struct prev_cputime *prev,
  void task_cputime_adjusted(struct task_struct *p, u64 *ut, u64 *st)
  {
  	struct task_cputime cputime = {
@@ -1161,10 +1108,10 @@ index f5516bae0c1b..fe1d4aeb6d69 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..e8b60ad97414
+index 000000000000..5030a377d60e
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6483 @@
+@@ -0,0 +1,6481 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1251,7 +1198,7 @@ index 000000000000..e8b60ad97414
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99j by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99k by Alfred Chen.\n");
 +}
 +
 +/*
@@ -1426,7 +1373,7 @@ index 000000000000..e8b60ad97414
 +		raw_spin_unlock(lock);
 +}
 +
-+struct rq
++static inline struct rq
 +*task_access_lock_irqsave(struct task_struct *p, raw_spinlock_t **plock,
 +			  unsigned long *flags)
 +{
@@ -1455,6 +1402,13 @@ index 000000000000..e8b60ad97414
 +			raw_spin_unlock_irqrestore(&p->pi_lock, *flags);
 +		}
 +	}
++}
++
++static inline void
++task_access_unlock_irqrestore(struct task_struct *p, raw_spinlock_t *lock,
++			      unsigned long *flags)
++{
++	raw_spin_unlock_irqrestore(lock, *flags);
 +}
 +
 +/*
@@ -1984,10 +1938,9 @@ index 000000000000..e8b60ad97414
 +	 * so mask out ~microseconds as a factor of the random seed for skiplist
 +	 * insertion.
 +	 * 2. Use address of task structure pointer as another factor of the
-+	 * random seed for task burst forking scenario. Shift right 9 bits to
-+	 * remove the aligned zero bits in the task structure address.
++	 * random seed for task burst forking scenario.
 +	 */
-+	randseed = (task_rq(p)->clock >> 10) ^ ((long unsigned int)p >> 9);
++	randseed = (task_rq(p)->clock ^ (long unsigned int)p) >> 10;
 +
 +	return find_first_bit(&randseed, NUM_SKIPLIST_LEVEL - 1);
 +}
@@ -3173,6 +3126,12 @@ index 000000000000..e8b60ad97414
 +		atomic_dec(&task_rq(p)->nr_iowait);
 +	}
 +
++	if (SCHED_ISO == p->policy && ISO_PRIO != p->prio) {
++		p->prio = ISO_PRIO;
++		p->deadline = 0UL;
++		update_task_priodl(p);
++	}
++
 +	cpu = select_task_rq(p);
 +
 +	if (cpu != task_cpu(p)) {
@@ -4330,6 +4289,11 @@ index 000000000000..e8b60ad97414
 +
 +	if (p->time_slice < RESCHED_US) {
 +		time_slice_expired(p, rq);
++		if (SCHED_ISO == p->policy && ISO_PRIO == p->prio) {
++			p->prio = NORMAL_PRIO;
++			p->deadline = rq->clock + task_deadline_diff(p);
++			update_task_priodl(p);
++		}
 +		if (SCHED_FIFO != p->policy && task_on_rq_queued(p))
 +			requeue_task(p, rq);
 +	}
@@ -5465,7 +5429,7 @@ index 000000000000..e8b60ad97414
 +	 * Allow unprivileged RT tasks to decrease priority:
 +	 */
 +	if (user && !capable(CAP_SYS_NICE)) {
-+		if (rt_policy(policy)) {
++		if (SCHED_FIFO == policy || SCHED_RR == policy) {
 +			unsigned long rlim_rtprio =
 +					task_rlimit(p, RLIMIT_RTPRIO);
 +
@@ -5477,25 +5441,6 @@ index 000000000000..e8b60ad97414
 +			if (attr->sched_priority > p->rt_priority &&
 +			    attr->sched_priority > rlim_rtprio)
 +				return -EPERM;
-+		} else {
-+			switch (p->policy) {
-+				/*
-+				 * Can only downgrade policies but not back to
-+				 * SCHED_NORMAL
-+				 */
-+				case SCHED_BATCH:
-+					if (policy == SCHED_BATCH)
-+						return 0;
-+					if (policy != SCHED_IDLE)
-+						return -EPERM;
-+					break;
-+				case SCHED_IDLE:
-+					if (policy == SCHED_IDLE)
-+						return 0;
-+					return -EPERM;
-+				default:
-+					break;
-+			}
 +		}
 +
 +		/* Can't change other user's priorities */
@@ -7650,10 +7595,10 @@ index 000000000000..e8b60ad97414
 +#undef CREATE_TRACE_POINTS
 diff --git a/kernel/sched/pds_sched.h b/kernel/sched/pds_sched.h
 new file mode 100644
-index 000000000000..5e5632c234db
+index 000000000000..17d3fc44b4b4
 --- /dev/null
 +++ b/kernel/sched/pds_sched.h
-@@ -0,0 +1,455 @@
+@@ -0,0 +1,444 @@
 +#ifndef PDS_SCHED_H
 +#define PDS_SCHED_H
 +
@@ -7869,17 +7814,6 @@ index 000000000000..5e5632c234db
 +	 * lockdep_assert_held(&rq->lock);
 +	 */
 +	return rq->clock_task;
-+}
-+
-+struct rq
-+*task_access_lock_irqsave(struct task_struct *p, raw_spinlock_t **plock,
-+			  unsigned long *flags);
-+
-+static inline void
-+task_access_unlock_irqrestore(struct task_struct *p, raw_spinlock_t *lock,
-+			      unsigned long *flags)
-+{
-+	raw_spin_unlock_irqrestore(lock, *flags);
 +}
 +
 +/*
