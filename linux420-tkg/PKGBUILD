@@ -38,7 +38,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=6
+pkgrel=7
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -61,19 +61,15 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         # ARCH Patches
         0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
         # TkG
-        0002-pci-pme-wakeups.patch
-        0003-intel_idle-tweak-cpuidle-cstates.patch
-        0004-smpboot-reuse-timer-calibration.patch
-        0005-perf.patch
-        0006-glitched-base.patch
-        0007-glitched-muqss.patch
-        0007-patch-4.20-ck1
-        0008-glitched-pds.patch
-        0008-v4.20_pds099k.patch
-        0009-add-acs-overrides_iommu.patch
-        0010-exFAT-support.patch
-        0011-ipv4-tcpbuffer.patch
-        0012-bcachefs.patch
+        0002-clear-patches.patch
+        0003-glitched-base.patch
+        0004-glitched-muqss.patch
+        0004-patch-4.20-ck1
+        0005-glitched-pds.patch
+        0005-v4.20_pds099k.patch
+        0006-add-acs-overrides_iommu.patch
+        0007-exFAT-support.patch
+        0008-bcachefs.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '14a9eb9b899ada7ce203957aa760a185b746fde3120d67d483fa1be96b477489'
@@ -83,10 +79,7 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
-            '5e889925cb6ef0dd34695db146f39c5e81073e7d9355e6e958b7a1c70e7c4d60'
-            '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
-            '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
-            '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
+            '379058b20425c967e93dba4df5484c5c17d30c323c0a76c9283c4f4dbb8cb227'
             'b57fe329c04136b64e829ed26b0ef71f89a2afe008e6aa3e8364609a4ad70d99'
             '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
             'fcbc7ef3ab1bb17d941908db388b6493080369757835ddbb5ee0c8ade1f6d97a'
@@ -94,7 +87,6 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '923a5b1e0c99972421bc4d99cb73533932fe6d18ff99d6aa2e15927cb2700f0d'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
-            '386e4df9c5259648b907e6f35231ead63920b0e37bf09c29382e843142fc3ed4'
             '72a278508dbde8caca3594833b59491267aeb5a5781857fdd1c71e11f4de0048')
 
 user_patcher() {
@@ -179,27 +171,21 @@ prepare() {
   #patch -Np1 -i ../vfs-ino.patch
 
   # TkG
-  patch -Np1 -i ../0002-pci-pme-wakeups.patch
-  patch -Np1 -i ../0003-intel_idle-tweak-cpuidle-cstates.patch
-  patch -Np1 -i ../0004-smpboot-reuse-timer-calibration.patch
-  patch -Np1 -i ../0005-perf.patch
+  patch -Np1 -i ../0002-clear-patches.patch
 
-  patch -Np1 -i ../0006-glitched-base.patch
+  patch -Np1 -i ../0003-glitched-base.patch
 
   # exFAT
-  patch -Np1 -i ../0010-exFAT-support.patch
-
-  # ipv4 bigger TCP buffer
-  patch -Np1 -i ../0011-ipv4-tcpbuffer.patch
+  patch -Np1 -i ../0007-exFAT-support.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
-    patch -Np1 -i ../0007-patch-4.20-ck1
-    patch -Np1 -i ../0007-glitched-muqss.patch
+    patch -Np1 -i ../0004-patch-4.20-ck1
+    patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0008-v4.20_pds099k.patch
-    patch -Np1 -i ../0008-glitched-pds.patch
+    patch -Np1 -i ../0005-v4.20_pds099k.patch
+    patch -Np1 -i ../0005-glitched-pds.patch
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
@@ -270,7 +256,7 @@ prepare() {
   plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
-    patch -Np1 -i ../0009-add-acs-overrides_iommu.patch
+    patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
 
   plain ""
@@ -287,7 +273,7 @@ prepare() {
   plain "https://bcachefs.org/"
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
-    patch -Np1 -i ../0012-bcachefs.patch
+    patch -Np1 -i ../0008-bcachefs.patch
   fi
 
   # userpatches
