@@ -38,7 +38,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=14
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=28
+pkgrel=29
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -61,18 +61,14 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         # ARCH Patches
         0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
         # TkG
-        0002-pci-pme-wakeups.patch
-        0003-intel_idle-tweak-cpuidle-cstates.patch
-        0004-smpboot-reuse-timer-calibration.patch
-        0005-perf.patch
-        0006-glitched-base.patch
-        0007-glitched-muqss.patch
-        0007-patch-4.19-ck1
-        0008-glitched-pds.patch
-        0008-v4.19_pds099h.patch
-        0009-add-acs-overrides_iommu.patch
-        0010-bcachefs.patch
-        0011-ipv4-tcpbuffer.patch
+        0002-clear-patches.patch
+        0003-glitched-base.patch
+        0004-glitched-muqss.patch
+        0004-patch-4.19-ck1
+        0005-glitched-pds.patch
+        0005-v4.19_pds099h.patch
+        0006-add-acs-overrides_iommu.patch
+        0007-bcachefs.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'c3e0f6d40a4dbe0ebb8f9c7d7e245d03f18f7a3ff9f9bb44502c9a6b2d82beb3'
@@ -83,18 +79,14 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             '37b86ca3de148a34258e3176dbf41488d9dbd19e93adbd22a062b3c41332ce85'
-            '83973dac77c6442530416c028373e01815541f694da5e7ed64b3fc8ff594268d'
-            '2e2b141d0d58d9f5aaec4c02c7a3582694dbc4f531ada83dd655f53af6214176'
-            '4b7aec763c90c0a96708d8fc58c50655599301504a0fd781016d9f1a22c1e3d9'
-            '4befb550510a99f0ec096ad8eb110b81633f592e5eb814d70f394ca96124eeca'
+            'c2a8597c5b5629171b4a8c98446118c4cdd47f7a39201c4dcffbfd9b156f9a62'
             '2a016c77d782f925cb54f4e308e26eda89a5d83c1b762654444c7b8d2ea80f4d'
             'f270b3dae7f1df07fd2117825f8d0cfe051e282954aec221869549960938f4c3'
             '3d0fc0452bb2f2475c1acc9d9164fd6a3392de55d325aff86c41bd95ba342b1f'
             '4a13104da5191baff40b763de66368a496539ae5f79969004c0d67e5e9745e19'
             '151ca04701045a1a1c45da6ec067add84618c7b0e0cb9de6a5964b1acd674b89'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
-            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
-            '386e4df9c5259648b907e6f35231ead63920b0e37bf09c29382e843142fc3ed4')
+            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -178,24 +170,18 @@ prepare() {
   patch -Np1 -i ../vfs-ino.patch
 
   # TkG
-  patch -Np1 -i ../0002-pci-pme-wakeups.patch
-  patch -Np1 -i ../0003-intel_idle-tweak-cpuidle-cstates.patch
-  patch -Np1 -i ../0004-smpboot-reuse-timer-calibration.patch
-  patch -Np1 -i ../0005-perf.patch
+  patch -Np1 -i ../0002-clear-patches.patch
 
-  patch -Np1 -i ../0006-glitched-base.patch
-
-  # ipv4 bigger TCP buffer
-  patch -Np1 -i ../0011-ipv4-tcpbuffer.patch
+  patch -Np1 -i ../0003-glitched-base.patch
 
   if [ "${TkGExt}" == "-tkg-muqss" ]; then
     # MuQSS
-    patch -Np1 -i ../0007-patch-4.19-ck1
-    patch -Np1 -i ../0007-glitched-muqss.patch
+    patch -Np1 -i ../0004-patch-4.19-ck1
+    patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${TkGExt}" == "-tkg-pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0008-v4.19_pds099h.patch
-    patch -Np1 -i ../0008-glitched-pds.patch
+    patch -Np1 -i ../0005-v4.19_pds099h.patch
+    patch -Np1 -i ../0005-glitched-pds.patch
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
@@ -266,7 +252,7 @@ prepare() {
   plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
-    patch -Np1 -i ../0009-add-acs-overrides_iommu.patch
+    patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
 
   plain ""
@@ -283,7 +269,7 @@ prepare() {
   plain "https://bcachefs.org/"
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
-    patch -Np1 -i ../0010-bcachefs.patch
+    patch -Np1 -i ../0007-bcachefs.patch
   fi
 
   # userpatches
