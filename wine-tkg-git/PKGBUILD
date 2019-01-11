@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0rc5.r1.ga7ad40c1
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=108
+_truepkgrel=109
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -109,7 +109,7 @@ else
 
   if [[ $_LOCAL_OPTIMIZED == "true" ]]; then
     pkgname="${pkgname/%-git/-optimized-git}"
-    msg2 "Using native processor optimizations"
+    msg2 "Using predefined compiler optimizations. Optional flag, if used: -march=$_OPTIONAL_MARCHFLAG"
   else
     msg2 "Using makepkg.conf optimization flags"
   fi
@@ -439,12 +439,16 @@ prepare() {
 	echo "" >> "$_where"/last_build_config.log
 
 	# apply compiler choice and optimizations
+	if [ -n $_OPTIONAL_MARCHFLAG ]; then
+	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
+	fi
+
 	if [ $_COMPILEWITH == 'clang' ]; then
 	  export CC="clang"
 	  export CXX="clang++"
 	  echo "Using clang compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
+	    export COMMON_FLAGS="-std=gnu89 -g $_OPTIONAL_MARCHFLAG -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
 	elif [ $_COMPILEWITH == 'zapcc' ]; then
@@ -452,7 +456,7 @@ prepare() {
 	  export CXX="zapcc++"
 	  echo "Using zapcc compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g -march=native -pipe -O3"
+	    export COMMON_FLAGS="-std=gnu89 -g $_OPTIONAL_MARCHFLAG -pipe -O3"
 	    export LDFLAGS="-O3"
 	  fi
 	elif [ $_COMPILEWITH == 'gcc7' ]; then
@@ -460,13 +464,13 @@ prepare() {
 	  export CXX="g++-7"
 	  echo "Using gcc7 compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="-march=native -pipe -Os"
+	    export COMMON_FLAGS="$_OPTIONAL_MARCHFLAG -pipe -Os"
 	    export LDFLAGS="-Os"
 	  fi
 	else
 	  echo "Using gcc compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="-march=native -pipe -Os"
+	    export COMMON_FLAGS="$_OPTIONAL_MARCHFLAG -pipe -Os"
 	    export LDFLAGS="-Os"
 	  fi
 	fi
@@ -474,7 +478,7 @@ prepare() {
 	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	  export CFLAGS="${COMMON_FLAGS}"
 	  export CXXFLAGS="${COMMON_FLAGS}"
-	  echo "With predefined optimizations (including -march=native)" >> "$_where"/last_build_config.log
+	  echo "With predefined optimizations" >> "$_where"/last_build_config.log
 	else
 	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
 	fi
