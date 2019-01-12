@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0rc5.r2.g929bc28a
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=111
+_truepkgrel=112
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -239,7 +239,6 @@ optdepends=(
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
-		"esync${_esync_version}.tgz::https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
 		'f4skyrimse-fix.patch' # Fo4 & Skyrim SE Script Extender fix
@@ -391,7 +390,17 @@ prepare() {
 	fi
 
 	if [ $_use_esync == "true" ]; then
+	  if [ -z "$_esync_version" ]; then
+	    if git merge-base --is-ancestor 2600ecd4edfdb71097105c74312f83845305a4f2 HEAD; then # 3.20+
+	      _esync_version="ce79346"
+	    elif git merge-base --is-ancestor aec7befb5115d866724149bbc5576c7259fef820 HEAD; then # 3.19-3.17
+	      _esync_version="b4478b7"
+	    else
+	      _esync_version="5898a69" # 3.16 and lower
+	    fi
+	  fi
 	  echo "Using esync (${_esync_version}) patchset" >> "$_where"/last_build_config.log
+	  wget -O "$_where"/esync${_esync_version}.tgz https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz && tar zxf "$_where"/esync${_esync_version}.tgz -C "${srcdir}"
 	fi
 
 	if [ $_use_pba == "true" ]; then
@@ -920,7 +929,6 @@ package() {
 	fi
 }
 md5sums=('SKIP'
-         'SKIP'
          'SKIP'
          'SKIP'
          'a49bc2bb374d5ea5045ada5401cd91a3'
