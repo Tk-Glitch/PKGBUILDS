@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0rc5.r2.g929bc28a
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=110
+_truepkgrel=111
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -493,7 +493,7 @@ prepare() {
 	fi
 
 	# Use faudio for xaudio2 - https://github.com/aeikum/wine/commits/faudio-fixups
-	if [ $_use_faudio == "true" ] && [ $_use_staging == "true" ]; then
+	if [ $_use_faudio == "true" ] && [ $_use_staging == "true" ] && git merge-base --is-ancestor 47fbcece36cad190c4d18f7636df67d1382b7545 HEAD; then
 	  patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
 	  _faudio="-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges -W winepulse-PulseAudio_Support" # Disable xaudio2 & winepulse staging patchsets for faudio
 	  _withfaudio='--with-faudio'
@@ -528,12 +528,12 @@ prepare() {
 	fi
 
 	# The Sims 3 fix - reverts 6823abd521c0c12d20d9171fb5ae8b300009d082 to fix Sims 3 on older than 415.xx nvidia drivers - https://bugs.winehq.org/show_bug.cgi?id=45361
-	if [ $_sims3_fix == "true" ]; then
+	if [ $_sims3_fix == "true" ] && git merge-base --is-ancestor 6823abd521c0c12d20d9171fb5ae8b300009d082 HEAD; then
 	  patch -Np1 < ../'sims_3-oldnvidia.patch' && echo "Applied The Sims 3 Debian&co nvidia fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Star Citizen workaround for the freezing on splashscreen since 25acfbb40b5316a8c87989d4e61ce9edef2a04aa - https://bugs.winehq.org/show_bug.cgi?id=46099
-	if [ $_starcitizen_fix == "true" ]; then
+	if [ $_starcitizen_fix == "true" ] && git merge-base --is-ancestor 6060d2703c2e1382f076ad40ea43980781eaca2c HEAD; then
 	  patch -Np1 < ../'RtlWaitOnAddress-race.patch' && echo "Applied Star Citizen fix" >> "$_where"/last_build_config.log
 	  _starctizen="-W ntdll-futex-condition-var"
 	fi
@@ -694,24 +694,28 @@ prepare() {
 	  _withd3d9nine='--with-d3d9-nine'
 	fi
 
-        # GLSL toggle patch - Allows for use of ARB instead of GLSL
-        if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ] && [ $_use_gallium_nine == "false" ]; then
-          patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
-        fi
+	# GLSL toggle patch - Allows for use of ARB instead of GLSL
+	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ] && [ $_use_gallium_nine == "false" ]; then
+	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
+	fi
 
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
-	if [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ] && [ $_FS_bypass_compositor == "true" ]; then
-	  patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
-	elif [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ] && [ $_FS_bypass_compositor == "false" ]; then # Force-enable FS_bypass_compositor patch if disabled as it's a dependency Proton Fullscreen patch
-	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" >> "$_where"/last_build_config.log
-	  patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	if [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ] && git merge-base --is-ancestor 6f8d02b0f3099651928afd609dc4ed3fc84d7a65 HEAD; then
+	  if [ $_FS_bypass_compositor == "true" ]; then
+	    patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	  elif [ $_FS_bypass_compositor == "false" ]; then # Force-enable FS_bypass_compositor patch if disabled as it's a dependency Proton Fullscreen patch
+	    patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" >> "$_where"/last_build_config.log
+	    patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	  fi
 	fi
 
 	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
-	if [ $_large_address_aware == "true" ] && [ $_use_staging == "false" ]; then
-	  patch -Np1 < ../'large_address_aware.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
-	elif [ $_large_address_aware == "true" ] && [ $_use_staging == "true" ]; then
-	  patch -Np1 < ../'large_address_aware-staging.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	if [ $_large_address_aware == "true" ]  && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD; then
+	  if [ $_use_staging == "true" ]; then
+	    patch -Np1 < ../'large_address_aware-staging.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	  else
+	    patch -Np1 < ../'large_address_aware.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	  fi
 	fi
 
 	# wine user patches
