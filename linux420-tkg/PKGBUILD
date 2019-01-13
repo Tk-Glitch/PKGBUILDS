@@ -70,6 +70,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0006-add-acs-overrides_iommu.patch
         0007-exFAT-support.patch
         0008-bcachefs.patch
+        0009-hz-750.patch
+        0009-hz-750-pds.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '5b4fc9453182f74f28cda6e9c59a2b71f61ac862cbe30f67c8d225d72f1fdf10'
@@ -87,7 +89,9 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '923a5b1e0c99972421bc4d99cb73533932fe6d18ff99d6aa2e15927cb2700f0d'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
-            '5fcb76da8c0dbe1ecad3b1bcd9c8320394f546aae3c88385c245508e15f76aed')
+            '5fcb76da8c0dbe1ecad3b1bcd9c8320394f546aae3c88385c245508e15f76aed'
+            '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
+            '4dfddd4714d14e5a146e3cd042521e2fed60ff306d9cf4e729eb3d829156dad9')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -274,6 +278,12 @@ prepare() {
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0008-bcachefs.patch
+  fi
+
+  if [ "${TkGExt}" == "-tkg-pds" ]; then
+    patch -Np1 -i ../0009-hz-750-pds.patch
+  else
+    patch -Np1 -i ../0009-hz-750.patch
   fi
 
   # userpatches
