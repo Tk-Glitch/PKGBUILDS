@@ -69,6 +69,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0005-v4.19_pds099h.patch
         0006-add-acs-overrides_iommu.patch
         0007-bcachefs.patch
+        0008-hz-750.patch
+        0008-hz-750-pds.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '051507958d5ed9b2eac34abdc49f5fa1600646bf804076cda448aacb93019b98'
@@ -86,7 +88,9 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '4a13104da5191baff40b763de66368a496539ae5f79969004c0d67e5e9745e19'
             '151ca04701045a1a1c45da6ec067add84618c7b0e0cb9de6a5964b1acd674b89'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
-            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb')
+            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
+            '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
+            '4dfddd4714d14e5a146e3cd042521e2fed60ff306d9cf4e729eb3d829156dad9')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -270,6 +274,12 @@ prepare() {
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0007-bcachefs.patch
+  fi
+
+  if [ "${TkGExt}" == "-tkg-pds" ]; then
+    patch -Np1 -i ../0008-hz-750-pds.patch
+  else
+    patch -Np1 -i ../0008-hz-750.patch
   fi
 
   # userpatches
