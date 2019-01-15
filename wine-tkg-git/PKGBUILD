@@ -1,10 +1,10 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.0rc6.r0.gfe96596a
+pkgver=4.0rc6.r2.g50f0724f
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=112
+_truepkgrel=113
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -897,11 +897,10 @@ package() {
 	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
 	else
 	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
-	fi
-
-	# disable mime-types registering
-	if [[ $_MIME_NOPE == true ]]; then
-	  sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/usr/share/wine/wine.inf -i
+	    # disable mime-types registering
+	    if [[ $_MIME_NOPE == true ]] && [[ $_EXTERNAL_INSTALL == "false" ]]; then
+	      sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/usr/share/wine/wine.inf -i
+	    fi
 	fi
 
 	# dxvk
