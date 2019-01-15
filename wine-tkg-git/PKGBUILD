@@ -897,10 +897,10 @@ package() {
 	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
 	else
 	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
-	    # disable mime-types registering
-	    if [[ $_MIME_NOPE == true ]] && [[ $_EXTERNAL_INSTALL == "false" ]]; then
-	      sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/usr/share/wine/wine.inf -i
-	    fi
+	  # disable mime-types registering
+	  if [[ $_MIME_NOPE == true ]]; then
+	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/usr/share/wine/wine.inf -i
+	  fi
 	fi
 
 	# dxvk
