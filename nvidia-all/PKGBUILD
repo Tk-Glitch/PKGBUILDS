@@ -20,10 +20,10 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.415.22.05 (vulkan dev)\n  2.415.25 (short lived)\n  3.410.93 (long lived)\n  4.Custom version (396.45 to 415.xx series)\nchoice[1-4?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.415.22.05 (vulkan dev)\n  2.415.27 (short lived)\n  3.410.93 (long lived)\n  4.Custom version (396.45 to 415.xx series)\nchoice[1-4?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
-      echo '_driver_version=415.25' > options
-      echo '_md5sum=f93b6681de0eb52e3eb63c28fdf13170' >> options
+      echo '_driver_version=415.27' > options
+      echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "3" ]; then
       echo '_driver_version=410.93' > options
@@ -84,7 +84,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=27
+pkgrel=28
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
