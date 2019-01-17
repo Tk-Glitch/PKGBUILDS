@@ -36,9 +36,9 @@ _basever=419
 pkgbase=linux"${_basever}""${TkGExt}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=15
+_sub=16
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=31
+pkgrel=32
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -73,7 +73,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-hz-750-pds.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            '051507958d5ed9b2eac34abdc49f5fa1600646bf804076cda448aacb93019b98'
+            'e27c6d698226963b6ec06a31847b6b29ff892bfaa2d0d9f642c724d44dd4aecc'
             'SKIP'
             'ec617b1718e6cadfad02c75aca9c4b0e6b6f944bc1a93b7e4d82c847c04b5653'
             'abd43d0f90c65a3dffc593fa24a2a6cfb1835b5e978f73cf6712574878a8dc46'
