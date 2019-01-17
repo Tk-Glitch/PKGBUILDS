@@ -36,9 +36,9 @@ _basever=420
 pkgbase=linux"${_basever}""${TkGExt}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
-_sub=2
+_sub=3
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=10
+pkgrel=11
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -74,7 +74,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0009-hz-750-pds.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
-            '5b4fc9453182f74f28cda6e9c59a2b71f61ac862cbe30f67c8d225d72f1fdf10'
+            'b0ad35e03bb580923bcae60b7041e3e52f1cc42dfd702b1c843a32f8ef851a6c'
             '2da4d705fe5be8ac9b5af68c48ddb5b925f2f756cb84c4c66ad05279676503a1'
             '59be54227b1328d63e82f66e006c0ae394463bbe82e2bdf91e5fbc84f1f073b8'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
@@ -89,7 +89,7 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '923a5b1e0c99972421bc4d99cb73533932fe6d18ff99d6aa2e15927cb2700f0d'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
-            '5fcb76da8c0dbe1ecad3b1bcd9c8320394f546aae3c88385c245508e15f76aed'
+            '46581c1bc4026fcafde661f026935c252565747753175bc477d8bffabf410fdd'
             '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
             '4dfddd4714d14e5a146e3cd042521e2fed60ff306d9cf4e729eb3d829156dad9')
 
