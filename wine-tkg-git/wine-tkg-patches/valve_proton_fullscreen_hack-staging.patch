@@ -3756,3 +3756,101 @@ index a5bc50325c..bd27a1b0f1 100644
  };
  
  extern const struct vulkan_funcs * CDECL __wine_get_vulkan_driver(HDC hdc, UINT version);
+
+From 830bef40319cbd7bbdc225514a7b62da4eed4389 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 27 Aug 2018 09:25:02 -0500
+Subject: [PATCH] winex11: Revamp display resolution options
+
+---
+ dlls/winex11.drv/settings.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/dlls/winex11.drv/settings.c b/dlls/winex11.drv/settings.c
+index da029058df5..00a4fa558db 100644
+--- a/dlls/winex11.drv/settings.c
++++ b/dlls/winex11.drv/settings.c
+@@ -146,22 +146,29 @@ static struct fs_mode {
+     int w, h;
+ } fs_modes[] = {
+     {0, 0}, /* mode 0 is the real mode */
++
++    /* this table should provide a few resolution options for common display
++     * ratios, so users can choose to render at lower resolution for
++     * performance. */
+     { 640,  480}, /*  4:3 */
+     { 800,  600}, /*  4:3 */
+     {1024,  768}, /*  4:3 */
+-    {1152,  864}, /*  4:3 */
++    {1600, 1200}, /*  4:3 */
++    { 960,  540}, /* 16:9 */
+     {1280,  720}, /* 16:9 */
+-    {1280,  800}, /*  8:5 */
+-    {1280,  960}, /*  4:3 */
+-    {1280, 1024}, /*  5:4 */
+-    {1366,  768}, /* 16:9 */
+-    {1400, 1050}, /*  4:3 */
+-    {1440,  900}, /*  4:3 */
+     {1600,  900}, /* 16:9 */
+-    {1600, 1200}, /*  4:3 */
+-    {1680, 1050}, /*  8:5 */
+     {1920, 1080}, /* 16:9 */
++    {2560, 1440}, /* 16:9 */
++    {1440,  900}, /*  8:5 */
++    {1680, 1050}, /*  8:5 */
+     {1920, 1200}, /*  8:5 */
++    {2560, 1600}, /*  8:5 */
++    {1440,  960}, /*  3:2 */
++    {1920, 1280}, /*  3:2 */
++    {2560, 1080}, /* 21:9 ultra-wide */
++    {1920,  800}, /* 12:5 */
++    {3840, 1600}, /* 12:5 */
++    {1280, 1024}, /*  5:4 */
+ };
+ 
+ BOOL fs_hack_enabled(void)
+
+From 132b08339ead8415ad14cca208530c65665c049b Mon Sep 17 00:00:00 2001
+From: Zebediah Figura <zfigura@codeweavers.com>
+Date: Mon, 20 Aug 2018 16:59:33 -0500
+Subject: [PATCH] winex11.drv: fs hack, round scaled coordinates to nearest int
+
+Fixes cursor drift in Deus Ex: Game of the Year Edition.
+---
+ dlls/winex11.drv/settings.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/dlls/winex11.drv/settings.c b/dlls/winex11.drv/settings.c
+index 00a4fa558db..c5f58e6a417 100644
+--- a/dlls/winex11.drv/settings.c
++++ b/dlls/winex11.drv/settings.c
+@@ -22,6 +22,7 @@
+ #include <string.h>
+ #include <stdio.h>
+ #include <assert.h>
++#include <math.h>
+ 
+ #define NONAMELESSUNION
+ #define NONAMELESSSTRUCT
+@@ -194,8 +195,8 @@ void fs_hack_scale_user_to_real(POINT *pos)
+ {
+     if(fs_hack_enabled()){
+         TRACE("from %d,%d\n", pos->x, pos->y);
+-        pos->x *= fs_hack_user_to_real_w;
+-        pos->y *= fs_hack_user_to_real_h;
++        pos->x = lround(pos->x * fs_hack_user_to_real_w);
++        pos->y = lround(pos->y * fs_hack_user_to_real_h);
+         TRACE("to %d,%d\n", pos->x, pos->y);
+     }
+ }
+@@ -204,8 +205,8 @@ void fs_hack_scale_real_to_user(POINT *pos)
+ {
+     if(fs_hack_enabled()){
+         TRACE("from %d,%d\n", pos->x, pos->y);
+-        pos->x *= fs_hack_real_to_user_w;
+-        pos->y *= fs_hack_real_to_user_h;
++        pos->x = lround(pos->x * fs_hack_real_to_user_w);
++        pos->y = lround(pos->y * fs_hack_real_to_user_h);
+         TRACE("to %d,%d\n", pos->x, pos->y);
+     }
+ }
