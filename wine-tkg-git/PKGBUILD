@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.0rc6.r2.g50f0724f
+pkgver=4.0rc6.r8.gf04ae5b1
 
 # workaround for pkgrel overwritten on regen
 _truepkgrel=113
@@ -541,9 +541,9 @@ prepare() {
 	  patch -Np1 < ../'sims_3-oldnvidia.patch' && echo "Applied The Sims 3 Debian&co nvidia fix" >> "$_where"/last_build_config.log
 	fi
 
-	# Star Citizen workaround for the freezing on splashscreen since 25acfbb40b5316a8c87989d4e61ce9edef2a04aa - https://bugs.winehq.org/show_bug.cgi?id=46099
+	# Star Citizen performance fix - https://bugs.winehq.org/show_bug.cgi?id=46252
 	if [ $_starcitizen_fix == "true" ] && git merge-base --is-ancestor 6060d2703c2e1382f076ad40ea43980781eaca2c HEAD; then
-	  patch -Np1 < ../'RtlWaitOnAddress-race.patch' && echo "Applied Star Citizen fix" >> "$_where"/last_build_config.log
+	  patch -Np1 < ../'RtlWaitOnAddress-race.patch' && echo "Applied Star Citizen perf fix" >> "$_where"/last_build_config.log
 	  _starctizen="-W ntdll-futex-condition-var"
 	fi
 
