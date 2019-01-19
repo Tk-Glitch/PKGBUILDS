@@ -63,6 +63,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         # TkG
         0002-clear-patches.patch
         0003-glitched-base.patch
+        0003-glitched-cfs.patch
         0004-glitched-muqss.patch
         0004-patch-4.20-ck1
         0005-glitched-pds.patch
@@ -70,8 +71,6 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0006-add-acs-overrides_iommu.patch
         0007-exFAT-support.patch
         0008-bcachefs.patch
-        0009-hz-750.patch
-        0009-hz-750-pds.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             'b0ad35e03bb580923bcae60b7041e3e52f1cc42dfd702b1c843a32f8ef851a6c'
@@ -83,15 +82,14 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
             '379058b20425c967e93dba4df5484c5c17d30c323c0a76c9283c4f4dbb8cb227'
             'c3b4b31f28f5a0cc2f917643e617ff815d9fd1349d06146ac7fef044212a2050'
-            '231ab4ddc8d45ef6c238df1d8005fb00a90c4017fe514c361203b03c0478e586'
+            '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
+            '0be33ca350478637f2d8518d13be24cb170d6f5df8735f6c0c9156a30e55734e'
             'fcbc7ef3ab1bb17d941908db388b6493080369757835ddbb5ee0c8ade1f6d97a'
-            '4a13104da5191baff40b763de66368a496539ae5f79969004c0d67e5e9745e19'
+            'eb5f83558a720667b5bb2291f74dfb35c1711fd4f17b615fc23e1b2aed314057'
             'c0f53cde401d79843a181f068fe87239fe00d8534d8cdda35ffc8c9dfbc10d5b'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
-            '46581c1bc4026fcafde661f026935c252565747753175bc477d8bffabf410fdd'
-            '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
-            '4dfddd4714d14e5a146e3cd042521e2fed60ff306d9cf4e729eb3d829156dad9')
+            '46581c1bc4026fcafde661f026935c252565747753175bc477d8bffabf410fdd')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -190,9 +188,8 @@ prepare() {
     # PDS-mq
     patch -Np1 -i ../0005-v4.20_pds099l.patch
     patch -Np1 -i ../0005-glitched-pds.patch
-    patch -Np1 -i ../0009-hz-750-pds.patch
   else
-    patch -Np1 -i ../0009-hz-750.patch
+    patch -Np1 -i ../0003-glitched-cfs.patch
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
