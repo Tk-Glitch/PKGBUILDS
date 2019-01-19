@@ -38,7 +38,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=3
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=12
+pkgrel=13
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -190,6 +190,9 @@ prepare() {
     # PDS-mq
     patch -Np1 -i ../0005-v4.20_pds099l.patch
     patch -Np1 -i ../0005-glitched-pds.patch
+    patch -Np1 -i ../0009-hz-750-pds.patch
+  else
+    patch -Np1 -i ../0009-hz-750.patch
   fi
 
   cat "${srcdir}/config.x86_64" > ./.config
@@ -278,12 +281,6 @@ prepare() {
   read -p "`echo $'    > N/y : '`" CONDITION;
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0008-bcachefs.patch
-  fi
-
-  if [ "${TkGExt}" == "-tkg-pds" ]; then
-    patch -Np1 -i ../0009-hz-750-pds.patch
-  else
-    patch -Np1 -i ../0009-hz-750.patch
   fi
 
   # userpatches
