@@ -3757,6 +3757,43 @@ index a5bc50325c..bd27a1b0f1 100644
  
  extern const struct vulkan_funcs * CDECL __wine_get_vulkan_driver(HDC hdc, UINT version);
 
+From daefcfea47242111fbdbbc0c03d94dd28e39c222 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 24 Aug 2018 14:41:44 -0500
+Subject: [PATCH] HACK: winex11: Grab mouse in fullscreen windows by default
+
+---
+ dlls/winex11.drv/x11drv_main.c | 2 +-
+ programs/winecfg/x11drvdlg.c   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
+index 5fc10cadf7f..e612960c687 100644
+--- a/dlls/winex11.drv/x11drv_main.c
++++ b/dlls/winex11.drv/x11drv_main.c
+@@ -72,7 +72,7 @@ BOOL use_primary_selection = FALSE;
+ BOOL use_system_cursors = TRUE;
+ BOOL show_systray = TRUE;
+ BOOL grab_pointer = TRUE;
+-BOOL grab_fullscreen = FALSE;
++BOOL grab_fullscreen = TRUE;
+ BOOL managed_mode = TRUE;
+ BOOL decorated_mode = TRUE;
+ BOOL private_color_map = FALSE;
+diff --git a/programs/winecfg/x11drvdlg.c b/programs/winecfg/x11drvdlg.c
+index fbc6716e94e..1ca8c3ed0fd 100644
+--- a/programs/winecfg/x11drvdlg.c
++++ b/programs/winecfg/x11drvdlg.c
+@@ -123,7 +123,7 @@ static void init_dialog(HWND dialog)
+     SendDlgItemMessageW(dialog, IDC_DESKTOP_WIDTH, EM_LIMITTEXT, RES_MAXLEN, 0);
+     SendDlgItemMessageW(dialog, IDC_DESKTOP_HEIGHT, EM_LIMITTEXT, RES_MAXLEN, 0);
+ 
+-    buf = get_reg_key(config_key, keypath("X11 Driver"), "GrabFullscreen", "N");
++    buf = get_reg_key(config_key, keypath("X11 Driver"), "GrabFullscreen", "Y");
+     if (IS_OPTION_TRUE(*buf))
+ 	CheckDlgButton(dialog, IDC_FULLSCREEN_GRAB, BST_CHECKED);
+     else
+
 From 830bef40319cbd7bbdc225514a7b62da4eed4389 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Mon, 27 Aug 2018 09:25:02 -0500
@@ -3854,3 +3891,289 @@ index 00a4fa558db..c5f58e6a417 100644
          TRACE("to %d,%d\n", pos->x, pos->y);
      }
  }
+
+From 39075cb0aa308e287003d7522437bbf91de853f0 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 18 Sep 2018 08:11:59 -0500
+Subject: [PATCH] winex11: Don't set ABOVE on minimized fullscreened windows
+
+This is a workaround for mutter bug #306.
+---
+ dlls/winex11.drv/window.c      | 42 +++++++++++++++++++++++++++++++++-
+ dlls/winex11.drv/x11drv.h      |  2 ++
+ dlls/winex11.drv/x11drv_main.c |  2 ++
+ 3 files changed, 45 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 732a08ac781..62096073694 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -103,6 +103,41 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
+ static CRITICAL_SECTION win_data_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+ 
+ 
++/* enable workarounds for mutter bugs */
++static BOOL wm_is_mutter(Display *display)
++{
++    Window root = DefaultRootWindow(display), *wm_check;
++    Atom type;
++    int format;
++    unsigned long count, remaining;
++    static int cached = -1;
++    char *wm_name;
++
++    if(cached < 0){
++        if (XGetWindowProperty( display, root, x11drv_atom(_NET_SUPPORTING_WM_CHECK), 0,
++                                 sizeof(*wm_check)/sizeof(CARD32), False, x11drv_atom(WINDOW),
++                                 &type, &format, &count, &remaining, (unsigned char **)&wm_check ) == Success){
++            if (type == x11drv_atom(WINDOW) &&
++                    XGetWindowProperty( display, *wm_check, x11drv_atom(_NET_WM_NAME), 0,
++                        256/sizeof(CARD32), False, x11drv_atom(UTF8_STRING),
++                        &type, &format, &count, &remaining, (unsigned char **)&wm_name) == Success){
++                if(type == x11drv_atom(UTF8_STRING)){
++                    TRACE("Got WM name %s\n", wm_name);
++                    cached = (strcmp(wm_name, "GNOME Shell") == 0) ||
++                        (strcmp(wm_name, "Mutter") == 0);
++                }
++                XFree(wm_name);
++            }else
++                cached = 0;
++            XFree(wm_check);
++        }else
++            cached = 0;
++    }
++
++    return cached;
++}
++
++
+ /***********************************************************************
+  * http://standards.freedesktop.org/startup-notification-spec
+  */
+@@ -966,7 +1001,12 @@ void update_net_wm_states( struct x11drv_win_data *data )
+         new_state |= (1 << NET_WM_STATE_MAXIMIZED);
+ 
+     ex_style = GetWindowLongW( data->hwnd, GWL_EXSTYLE );
+-    if (ex_style & WS_EX_TOPMOST)
++    if ((ex_style & WS_EX_TOPMOST) &&
++            /* mutter < 3.31 has a bug where a FULLSCREEN and ABOVE window when
++             * minimized will incorrectly show a black window.  this workaround
++             * should be removed when the fix is widely distributed.  see
++             * mutter issue #306. */
++            !(wm_is_mutter(data->display) && (new_state & (1 << NET_WM_STATE_FULLSCREEN))))
+         new_state |= (1 << NET_WM_STATE_ABOVE);
+     if (ex_style & (WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE))
+         new_state |= (1 << NET_WM_STATE_SKIP_TASKBAR) | (1 << NET_WM_STATE_SKIP_PAGER);
+diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
+index 72061a589b0..a13541a1494 100644
+--- a/dlls/winex11.drv/x11drv.h
++++ b/dlls/winex11.drv/x11drv.h
+@@ -437,6 +437,7 @@ enum x11drv_atoms
+     XATOM__NET_STARTUP_INFO_BEGIN,
+     XATOM__NET_STARTUP_INFO,
+     XATOM__NET_SUPPORTED,
++    XATOM__NET_SUPPORTING_WM_CHECK,
+     XATOM__NET_SYSTEM_TRAY_OPCODE,
+     XATOM__NET_SYSTEM_TRAY_S0,
+     XATOM__NET_SYSTEM_TRAY_VISUAL,
+@@ -486,6 +487,7 @@ enum x11drv_atoms
+     XATOM_WCF_SYLK,
+     XATOM_WCF_TIFF,
+     XATOM_WCF_WAVE,
++    XATOM_WINDOW,
+     XATOM_image_bmp,
+     XATOM_image_gif,
+     XATOM_image_jpeg,
+diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
+index e612960c687..7a7ce335c7a 100644
+--- a/dlls/winex11.drv/x11drv_main.c
++++ b/dlls/winex11.drv/x11drv_main.c
+@@ -131,6 +131,7 @@ static const char * const atom_names[NB_XATOMS - FIRST_XATOM] =
+     "_NET_STARTUP_INFO_BEGIN",
+     "_NET_STARTUP_INFO",
+     "_NET_SUPPORTED",
++    "_NET_SUPPORTING_WM_CHECK",
+     "_NET_SYSTEM_TRAY_OPCODE",
+     "_NET_SYSTEM_TRAY_S0",
+     "_NET_SYSTEM_TRAY_VISUAL",
+@@ -180,6 +181,7 @@ static const char * const atom_names[NB_XATOMS - FIRST_XATOM] =
+     "WCF_SYLK",
+     "WCF_TIFF",
+     "WCF_WAVE",
++    "WINDOW",
+     "image/bmp",
+     "image/gif",
+     "image/jpeg",
+
+From eb87472b5262f3cc6ffe7b89232b0dc481cedd20 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 18 Sep 2018 11:08:08 -0500
+Subject: [PATCH] winex11: Detect erroneous FocusOut messages for longer
+
+But also be more strict about when we set take_focus_back. STALKER takes
+a long time (seen up to 250ms) to process the FocusOut message.
+---
+ dlls/winex11.drv/event.c  | 2 +-
+ dlls/winex11.drv/window.c | 6 ++++--
+ dlls/winex11.drv/x11drv.h | 3 +++
+ 3 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
+index a4815dd11a0..4b5e4afb92f 100644
+--- a/dlls/winex11.drv/event.c
++++ b/dlls/winex11.drv/event.c
+@@ -801,7 +801,7 @@ static void focus_out( Display *display , HWND hwnd )
+         ULONGLONG now = GetTickCount64();
+         if(data->take_focus_back > 0 &&
+                 now >= data->take_focus_back &&
+-                now - data->take_focus_back < 100){
++                now - data->take_focus_back < 1000){
+             data->take_focus_back = 0;
+             TRACE("workaround mutter bug, taking focus back\n");
+             XSetInputFocus( data->display, data->whole_window, RevertToParent, CurrentTime);
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 62096073694..4319e9accd4 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -45,7 +45,6 @@
+ #include "x11drv.h"
+ #include "wine/debug.h"
+ #include "wine/server.h"
+-#include "mwm.h"
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(x11drv);
+ 
+@@ -772,12 +771,15 @@ static void set_mwm_hints( struct x11drv_win_data *data, DWORD style, DWORD ex_s
+                      x11drv_atom(_MOTIF_WM_HINTS), 32, PropModeReplace,
+                      (unsigned char*)&mwm_hints, sizeof(mwm_hints)/sizeof(long) );
+ 
+-    if (GetFocus() == data->hwnd)
++    if (wm_is_mutter(data->display) && GetFocus() == data->hwnd &&
++            !!data->prev_hints.decorations != !!mwm_hints.decorations)
+     {
+         /* workaround for mutter gitlab bug #273 */
+         TRACE("workaround mutter bug, setting take_focus_back\n");
+         data->take_focus_back = GetTickCount64();
+     }
++
++    data->prev_hints = mwm_hints;
+ }
+ 
+ 
+diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
+index a13541a1494..a95b48bc3f1 100644
+--- a/dlls/winex11.drv/x11drv.h
++++ b/dlls/winex11.drv/x11drv.h
+@@ -59,6 +59,8 @@ typedef int Status;
+ #include "wine/gdi_driver.h"
+ #include "wine/list.h"
+ 
++#include "mwm.h"
++
+ #define MAX_DASHLEN 16
+ 
+ #define WINE_XDND_VERSION 5
+@@ -581,6 +583,7 @@ struct x11drv_win_data
+     Pixmap         icon_mask;
+     unsigned long *icon_bits;
+     unsigned int   icon_size;
++    MwmHints prev_hints;
+ };
+ 
+ extern struct x11drv_win_data *get_win_data( HWND hwnd ) DECLSPEC_HIDDEN;
+
+From 8c78517f1b99df183258a6390d35daf5c75aee56 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 18 Sep 2018 14:48:58 -0500
+Subject: [PATCH] winex11: Allow the application to change window size and
+ states during PropertyNotify
+
+On focus loss, fullscreened DDLC changes to a 1x1 pixel window and
+minimizes. On restore, it un-minimizes and changes back to fullscreen
+size. However, this restoring happens during the PropertyNotify handler,
+which means we didn't update size or the NET_WM_STATEs.
+---
+ dlls/winex11.drv/window.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 4319e9accd4..08b9d56d273 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -2540,7 +2540,7 @@ void CDECL X11DRV_WindowPosChanged( HWND hwnd, HWND insert_after, UINT swp_flags
+     }
+ 
+     /* don't change position if we are about to minimize or maximize a managed window */
+-    if (!event_type &&
++    if ((!event_type || event_type == PropertyNotify) &&
+         !(data->managed && (swp_flags & SWP_STATECHANGED) && (new_style & (WS_MINIMIZE|WS_MAXIMIZE))))
+         sync_window_position( data, swp_flags, &old_window_rect, &old_whole_rect, &old_client_rect );
+ 
+@@ -2573,7 +2573,7 @@ void CDECL X11DRV_WindowPosChanged( HWND hwnd, HWND insert_after, UINT swp_flags
+         else
+         {
+             if (swp_flags & (SWP_FRAMECHANGED|SWP_STATECHANGED)) set_wm_hints( data );
+-            if (!event_type) update_net_wm_states( data );
++            if (!event_type || event_type == PropertyNotify) update_net_wm_states( data );
+         }
+     }
+ 
+From 0fa33211362e5987ebf92fc1d2aebcaf23dff4a3 Mon Sep 17 00:00:00 2001
+From: Alexey Prokhin <alexey@prokhin.ru>
+Date: Wed, 17 Oct 2018 19:55:27 +0300
+Subject: [PATCH] winex11: ignore clip_reset when trying to clip the mouse
+ after the desktop has been resized
+
+This fixes the mouse clipping when the desktop is resized multiple times in a row.
+---
+ dlls/winex11.drv/mouse.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
+index 232dc431e23..c60c36163a4 100644
+--- a/dlls/winex11.drv/mouse.c
++++ b/dlls/winex11.drv/mouse.c
+@@ -551,8 +551,10 @@ BOOL clip_fullscreen_window( HWND hwnd, BOOL reset )
+     release_win_data( data );
+     if (!fullscreen) return FALSE;
+     if (!(thread_data = x11drv_thread_data())) return FALSE;
+-    if (GetTickCount() - thread_data->clip_reset < 1000) return FALSE;
+-    if (!reset && clipping_cursor && thread_data->clip_hwnd) return FALSE;  /* already clipping */
++    if (!reset) {
++        if (GetTickCount() - thread_data->clip_reset < 1000) return FALSE;
++        if (clipping_cursor && thread_data->clip_hwnd) return FALSE;  /* already clipping */
++    }
+     rect = get_primary_monitor_rect();
+     if (!grab_fullscreen)
+     {
+
+From 66a7462d98e1ee0cdfde8209f7241211057258a7 Mon Sep 17 00:00:00 2001
+From: Alexey Prokhin <alexey@prokhin.ru>
+Date: Sat, 20 Oct 2018 18:07:12 +0300
+Subject: [PATCH] winex11: enable fullscreen clipping even if not already
+ clipping
+
+---
+ dlls/winex11.drv/mouse.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
+index c60c36163a4..152b10102c1 100644
+--- a/dlls/winex11.drv/mouse.c
++++ b/dlls/winex11.drv/mouse.c
+@@ -1539,12 +1539,12 @@ BOOL CDECL X11DRV_ClipCursor( LPCRECT clip )
+             }
+             else if (grab_clipping_window( clip )) return TRUE;
+         }
+-        else /* if currently clipping, check if we should switch to fullscreen clipping */
++        else /* check if we should switch to fullscreen clipping */
+         {
+             struct x11drv_thread_data *data = x11drv_thread_data();
+-            if (data && data->clip_hwnd)
++            if (data)
+             {
+-                if (EqualRect( clip, &clip_rect ) || clip_fullscreen_window( foreground, TRUE ))
++                if ((data->clip_hwnd && EqualRect( clip, &clip_rect )) || clip_fullscreen_window( foreground, TRUE ))
+                     return TRUE;
+             }
+         }
