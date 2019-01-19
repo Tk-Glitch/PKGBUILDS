@@ -79,7 +79,7 @@ else
 
   if [[ $_use_esync == "true" ]]; then
     pkgname="${pkgname/%-git/-esync-git}"
-    msg2 "Using esync (${_esync_version}) patchset"
+    msg2 "Using esync patchset"
   fi
 
   if [[ $_use_pba == "true" ]]; then
