@@ -1108,10 +1108,10 @@ index f5516bae0c1b..fe1d4aeb6d69 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..5030a377d60e
+index 000000000000..00d8f0cdcf02
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6481 @@
+@@ -0,0 +1,6482 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1198,7 +1198,7 @@ index 000000000000..5030a377d60e
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99k by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99l by Alfred Chen.\n");
 +}
 +
 +/*
@@ -5347,6 +5347,7 @@ index 000000000000..5030a377d60e
 +	 * Keep a potential priority boosting if called from
 +	 * sched_setscheduler().
 +	 */
++	p->prio = normal_prio(p);
 +	if (keep_boost)
 +		p->prio = rt_effective_prio(p, p->prio);
 +	update_task_priodl(p);
