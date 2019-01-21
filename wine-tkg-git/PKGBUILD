@@ -764,7 +764,7 @@ prepare() {
 	if [ $_use_esync == "true" ]; then
 	  __zf=" Esync"
 	fi
-	if [ $_use_pba == "true" ]; then
+	if [ $_use_pba == "true" ] && [ "$_pba_version" != "none" ]; then
 	  __acomminos=" PBA"
 	fi
 	if [ $_use_gallium_nine == "true" ]; then
