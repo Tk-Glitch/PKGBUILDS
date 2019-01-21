@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0rc7.r0.g8de9c655
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=116
+_truepkgrel=117
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -1005,7 +1005,7 @@ md5sums=('SKIP'
          '65d47ea14d7c666d6308fc65a5ccd729'
          '3aafb27f35d4817942085d87904dcfc8'
          '927f39348cd29ce9876871e4edb15a09'
-         'd328bfd0d363434fe5f83f3a614849f7'
+         '400298b2122d160663be50a794ca2b0a'
          'c83562eee89d7984534029199e23bc5d'
          'd24081fda3a4c25914694a13a440bcff'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
