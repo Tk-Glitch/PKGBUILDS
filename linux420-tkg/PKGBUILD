@@ -91,6 +91,15 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
             '46581c1bc4026fcafde661f026935c252565747753175bc477d8bffabf410fdd')
 
+smart_read() {
+  if [ -z "$1" ]; then
+    read -p "$2" USR_INPUT;
+    export CONDITION="$USR_INPUT"
+  else
+    export CONDITION="$1"
+  fi
+}
+
 user_patcher() {
 	# To patch the user because all your base are belong to us
 	if [[ $(find "$where" -name "*.${_userpatch_ext}patch") ]]; then
@@ -217,7 +226,7 @@ prepare() {
 
   plain ""
   plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$DISABLE_TRACERS" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
   sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
       -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
@@ -228,7 +237,7 @@ prepare() {
   plain ""
   plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
   plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$DISABLE_NUMA" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
     # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
     sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
@@ -244,7 +253,7 @@ prepare() {
 
   plain ""
   plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$USE_EXPLICIT_PREEMPT" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
     sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
     sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
@@ -258,7 +267,7 @@ prepare() {
   plain ""
   plain "Use ACS override patch?"
   plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$USE_ACS" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
@@ -266,7 +275,7 @@ prepare() {
   plain ""
   plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
   plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$USE_UKSM" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     patch -Np1 -i ../uksm-${_basekernel}.patch
@@ -275,7 +284,7 @@ prepare() {
   plain ""
   plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
   plain "https://bcachefs.org/"
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$WITH_BCACHE" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
     patch -Np1 -i ../0008-bcachefs.patch
   fi
@@ -297,7 +306,7 @@ prepare() {
   plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
   plain "https://wiki.archlinux.org/index.php/Modprobed-db"
   plain "!!!! Make sure to have a well populated db !!!!"
-  read -p "`echo $'    > N/y : '`" CONDITION;
+  smart_read "$IS_MODPROBED" "`echo $'    > N/y : '`"
   if [ "$CONDITION" == "y" ]; then
     sudo modprobed-db recall
     make localmodconfig
@@ -470,9 +479,6 @@ hackheaders
 
 function exit_cleanup {
   # Remove the state/config tracker on failed/stopped compilation
-  rm -f "$where"/cpuschedset
-  rm -f "$srcdir"/cpuschedset
-
   if [ $_NUKR == "true" ]; then
     rm -rf "$where"/src/*
   else
