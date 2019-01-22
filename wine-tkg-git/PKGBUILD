@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0rc7.r0.g8de9c655
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=117
+_truepkgrel=118
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -92,7 +92,7 @@ else
     msg2 "Using gallium nine patchset"
   fi
 
-  if [[ $_use_vkd3d == "true" ]]; then
+  if [[ $_use_vkd3d == "true" ]] && [[ _dxvk_dxgi != "true" ]]; then
     pkgname="${pkgname/%-git/-vkd3d-git}"
     msg2 "Using VKD3D for d3d12 translation"
   fi
@@ -209,7 +209,7 @@ if [[ $_use_dxvk == true ]]; then
 fi
 
 # vkd3d deps
-if [[ $_use_vkd3d == true ]]; then
+if [[ $_use_vkd3d == true ]] && [[ _dxvk_dxgi != "true" ]]; then
   makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
 fi
 
@@ -437,13 +437,18 @@ prepare() {
 	  echo "Using gallium nine patchset" >> "$_where"/last_build_config.log
 	fi
 
-	if [ $_use_vkd3d == "true" ]; then
+	if [ $_use_vkd3d == "true" ] && [[ _dxvk_dxgi != "true" ]]; then
 	  _withvkd3d='--with-vkd3d'
 	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
+	elif [ $_use_vkd3d == "true" ] && [[ _dxvk_dxgi == "true" ]]; then
+	  echo "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !" >> "$_where"/last_build_config.log
 	fi
 
 	if [ $_use_dxvk == "true" ]; then
 	  echo "Using DXVK winelib for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
+	  if [ $_dxvk_dxgi == "true" ]; then
+	    echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
+	  fi
 	  if [ $_use_dxup == "true" ]; then
 	    echo "Using DXUP winelib for d3d9 translation" >> "$_where"/last_build_config.log
 	  fi
@@ -770,7 +775,7 @@ prepare() {
 	if [ $_use_gallium_nine == "true" ]; then
 	  __nine=" Nine"
 	fi
-	if [ $_use_vkd3d == "true" ]; then
+	if [ $_use_vkd3d == "true" ] && [[ _dxvk_dxgi != "true" ]]; then
 	  __vkd3d=" Vkd3d"
 	fi
 	if [ $_use_dxvk == "true" ]; then
@@ -885,6 +890,9 @@ build() {
 	# Build DXVK winelib
 	if [ $_use_dxvk == "true" ]; then
 	  cd "${srcdir}"/"${_dxvksrcdir}"
+	  if [ $_dxvk_dxgi == "true" ]; then
+	    touch plzdxgi
+	  fi
 	  mkdir build
 	  patch -Np1 < ../'dxvk-winelib.patch'
 	  ./package-release-wine.sh master build --no-package
@@ -1005,7 +1013,7 @@ md5sums=('SKIP'
          '65d47ea14d7c666d6308fc65a5ccd729'
          '3aafb27f35d4817942085d87904dcfc8'
          '927f39348cd29ce9876871e4edb15a09'
-         '400298b2122d160663be50a794ca2b0a'
+         'b2638b27a99b9f3a2f270a85a422d430'
          'c83562eee89d7984534029199e23bc5d'
          'd24081fda3a4c25914694a13a440bcff'
          '5ca4ee142eafe2c8873d59b2feb51a7d'

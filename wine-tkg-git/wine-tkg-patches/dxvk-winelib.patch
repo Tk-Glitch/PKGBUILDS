@@ -1,15 +1,15 @@
-From 71dccea89ea6fe5a786767adbe01cd27cbf45651 Mon Sep 17 00:00:00 2001
+From b745e18254d7d3d7273c5778d98b6fc4cd54017f Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
-Date: Thu, 23 Aug 2018 23:10:52 +0200
+Date: Tue, 22 Jan 2019 18:23:52 +0100
 Subject: winelib dxvk
 
 
 diff --git a/package-release-wine.sh b/package-release-wine.sh
 new file mode 100755
-index 0000000..40f2d53
+index 00000000..1e9ee8a6
 --- /dev/null
 +++ b/package-release-wine.sh
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,52 @@
 +#!/bin/bash
 +
 +if [ -z "$1" ] || [ -z "$2" ]; then
@@ -49,7 +49,11 @@ index 0000000..40f2d53
 +  cp "$DXVK_BUILD_DIR/install.$1/lib/d3d10_1.dll.so" "$DXVK_BUILD_DIR/x$1/d3d10_1.dll.so"
 +  cp "$DXVK_BUILD_DIR/install.$1/lib/d3d10core.dll.so" "$DXVK_BUILD_DIR/x$1/d3d10core.dll.so"
 +  cp "$DXVK_BUILD_DIR/install.$1/lib/d3d11.dll.so" "$DXVK_BUILD_DIR/x$1/d3d11.dll.so"
-+  #cp "$DXVK_BUILD_DIR/install.$1/lib/dxgi.dll.so" "$DXVK_BUILD_DIR/x$1/dxgi.dll.so"
++
++  # dxgi
++  if [ -e "$DXVK_SRC_DIR"/plzdxgi ]; then
++    cp "$DXVK_BUILD_DIR/install.$1/lib/dxgi.dll.so" "$DXVK_BUILD_DIR/x$1/dxgi.dll.so"
++  fi
 +
 +  rm -R "$DXVK_BUILD_DIR/wine.$1"
 +  rm -R "$DXVK_BUILD_DIR/build.$1"
