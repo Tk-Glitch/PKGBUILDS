@@ -36,9 +36,9 @@ _basever=420
 pkgbase=linux"${_basever}""${TkGExt}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
-_sub=3
+_sub=4
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=14
+pkgrel=15
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -73,7 +73,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-bcachefs.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
-            'b0ad35e03bb580923bcae60b7041e3e52f1cc42dfd702b1c843a32f8ef851a6c'
+            '24ee94fbbf9c356ace420e7eedfff4c9d3f2e8645011bc8947c22421dea5a8ba'
             '2da4d705fe5be8ac9b5af68c48ddb5b925f2f756cb84c4c66ad05279676503a1'
             '59be54227b1328d63e82f66e006c0ae394463bbe82e2bdf91e5fbc84f1f073b8'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
