@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.1.r165.ge13fb13
+pkgver=1.1.r192.g4c0692b
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
@@ -19,8 +19,9 @@ depends=(
     'spirv-tools' 'lib32-spirv-tools'
 )
 makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
-    'gcc>=4.5.0-2'          'schedtool'
+    'gcc>=4.5.0-2'     'schedtool'
     'spirv-headers-git'     'vulkan-headers'
+    'vulkan-icd-loader'     'lib32-vulkan-icd-loader'
 )
 
 source=("$_vkd3dsrcdir"::"git+https://source.winehq.org/git/vkd3d.git${_vkd3d_commit}"
