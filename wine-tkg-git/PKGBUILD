@@ -92,7 +92,7 @@ else
     msg2 "Using gallium nine patchset"
   fi
 
-  if [[ $_use_vkd3d == "true" ]] && [[ _dxvk_dxgi != "true" ]]; then
+  if [[ $_use_vkd3d == "true" ]] && [[ $_dxvk_dxgi != "true" ]]; then
     pkgname="${pkgname/%-git/-vkd3d-git}"
     msg2 "Using VKD3D for d3d12 translation"
   fi
@@ -209,7 +209,7 @@ if [[ $_use_dxvk == true ]]; then
 fi
 
 # vkd3d deps
-if [[ $_use_vkd3d == true ]] && [[ _dxvk_dxgi != "true" ]]; then
+if [[ $_use_vkd3d == true ]] && [[ $_dxvk_dxgi != "true" ]]; then
   makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
 fi
 
@@ -437,10 +437,10 @@ prepare() {
 	  echo "Using gallium nine patchset" >> "$_where"/last_build_config.log
 	fi
 
-	if [ $_use_vkd3d == "true" ] && [[ _dxvk_dxgi != "true" ]]; then
+	if [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi != "true" ]]; then
 	  _withvkd3d='--with-vkd3d'
 	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
-	elif [ $_use_vkd3d == "true" ] && [[ _dxvk_dxgi == "true" ]]; then
+	elif [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi == "true" ]]; then
 	  echo "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !" >> "$_where"/last_build_config.log
 	fi
 
@@ -775,7 +775,7 @@ prepare() {
 	if [ $_use_gallium_nine == "true" ]; then
 	  __nine=" Nine"
 	fi
-	if [ $_use_vkd3d == "true" ] && [[ _dxvk_dxgi != "true" ]]; then
+	if [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi != "true" ]]; then
 	  __vkd3d=" Vkd3d"
 	fi
 	if [ $_use_dxvk == "true" ]; then
