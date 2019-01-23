@@ -17,18 +17,25 @@ if [ -e "$_EXT_CONFIG_PATH" ]; then
 fi
 
 # CPU SCHED selector
-if [ -z "$_cpusched" ]; then
+if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
   read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    sed -i "s|_cpusched.*|_cpusched=\"muqss\"|g" "$_where"/customization.cfg
+    echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
-    sed -i "s|_cpusched.*|_cpusched=\"cfs\"|g" "$_where"/customization.cfg
+    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   else
-    sed -i "s|_cpusched.*|_cpusched=\"pds\"|g" "$_where"/customization.cfg
+    echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
-  source "$_where"/customization.cfg # load configuration from file again, to check for cpusched new value.
+elif [ "$_cpusched" == "muqss" ]; then
+  echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "cfs" ]; then
+  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "pds" ]; then
+  echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
 fi
+
+source "$_where"/cpuschedset
 
 _basever=420
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
@@ -36,7 +43,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=4
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=16
+pkgrel=17
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -180,7 +187,7 @@ prepare() {
 
   if [ "${_cpusched}" == "muqss" ]; then
     # MuQSS
-    patch -Np1 -i ../0004-patch-4.20-ck1
+    patch -Np1 -i ../0004-4.20-ck1.patch
     patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
@@ -553,8 +560,8 @@ hackheaders
 }
 
 function exit_cleanup {
-  # Remove temporarily set variable / state tracker
-  sed -i "s|_cpusched.*|_cpusched=\"\"|g" "$_where"/customization.cfg
+  # Remove state tracker
+  rm -f "$_where"/cpuschedset
   
   # Remove temporarily copied files
   rm -rf "$_where"/*.patch
