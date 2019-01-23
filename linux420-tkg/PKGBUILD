@@ -4,41 +4,39 @@
 
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
-where=$PWD # track basedir as different Arch based distros are moving srcdir around
+_where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
-# Set to anything else than "true" to limit cleanup operations and keep source and files generated during compilation.
-# Default is "true".
-_NUKR="true"
+cp "$_where"/linux420-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+cp "$_where"/linux420-tkg-config/* "$_where" # copy config files and hooks inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
 
-# Enable Device Tree and Open Firmware support?
-_OFenable="false"
+source "$_where"/customization.cfg # load default configuration from file
 
-# user patches
-_user_patches="true"
-_user_patches_no_confirm="false"
+# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+if [ -e "$_EXT_CONFIG_PATH" ]; then
+  source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
+fi
 
 # CPU SCHED selector
-if [ ! -e "$where"/cpuschedset ]; then
+if [ -z "$_cpusched" ]; then
   plain "What CPU sched variant do you want to build/install?"
   read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "TkGExt=\"-tkg-muqss\"" > "$where"/cpuschedset
+    sed -i "s|_cpusched.*|_cpusched=\"muqss\"|g" "$_where"/customization.cfg
   elif [ "$CONDITION" == "3" ]; then
-    echo "TkGExt=\"-tkg-cfs\"" > "$where"/cpuschedset
+    sed -i "s|_cpusched.*|_cpusched=\"cfs\"|g" "$_where"/customization.cfg
   else
-    echo "TkGExt=\"-tkg-pds\"" > "$where"/cpuschedset
+    sed -i "s|_cpusched.*|_cpusched=\"pds\"|g" "$_where"/customization.cfg
   fi
+  source "$_where"/customization.cfg # load configuration from file again, to check for cpusched new value.
 fi
 
-source "$where"/cpuschedset
-
 _basever=420
-pkgbase=linux"${_basever}""${TkGExt}"
+pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=4
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=15
+pkgrel=16
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -65,7 +63,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0003-glitched-base.patch
         0003-glitched-cfs.patch
         0004-glitched-muqss.patch
-        0004-patch-4.20-ck1
+        0004-4.20-ck1.patch
         0005-glitched-pds.patch
         0005-v4.20_pds099l.patch
         0006-add-acs-overrides_iommu.patch
@@ -75,7 +73,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '24ee94fbbf9c356ace420e7eedfff4c9d3f2e8645011bc8947c22421dea5a8ba'
             '2da4d705fe5be8ac9b5af68c48ddb5b925f2f756cb84c4c66ad05279676503a1'
-            '59be54227b1328d63e82f66e006c0ae394463bbe82e2bdf91e5fbc84f1f073b8'
+            '6a2d635916c62ad070bf27de6ba52d5cac8f6f848b181f61f716a0b688e308c1'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -93,12 +91,12 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
-	if [[ $(find "$where" -name "*.${_userpatch_ext}patch") ]]; then
+	if [[ $(find "$_where" -name "*.${_userpatch_ext}patch") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	  read -p "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
-	    for _f in "$where"/*.${_userpatch_ext}patch; do
+	    for _f in "$_where"/*.${_userpatch_ext}patch; do
 	    if [ -e "${_f}" ]; then
 	      msg2 "######################################################"
 	      msg2 ""
@@ -106,17 +104,17 @@ user_patcher() {
 	      msg2 ""
 	      msg2 "######################################################"
 	      patch -Np1 < "${_f}"
-	      echo "Applied your own patch ${_f}" >> "$where"/last_build_config.log
+	      echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
 	    fi
 	    done
 	  fi
 	fi
-	if [[ $(find "$where" -name "*.${_userpatch_ext}revert") ]]; then
+	if [[ $(find "$_where" -name "*.${_userpatch_ext}revert") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	  read -p "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
-	    for _f in "$where"/*.${_userpatch_ext}revert; do
+	    for _f in "$_where"/*.${_userpatch_ext}revert; do
 	    if [ -e "${_f}" ]; then
 	      msg2 "######################################################"
 	      msg2 ""
@@ -124,7 +122,7 @@ user_patcher() {
 	      msg2 ""
 	      msg2 "######################################################"
 	      patch -Np1 -R < "${_f}"
-	      echo "Reverted your own patch ${_f}" >> "$where"/last_build_config.log
+	      echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
 	    fi
 	    done
 	  fi
@@ -134,7 +132,7 @@ user_patcher() {
 prepare() {
   rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
 
-  ln -s "${where}/cpuschedset" "${srcdir}" # workaround for non-pure Arch
+  ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
   # AUFS
   #cd "${srcdir}/aufs"
@@ -180,11 +178,11 @@ prepare() {
   # exFAT
   patch -Np1 -i ../0007-exFAT-support.patch
 
-  if [ "${TkGExt}" == "-tkg-muqss" ]; then
+  if [ "${_cpusched}" == "muqss" ]; then
     # MuQSS
     patch -Np1 -i ../0004-patch-4.20-ck1
     patch -Np1 -i ../0004-glitched-muqss.patch
-  elif [ "${TkGExt}" == "-tkg-pds" ]; then
+  elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
     patch -Np1 -i ../0005-v4.20_pds099l.patch
     patch -Np1 -i ../0005-glitched-pds.patch
@@ -195,18 +193,18 @@ prepare() {
   cat "${srcdir}/config.x86_64" > ./.config
 
   # LOCALVERSION
-  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${TkGExt}\"|g" ./.config
+  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-tkg-${_cpusched}\"|g" ./.config
   sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
 
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
-  if [ "${TkGExt}" == "-tkg-muqss" ]; then
+  if [ "${_cpusched}" == "muqss" ]; then
     # MuQSS default config
-    sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_MUQSS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
-  elif [ "${TkGExt}" == "-tkg-pds" ]; then
+    echo "CONFIG_SCHED_MUQSS=y" >> ./.config
+  elif [ "${_cpusched}" == "pds" ]; then
     # PDS default config
-    sed -i -e 's/CONFIG_INIT_ENV_ARG_LIMIT=32/CONFIG_SCHED_PDS=y\nCONFIG_INIT_ENV_ARG_LIMIT=32/' ./.config
+    echo "CONFIG_SCHED_PDS=y" >> ./.config
   else
     # CFS default config
     sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
@@ -215,21 +213,87 @@ prepare() {
     sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
   fi
 
-  plain ""
-  plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # zenify
+  if [ "$_zenify" == "true" ]; then
+    echo "CONFIG_ZENIFY=y" >> ./.config
+  elif [ "$_zenify" == "false" ]; then
+    echo "# CONFIG_ZENIFY is not set" >> ./.config
+  fi
+
+  # cpu opt
+  if [ "$_processor_opt" == "generic" ]; then
+    echo "# CONFIG_CONFIG_MNATIVE is not set" >> ./.config
+  elif [ "$_processor_opt" == "native" ]; then
+    sed -i -e 's/CONFIG_GENERIC_CPU=y/# CONFIG_GENERIC_CPU is not set/' ./.config
+    echo "CONFIG_MNATIVE=y" >> ./.config
+  fi
+
+  # irq threading
+  if [ "$_irq_threading" == "true" ]; then
+    echo "CONFIG_FORCE_IRQ_THREADING=y" >> ./.config
+  elif [ "$_irq_threading" == "false" ]; then
+    echo "# CONFIG_FORCE_IRQ_THREADING is not set" >> ./.config
+  fi
+
+  # smt nice
+  if [ "$_smt_nice" == "true" ]; then
+    echo "CONFIG_SMT_NICE=y" >> ./.config
+  elif [ "$_smt_nice" == "false" ]; then
+    echo "# CONFIG_SMT_NICE is not set" >> ./.config
+  fi
+
+  # random trust cpu
+  if [ "$_random_trust_cpu" == "true" ]; then
+    echo "CONFIG_RANDOM_TRUST_CPU=y" >> ./.config
+  elif [ "$_random_trust_cpu" == "false" ]; then
+    echo "# CONFIG_RANDOM_TRUST_CPU is not set" >> ./.config
+  fi
+
+  # rq sharing
+  if [ "$_runqueue_sharing" == "none" ]; then
+    echo "CONFIG_RQ_NONE=y\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "smt" ]; then
+    echo "# CONFIG_RQ_NONE is not set\nCONFIG_RQ_SMT=y\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "mc" ]; then
+    echo "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\nCONFIG_RQ_MC=y\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "smp" ]; then
+    echo "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\nCONFIG_RQ_SMP=y\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "all" ]; then
+    echo "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\nCONFIG_RQ_ALL=y" >> ./.config
+  fi
+
+  # timer freq
+  if [ "$_timer_freq" == "1000" ]; then
+    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
+    echo "CONFIG_HZ_1000=y" >> ./.config
+    echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
+  elif [ "$_timer_freq" == "750" ]; then
+    echo "# CONFIG_HZ_1000 is not set" >> ./.config
+    echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+  fi
+
+  # ftrace
+  if [ -z "$_ftracedisable" ]; then
+    plain ""
+    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
+    read -p "`echo $'    > N/y : '`" CONDITION1;
+  fi
+  if [ "$CONDITION1" == "y" ] || [ "$_ftracedisable" == "true" ]; then
   sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
       -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
       -i -e '/CONFIG_DYNAMIC_FTRACE=y/d' \
       -i -e '/CONFIG_DYNAMIC_FTRACE_WITH_REGS=y/d' ./.config
   fi
 
-  plain ""
-  plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
-  plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # disable numa
+  if [ -z "$_numadisable" ]; then
+    plain ""
+    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
+    plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
+    read -p "`echo $'    > N/y : '`" CONDITION2;
+  fi
+  if [ "$CONDITION2" == "y" ] || [ "$_numadisable" == "true" ]; then
     # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
     sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
         -i -e '/CONFIG_AMD_NUMA=y/d' \
@@ -242,46 +306,63 @@ prepare() {
         -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
   fi
 
-  plain ""
-  plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # voluntary preempt
+  if [ -z "$_voluntary_preempt" ]; then
+    plain ""
+    plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
+    read -p "`echo $'    > N/y : '`" CONDITION3;
+  fi
+  if [ "$CONDITION3" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
     sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
     sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
   fi
 
   # Open Firmware support
-  if [ "$_OFenable" == "true" ]; then
+  if [ -z "$_OFenable" ]; then
+    plain ""
+    plain "Enable Device Tree and Open Firmware support?"
+    read -p "`echo $'    > N/y : '`" CONDITION4;
+  fi
+  if [ "$CONDITION4" == "y" ] || [ "$_OFenable" == "true" ]; then
     sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
   fi
 
-  plain ""
-  plain "Use ACS override patch?"
-  plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # acs override
+  if [ -z "$_acs_override" ]; then
+    plain ""
+    plain "Use ACS override patch?"
+    plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
+    read -p "`echo $'    > N/y : '`" CONDITION5;
+  fi
+  if [ "$CONDITION5" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
 
-  plain ""
-  plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
-  plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # ksm/uksm
+  if [ -z "$_ksm_uksm" ]; then
+    plain ""
+    plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
+    plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
+    read -p "`echo $'    > N/y : '`" CONDITION6;
+  fi
+  if [ "$CONDITION6" == "y" ] || [ "$_ksm_uksm" == "true" ]; then
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     patch -Np1 -i ../uksm-${_basekernel}.patch
   fi
 
-  plain ""
-  plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
-  plain "https://bcachefs.org/"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # bcachefs
+  if [ -z "$_bcachefs" ]; then
+    plain ""
+    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
+    plain "https://bcachefs.org/"
+    read -p "`echo $'    > N/y : '`" CONDITION7;
+  fi
+  if [ "$CONDITION7" == "y" ] || [ "$_bcachefs" == "true" ]; then
     patch -Np1 -i ../0008-bcachefs.patch
   fi
 
   # userpatches
-  if [ $_user_patches == "true" ]; then
+  if [ "$_user_patches" == "true" ]; then
     _userpatch_target="linux-${_basekernel}"
     _userpatch_ext="my"
     user_patcher
@@ -293,12 +374,15 @@ prepare() {
   # get kernel version
   make prepare
 
-  plain ""
-  plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
-  plain "https://wiki.archlinux.org/index.php/Modprobed-db"
-  plain "!!!! Make sure to have a well populated db !!!!"
-  read -p "`echo $'    > N/y : '`" CONDITION;
-  if [ "$CONDITION" == "y" ]; then
+  # modprobed-db
+  if [ -z "$_modprobeddb" ]; then
+    plain ""
+    plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
+    plain "https://wiki.archlinux.org/index.php/Modprobed-db"
+    plain "!!!! Make sure to have a well populated db !!!!"
+    read -p "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
@@ -337,7 +421,7 @@ hackbase() {
   cp arch/x86/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgbase}"
 
   # make room for external modules
-  local _extramodules="extramodules-${_basekernel}${TkGExt}"
+  local _extramodules="extramodules-${_basekernel}-tkg-${_cpusched}"
   ln -s "../${_extramodules}" "${pkgdir}/usr/lib/modules/${_kernver}/extramodules"
 
   # add real version for building modules and running depmod from hook
@@ -469,12 +553,18 @@ hackheaders
 }
 
 function exit_cleanup {
-  # Remove the state/config tracker on failed/stopped compilation
-  rm -f "$where"/cpuschedset
-  rm -f "$srcdir"/cpuschedset
+  # Remove temporarily set variable / state tracker
+  sed -i "s|_cpusched.*|_cpusched=\"\"|g" "$_where"/customization.cfg
+  
+  # Remove temporarily copied files
+  rm -rf "$_where"/*.patch
+  rm -rf "$_where"/*.hook
+  rm -rf "$_where"/*.install
+  rm -rf "$_where"/*.preset
+  rm -rf "$_where"/config.x86_64
 
   if [ $_NUKR == "true" ]; then
-    rm -rf "$where"/src/*
+    rm -rf "$_where"/src/*
   else
     # Meh
     rm -rf "$srcdir"/linux-${_basekernel}/Documentation/filesystems/aufs/*
