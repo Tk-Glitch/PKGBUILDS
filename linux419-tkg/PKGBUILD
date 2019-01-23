@@ -34,9 +34,9 @@ _basever=419
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=16
+_sub=17
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=34
+pkgrel=35
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -50,7 +50,7 @@ else
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
-        "aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
+        #"aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
         "https://raw.githubusercontent.com/dolohow/uksm/master/uksm-${_basekernel}.patch"
         'config.x86_64' # config
         'linux419-tkg.preset' # standard config files for mkinitcpio ramdisk
@@ -70,8 +70,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-bcachefs.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            'e27c6d698226963b6ec06a31847b6b29ff892bfaa2d0d9f642c724d44dd4aecc'
-            'SKIP'
+            '977435b6248b78b7b02f71e986cecf075b1d3a7abe986370803fe7ffb1d48dc3'
             'ec617b1718e6cadfad02c75aca9c4b0e6b6f944bc1a93b7e4d82c847c04b5653'
             'e2bf18ee114a1875f5180f90d4f4d4c9980dce6d2bc328e24c0f1fb0d562fdcb'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
@@ -134,22 +133,22 @@ prepare() {
   ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
   # AUFS
-  cd "${srcdir}/aufs"
-  rm -v -f $(find . -type f -name '*.orig')
-  rm -rf "../tmp/linux-${_basekernel}"
-  mkdir -p "../tmp/linux-${_basekernel}"
-  cp -a fs "../tmp/linux-${_basekernel}"
-  cp -a include "../tmp/linux-${_basekernel}"
-  cp -a Documentation "../tmp/linux-${_basekernel}"
-  rm "../tmp/linux-${_basekernel}/include/uapi/linux/Kbuild"
-  cd "../tmp"
-  diff -Naur null linux-${_basekernel}  | filterdiff | \
-  sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-'"${_basekernel}"'-old\1|;s|^--- null.*|--- /dev/null|;\|linux-'"${_basekernel}"'/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs${_basekernel}.patch
-  mv *patch* "${srcdir}"
-  cd "${srcdir}/aufs"
-  mv *patch* "${srcdir}"
-  cd "${srcdir}"
-  rm -rf tmp aufs
+  #cd "${srcdir}/aufs"
+  #rm -v -f $(find . -type f -name '*.orig')
+  #rm -rf "../tmp/linux-${_basekernel}"
+  #mkdir -p "../tmp/linux-${_basekernel}"
+  #cp -a fs "../tmp/linux-${_basekernel}"
+  #cp -a include "../tmp/linux-${_basekernel}"
+  #cp -a Documentation "../tmp/linux-${_basekernel}"
+  #rm "../tmp/linux-${_basekernel}/include/uapi/linux/Kbuild"
+  #cd "../tmp"
+  #diff -Naur null linux-${_basekernel}  | filterdiff | \
+  #sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-'"${_basekernel}"'-old\1|;s|^--- null.*|--- /dev/null|;\|linux-'"${_basekernel}"'/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs${_basekernel}.patch
+  #mv *patch* "${srcdir}"
+  #cd "${srcdir}/aufs"
+  #mv *patch* "${srcdir}"
+  #cd "${srcdir}"
+  #rm -rf tmp aufs
 
   cd "${srcdir}/linux-${_basekernel}"
 
@@ -160,14 +159,14 @@ prepare() {
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
 
   # AUFS Patches
-  patch -Np1 -i ../aufs"${_basekernel}".patch
-  patch -Np1 -i ../aufs4-base.patch
-  patch -Np1 -i ../aufs4-kbuild.patch
-  patch -Np1 -i ../aufs4-loopback.patch
-  patch -Np1 -i ../aufs4-mmap.patch
-  patch -Np1 -i ../aufs4-standalone.patch
-  patch -Np1 -i ../tmpfs-idr.patch
-  patch -Np1 -i ../vfs-ino.patch
+  #patch -Np1 -i ../aufs"${_basekernel}".patch
+  #patch -Np1 -i ../aufs4-base.patch
+  #patch -Np1 -i ../aufs4-kbuild.patch
+  #patch -Np1 -i ../aufs4-loopback.patch
+  #patch -Np1 -i ../aufs4-mmap.patch
+  #patch -Np1 -i ../aufs4-standalone.patch
+  #patch -Np1 -i ../tmpfs-idr.patch
+  #patch -Np1 -i ../vfs-ino.patch
 
   # TkG
   patch -Np1 -i ../0002-clear-patches.patch
