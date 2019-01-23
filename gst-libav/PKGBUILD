@@ -211,5 +211,13 @@ package_lib32-gst-libav-tkg-git() {
 pack32
 }
 
-# Remove the state tracker
-trap "{ rm -f $where/options; }" EXIT
+function exit_cleanup {
+  # Remove the state tracker
+  rm -f $where/options
+
+  remove_deps
+
+  msg2 'exit cleanup done'
+}
+
+trap exit_cleanup EXIT

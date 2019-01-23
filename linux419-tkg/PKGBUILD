@@ -604,6 +604,8 @@ function exit_cleanup {
     rm -f "$srcdir"/linux-${_basekernel}/mm/uksm.c
   fi
 
+  remove_deps
+
   msg2 'exit cleanup done'
 }
 

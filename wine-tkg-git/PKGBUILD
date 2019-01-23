@@ -1038,6 +1038,8 @@ fi
   # Remove temporarily copied patches
   rm -rf "$_where"/*.patch
   rm -rf "$_where"/*.conf
+
+  remove_deps
 }
 
 trap exit_cleanup EXIT

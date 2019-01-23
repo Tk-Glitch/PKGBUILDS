@@ -580,6 +580,9 @@ function exit_cleanup {
   # Sanitization
   rm -f "${where}"/options
   rm -rf "${where}"/src/*
+
+  remove_deps
+
   msg2 'exit cleanup done'
 }
 
