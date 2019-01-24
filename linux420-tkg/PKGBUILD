@@ -58,7 +58,7 @@ fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
         #"aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
-        "https://raw.githubusercontent.com/dolohow/uksm/master/uksm-${_basekernel}.patch"
+        "https://raw.githubusercontent.com/dolohow/uksm/master/v4.x/uksm-${_basekernel}.patch"
         'config.x86_64' # config
         'linux420-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
