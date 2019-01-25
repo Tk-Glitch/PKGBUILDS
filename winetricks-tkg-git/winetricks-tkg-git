@@ -5316,7 +5316,7 @@ winetricks_init()
     # wine-2.0 (Debian 2.0-1)
     # wine-2.0-rc1
     # wine-2.8
-    _wine_version_stripped="$(echo "$WINETRICKS_WINE_VERSION" | cut -d ' ' -f1 | sed -e 's/wine-//' -e 's/-rc.*//')"
+    _wine_version_stripped="$(echo "$WINETRICKS_WINE_VERSION" | cut -d ' ' -f1 | sed -e 's/wine-//' -e 's/-rc.*//' -e 's/tkg-//')"
 
     # If WINE is < 3.0, warn user:
     # 3.0 doesn't do what I thought it would
@@ -7149,6 +7149,25 @@ load_dxvk94()
 {
     # https://github.com/doitsujin/dxvk
     w_download "https://github.com/doitsujin/dxvk/releases/download/v0.94/dxvk-0.94.tar.gz" 1f06bfac5b435b62b972806fb3bbd86f7ccae2399b4451e85ae414e03d3712a3
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
+w_metadata dxvk95 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.95)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.95.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk95()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.95/dxvk-0.95.tar.gz" 1eea48149f6e94c3c74ecddd92df4f9daa67ab28d0fca548bde5cd40f0e486bf
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 

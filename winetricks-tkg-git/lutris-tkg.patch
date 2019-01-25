@@ -1,0 +1,19 @@
+From 9880415a9fbd3926c2b2f2da7506dd9e07e7ffad Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Fri, 25 Jan 2019 02:54:09 +0100
+Subject: Fix version check on lutris "tkg" builds
+
+
+diff --git a/src/winetricks b/src/winetricks
+index aad6034..5035bbb 100755
+--- a/src/winetricks
++++ b/src/winetricks
+@@ -5315,7 +5315,7 @@ winetricks_init()
+     # wine-2.0 (Debian 2.0-1)
+     # wine-2.0-rc1
+     # wine-2.8
+-    _wine_version_stripped="$(echo "$WINETRICKS_WINE_VERSION" | cut -d ' ' -f1 | sed -e 's/wine-//' -e 's/-rc.*//')"
++    _wine_version_stripped="$(echo "$WINETRICKS_WINE_VERSION" | cut -d ' ' -f1 | sed -e 's/wine-//' -e 's/-rc.*//' -e 's/tkg-//')"
+ 
+     # If WINE is < 3.0, warn user:
+     # 3.0 doesn't do what I thought it would
