@@ -1,10 +1,10 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.0.r0.g6cfd7b70
+pkgver=4.0.r1.gb39ac469
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=118
+_truepkgrel=119
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -256,6 +256,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'sims_2-fix.patch' # Sims 2 fix
 		'sims_3-oldnvidia.patch' # No.
 		'RtlWaitOnAddress-race.patch' # Better fix for star citizen
+		'mwo.patch' # Mechwarrior Online fix
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -575,6 +576,11 @@ prepare() {
 	if [ $_starcitizen_fix == "true" ] && git merge-base --is-ancestor 6060d2703c2e1382f076ad40ea43980781eaca2c HEAD; then
 	  patch -Np1 < ../'RtlWaitOnAddress-race.patch' && echo "Applied Star Citizen perf fix" >> "$_where"/last_build_config.log
 	  _staging_args+=(-W ntdll-futex-condition-var)
+	fi
+
+	# Mechwarrior Online fix - https://mwomercs.com/forums/topic/268847-running-the-game-on-ubuntu-steam-play/page__st__20__p__6195387#entry6195387
+	if [ $_mwo_fix == "true" ]; then
+	  patch -Np1 < ../'mwo.patch' && echo "Applied Mechwarrior Online fix" >> "$_where"/last_build_config.log
 	fi
 
 	# steam crossover hack for store/web functionality
@@ -993,6 +999,7 @@ md5sums=('SKIP'
          '6e301f262f004b930ffc3000839d837b'
          '342a6e02f73c06120ce01cc887489d9c'
          '78cc875f33c8aeefb000f5063323768b'
+         'd34ec9e86cbbf48b485a8c6f99d24921'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
