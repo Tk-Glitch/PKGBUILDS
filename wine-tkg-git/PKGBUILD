@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.0.r1.gb39ac469
+pkgver=4.0.r7.g3b56f9cc
 
 # workaround for pkgrel overwritten on regen
 _truepkgrel=119
@@ -283,7 +283,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'plasma_systray_fix.patch' # Systray fix for winex11
 		'dxvk-winelib.patch' # Enables DXVK winelib building
 		'dxup-winelib.patch' # Enables DXUP winelib building
-		'dxup-d3d9header-fix.patch' # This is currently required to fix DXUP building
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
@@ -513,9 +512,6 @@ prepare() {
 	# https://bugs.winehq.org/show_bug.cgi?id=43530
 	export CFLAGS="${CFLAGS/-fno-plt/}"
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
-
-	# Fix d3d9 headers to be able to build dxup
-	patch -Np1 < ../'dxup-d3d9header-fix.patch' && echo "Applied d3d9 header fix for DXUP building" >> "$_where"/last_build_config.log
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ $_clock_monotonic == "true" ]; then
@@ -1023,7 +1019,6 @@ md5sums=('SKIP'
          '927f39348cd29ce9876871e4edb15a09'
          'b2638b27a99b9f3a2f270a85a422d430'
          'c83562eee89d7984534029199e23bc5d'
-         'd24081fda3a4c25914694a13a440bcff'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          'a8e817cc9709b30a5a16f09d68a85bbe'
          'e3b4499ed1b54960a979f6856e8f6e5d'
