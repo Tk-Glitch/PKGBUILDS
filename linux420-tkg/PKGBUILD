@@ -228,11 +228,66 @@ prepare() {
   fi
 
   # cpu opt
-  if [ "$_processor_opt" == "generic" ]; then
-    echo "# CONFIG_CONFIG_MNATIVE is not set" >> ./.config
-  elif [ "$_processor_opt" == "native" ]; then
+  if [ "$_processor_opt" != "native" ]; then
+    echo "# CONFIG_MNATIVE is not set" >> ./.config
+  fi
+
+  if [ -n "$_processor_opt" ] && [ "$_processor_opt" != "generic" ]; then
     sed -i -e 's/CONFIG_GENERIC_CPU=y/# CONFIG_GENERIC_CPU is not set/' ./.config
+  fi
+
+  if [ "$_processor_opt" == "native" ]; then
     echo "CONFIG_MNATIVE=y" >> ./.config
+  elif [ "$_processor_opt" == "k8" ]; then
+    sed -i -e 's/# CONFIG_MK8 is not set/CONFIG_MK8=y/' ./.config
+  elif [ "$_processor_opt" == "k8sse3" ]; then
+    sed -i -e 's/# CONFIG_MK8SSE3 is not set/CONFIG_MK8SSE3=y/' ./.config
+  elif [ "$_processor_opt" == "k10" ]; then
+    sed -i -e 's/# CONFIG_MK10 is not set/CONFIG_MK10=y/' ./.config
+  elif [ "$_processor_opt" == "barcelona" ]; then
+    sed -i -e 's/# CONFIG_MBARCELONA is not set/CONFIG_MBARCELONA=y/' ./.config
+  elif [ "$_processor_opt" == "bobcat" ]; then
+    sed -i -e 's/# CONFIG_MBOBCAT is not set/CONFIG_MBOBCAT=y/' ./.config
+  elif [ "$_processor_opt" == "jaguar" ]; then
+    sed -i -e 's/# CONFIG_MJAGUAR is not set/CONFIG_MJAGUAR=y/' ./.config
+  elif [ "$_processor_opt" == "bulldozer" ]; then
+    sed -i -e 's/# CONFIG_MBULLDOZER is not set/CONFIG_MBULLDOZER=y/' ./.config
+  elif [ "$_processor_opt" == "piledriver" ]; then
+    sed -i -e 's/# CONFIG_MPILEDRIVER is not set/CONFIG_MPILEDRIVER=y/' ./.config
+  elif [ "$_processor_opt" == "steamroller" ]; then
+    sed -i -e 's/# CONFIG_MSTEAMROLLER is not set/CONFIG_MSTEAMROLLER=y/' ./.config
+  elif [ "$_processor_opt" == "excavator" ]; then
+    sed -i -e 's/# CONFIG_MEXCAVATOR is not set/CONFIG_MEXCAVATOR=y/' ./.config
+  elif [ "$_processor_opt" == "zen" ]; then
+    sed -i -e 's/# CONFIG_MZEN is not set/CONFIG_MZEN=y/' ./.config
+  elif [ "$_processor_opt" == "mpsc" ]; then
+    sed -i -e 's/# CONFIG_MPSC is not set/CONFIG_MPSC=y/' ./.config
+  elif [ "$_processor_opt" == "atom" ]; then
+    sed -i -e 's/# CONFIG_MATOM is not set/CONFIG_MATOM=y/' ./.config
+  elif [ "$_processor_opt" == "core2" ]; then
+    sed -i -e 's/# CONFIG_MCORE2 is not set/CONFIG_MCORE2=y/' ./.config
+  elif [ "$_processor_opt" == "nehalem" ]; then
+    sed -i -e 's/# CONFIG_MNEHALEM is not set/CONFIG_MNEHALEM=y/' ./.config
+  elif [ "$_processor_opt" == "westmere" ]; then
+    sed -i -e 's/# CONFIG_MWESTMERE is not set/CONFIG_MWESTMERE=y/' ./.config
+  elif [ "$_processor_opt" == "silvermont" ]; then
+    sed -i -e 's/# CONFIG_MSILVERMONT is not set/CONFIG_MSILVERMONT=y/' ./.config
+  elif [ "$_processor_opt" == "sandybridge" ]; then
+    sed -i -e 's/# CONFIG_MSANDYBRIDGE is not set/CONFIG_MSANDYBRIDGE=y/' ./.config
+  elif [ "$_processor_opt" == "ivybridge" ]; then
+    sed -i -e 's/# CONFIG_MIVYBRIDGE is not set/CONFIG_MIVYBRIDGE=y/' ./.config
+  elif [ "$_processor_opt" == "haswell" ]; then
+    sed -i -e 's/# CONFIG_MHASWELL is not set/CONFIG_MHASWELL=y/' ./.config
+  elif [ "$_processor_opt" == "broadwell" ]; then
+    sed -i -e 's/# CONFIG_MBROADWELL is not set/CONFIG_MBROADWELL=y/' ./.config
+  elif [ "$_processor_opt" == "skylake" ]; then
+    sed -i -e 's/# CONFIG_MSKYLAKE is not set/CONFIG_MSKYLAKE=y/' ./.config
+  elif [ "$_processor_opt" == "skylakex" ]; then
+    sed -i -e 's/# CONFIG_MSKYLAKEX is not set/CONFIG_MSKYLAKEX=y/' ./.config
+  elif [ "$_processor_opt" == "cannonlake" ]; then
+    sed -i -e 's/# CONFIG_MCANNONLAKE is not set/CONFIG_MCANNONLAKE=y/' ./.config
+  elif [ "$_processor_opt" == "icelake" ]; then
+    sed -i -e 's/# CONFIG_MICELAKE is not set/CONFIG_MICELAKE=y/' ./.config
   fi
 
   # irq threading
