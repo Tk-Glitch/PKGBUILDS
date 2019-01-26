@@ -41,9 +41,9 @@ _basever=419
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=17
+_sub=18
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=36
+pkgrel=37
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -77,7 +77,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-bcachefs.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            '977435b6248b78b7b02f71e986cecf075b1d3a7abe986370803fe7ffb1d48dc3'
+            'd36fb7380067b9756d7c36cd9149a2084abe815da5adaa3996d48c622d7d2db7'
             'ec617b1718e6cadfad02c75aca9c4b0e6b6f944bc1a93b7e4d82c847c04b5653'
             'e2bf18ee114a1875f5180f90d4f4d4c9980dce6d2bc328e24c0f1fb0d562fdcb'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
