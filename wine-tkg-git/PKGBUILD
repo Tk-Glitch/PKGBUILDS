@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.0.r9.g60f0f503
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=119
+_truepkgrel=120
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -879,19 +879,21 @@ build() {
 	fi
 
 
-	# build wine 32-bit
-	export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
-	msg2 'Building Wine-32...'
-	cd "${srcdir}/${pkgname}"-32-build
-	../${_winesrcdir}/configure \
-		--prefix="$_prefix" \
-		--libdir="$_prefix/lib32" \
-		--with-x \
-		--with-gstreamer \
-		--with-xattr \
-		"${_configure_args[@]}" \
-		--with-wine64="${srcdir}/${pkgname}"-64-build \
-		#--disable-tests
+	if [ "$_NOLIB32" != "true" ]; then
+	  # build wine 32-bit
+	  export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
+	  msg2 'Building Wine-32...'
+	  cd "${srcdir}/${pkgname}"-32-build
+	  ../${_winesrcdir}/configure \
+		  --prefix="$_prefix" \
+		  --libdir="$_prefix/lib32" \
+		  --with-x \
+		  --with-gstreamer \
+		  --with-xattr \
+		  "${_configure_args[@]}" \
+		  --with-wine64="${srcdir}/${pkgname}"-64-build \
+		  #--disable-tests
+	fi
 
 	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
 	  # make using all available threads
