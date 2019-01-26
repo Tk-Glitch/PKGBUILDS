@@ -716,7 +716,7 @@ prepare() {
 	fi
 
 	# Python fix for <=3.18 (backported from zzhiyi's patches) - fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
-	if [ $_318python_fix == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
+	if [ $_318python_fix == "true" ] && ! $(git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD); then
 	  patch -Np1 < ../'pythonfix.patch' && echo "Applied Python/The Sims 4 fix" >> "$_where"/last_build_config.log
 	fi
 
