@@ -228,7 +228,7 @@ prepare() {
   fi
 
   # cpu opt
-  if [ "$_processor_opt" != "native" ]; then
+  if [ -n "$_processor_opt" ] && [ "$_processor_opt" != "native" ]; then
     echo "# CONFIG_MNATIVE is not set" >> ./.config
   fi
 
