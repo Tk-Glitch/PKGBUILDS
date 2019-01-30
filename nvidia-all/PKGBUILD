@@ -20,7 +20,7 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.415.22.05 (vulkan dev)\n  2.415.27 (short lived)\n  3.410.93 (long lived)\n  4.Custom version (396.45 to 415.xx series)\nchoice[1-4?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.415.22.05 (vulkan dev)\n  2.415.27 (short lived)\n  3.410.93 (long lived)\n  4.418.30 (beta)\n  5.Custom version (396.45 to 415.xx series)\nchoice[1-4?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
@@ -30,6 +30,10 @@ if [ ! -e options ]; then
       echo '_md5sum=ab3ab098e3d408eafe43284ff0e0240a' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "4" ]; then
+      echo '_driver_version=418.30' > options
+      echo '_md5sum=4d1ef17b897e1f7bd6c41f075edbab71' >> options
+      echo '_driver_branch=regular' >> options
+    elif [ "$CONDITION" == "5" ]; then
       echo '_driver_version=custom' > options
       read -p "What branch do you want?`echo $'\n> 1.Stable or regular beta\n  2.Vulkan dev\nchoice[1-2?]: '`" CONDITION;
       if [ "$CONDITION" == "2" ]; then
@@ -84,7 +88,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=29
+pkgrel=30
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -315,6 +319,9 @@ package_nvidia-egl-wayland-tkg() {
   if [[ $pkgver == 396* ]]; then
     install -Dm755 libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.0.3
     ln -s libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
+  elif [[ $pkgver == 418* ]]; then
+    install -Dm755 libnvidia-egl-wayland.so.1.1.2 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.2
+    ln -s libnvidia-egl-wayland.so.1.1.2 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
   else
     install -Dm755 libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.0
     ln -s libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
@@ -349,7 +356,12 @@ package_nvidia-utils-tkg() {
       # Ensure that X finds glx
       ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so.1"
       ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so"
+    fi
 
+    if [[ $pkgver == 418* ]]; then
+      # optical flow
+      install -D -m755 "libnvidia-opticalflow.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-opticalflow.so.${pkgver}"
+    else
       # X wrapped software rendering
       install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
     fi
@@ -373,7 +385,6 @@ package_nvidia-utils-tkg() {
     install -D -m755 "libnvidia-encode.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-encode.so.${pkgver}"
     install -D -m755 "libnvidia-cfg.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-cfg.so.${pkgver}"
     install -D -m755 "libnvidia-ml.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-ml.so.${pkgver}"
-    install -D -m755 "libnvidia-wfb.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-wfb.so.${pkgver}"
     install -D -m755 "libnvidia-glvkspirv.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-glvkspirv.so.${pkgver}"
 
     if [[ $pkgver != 396* ]]; then
