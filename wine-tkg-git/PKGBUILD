@@ -291,7 +291,12 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'large_address_aware-staging.patch' # Same as above, for staging
 )
 
-if [[ $_EXTERNAL_INSTALL != "true" ]]; then
+if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+  provides=(
+    "$pkgname=$pkgver"
+  )
+  conflicts=("$pkgname")
+else
   provides=(
     "wine=$pkgver"
     "wine-wow64=$pkgver"
@@ -300,6 +305,7 @@ if [[ $_EXTERNAL_INSTALL != "true" ]]; then
   )
   conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
 fi
+
 makedepends=(${makedepends[@]} ${depends[@]})
 install=wine.install
 
@@ -931,7 +937,11 @@ package() {
 	  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
 	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
 	  fi
-	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$pkgver"
+	  if [[ $_EXTERNAL_NOVER == "true" ]]; then
+	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
+	  else
+	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$pkgver"
+	  fi
 	fi
 
 	# package wine 32-bit
