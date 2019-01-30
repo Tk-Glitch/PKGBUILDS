@@ -115,7 +115,7 @@ else
 
   if [[ $_LOCAL_OPTIMIZED == "true" ]]; then
     pkgname="${pkgname/%-git/-optimized-git}"
-    msg2 "Using predefined compiler optimizations. Optional flag, if used: -march=$_OPTIONAL_MARCHFLAG"
+    msg2 "Using custom compiler optimizations. Optional flag, if used: -march=$_OPTIONAL_MARCHFLAG"
   else
     msg2 "Using makepkg.conf optimization flags"
   fi
@@ -471,30 +471,30 @@ prepare() {
 	  export CXX="clang++"
 	  echo "Using clang compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g $_OPTIONAL_MARCHFLAG -pipe -O3"
-	    export LDFLAGS="-O3"
+	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_CLANG_FLAGS"
 	  fi
 	elif [ $_COMPILEWITH == 'zapcc' ]; then
 	  export CC="zapcc"
 	  export CXX="zapcc++"
 	  echo "Using zapcc compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g $_OPTIONAL_MARCHFLAG -pipe -O3"
-	    export LDFLAGS="-O3"
+	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_CLANG_FLAGS"
 	  fi
 	elif [ $_COMPILEWITH == 'gcc7' ]; then
 	  export CC="gcc-7"
 	  export CXX="g++-7"
 	  echo "Using gcc7 compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="$_OPTIONAL_MARCHFLAG -pipe -Os"
-	    export LDFLAGS="-Os"
+	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_GCC_FLAGS"
 	  fi
 	else
 	  echo "Using gcc compiler" >> "$_where"/last_build_config.log
 	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
-	    export COMMON_FLAGS="$_OPTIONAL_MARCHFLAG -pipe -Os"
-	    export LDFLAGS="-Os"
+	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_GCC_FLAGS"
 	  fi
 	fi
 
