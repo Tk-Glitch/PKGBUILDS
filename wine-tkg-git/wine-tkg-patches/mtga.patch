@@ -1,13 +1,30 @@
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index 0962e70..91dec11 100644
+index c4e02dacb1..94aa5f132a 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -1224,7 +1224,7 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
+@@ -914,7 +914,7 @@ NTSTATUS set_thread_context( HANDLE handle, const context_t *context, BOOL *self
+ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int flags, BOOL *self )
+ {
+     NTSTATUS ret;
+-    DWORD dummy, i;
++    DWORD dummy;
+ 
+     SERVER_START_REQ( get_thread_context )
+     {
+@@ -929,7 +929,7 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
  
      if (ret == STATUS_PENDING)
      {
 -        for (i = 0; i < 100; i++)
-+        for (i = 0; i < 1000; i++)
++        while (TRUE)
          {
              SERVER_START_REQ( get_thread_context )
              {
+@@ -949,7 +949,6 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
+             else break;
+         }
+         NtResumeThread( handle, &dummy );
+-        if (ret == STATUS_PENDING) ret = STATUS_ACCESS_DENIED;
+     }
+     return ret;
+ }
