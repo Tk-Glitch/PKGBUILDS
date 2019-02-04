@@ -43,7 +43,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=6
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=19
+pkgrel=20
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -76,6 +76,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0006-add-acs-overrides_iommu.patch
         0007-exFAT-support.patch
         0008-bcachefs.patch
+        0009-bfq-mq.patch
 )
 sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '38bb1675f455cfd245832320a5d8015e5af8b20153ddb4f8b05d84f8eed864f7'
@@ -86,7 +87,7 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
             '379058b20425c967e93dba4df5484c5c17d30c323c0a76c9283c4f4dbb8cb227'
-            'c3b4b31f28f5a0cc2f917643e617ff815d9fd1349d06146ac7fef044212a2050'
+            '1a4ebbff038079ee7f3836d09e99a9b197237c3e1cb1427da7e8dc0258638d34'
             '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
             '0be33ca350478637f2d8518d13be24cb170d6f5df8735f6c0c9156a30e55734e'
             'fcbc7ef3ab1bb17d941908db388b6493080369757835ddbb5ee0c8ade1f6d97a'
@@ -94,7 +95,8 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             'c0f53cde401d79843a181f068fe87239fe00d8534d8cdda35ffc8c9dfbc10d5b'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
-            '00db40ec3d04936b713ef508d2759f2a4d65b4bb84aa38addf9540be709f2160')
+            '00db40ec3d04936b713ef508d2759f2a4d65b4bb84aa38addf9540be709f2160'
+            '2a463e46107fc7843d3e43f3c102848ab4b77b870e53195d6da65c00bb90a217')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -423,6 +425,16 @@ prepare() {
     patch -Np1 -i ../0008-bcachefs.patch
   fi
 
+  # bfq-mq
+  if [ -z "$_bfqmq" ]; then
+    plain ""
+    plain "Add bfq-mq support? https://github.com/Algodev-github/bfq-mq"
+    read -p "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_bfqmq" == "true" ]; then
+    patch -Np1 -i ../0009-bfq-mq.patch
+  fi
+
   # userpatches
   if [ "$_user_patches" == "true" ]; then
     _userpatch_target="linux-${_basekernel}"
@@ -442,9 +454,9 @@ prepare() {
     plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -p "`echo $'    > N/y : '`" CONDITION8;
+    read -p "`echo $'    > N/y : '`" CONDITION9;
   fi
-  if [ "$CONDITION8" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+  if [ "$CONDITION9" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
