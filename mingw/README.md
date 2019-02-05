@@ -15,6 +15,8 @@ Using dwarf2 exceptions instead of sjlj exceptions provides a large performance 
 - mingw-w64-crt
 - mingw-w64-winpthreads
 - mingw-w64-gcc
+
+If you set _sdlandco to "true", you'll also get the following (disabled by default) :
 - mingw-w64-pkg-config
 - mingw-w64-configure
 - mingw-w64-sdl2

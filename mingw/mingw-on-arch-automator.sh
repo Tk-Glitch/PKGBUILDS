@@ -8,6 +8,8 @@ _fortran=true
 _cloog_git=true
 _pgp_auto=true
 
+_sdlandco=false
+
  echo '#################################################################'
  echo ''
  echo 'Mingw on arch automator will install mingw for you. Since the'
@@ -122,22 +124,24 @@ fi
 makepkg -si --noconfirm
 cd $_where
 
-# mingw-w64-pkg-config
-git clone https://aur.archlinux.org/mingw-w64-pkg-config.git
-cd mingw-w64-pkg-config
-makepkg -si --noconfirm
-cd $_where
+if [ $_sdlandco == "true" ]; then
+  # mingw-w64-pkg-config
+  git clone https://aur.archlinux.org/mingw-w64-pkg-config.git
+  cd mingw-w64-pkg-config
+  makepkg -si --noconfirm
+  cd $_where
 
-# mingw-w64-configure
-git clone https://aur.archlinux.org/mingw-w64-configure.git
-cd mingw-w64-configure
-makepkg -si --noconfirm
-cd $_where
+  # mingw-w64-configure
+  git clone https://aur.archlinux.org/mingw-w64-configure.git
+  cd mingw-w64-configure
+  makepkg -si --noconfirm
+  cd $_where
 
-# mingw-w64-sdl2
-git clone https://aur.archlinux.org/mingw-w64-sdl2.git
-cd mingw-w64-sdl2
-makepkg -si --noconfirm
-cd $_where
+  # mingw-w64-sdl2
+  git clone https://aur.archlinux.org/mingw-w64-sdl2.git
+  cd mingw-w64-sdl2
+  makepkg -si --noconfirm
+  cd $_where
+fi
 
 echo "mingw-on-arch done"
