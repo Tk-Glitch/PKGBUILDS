@@ -1,14 +1,16 @@
 # Based on AUR pkgbuild from Eric Engestrom <aur [at] engestrom [dot] ch>
 # Modified for multilib by: Tk-Glitch <ti3nou at gmail dot com>
 
+_NUKR="true"
+
 pkgname=('spirv-tools-tkg-git' 'lib32-spirv-tools-tkg-git')
-pkgver=r1898.6958d11b
+pkgver=r1954.0f4bf072
 pkgrel=1
 pkgdesc='API and commands for processing SPIR-V modules'
 url='https://github.com/KhronosGroup/SPIRV-Tools'
 arch=('i686' 'x86_64')
 license=('MIT')
-source=('git+https://github.com/KhronosGroup/SPIRV-Tools'
+source=('git+https://github.com/KhronosGroup/SPIRV-Tools.git'
         'git+https://github.com/KhronosGroup/SPIRV-Headers.git'
         '64bit.toolchain'
         '32bit.toolchain')
@@ -26,6 +28,10 @@ pkgver() {
 
 build() {
   cd "${srcdir}"/SPIRV-Tools
+
+  msg "Cleaning source code tree..."
+  git reset --hard HEAD
+  git clean -xdf
 
   mkdir build64
   mkdir build32
@@ -77,3 +83,17 @@ package_lib32-spirv-tools-tkg-git() {
   install -dm755 "${pkgdir}/usr/share/licenses/${pkgname}"
   install -m644 ../LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
+
+function exit_cleanup {
+
+if [ $_NUKR == "true" ]; then
+  # Sanitization
+  rm -rf "$srcdir"/SPIRV-*
+  rm -rf "$srcdir"/*.toolchain
+  msg2 'exit cleanup done'
+fi
+
+  remove_deps
+}
+
+trap exit_cleanup EXIT
