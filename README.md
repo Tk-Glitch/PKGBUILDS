@@ -6,6 +6,8 @@
 
 ## How-to use that mess :
 
+### While some of the scripts might work fine on any distro, the PKGBUILDs will only work on distros using pacman and makepkg, usually found on Arch-linux and distros based on it (like Antergos or Manjaro).
+
  * Clone a single folder from this repo (you need to have the `subversion` package installed) :
 ```
 svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/folder_name
