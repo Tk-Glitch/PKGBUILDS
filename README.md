@@ -40,3 +40,4 @@ While some are already available there without userpatches or lib32 support, the
 **Wanna talk about it? Need help? Feel free to join the Frog Family discord server : https://discord.gg/jRy3Nxk**
 
 **If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch**
+**You can also donate to me via https://www.paypal.me/TkGlitch**
