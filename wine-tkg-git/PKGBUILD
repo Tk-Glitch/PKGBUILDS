@@ -1,10 +1,10 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.1.2.r1.g3dab9e5e
+pkgver=4.1.2.r11.gc6aeba13
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=122
+_truepkgrel=123
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -775,6 +775,9 @@ prepare() {
 	  _userpatch_ext="my"
 	  user_patcher
 	fi
+
+	# Set custom version so that it reports the same as pkgver
+	sed -i "s/GIT_DIR=\$(top_srcdir)\\/.git git describe HEAD 2>\\/dev\\/null || echo \"wine-\$(PACKAGE_VERSION)\"/echo \"wine-${pkgver}\"/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
 	# Set custom version tags
 	local _version_tags=()
