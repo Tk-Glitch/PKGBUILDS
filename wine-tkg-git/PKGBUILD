@@ -781,6 +781,7 @@ prepare() {
 
 	# Set custom version tags
 	local _version_tags=()
+	_version_tags+=(TkG) # watermark to keep track of TkG builds independently of the settings
 	if [ $_use_staging == "true" ]; then
 	  _version_tags+=(Staging)
 	else
