@@ -1,0 +1,11 @@
+--- a/dlls/wined3d/wined3d_private.h	
++++ b/dlls/wined3d/wined3d_private.h	
+@@ -3008,7 +3008,7 @@
+     int base_vertex_index;
+ 
+     struct wined3d_shader *vs;
+-    struct wined3d_vec4 vs_consts_f[WINED3D_MAX_VS_CONSTS_F];
++    struct wined3d_vec4 vs_consts_f[WINED3D_MAX_VS_CONSTS_F_SWVP];
+     struct wined3d_ivec4 vs_consts_i[WINED3D_MAX_CONSTS_I];
+     BOOL vs_consts_b[WINED3D_MAX_CONSTS_B];
+ 
