@@ -85,3 +85,16 @@ index 2a202a846757..1d9c7ed79b11 100644
  	default 1000 if HZ_1000_NODEF
  
  config SCHED_HRTICK
+
+diff --git a/kernel/sched/MuQSS.c b/kernel/sched/MuQSS.c
+index 859eba976..323305065 100644
+--- a/kernel/sched/MuQSS.c
++++ b/kernel/sched/MuQSS.c
+@@ -235,6 +235,7 @@ int __weak arch_sd_sibling_asym_packing(void)
+ 
+ #ifdef CONFIG_SCHED_SMT
+ DEFINE_STATIC_KEY_FALSE(sched_smt_present);
++EXPORT_SYMBOL_GPL(sched_smt_present);
+ #endif
+ 
+ #else
