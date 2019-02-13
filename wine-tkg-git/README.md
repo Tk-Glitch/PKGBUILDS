@@ -73,3 +73,5 @@ makepkg -si
 ```
 
 See the bottom of the customization.cfg file for how to apply your own patches.
+
+Note for Ubuntu users: https://github.com/Tk-Glitch/PKGBUILDS/issues/69#issuecomment-450548800 Thanks to @yuiiio
