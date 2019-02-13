@@ -30,7 +30,7 @@ if [ "$_NOINITIALPROMPT" == "true" ]; then
 else
   # If the state tracker isn't found, prompt the user with useful stuff.
   # This is to prevent the prompt to come back until packaging is done
-  if [ ! -e "$_where"/BIG_UGLY_COINMINER ]; then
+  if [ ! -e "$_where"/BIG_UGLY_FROGMINER ]; then
     msg2 '#################################################################'
     msg2 ''
     msg2 'You can configure your wine build flavour (right now for example)'
@@ -361,8 +361,8 @@ pkgver() {
 }
 
 prepare() {
-	# state tracker start - FEAR THE MIGHTY COIN MINER
-	touch "${_where}"/BIG_UGLY_COINMINER
+	# state tracker start - FEAR THE MIGHTY FROG MINER
+	touch "${_where}"/BIG_UGLY_FROGMINER
 
 	cd "${srcdir}"/"${_stgsrcdir}"
 
@@ -1051,7 +1051,7 @@ md5sums=('SKIP'
          '25e20e66ee3b2896f2979ba4e16ff767')
 
 function exit_cleanup {
-  rm -fv "$_where"/BIG_UGLY_COINMINER # state tracker end
+  rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
 
 if [ $_NUKR == "true" ]; then
   # Sanitization
