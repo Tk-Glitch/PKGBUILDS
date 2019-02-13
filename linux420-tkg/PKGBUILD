@@ -43,7 +43,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=8
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=22
+pkgrel=23
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -72,7 +72,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0004-glitched-muqss.patch
         0004-4.20-ck1.patch
         0005-glitched-pds.patch
-        0005-v4.20_pds099l.patch
+        0005-v4.20_pds099m.patch
         0006-add-acs-overrides_iommu.patch
         0007-exFAT-support.patch
         0008-bcachefs.patch
@@ -92,7 +92,7 @@ sha256sums=('ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438'
             '0be33ca350478637f2d8518d13be24cb170d6f5df8735f6c0c9156a30e55734e'
             'fcbc7ef3ab1bb17d941908db388b6493080369757835ddbb5ee0c8ade1f6d97a'
             'eb5f83558a720667b5bb2291f74dfb35c1711fd4f17b615fc23e1b2aed314057'
-            'c0f53cde401d79843a181f068fe87239fe00d8534d8cdda35ffc8c9dfbc10d5b'
+            '6828e9e6d291d0ca1713c50f80eab73be3ae89e024714609d5a401e637dcde87'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '015ee67f049548a227dd8105e44c2e74cf76ba3444bab42b5ee695b070d9bf70'
             '00db40ec3d04936b713ef508d2759f2a4d65b4bb84aa38addf9540be709f2160'
@@ -193,7 +193,7 @@ prepare() {
     patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0005-v4.20_pds099l.patch
+    patch -Np1 -i ../0005-v4.20_pds099m.patch
     patch -Np1 -i ../0005-glitched-pds.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch

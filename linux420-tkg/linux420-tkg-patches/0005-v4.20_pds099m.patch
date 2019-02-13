@@ -1108,10 +1108,10 @@ index f5516bae0c1b..fe1d4aeb6d69 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..00d8f0cdcf02
+index 000000000000..23db1e4be7a6
 --- /dev/null
 +++ b/kernel/sched/pds.c
-@@ -0,0 +1,6482 @@
+@@ -0,0 +1,6483 @@
 +/*
 + *  kernel/sched/pds.c, was kernel/sched.c
 + *
@@ -1198,7 +1198,7 @@ index 000000000000..00d8f0cdcf02
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99l by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99m by Alfred Chen.\n");
 +}
 +
 +/*
@@ -1290,8 +1290,9 @@ index 000000000000..00d8f0cdcf02
 +DEFINE_PER_CPU(cpumask_t *, sched_cpu_affinity_chk_end_masks);
 +
 +#ifdef CONFIG_SCHED_SMT
-+DEFINE_STATIC_KEY_FALSE(sched_smt_present);
 +DEFINE_PER_CPU(int, sched_sibling_cpu);
++DEFINE_STATIC_KEY_FALSE(sched_smt_present);
++EXPORT_SYMBOL_GPL(sched_smt_present);
 +
 +static cpumask_t sched_cpu_sg_idle_mask ____cacheline_aligned_in_smp;
 +
