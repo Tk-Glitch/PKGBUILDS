@@ -468,7 +468,7 @@ prepare() {
 	echo "" >> "$_where"/last_build_config.log
 
 	# apply compiler choice and optimizations
-	if [ -n $_OPTIONAL_MARCHFLAG ]; then
+	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
 	fi
 
