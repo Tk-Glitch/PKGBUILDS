@@ -403,16 +403,12 @@ prepare() {
 	echo "# Last $pkgname configuration :" > "$_where"/last_build_config.log
 	echo "" >> "$_where"/last_build_config.log
 
-	if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
-	  echo "Using custom plain wine commit $_plain_version" >> "$_where"/last_build_config.log # output to log
-	fi
-
-	if [ $_use_staging == "true" ] && [ -n "$_staging_version" ]; then
-	  echo "Using custom staging commit $_staging_version" >> "$_where"/last_build_config.log # output to log
-	fi
+	echo "Wine (plain) version: $(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')" >> "$_where"/last_build_config.log
 
 	if [ $_use_staging == "true" ]; then
-	  echo "Using staging patchset" >> "$_where"/last_build_config.log
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  echo "Using wine-staging patchset (version $(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'))" >> "$_where"/last_build_config.log
+	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
 	if [ $_use_esync == "true" ]; then
@@ -425,7 +421,7 @@ prepare() {
 	      _esync_version="5898a69" # 3.16 and lower
 	    fi
 	  fi
-	  echo "Using esync (${_esync_version}) patchset" >> "$_where"/last_build_config.log
+	  echo "Using esync patchset (version ${_esync_version})" >> "$_where"/last_build_config.log
 	  wget -O "$_where"/esync${_esync_version}.tgz https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz && tar zxf "$_where"/esync${_esync_version}.tgz -C "${srcdir}"
 	fi
 
