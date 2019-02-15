@@ -287,8 +287,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
-		'large_address_aware.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
-		'large_address_aware-staging.patch' # Same as above, for staging
+		'LAA-legacy.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
+		'LAA-staging-legacy.patch' # Same as above, for staging
 )
 
 if [[ $_EXTERNAL_INSTALL == "true" ]]; then
@@ -765,11 +765,11 @@ prepare() {
 	fi
 
 	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
-	if [ $_large_address_aware == "true" ]  && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD; then
+	if [ $_large_address_aware == "true" ]  && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! $(git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD); then
 	  if [ $_use_staging == "true" ]; then
-	    patch -Np1 < ../'large_address_aware-staging.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	    patch -Np1 < ../'LAA-staging-legacy.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
 	  else
-	    patch -Np1 < ../'large_address_aware.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	    patch -Np1 < ../'LAA-legacy.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
