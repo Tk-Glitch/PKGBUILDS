@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.1.2.r13.gb8de6237
+pkgver=4.1.2.r16.g7cbbfd0a
 
 # workaround for pkgrel overwritten on regen
 _truepkgrel=124
@@ -466,6 +466,10 @@ prepare() {
 	# apply compiler choice and optimizations
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
+	fi
+
+	if [ $_NO_MSGS_FLAGS == 'true' ]; then
+	  _GCC_FLAGS="$_GCC_FLAGS -DWINE_NO_TRACE_MSGS -DWINE_NO_DEBUG_MSGS" && echo "Disabled trace/debug messages" >> "$_where"/last_build_config.log
 	fi
 
 	if [ $_COMPILEWITH == 'clang' ]; then
