@@ -253,8 +253,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fallout4.patch' # Fallout 4 dsound fix
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
-		'sims_2-fix.patch' # Sims 2 fix
-		'sims_2-fix-addon.patch' # Sims 2 additional patch for 4.1+
+		'sims_2-fix-legacy.patch' # Sims 2 fix for <4.1
+		'sims_2-fix.patch' # Sims 2 fix for 4.2+
 		'sims_3-oldnvidia.patch' # No.
 		'mwo.patch' # Mechwarrior Online fix
 		'pythonfix.patch' # Backported Python/Sims4 squash patch for <=3.18
@@ -712,9 +712,10 @@ prepare() {
 
 	# The Sims 2 fix - https://bugs.winehq.org/show_bug.cgi?id=8051
 	if [ $_sims2_fix == "true" ]; then
-	  patch -Np1 < ../'sims_2-fix.patch' && echo "Applied The Sims 2 fix" >> "$_where"/last_build_config.log
-	  if git merge-base --is-ancestor 28b0f53f6e1f7c5cdd5ead1a77dc4341509b54d5 HEAD; then
-	    patch -Np1 < ../'sims_2-fix-addon.patch' && echo "Applied The Sims 2 additional fix for 4.1+" >> "$_where"/last_build_config.log
+	  if git merge-base --is-ancestor 4de2da1d146248ed872ae45c30b8d485832f4ac8 HEAD; then
+	    patch -Np1 < ../'sims_2-fix.patch' && echo "Applied The Sims 2 fix" >> "$_where"/last_build_config.log
+	  else
+	    patch -Np1 < ../'sims_2-fix-legacy.patch' && echo "Applied The Sims 2 fix (legacy)" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
@@ -1017,7 +1018,7 @@ md5sums=('SKIP'
          'f50501943759c8731d40eb521e36e6da'
          '6c73650482fa00d91d2957e13079eab7'
          '6e301f262f004b930ffc3000839d837b'
-         '1f59520739300dc3c7e2a96f303ba476'
+         'cd52a9b26c15fd210cd5ed1da178dcb1'
          '342a6e02f73c06120ce01cc887489d9c'
          'd34ec9e86cbbf48b485a8c6f99d24921'
          'a527081e5f6eca3aec0b390d96d8587b'
