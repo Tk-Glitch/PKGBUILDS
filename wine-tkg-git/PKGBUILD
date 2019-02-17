@@ -1011,9 +1011,9 @@ package() {
 	# External install
 	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
 	  msg2 "### This wine will be installed to: $_prefix"
-	fi
-	if [[ $_EXTERNAL_INSTALL_TYPE != "lutris" ]]; then
-	  msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
+	  if [[ $_EXTERNAL_INSTALL_TYPE != "lutris" ]]; then
+	    msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
+	  fi
 	fi
 }
 md5sums=('SKIP'
