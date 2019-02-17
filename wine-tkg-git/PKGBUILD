@@ -404,11 +404,13 @@ prepare() {
 	echo "# Last $pkgname configuration :" > "$_where"/last_build_config.log
 	echo "" >> "$_where"/last_build_config.log
 
-	echo "Wine (plain) version: $(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')" >> "$_where"/last_build_config.log
+	_realwineversion=$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')
+	echo "Wine (plain) version: $_realwineversion" >> "$_where"/last_build_config.log
 
 	if [ $_use_staging == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
-	  echo "Using wine-staging patchset (version $(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'))" >> "$_where"/last_build_config.log
+	  _realwineversion=$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')
+	  echo "Using wine-staging patchset (version $_realwineversion)" >> "$_where"/last_build_config.log
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
@@ -788,7 +790,7 @@ prepare() {
 	fi
 
 	# Set custom version so that it reports the same as pkgver
-	sed -i "s/GIT_DIR=\$(top_srcdir)\\/.git git describe HEAD 2>\\/dev\\/null || echo \"wine-\$(PACKAGE_VERSION)\"/echo \"wine-${pkgver}\"/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
+	sed -i "s/GIT_DIR=\$(top_srcdir)\\/.git git describe HEAD 2>\\/dev\\/null || echo \"wine-\$(PACKAGE_VERSION)\"/echo \"wine-$_realwineversion\"/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
 	# Set custom version tags
 	local _version_tags=()
@@ -866,7 +868,7 @@ build() {
 	  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
 	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
 	  fi
-	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$pkgver"
+	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	fi
 
 	# build wine 64-bit
@@ -948,7 +950,7 @@ package() {
 	  if [[ $_EXTERNAL_NOVER == "true" ]]; then
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
 	  else
-	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$pkgver"
+	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	  fi
 	fi
 
