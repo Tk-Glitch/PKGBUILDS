@@ -4,7 +4,7 @@ pkgname=wine-tkg-git
 pkgver=4.2.r0.gb1b1abaf
 
 # workaround for pkgrel overwritten on regen
-_truepkgrel=125
+_truepkgrel=126
 pkgrel=1
 eval "pkgrel=$_truepkgrel"
 
@@ -86,11 +86,6 @@ else
   if [[ $_use_pba == "true" ]]; then
 #    pkgname="${pkgname/%-git/-pba-git}"
     msg2 "Using pba patchset"
-  fi
-
-  if [[ $_use_gallium_nine == "true" ]]; then
-    pkgname="${pkgname/%-git/-nine-git}"
-    msg2 "Using gallium nine patchset"
   fi
 
   if [[ $_use_vkd3d == "true" ]] && [[ $_dxvk_dxgi != "true" ]]; then
@@ -443,10 +438,6 @@ prepare() {
 	  fi
 	fi
 
-	if [ $_use_gallium_nine == "true" ]; then
-	  echo "Using gallium nine patchset" >> "$_where"/last_build_config.log
-	fi
-
 	if [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi != "true" ]]; then
 	  _configure_args+=(--with-vkd3d)
 	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
@@ -736,25 +727,8 @@ prepare() {
 	  fi
 	fi
 
-	# d3d9 patches
-	if [ $_use_gallium_nine == "true" ] && [ $_use_staging == "true" ]; then
-	  wget -O "$_where"/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
-	  wget -O "$_where"/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
-	  patch -Np1 < "$_where"/staging-helper.patch
-	  patch -Np1 < "$_where"/wine-d3d9.patch
-	  autoreconf -f
-	  _configure_args+=(--with-d3d9-nine)
-	elif [ $_use_gallium_nine == "true" ] && [ $_use_staging == "false" ]; then
-	  wget -O "$_where"/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
-	  wget -O "$_where"/d3d9-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/d3d9-helper.patch
-	  patch -Np1 < "$_where"/d3d9-helper.patch
-	  patch -Np1 < "$_where"/wine-d3d9.patch
-	  autoreconf -f
-	  _configure_args+=(--with-d3d9-nine)
-	fi
-
 	# GLSL toggle patch - Allows for use of ARB instead of GLSL
-	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ] && [ $_use_gallium_nine == "false" ]; then
+	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ]; then
 	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
 	fi
 
@@ -805,9 +779,6 @@ prepare() {
 	fi
 	if [ $_use_pba == "true" ] && [ "$_pba_version" != "none" ]; then
 	  _version_tags+=(PBA)
-	fi
-	if [ $_use_gallium_nine == "true" ]; then
-	  _version_tags+=(Nine)
 	fi
 	if [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi != "true" ]]; then
 	  _version_tags+=(Vkd3d)

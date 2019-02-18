@@ -39,7 +39,8 @@ With other patches available such as :
 - Bypass compositor in fullscreen mode
 - Proton Fullscreen hack (Allows resolution changes for fullscreen games without changing desktop resolution)
 - Plasma 5 systray fix
-- Gallium 9 support
+
+For Gallium 9 support, use https://github.com/iXit/wine-nine-standalone (available from winetricks and AUR)
 
 Also supports user patches for you to make even more exotic builds (more details at the end of the customization.cfg file).
 
