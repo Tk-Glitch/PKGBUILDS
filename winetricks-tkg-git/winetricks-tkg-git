@@ -54,7 +54,7 @@ WINETRICKS_VERSION=20181203-next
 #
 # Copyright:
 #   Copyright (C) 2007-2014 Dan Kegel <dank!kegel.com>
-#   Copyright (C) 2008-2017 Austin English <austinenglish!gmail.com>
+#   Copyright (C) 2008-2019 Austin English <austinenglish!gmail.com>
 #   Copyright (C) 2010-2011 Phil Blankenship <phillip.e.blankenship!gmail.com>
 #   Copyright (C) 2010-2015 Shannon VanWagner <shannon.vanwagner!gmail.com>
 #   Copyright (C) 2010 Belhorma Bendebiche <amro256!gmail.com>
@@ -1999,6 +1999,7 @@ w_override_all_dlls()
     #   -e '/^.*\/dbghelp$/ d' \
     #   -e '/^.*\/ddraw$/ d' \
     #   -e '/^.*\/dlls$/ d' \
+    #   -e '/^.*\/dmoguids$/ d' \
     #   -e '/^.*\/dxerr8$/ d' \
     #   -e '/^.*\/dxerr9$/ d' \
     #   -e '/^.*\/dxguid$/ d' \
@@ -2013,6 +2014,7 @@ w_override_all_dlls()
     #   -e '/^.*\/mswsock$/ d' \
     #   -e '/^.*\/ntdll$/ d' \
     #   -e '/^.*\/opengl32$/ d' \
+    #   -e '/^.*\/secur32$/ d' \
     #   -e '/^.*\/strmbase$/ d' \
     #   -e '/^.*\/strmiids$/ d' \
     #   -e '/^.*\/twain_32$/ d' \
@@ -2027,13 +2029,14 @@ w_override_all_dlls()
     #   -e '/^.*\/wineqtdecoder$/ d' \
     #   -e '/^.*\/winmm$/ d' \
     #   -e '/^.*\/wintab32$/ d' \
+    #   -e '/^.*\/wmcodecdspuuid$/ d' \
     #   -e '/^.*\/wnaspi32$/ d' \
     #   -e '/^.*\/wow32$/ d' \
     #   -e '/^.*\/ws2_32$/ d' \
     #   -e '/^.*\/wsock32$/ d' \
     #   -e 's,.*/,        ,' | sort | fmt -63 | sed 's/$/ \\/'
     #
-    # 2018-02-18: Last list update (wine-3.2)
+    # 2018-12-10: Last list update (wine-4.0-rc1)
     w_override_dlls builtin \
         acledit aclui activeds actxprxy adsldp adsldpc advpack \
         amstream api-ms-win-appmodel-identity-l1-1-0 \
@@ -2044,7 +2047,7 @@ w_override_all_dlls()
         api-ms-win-core-appinit-l1-1-0 \
         api-ms-win-core-atoms-l1-1-0 \
         api-ms-win-core-bem-l1-1-0 api-ms-win-core-com-l1-1-0 \
-        api-ms-win-core-com-l1-1-1 \
+        api-ms-win-core-com-l1-1-1 api-ms-win-core-comm-l1-1-0 \
         api-ms-win-core-com-private-l1-1-0 \
         api-ms-win-core-console-l1-1-0 \
         api-ms-win-core-console-l2-1-0 \
@@ -2080,6 +2083,7 @@ w_override_all_dlls()
         api-ms-win-core-kernel32-legacy-l1-1-0 \
         api-ms-win-core-kernel32-legacy-l1-1-1 \
         api-ms-win-core-kernel32-private-l1-1-1 \
+        api-ms-win-core-largeinteger-l1-1-0 \
         api-ms-win-core-libraryloader-l1-1-0 \
         api-ms-win-core-libraryloader-l1-1-1 \
         api-ms-win-core-libraryloader-l1-2-0 \
@@ -2109,6 +2113,7 @@ w_override_all_dlls()
         api-ms-win-core-processthreads-l1-1-0 \
         api-ms-win-core-processthreads-l1-1-1 \
         api-ms-win-core-processthreads-l1-1-2 \
+        api-ms-win-core-processthreads-l1-1-3 \
         api-ms-win-core-processtopology-obsolete-l1-1-0 \
         api-ms-win-core-profile-l1-1-0 \
         api-ms-win-core-psapi-ansi-l1-1-0 \
@@ -2129,6 +2134,7 @@ w_override_all_dlls()
         api-ms-win-core-stringansi-l1-1-0 \
         api-ms-win-core-string-l1-1-0 \
         api-ms-win-core-string-l2-1-0 \
+        api-ms-win-core-stringloader-l1-1-1 \
         api-ms-win-core-string-obsolete-l1-1-0 \
         api-ms-win-core-synch-ansi-l1-1-0 \
         api-ms-win-core-synch-l1-1-0 \
@@ -2156,6 +2162,7 @@ w_override_all_dlls()
         api-ms-win-core-winrt-registration-l1-1-0 \
         api-ms-win-core-winrt-roparameterizediid-l1-1-0 \
         api-ms-win-core-winrt-string-l1-1-0 \
+        api-ms-win-core-winrt-string-l1-1-1 \
         api-ms-win-core-wow64-l1-1-0 \
         api-ms-win-core-wow64-l1-1-1 \
         api-ms-win-core-xstate-l1-1-0 \
@@ -2175,6 +2182,7 @@ w_override_all_dlls()
         api-ms-win-crt-string-l1-1-0 \
         api-ms-win-crt-time-l1-1-0 \
         api-ms-win-crt-utility-l1-1-0 \
+        api-ms-win-devices-config-l1-1-0 \
         api-ms-win-devices-config-l1-1-1 \
         api-ms-win-devices-query-l1-1-1 \
         api-ms-win-downlevel-advapi32-l1-1-0 \
@@ -2193,21 +2201,30 @@ w_override_all_dlls()
         api-ms-win-eventing-legacy-l1-1-0 \
         api-ms-win-eventing-provider-l1-1-0 \
         api-ms-win-eventlog-legacy-l1-1-0 \
+        api-ms-win-gdi-dpiinfo-l1-1-0 \
         api-ms-win-mm-joystick-l1-1-0 \
         api-ms-win-mm-misc-l1-1-1 api-ms-win-mm-mme-l1-1-0 \
         api-ms-win-mm-time-l1-1-0 \
         api-ms-win-ntuser-dc-access-l1-1-0 \
         api-ms-win-ntuser-rectangle-l1-1-0 \
+        api-ms-win-ntuser-sysparams-l1-1-0 \
         api-ms-win-perf-legacy-l1-1-0 \
         api-ms-win-power-base-l1-1-0 \
         api-ms-win-power-setting-l1-1-0 \
+        api-ms-win-rtcore-ntuser-draw-l1-1-0 \
         api-ms-win-rtcore-ntuser-private-l1-1-0 \
+        api-ms-win-rtcore-ntuser-private-l1-1-4 \
+        api-ms-win-rtcore-ntuser-window-l1-1-0 \
+        api-ms-win-rtcore-ntuser-winevent-l1-1-0 \
+        api-ms-win-rtcore-ntuser-wmpointer-l1-1-0 \
+        api-ms-win-rtcore-ntuser-wmpointer-l1-1-3 \
         api-ms-win-security-activedirectoryclient-l1-1-0 \
         api-ms-win-security-audit-l1-1-1 \
         api-ms-win-security-base-l1-1-0 \
         api-ms-win-security-base-l1-2-0 \
         api-ms-win-security-base-private-l1-1-1 \
         api-ms-win-security-credentials-l1-1-0 \
+        api-ms-win-security-cryptoapi-l1-1-0 \
         api-ms-win-security-grouppolicy-l1-1-0 \
         api-ms-win-security-lsalookup-l1-1-0 \
         api-ms-win-security-lsalookup-l1-1-1 \
@@ -2224,16 +2241,19 @@ w_override_all_dlls()
         api-ms-win-service-private-l1-1-1 \
         api-ms-win-service-winsvc-l1-1-0 \
         api-ms-win-service-winsvc-l1-2-0 \
+        api-ms-win-shcore-obsolete-l1-1-0 \
         api-ms-win-shcore-scaling-l1-1-1 \
+        api-ms-win-shcore-stream-l1-1-0 \
+        api-ms-win-shcore-thread-l1-1-0 \
         api-ms-win-shell-shellcom-l1-1-0 \
         api-ms-win-shell-shellfolders-l1-1-0 apphelp \
-        appwiz.cpl atl atl100 atl110 atl80 atl90 authz \
-        avicap32 avifil32 avrt bcrypt bluetoothapis browseui \
-        bthprops.cpl cabinet cards cdosys cfgmgr32 clusapi \
-        combase comcat comctl32 comdlg32 compstui comsvcs \
-        concrt140 connect credui crtdll crypt32 cryptdlg \
-        cryptdll cryptext cryptnet cryptui ctapi32 ctl3d32 \
-        d2d1 d3d10 d3d10_1 d3d10core d3d11 d3d12 d3d8 \
+        appwiz.cpl atl atl100 atl110 atl80 atl90 atmlib \
+        authz avicap32 avifil32 avrt bcrypt bluetoothapis \
+        browseui bthprops.cpl cabinet cards cdosys cfgmgr32 \
+        clusapi combase comcat comctl32 comdlg32 compstui \
+        comsvcs concrt140 connect credui crtdll crypt32 \
+        cryptdlg cryptdll cryptext cryptnet cryptui ctapi32 \
+        ctl3d32 d2d1 d3d10 d3d10_1 d3d10core d3d11 d3d12 d3d8 \
         d3d9 d3dcompiler_33 d3dcompiler_34 d3dcompiler_35 \
         d3dcompiler_36 d3dcompiler_37 d3dcompiler_38 \
         d3dcompiler_39 d3dcompiler_40 d3dcompiler_41 \
@@ -2253,69 +2273,87 @@ w_override_all_dlls()
         dswave dwmapi dwrite dx8vb dxdiagn dxgi dxva2 esent \
         evr explorerframe ext-ms-win-authz-context-l1-1-0 \
         ext-ms-win-domainjoin-netjoin-l1-1-0 \
+        ext-ms-win-dwmapi-ext-l1-1-0 \
         ext-ms-win-gdi-dc-create-l1-1-1 \
         ext-ms-win-gdi-dc-l1-2-0 ext-ms-win-gdi-devcaps-l1-1-0 \
         ext-ms-win-gdi-draw-l1-1-1 \
         ext-ms-win-gdi-render-l1-1-0 \
         ext-ms-win-kernel32-package-current-l1-1-0 \
         ext-ms-win-kernel32-package-l1-1-1 \
+        ext-ms-win-ntuser-draw-l1-1-0 \
+        ext-ms-win-ntuser-gui-l1-3-0 \
+        ext-ms-win-ntuser-keyboard-l1-3-0 \
         ext-ms-win-ntuser-message-l1-1-1 \
+        ext-ms-win-ntuser-misc-l1-2-0 \
+        ext-ms-win-ntuser-misc-l1-5-1 \
+        ext-ms-win-ntuser-mouse-l1-1-0 \
         ext-ms-win-ntuser-private-l1-1-1 \
+        ext-ms-win-ntuser-private-l1-3-1 \
         ext-ms-win-ntuser-rectangle-ext-l1-1-0 \
         ext-ms-win-ntuser-uicontext-ext-l1-1-0 \
         ext-ms-win-ntuser-windowclass-l1-1-1 \
         ext-ms-win-ntuser-window-l1-1-1 \
+        ext-ms-win-ntuser-window-l1-1-4 \
+        ext-ms-win-oleacc-l1-1-0 \
         ext-ms-win-ras-rasapi32-l1-1-0 \
+        ext-ms-win-rtcore-gdi-devcaps-l1-1-0 \
         ext-ms-win-rtcore-gdi-object-l1-1-0 \
         ext-ms-win-rtcore-gdi-rgn-l1-1-0 \
+        ext-ms-win-rtcore-ntuser-cursor-l1-1-0 \
         ext-ms-win-rtcore-ntuser-dc-access-l1-1-0 \
         ext-ms-win-rtcore-ntuser-dpi-l1-1-0 \
+        ext-ms-win-rtcore-ntuser-dpi-l1-2-0 \
+        ext-ms-win-rtcore-ntuser-rawinput-l1-1-0 \
+        ext-ms-win-rtcore-ntuser-syscolors-l1-1-0 \
         ext-ms-win-rtcore-ntuser-sysparams-l1-1-0 \
         ext-ms-win-security-credui-l1-1-0 \
-        ext-ms-win-security-cryptui-l1-1-0 faultrep fltlib \
-        fltmgr.sys fntcache fontsub fusion fwpuclnt gameux \
-        gdiplus gpkcsp hal hhctrl.ocx hid hidclass.sys hlink \
-        hnetcfg httpapi iccvid ieframe ieproxy imaadp32.acm \
-        imagehlp imm32 inetcomm inetcpl.cpl inetmib1 infosoft \
-        initpki inkobj inseng iprop irprops.cpl itircl itss \
-        joy.cpl jscript jsproxy kerberos kernelbase ksuser \
-        ktmw32 loadperf localspl localui lz32 mapi32 mapistub \
-        mciavi32 mcicda mciqtz32 mciseq mciwave mf mf3216 \
-        mfplat mfreadwrite mgmtapi midimap mlang mmcndmgr \
-        mmdevapi mpr mprapi msacm32 msadp32.acm msasn1 \
-        mscat32 mscms mscoree msctf msctfp msdaps msdelta \
-        msdmo msdrm msftedit msg711.acm msgsm32.acm mshtml \
-        msi msident msimg32 msimsg msimtf msisip msisys.ocx \
-        msls31 msnet32 mspatcha msports msrle32 msscript.ocx \
-        mssign32 mssip32 mstask msvcirt msvcm80 msvcm90 \
-        msvcp100 msvcp110 msvcp120 msvcp120_app msvcp140 \
-        msvcp60 msvcp70 msvcp71 msvcp80 msvcp90 msvcr100 \
-        msvcr110 msvcr120 msvcr120_app msvcr70 msvcr71 msvcr80 \
+        ext-ms-win-security-cryptui-l1-1-0 \
+        ext-ms-win-uxtheme-themes-l1-1-0 faultrep feclient \
+        fltlib fltmgr.sys fntcache fontsub fusion fwpuclnt \
+        gameux gdiplus gpkcsp hal hhctrl.ocx hid hidclass.sys \
+        hlink hnetcfg httpapi iccvid ieframe ieproxy \
+        imaadp32.acm imagehlp imm32 inetcomm inetcpl.cpl \
+        inetmib1 infosoft initpki inkobj inseng iprop \
+        irprops.cpl itircl itss joy.cpl jscript jsproxy \
+        kerberos kernelbase ksuser ktmw32 loadperf localspl \
+        localui lz32 mapi32 mapistub mciavi32 mcicda mciqtz32 \
+        mciseq mciwave mf mf3216 mfplat mfreadwrite mgmtapi \
+        midimap mlang mmcndmgr mmdevapi mp3dmod mpr mprapi \
+        msacm32 msadp32.acm msasn1 mscat32 mscms mscoree \
+        msctf msctfp msdaps msdelta msdmo msdrm msftedit \
+        msg711.acm msgsm32.acm mshtml msi msident msimg32 \
+        msimsg msimtf msisip msisys.ocx msls31 msnet32 \
+        mspatcha msports msrle32 msscript.ocx mssign32 \
+        mssip32 mstask msvcirt msvcm80 msvcm90 msvcp100 \
+        msvcp110 msvcp120 msvcp120_app msvcp140 msvcp60 \
+        msvcp70 msvcp71 msvcp80 msvcp90 msvcr100 msvcr110 \
+        msvcr120 msvcr120_app msvcr70 msvcr71 msvcr80 \
         msvcr90 msvcrt msvcrt20 msvcrt40 msvcrtd msvfw32 \
         msvidc32 msxml msxml2 msxml3 msxml4 msxml6 mtxdm \
         ncrypt nddeapi ndis.sys netapi32 netcfgx netprofm \
-        newdev normaliz npmshtml npptools ntdsapi ntprint \
-        objsel odbc32 odbccp32 odbccu32 ole32 oleacc oleaut32 \
-        olecli32 oledb32 oledlg olepro32 olesvr32 olethk32 \
-        openal32 opencl packager pdh photometadatahandler \
-        pidgen powrprof printui prntvpt propsys psapi \
-        pstorec qcap qedit qmgr qmgrprxy quartz query \
-        rasapi32 rasdlg regapi resutils riched20 riched32 \
-        rpcrt4 rsabase rsaenh rstrtmgr rtutils samlib sapi \
-        scarddlg sccbase schannel schedsvc scrobj scrrun \
-        scsiport.sys secur32 security sensapi serialui \
-        setupapi sfc sfc_os shcore shdoclc shdocvw shell32 \
-        shfolder shlwapi slbcsp slc snmpapi softpub spoolss \
-        sspicli sti svrapi sxs t2embed tapi32 taskschd tdh \
-        tdi.sys traffic ucrtbase uiautomationcore uiribbon \
-        updspapi url urlmon usbd.sys userenv usp10 uxtheme \
-        vbscript vcomp vcomp100 vcomp110 vcomp120 vcomp140 \
-        vcomp90 vcruntime140 version virtdisk vssapi wbemdisp \
+        newdev ninput normaliz npmshtml npptools ntdsapi \
+        ntprint objsel odbc32 odbccp32 odbccu32 ole32 oleacc \
+        oleaut32 olecli32 oledb32 oledlg olepro32 olesvr32 \
+        olethk32 opcservices openal32 opencl packager pdh \
+        photometadatahandler pidgen powrprof printui prntvpt \
+        propsys psapi pstorec qcap qedit qmgr qmgrprxy \
+        quartz query qwave rasapi32 rasdlg regapi resutils \
+        riched20 riched32 rpcrt4 rsabase rsaenh rstrtmgr \
+        rtutils samlib sapi sas scarddlg sccbase schannel \
+        schedsvc scrobj scrrun scsiport.sys security sensapi \
+        serialui setupapi sfc sfc_os shcore shdoclc shdocvw \
+        shell32 shfolder shlwapi slbcsp slc snmpapi softpub \
+        spoolss srclient sspicli sti strmdll svrapi sxs \
+        t2embed tapi32 taskschd tdh tdi.sys traffic tzres \
+        ucrtbase uiautomationcore uiribbon updspapi url \
+        urlmon usbd.sys userenv usp10 uxtheme vbscript \
+        vcomp vcomp100 vcomp110 vcomp120 vcomp140 vcomp90 \
+        vcruntime140 version virtdisk vssapi vulkan-1 wbemdisp \
         wbemprox wdscore webservices wer wevtapi wiaservc \
         wimgapi windowscodecs windowscodecsext winebus.sys \
-        winegstreamer winehid.sys winemapi wing32 winhttp \
-        wininet winnls32 winscard winsta wintrust winusb \
-        wlanapi wldap32 wmasf wmi wmiutils wmp wmphoto \
+        winegstreamer winehid.sys winemapi winevulkan wing32 \
+        winhttp wininet winnls32 winscard winsta wintrust \
+        winusb wlanapi wldap32 wmasf wmi wmiutils wmp wmphoto \
         wmvcore wpc wpcap wsdapi wshom.ocx wsnmp32 wtsapi32 \
         wuapi wuaueng x3daudio1_0 x3daudio1_1 x3daudio1_2 \
         x3daudio1_3 x3daudio1_4 x3daudio1_5 x3daudio1_6 \
@@ -3170,6 +3208,9 @@ winetricks_latest_version_check()
             ru*) w_warn "Отсутствует подключение к Github? версия '${latest_version}' может быть неактуальной" ;;
             *) w_warn "Github down? version '${latest_version}' doesn't appear to be a valid version" ;;
         esac
+
+        # If we can't get the latest version, no reason to go further:
+        return
     fi
 
     if [ ! "$WINETRICKS_VERSION" = "${latest_version}" ] && [ ! "$WINETRICKS_VERSION" = "${latest_version}-next" ]; then
@@ -3355,30 +3396,30 @@ winetricks_prefixmenu()
              _W_msg_showbroken1="Показати нестабільні додатки (наприклад з проблемами з DRM)"
              _W_msg_help="Переглянути довідку"
              ;;
-        zh_CN*)   _W_msg_title="Windows 应用安装向导 - 选择一个 wine 容器"
-             _W_msg_body='君欲何为？'
-             _W_msg_apps='安装一个 windows 应用'
+        zh_CN*)   _W_msg_title="Winetricks - 选择一个 wine 容器"
+             _W_msg_body='您想要做什么？'
+             _W_msg_apps='安装一个 Windows 应用'
              _W_msg_games='安装一个游戏'
              _W_msg_benchmarks='安装一个基准测试软件'
-             _W_msg_default="选择默认的 wine 容器"
-             _W_msg_mkprefix="创建新的 wine 容器"
+             _W_msg_default="选择默认的 Wine 容器"
+             _W_msg_mkprefix="创建新的 Wine 容器"
              _W_msg_unattended0="禁用静默安装"
              _W_msg_unattended1="启用静默安装"
-             _W_msg_showbroken0="隐藏有问题的程序 (例如那些有数字版权问题)"
-             _W_msg_showbroken1="有问题的程序 (例如那些有数字版权问题)"
+             _W_msg_showbroken0="隐藏有问题的程序 (比如存在版权问题的程序)"
+             _W_msg_showbroken1="有问题的程序 (比如存在版权问题的程序)"
              _W_msg_help="查看帮助"
              ;;
-        zh_TW*|zh_HK*)   _W_msg_title="Windows 應用安裝向導 - 選取一個 wine 容器"
-             _W_msg_body='君欲何為？'
-             _W_msg_apps='安裝一個 windows 應用'
+        zh_TW*|zh_HK*)   _W_msg_title="Winetricks - 選取一個 Wine 容器"
+             _W_msg_body='您想要做什麼？'
+             _W_msg_apps='安裝一個 Windows 應用'
              _W_msg_games='安裝一個遊戲'
              _W_msg_benchmarks='安裝一個基准測試軟體'
-             _W_msg_default="選取預設的 wine 容器"
-             _W_msg_mkprefix="创建新的 wine 容器"
+             _W_msg_default="選取預設的 Wine 容器"
+             _W_msg_mkprefix="创建新的 Wine 容器"
              _W_msg_unattended0="禁用靜默安裝"
              _W_msg_unattended1="啟用靜默安裝"
-             _W_msg_showbroken0="隱藏有問題的程式 (例如那些有數字版權問題)"
-             _W_msg_showbroken1="有問題的程式 (例如那些有數字版權問題)"
+             _W_msg_showbroken0="隱藏有問題的程式 (比如存在著作權問題的程式)"
+             _W_msg_showbroken1="有問題的程式 (比如存在著作權問題的程式)"
              _W_msg_help="檢視輔助說明"
              ;;
         de*) _W_msg_title="Winetricks - wineprefix auswählen"
@@ -3622,7 +3663,7 @@ winetricks_mainmenu()
              _W_msg_folder='Перегляд файлів'
              _W_msg_annihilate="Видалити УСІ ДАНІ ТА ПРОГРАМИ З ЦЬОГО WINEPREFIX"
              ;;
-        zh_CN*)   _W_msg_title="Windows 应用安装向导 - 当前容器路径是 \"$WINEPREFIX\""
+        zh_CN*)   _W_msg_title="Winetricks - 当前容器路径是 \"$WINEPREFIX\""
              _W_msg_body='管理当前容器'
              _W_msg_dlls="安装 Windows DLL 或组件"
              _W_msg_fonts='安装字体'
@@ -3636,7 +3677,7 @@ winetricks_mainmenu()
              _W_msg_folder='浏览容器中的文件'
              _W_msg_annihilate="删除当前容器所有相关文件，包括启动器，完全卸载"
              ;;
-        zh_TW*|zh_HK*)   _W_msg_title="Windows 應用裝載向導 - 目前容器路徑是 \"$WINEPREFIX\""
+        zh_TW*|zh_HK*)   _W_msg_title="Winetricks - 目前容器路徑是 \"$WINEPREFIX\""
              _W_msg_body='管理目前容器'
              _W_msg_dlls="裝載 Windows DLL 或套件"
              _W_msg_fonts='裝載字型'
@@ -3740,11 +3781,11 @@ winetricks_settings_menu()
         uk*) _W_msg_title="Winetricks - поточний prefix \"$WINEPREFIX\""
              _W_msg_body='Які налаштування Ви хочете змінити?'
              ;;
-        zh_CN*)   _W_msg_title="Windows 应用安装向导 - 当前容器路径是 \"$WINEPREFIX\""
-             _W_msg_body='君欲更改哪项设置？'
+        zh_CN*)   _W_msg_title="Winetricks - 当前容器路径是 \"$WINEPREFIX\""
+             _W_msg_body='您想要更改哪项设置？'
              ;;
-        zh_TW*|zh_HK*)   _W_msg_title="Windows 應用裝載向導 - 目前容器路徑是 \"$WINEPREFIX\""
-             _W_msg_body='君欲變更哪項設定？'
+        zh_TW*|zh_HK*)   _W_msg_title="Winetricks - 目前容器路徑是 \"$WINEPREFIX\""
+             _W_msg_body='您想要變更哪項設定？'
              ;;
         *)   _W_msg_title="Winetricks - current prefix is \"$WINEPREFIX\""
              _W_msg_body='Which settings would you like to change?'
@@ -3917,12 +3958,12 @@ winetricks_showmenu()
              _W_msg_body='Які пакунки Ви хочете встановити?'
              _W_cached="кешовано"
              ;;
-        zh_CN*)   _W_msg_title="Windows 应用安装向导 - 当前容器路径是 \"$WINEPREFIX\""
-             _W_msg_body='君欲安装何种应用？'
+        zh_CN*)   _W_msg_title="Winetricks - 当前容器路径是 \"$WINEPREFIX\""
+             _W_msg_body='您想要安装什么应用程序？'
              _W_cached="已缓存"
              ;;
-        zh_TW*|zh_HK*)   _W_msg_title="Windows 應用裝載向導 - 目前容器路徑是 \"$WINEPREFIX\""
-             _W_msg_body='君欲裝載何種應用？'
+        zh_TW*|zh_HK*)   _W_msg_title="Winetricks - 目前容器路徑是 \"$WINEPREFIX\""
+             _W_msg_body='您想要安裝什麼應用程式？'
              _W_cached="已緩存"
              ;;
         *)   _W_msg_title="Winetricks - current prefix is \"$WINEPREFIX\""
@@ -4955,7 +4996,7 @@ winetricks_set_wineprefix()
     W_PROGRAMS_WIN="$(w_expand_env ProgramFiles)"
     case "$W_PROGRAMS_WIN" in
         "") w_info "$(winetricks_print_wineprefix_info)" ; w_die "$WINE cmd.exe /c echo '%ProgramFiles%' returned empty string, error message \"$(cat $W_TMP_EARLY/early_wine.err.txt)\" ";;
-        %*) w_info "$(winetricks_print_wineprefix_info)" ; w_die "$WINE cmd.exe /c echo '%ProgramFiles%' returned unexpanded string '$W_PROGRAMS_WIN' ... this can be caused by a corrupt wineprefix, by an old wine, or by not owning $WINEPREFIX" ;;
+        %*) w_info "$(winetricks_print_wineprefix_info)" ; w_die "$WINE cmd.exe /c echo '%ProgramFiles%' returned unexpanded string '$W_PROGRAMS_WIN' ... this can be caused by a corrupt wineprefix (\`wineboot -u\` may help), by an old wine, or by not owning $WINEPREFIX" ;;
         *unknown*) w_info "$(winetricks_print_wineprefix_info)" ; w_die "$WINE cmd.exe /c echo '%ProgramFiles%' returned a string containing the word 'unknown', as if a voice had cried out in terror, and was suddenly silenced." ;;
     esac
 
@@ -7171,6 +7212,25 @@ load_dxvk95()
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 
+w_metadata dxvk96 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (0.96)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-0.96.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk96()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v0.96/dxvk-0.96.tar.gz" 9d054c1e7a4f59825c651b14d3cfbf0d8c724763f485b3d59c89f1d7194b2206
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
 
 #----------------------------------------------------------------
 
@@ -8534,6 +8594,48 @@ load_esent()
 
 #----------------------------------------------------------------
 
+w_metadata faudio dlls \
+    title="FAudio (xaudio reimplemntation, with xna support) builds for win32" \
+    publisher="Kron4ek" \
+    year="2019" \
+    media="download" \
+    file1="faudio-git-a756af4.tar.xz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
+
+load_faudio()
+{
+    # FIXME: they have a LATEST file that may be useful in the future
+    # Not sure if we want to have multiple versions like dxvk
+    # Especially when some are prefixed with 'git-'!
+    # https://raw.githubusercontent.com/Kron4ek/FAudio-Builds/master/LATEST
+    faudio_version="$(basename "${file1}" .tar.xz)"
+
+    # 2018/01/26: b491e9a1eb2052f62d6639be86639203ec1c7e803101db86ef8817a07baaf0a8
+    w_download https://github.com/Kron4ek/FAudio-Builds/releases/download/git-a756af4/faudio-git-a756af4.tar.xz b491e9a1eb2052f62d6639be86639203ec1c7e803101db86ef8817a07baaf0a8
+
+    w_try_cd "$W_TMP"
+    w_try tar -Jxf "${W_CACHE}/${W_PACKAGE}/${file1}"
+
+    # They ship an installation script, but it's bash (and we have all needed functionality already)
+    # Unless they add something more complex, this should suffice:
+    for dll in "${faudio_version}/x32/"*.dll; do
+        shortdll="$(basename "${dll}" .dll)"
+        w_try cp "${dll}" "$W_SYSTEM32_DLLS"
+        w_override_dlls native "$shortdll"
+    done
+
+    if [ "$W_ARCH" = "win64" ]; then
+        for dll in "${faudio_version}/x64/"*.dll; do
+            # Note: 'libgcc_s_sjlj-1.dll' is not included in the 64-bit build
+            shortdll="$(basename "${dll}" .dll)"
+            w_try cp "${dll}" "$W_SYSTEM64_DLLS"
+            w_override_dlls native "$shortdll"
+        done
+    fi
+}
+
+#----------------------------------------------------------------
+
 # FIXME: update winetricks_is_installed to look at installed_file2..n
 # https://github.com/Winetricks/winetricks/issues/988
 w_metadata flash dlls \
@@ -8611,6 +8713,33 @@ load_flash()
     # to install Flash again
 
     unset _W_ver_major _W_ver_minor _W_ver_rel _W_ver_build _W_dirname _W_archive _W_fileprefix
+}
+
+#----------------------------------------------------------------
+
+w_metadata galliumnine02 dlls \
+    title="Gallium Nine Standalone (v0.2)" \
+    publisher="Gallium Nine Team" \
+    year="2019" \
+    media="download" \
+    file1="gallium-nine-standalone-v0.2.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d9-nine.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/ninewinecfg.exe" \
+    homepage="https://github.com/iXit/wine-nine-standalone"
+
+load_galliumnine02()
+{
+    w_download "https://github.com/iXit/wine-nine-standalone/releases/download/v0.2/gallium-nine-standalone-v0.2.tar.gz"
+    w_try_cd "$W_TMP"
+    w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1"
+    w_try mv "$W_TMP/gallium-nine-standalone/lib32/d3d9-nine.dll.so" "$W_SYSTEM32_DLLS/d3d9-nine.dll"
+    w_try mv "$W_TMP/gallium-nine-standalone/bin32/ninewinecfg.exe.so" "$W_SYSTEM32_DLLS/ninewinecfg.exe"
+    if test "$W_ARCH" = "win64"; then
+        w_try mv "$W_TMP/gallium-nine-standalone/lib64/d3d9-nine.dll.so" "$W_SYSTEM64_DLLS/d3d9-nine.dll"
+        w_try mv "$W_TMP/gallium-nine-standalone/bin64/ninewinecfg.exe.so" "$W_SYSTEM64_DLLS/ninewinecfg.exe"
+    fi
+    # use ninewinecfg to enable gallium nine
+    WINEDEBUG=-all w_try "$WINE_MULTI" ninewinecfg -e
 }
 
 #----------------------------------------------------------------
@@ -9512,7 +9641,7 @@ load_msftedit()
         w_try cp "$W_TMP/amd64_microsoft-windows-msftedit_31bf3856ad364e35_6.1.7601.17514_none_33f6fe754dd11735/msftedit.dll" "$W_SYSTEM64_DLLS/msftedit.dll"
     fi
 
-    w_override_dlls native,builtin mstfedit
+    w_override_dlls native,builtin msftedit
 }
 
 #----------------------------------------------------------------
@@ -14053,15 +14182,6 @@ load_steam()
     if w_workaround_wine_bug 22053 "Disabling gameoverlayrenderer to prevent game crashes on some machines."; then
         w_override_dlls disabled gameoverlayrenderer
     fi
-    if w_workaround_wine_bug 39403 "Force Steam/Steamwebhelper Client to Windows XP compatibility, to workaround store/web no longer working."; then
-        if [ "$W_ARCH" = "win64" ]; then
-            w_set_app_winver steam.exe winxp64
-            w_set_app_winver steamwebhelper.exe winxp64
-        else
-            w_set_app_winver steam.exe winxp
-            w_set_app_winver steamwebhelper.exe winxp
-        fi
-    fi
 }
 
 #----------------------------------------------------------------
@@ -14300,6 +14420,11 @@ load_vc2010express()
     # Unpack ISO
     w_try_7z "$W_TMP" "$W_CACHE"/vc2010express/VS2010Express1.iso
     w_try_cd "$W_TMP"/VCExpress
+
+    # Uninstall wine-mono, installer doesn't attempt to install native .Net if mono is installed,
+    # Then the installer throws and exception and fails
+    # See https://github.com/Winetricks/winetricks/issues/1165
+    w_call remove_mono
 
     # dotnet40 leaves winver at win2k, which causes vc2010 to abort on
     # start because it looks for c:\users\$LOGNAME\Application Data
@@ -19804,6 +19929,33 @@ _EOF_
     w_try_regedit "$W_TMP_WIN"/vd.reg
 }
 
+#----------------------------------------------------------------
+# MIME-type file associations settings
+
+w_metadata mimeassoc=on settings \
+    title="Enable exporting MIME-type file associations to the native desktop (default)"
+w_metadata mimeassoc=off settings \
+    title="Disable exporting MIME-type file associations to the native desktop"
+
+load_mimeassoc()
+{
+    case "$1" in
+        off) arg=N;;
+        on)  arg=Y;;
+        *) w_die "illegal value $1 for mimeassoc";;
+    esac
+
+    echo "Setting mimeassoc to $arg"
+    cat > "$W_TMP"/set-mimeassoc.reg <<_EOF_
+REGEDIT4
+
+[HKEY_CURRENT_USER\\Software\\Wine\\FileOpenAssociations]
+"Enable"="$arg"
+
+_EOF_
+    w_try_regedit "$W_TMP"/set-mimeassoc.reg
+}
+
 ####
 # settings->direct3d
 
@@ -20344,7 +20496,9 @@ load_remove_mono()
     if test "$mono_uuid"; then
          "${WINE_ARCH}" uninstaller --remove "$mono_uuid"
     else
+        # Bail out if mono isn't installed, so we don't break .Net setups
         w_warn "Mono does not appear to be installed."
+        return
     fi
 
     # FIXME: verify on pristine Windows XP:
