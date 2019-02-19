@@ -54,7 +54,7 @@ else
     msg2 'to delete/move previously built package if in the same dir.'
     msg2 ''
     msg2 '###################################TkG##########was##########here'
-    read -p "When you are ready, press enter to continue."
+    read -rp "When you are ready, press enter to continue."
 
     if [ -e "$_EXT_CONFIG_PATH" ]; then
       source "$_EXT_CONFIG_PATH" && msg2 "External config loaded" # load external configuration from file again, in case of changes.
@@ -308,7 +308,7 @@ user_patcher() {
 	# To patch the user because all your base are belong to us
 	if [[ $(find "$_where" -name "*.${_userpatch_ext}patch") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -p "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  read -rp "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "$_where"/*.${_userpatch_ext}patch; do
@@ -326,7 +326,7 @@ user_patcher() {
 	fi
 	if [[ $(find "$_where" -name "*.${_userpatch_ext}revert") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -p "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  read -rp "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "$_where"/*.${_userpatch_ext}revert; do
