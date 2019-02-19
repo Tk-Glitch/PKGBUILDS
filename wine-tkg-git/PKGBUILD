@@ -65,49 +65,49 @@ else
 fi
 
 if [ -n "$_PKGNAME_OVERRIDE" ]; then
-  if [[ $_PKGNAME_OVERRIDE == "none" ]]; then
+  if [ "$_PKGNAME_OVERRIDE" == "none" ]; then
     pkgname="${pkgname}"
   else
     pkgname="${pkgname}-${_PKGNAME_OVERRIDE}"
   fi
   msg2 "Overriding default pkgname. New pkgname: ${pkgname}"
 else
-  if [[ $_use_staging == "true" ]]; then
+  if [ "$_use_staging" == "true" ]; then
     pkgname="${pkgname/%-git/-staging-git}"
     msg2 "Using staging patchset"
   fi
 
-  if [[ $_use_esync == "true" ]]; then
+  if [ "$_use_esync" == "true" ]; then
     pkgname="${pkgname/%-git/-esync-git}"
     msg2 "Using esync patchset"
   fi
 
-  if [[ $_use_pba == "true" ]]; then
+  if [ "$_use_pba" == "true" ]; then
 #    pkgname="${pkgname/%-git/-pba-git}"
     msg2 "Using pba patchset"
   fi
 
-  if [[ $_use_vkd3d == "true" ]] && [[ $_dxvk_dxgi != "true" ]]; then
+  if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
     pkgname="${pkgname/%-git/-vkd3d-git}"
     msg2 "Using VKD3D for d3d12 translation"
   fi
 
-  if [[ $_use_dxvk == "true" ]] && [[ $_use_dxup == "true" ]]; then
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ]; then
     pkgname="${pkgname/%-git/-dxvk+up-git}"
     msg2 "Using DXUP for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
   fi
 
-  if [[ $_use_dxvk == "true" ]] && [[ $_use_dxup != "true" ]]; then
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ]; then
     pkgname="${pkgname/%-git/-dxvk-git}"
     msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
   fi
 
-  if [[ $_use_faudio == "true" ]]; then
+  if [ "$_use_faudio" == "true" ]; then
     pkgname="${pkgname/%-git/-faudio-git}"
     msg2 "Using Faudio for xaudio2"
   fi
 
-  if [[ $_LOCAL_OPTIMIZED == "true" ]]; then
+  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
     pkgname="${pkgname/%-git/-optimized-git}"
     msg2 "Using custom compiler optimizations. Optional flag, if used: -march=$_OPTIONAL_MARCHFLAG"
   else
@@ -116,26 +116,26 @@ else
 fi
 
 # External install
-if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   pkgname="${pkgname/%-git/-$_EXTERNAL_INSTALL_TYPE-git}"
-  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
+  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
     _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
   fi
   msg2 "Installing to $_DEFAULT_EXTERNAL_PATH/$pkgname"
 fi
 
 # custom plain wine commit to pass to git
-if [ $_use_staging == "false" ] && [ -n "$_plain_version" ]; then
+if [ "$_use_staging" == "false" ] && [ -n "$_plain_version" ]; then
   _plain_commit="#commit=$_plain_version"
 fi
 
 # custom staging commit to pass to git
-if [ $_use_staging == "true" ] && [ -n "$_staging_version" ]; then
+if [ "$_use_staging" == "true" ] && [ -n "$_staging_version" ]; then
   _staging_commit="#commit=$_staging_version"
 fi
 
 # custom dxvk commit to pass to git
-if [ $_use_dxvk == "true" ]; then
+if [ "$_use_dxvk" == "true" ]; then
   _dxvk_commit="#commit=$_dxvk_version"
 fi
 
@@ -199,17 +199,17 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'ocl-icd'               'lib32-ocl-icd'
 )
 # We need wine installed to build DXVK winelib
-if [[ $_use_dxvk == true ]]; then
+if [ "$_use_dxvk" == "true" ]; then
   makedepends=("${makedepends[@]}" wine)
 fi
 
 # vkd3d deps
-if [[ $_use_vkd3d == true ]] && [[ $_dxvk_dxgi != "true" ]]; then
+if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
   makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
 fi
 
 # faudio deps
-if [[ $_use_faudio == true ]]; then
+if [ "$_use_faudio" == "true" ]; then
   makedepends=("${makedepends[@]}" faudio-git lib32-faudio-git)
 fi
 optdepends=(
@@ -286,7 +286,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'LAA-staging-legacy.patch' # Same as above, for staging
 )
 
-if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
     "$pkgname=$pkgver"
   )
@@ -301,14 +301,14 @@ else
   conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
 fi
 
-makedepends=(${makedepends[@]} ${depends[@]})
+makedepends=("${makedepends[@]}" "${depends[@]}")
 install=wine.install
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
 	if [[ $(find "$_where" -name "*.${_userpatch_ext}patch") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -rp "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  read -rp "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "$_where"/*.${_userpatch_ext}patch; do
@@ -326,7 +326,7 @@ user_patcher() {
 	fi
 	if [[ $(find "$_where" -name "*.${_userpatch_ext}revert") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -rp "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  read -rp "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "$_where"/*.${_userpatch_ext}revert; do
@@ -345,7 +345,7 @@ user_patcher() {
 }
 
 pkgver() {
-	if [ $_use_staging == "true" ]; then
+	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}/${_stgsrcdir}"
 	else
 	  cd "${srcdir}/${_winesrcdir}"
@@ -388,7 +388,7 @@ prepare() {
 	# holds extra arguments to staging's patcher script, if applicable
 	local _staging_args=()
 
-	if [ $_use_staging == "true" ]; then
+	if [ "$_use_staging" == "true" ]; then
 	  # change back to the wine upstream commit that this version of wine-staging is based in
 	  msg2 'Changing wine HEAD to the wine-staging base commit...'
 	  git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
@@ -401,14 +401,14 @@ prepare() {
 	_realwineversion=$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')
 	echo "Wine (plain) version: $_realwineversion" >> "$_where"/last_build_config.log
 
-	if [ $_use_staging == "true" ]; then
+	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  _realwineversion=$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')
 	  echo "Using wine-staging patchset (version $_realwineversion)" >> "$_where"/last_build_config.log
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
-	if [ $_use_esync == "true" ]; then
+	if [ "$_use_esync" == "true" ]; then
 	  if [ -z "$_esync_version" ]; then
 	    if git merge-base --is-ancestor 2600ecd4edfdb71097105c74312f83845305a4f2 HEAD; then # 3.20+
 	      _esync_version="ce79346"
@@ -422,7 +422,7 @@ prepare() {
 	  wget -O "$_where"/esync${_esync_version}.tgz https://github.com/zfigura/wine/releases/download/esync${_esync_version}/esync.tgz && tar zxf "$_where"/esync${_esync_version}.tgz -C "${srcdir}"
 	fi
 
-	if [ $_use_pba == "true" ]; then
+	if [ "$_use_pba" == "true" ]; then
 	  # If using a wine version that includes 944e92b, disable PBA
 	  if git merge-base --is-ancestor 944e92ba06ecadeb933d95e30035323483dfe7c7 HEAD; then # wined3d: Pass the wined3d_buffer_desc structure directly to buffer_init()
 	    _pba_version="none"
@@ -437,19 +437,19 @@ prepare() {
 	  fi
 	fi
 
-	if [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi != "true" ]]; then
+	if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
 	  _configure_args+=(--with-vkd3d)
 	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
-	elif [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi == "true" ]]; then
+	elif [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" == "true" ]; then
 	  echo "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !" >> "$_where"/last_build_config.log
 	fi
 
-	if [ $_use_dxvk == "true" ]; then
+	if [ "$_use_dxvk" == "true" ]; then
 	  echo "Using DXVK winelib for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
-	  if [ $_dxvk_dxgi == "true" ]; then
+	  if [ "$_dxvk_dxgi" == "true" ]; then
 	    echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
 	  fi
-	  if [ $_use_dxup == "true" ]; then
+	  if [ "$_use_dxup" == "true" ]; then
 	    echo "Using DXUP winelib for d3d9 translation" >> "$_where"/last_build_config.log
 	  fi
 	fi
@@ -461,43 +461,43 @@ prepare() {
 	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
 	fi
 
-	if [ $_NO_MSGS_FLAGS == 'true' ]; then
+	if [ "$_NO_MSGS_FLAGS" == "true" ]; then
 	  _GCC_FLAGS="$_GCC_FLAGS -DWINE_NO_TRACE_MSGS -DWINE_NO_DEBUG_MSGS" && echo "Disabled trace/debug messages" >> "$_where"/last_build_config.log
 	fi
 
-	if [ $_COMPILEWITH == 'clang' ]; then
+	if [ "$_COMPILEWITH" == "clang" ]; then
 	  export CC="clang"
 	  export CXX="clang++"
 	  echo "Using clang compiler" >> "$_where"/last_build_config.log
-	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
 	    export LDFLAGS="$_CLANG_FLAGS"
 	  fi
-	elif [ $_COMPILEWITH == 'zapcc' ]; then
+	elif [ "$_COMPILEWITH" == "zapcc" ]; then
 	  export CC="zapcc"
 	  export CXX="zapcc++"
 	  echo "Using zapcc compiler" >> "$_where"/last_build_config.log
-	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
 	    export LDFLAGS="$_CLANG_FLAGS"
 	  fi
-	elif [ $_COMPILEWITH == 'gcc7' ]; then
+	elif [ "$_COMPILEWITH" == "gcc7" ]; then
 	  export CC="gcc-7"
 	  export CXX="g++-7"
 	  echo "Using gcc7 compiler" >> "$_where"/last_build_config.log
-	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
 	    export LDFLAGS="$_GCC_FLAGS"
 	  fi
 	else
 	  echo "Using gcc compiler" >> "$_where"/last_build_config.log
-	  if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
 	    export LDFLAGS="$_GCC_FLAGS"
 	  fi
 	fi
 
-	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	  export CFLAGS="${COMMON_FLAGS}"
 	  export CXXFLAGS="${COMMON_FLAGS}"
 	  echo "With predefined optimizations" >> "$_where"/last_build_config.log
@@ -514,22 +514,22 @@ prepare() {
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
-	if [ $_clock_monotonic == "true" ]; then
+	if [ "$_clock_monotonic" == "true" ]; then
 	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> "$_where"/last_build_config.log
 	fi
 
 	# Fixes (partially) systray on plasma 5 - https://bugs.winehq.org/show_bug.cgi?id=38409
-	if [ $_plasma_systray_fix == "true" ]; then
+	if [ "$_plasma_systray_fix" == "true" ]; then
 	  patch -Np1 < ../'plasma_systray_fix.patch' && echo "Applied plasma 5 systray fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Bypass compositor in fullscreen mode - Reduces stuttering and improves performance
-	if [ $_FS_bypass_compositor == "true" ]; then
+	if [ "$_FS_bypass_compositor" == "true" ]; then
 	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch" >> "$_where"/last_build_config.log
 	fi
 
 	# Use faudio for xaudio2 - https://github.com/aeikum/wine/commits/faudio-fixups
-	if [ $_use_faudio == "true" ] && [ $_use_staging == "true" ] && git merge-base --is-ancestor 47fbcece36cad190c4d18f7636df67d1382b7545 HEAD; then
+	if [ "$_use_faudio" == "true" ] && [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 47fbcece36cad190c4d18f7636df67d1382b7545 HEAD; then
 	  patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
 	  _staging_args+=(-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges -W winepulse-PulseAudio_Support) # Disable xaudio2 & winepulse staging patchsets for faudio
 	  _configure_args+=(--with-faudio)
@@ -537,55 +537,55 @@ prepare() {
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
-	if [ $_poe_fix == "true" ]; then
+	if [ "$_poe_fix" == "true" ]; then
 	  patch -Np1 < ../'poe-fix.patch' && echo "Applied Path of Exile DX11 fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
-	if [ $_f4skyrimse_fix == "true" ]; then
+	if [ "$_f4skyrimse_fix" == "true" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch' && echo "Applied F4/SkyrimSE Script Extender fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Fallout 4 dsound workaround
 	# https://bugs.winehq.org/show_bug.cgi?id=41271
-	if [ $_fallout4dsound_fix == "true" ]; then
+	if [ "$_fallout4dsound_fix" == "true" ]; then
 	  patch -Np1 < ../'fallout4.patch' && echo "Applied Fallout 4 Dsound workaround" >> "$_where"/last_build_config.log
 	fi
 
 	# Magic The Gathering: Arena crash fix
-	if [ $_mtga_fix == "true" ]; then
+	if [ "$_mtga_fix" == "true" ]; then
 	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
 	fi
 
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets - The actual patch is applied after staging
-	if [ $_sims2_fix == "true" ]; then
+	if [ "$_sims2_fix" == "true" ]; then
 	  _staging_args+=(-W wined3d-WINED3D_RS_COLORWRITEENABLE -W wined3d-Indexed_Vertex_Blending)
 	fi
 
 	# The Sims 3 fix - reverts 6823abd521c0c12d20d9171fb5ae8b300009d082 to fix Sims 3 on older than 415.xx nvidia drivers - https://bugs.winehq.org/show_bug.cgi?id=45361
-	if [ $_sims3_fix == "true" ] && git merge-base --is-ancestor 6823abd521c0c12d20d9171fb5ae8b300009d082 HEAD; then
+	if [ "$_sims3_fix" == "true" ] && git merge-base --is-ancestor 6823abd521c0c12d20d9171fb5ae8b300009d082 HEAD; then
 	  patch -Np1 < ../'sims_3-oldnvidia.patch' && echo "Applied The Sims 3 Debian&co nvidia fix" >> "$_where"/last_build_config.log
 	fi
 
 	# Python fix for <=3.18 (backported from zzhiyi's patches) - fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999 - The actual patch is applied after staging
-	if [ $_318python_fix == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
+	if [ "$_318python_fix" == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
 	  _staging_args+=(-W kernelbase-PathCchCombineEx)
 	fi
 
 	# Mechwarrior Online fix - https://mwomercs.com/forums/topic/268847-running-the-game-on-ubuntu-steam-play/page__st__20__p__6195387#entry6195387
-	if [ $_mwo_fix == "true" ]; then
+	if [ "$_mwo_fix" == "true" ]; then
 	  patch -Np1 < ../'mwo.patch' && echo "Applied Mechwarrior Online fix" >> "$_where"/last_build_config.log
 	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
-	if [ $_steam_fix == "true" ]; then
+	if [ "$_steam_fix" == "true" ]; then
 	  patch -Np1 < ../'steam.patch' && echo "Applied steam crossover hack" >> "$_where"/last_build_config.log
 	fi
 
 	# Disable server-send_hardware_message staging patchset if found - Fixes FFXIV/Warframe/Crysis 3 (...) mouse jittering issues on 3.19 staging and lower.
-	if [ $_server_send_hwmsg_disable == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_server_send_hwmsg_disable" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ -d "${srcdir}"/"${_stgsrcdir}"/patches/server-send_hardware_message ]; then # ghetto check for server-send_hardware_message staging patchset presence
 	    _staging_args+=(-W server-send_hardware_message)
 	    echo "server-send_hardware_message staging patchset disabled (mouse jittering fix)" >> "$_where"/last_build_config.log
@@ -595,20 +595,20 @@ prepare() {
 	fi
 
 	# Disable winepulse pulseaudio patchset
-	if [ $_staging_pulse_disable == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_staging_pulse_disable" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  _staging_args+=(-W winepulse-PulseAudio_Support)
 	  echo "Disabled the staging winepulse patchset" >> "$_where"/last_build_config.log
 	fi
 
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
-	if [ $_CSMT_toggle == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_CSMT_toggle" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  patch -Np1 < ../'CSMT-toggle.patch' && echo "Applied CSMT toggle logic patch" >> "$_where"/last_build_config.log
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
 	# wine-staging user patches
-	if [ $_user_patches == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_user_patches" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  _userpatch_target="wine-staging"
 	  _userpatch_ext="mystaging"
 	  cd "${srcdir}"/"${_stgsrcdir}"
@@ -616,7 +616,7 @@ prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
-	if [ $_use_staging == "true" ]; then
+	if [ "$_use_staging" == "true" ]; then
 	  msg2 'Applying wine-staging patches...'
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all "${_staging_args[@]}"
 
@@ -625,9 +625,9 @@ prepare() {
 	fi
 
 	# esync
-	if [ $_use_esync == "true" ]; then
+	if [ "$_use_esync" == "true" ]; then
 	  if git merge-base --is-ancestor 2600ecd4edfdb71097105c74312f83845305a4f2 HEAD; then # Esync ce79346
-	    if [ $_use_staging == "true" ]; then
+	    if [ "$_use_staging" == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-staging-fixes-r3.patch' && echo "Using esync staging 3.20+ compat fixes" >> "$_where"/last_build_config.log
@@ -639,7 +639,7 @@ prepare() {
 	    cd "${srcdir}"/"${_winesrcdir}"
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
 	  elif git merge-base --is-ancestor aec7befb5115d866724149bbc5576c7259fef820 HEAD; then # server: Avoid potential size overflow for empty object attributes
-	    if [ $_use_staging == "true" ]; then
+	    if [ "$_use_staging" == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-staging-fixes-r2.patch' && echo "Using esync staging 3.17+ compat fixes" >> "$_where"/last_build_config.log
@@ -656,7 +656,7 @@ prepare() {
 	    cd "${srcdir}"/"${_winesrcdir}"
 	  else
 	    # 3.10 - 3.16
-	    if [ $_use_staging == "true" ]; then
+	    if [ "$_use_staging" == "true" ]; then
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      patch -Np1 < ../'esync-staging-fixes-r1.patch' && echo "Using esync staging 3.16- compat fixes" >> "$_where"/last_build_config.log
 	      cd "${srcdir}"/"${_winesrcdir}"
@@ -681,7 +681,7 @@ prepare() {
 	  done
 
 	  # Fix for server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName)
-	  if [ $_use_staging == "true" ]; then
+	  if [ "$_use_staging" == "true" ]; then
 	    msg2 "Applying esync-no_alloc_handle.patch"
 	    patch -Np1 < ../'esync-no_alloc_handle.patch'
 	  fi
@@ -689,22 +689,22 @@ prepare() {
 	# /esync
 	
 	# Launch with dedicated gpu desktop entry patch
-	if [ $_launch_with_dedicated_gpu == "true" ]; then
+	if [ "$_launch_with_dedicated_gpu" == "true" ]; then
 	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch' && echo "Applied launch with dedicated gpu desktop entry patch" >> "$_where"/last_build_config.log
 	fi
 
 	# Low latency alsa audio - https://blog.thepoon.fr/osuLinuxAudioLatency/
-	if [ $_lowlatency_audio == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_lowlatency_audio" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  patch -Np1 < ../'lowlatency_audio.patch' && echo "Applied low latency alsa audio patch" >> "$_where"/last_build_config.log
 	fi
 
 	# Fortnite Fix - Currently not working anymore
-	if [ $_fortnite_fix == "true" ]; then
+	if [ "$_fortnite_fix" == "true" ]; then
 	  patch -Np1 < ../'fortnite.patch' && echo "Applied Fortnite crashfix" >> "$_where"/last_build_config.log
 	fi
 
 	# The Sims 2 fix - https://bugs.winehq.org/show_bug.cgi?id=8051
-	if [ $_sims2_fix == "true" ]; then
+	if [ "$_sims2_fix" == "true" ]; then
 	  if git merge-base --is-ancestor 4de2da1d146248ed872ae45c30b8d485832f4ac8 HEAD; then
 	    patch -Np1 < ../'sims_2-fix.patch' && echo "Applied The Sims 2 fix" >> "$_where"/last_build_config.log
 	  else
@@ -713,13 +713,13 @@ prepare() {
 	fi
 
 	# Python fix for <=3.18 (backported from zzhiyi's patches) - fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
-	if [ $_318python_fix == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
+	if [ "$_318python_fix" == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
 	  patch -Np1 < ../'pythonfix.patch' && echo "Applied Python/The Sims 4 fix" >> "$_where"/last_build_config.log
 	fi
 
 	# apply wine-pba patchset
-	if [ $_use_pba == "true" ]; then
-	  if [ $_pba_version == "none" ]; then
+	if [ "$_use_pba" == "true" ]; then
+	  if [ "$_pba_version" == "none" ]; then
 	    echo "PBA disabled due to known issues with selected Wine version" >> "$_where"/last_build_config.log
 	  else
 	    patch -Np1 < ../"PBA${_pba_version}.patch" && echo "Using pba (${_pba_version}) patchset" >> "$_where"/last_build_config.log
@@ -727,23 +727,23 @@ prepare() {
 	fi
 
 	# GLSL toggle patch - Allows for use of ARB instead of GLSL
-	if [ $_GLSL_toggle == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_GLSL_toggle" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
 	fi
 
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
-	if [ $_proton_fs_hack == "true" ] && [ $_use_staging == "true" ] && git merge-base --is-ancestor 6f8d02b0f3099651928afd609dc4ed3fc84d7a65 HEAD; then
-	  if [ $_FS_bypass_compositor == "true" ]; then
+	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 6f8d02b0f3099651928afd609dc4ed3fc84d7a65 HEAD; then
+	  if [ "$_FS_bypass_compositor" == "true" ]; then
 	    patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
-	  elif [ $_FS_bypass_compositor == "false" ]; then # Force-enable FS_bypass_compositor patch if disabled as it's a dependency Proton Fullscreen patch
+	  elif [ "$_FS_bypass_compositor" == "false" ]; then # Force-enable FS_bypass_compositor patch if disabled as it's a dependency Proton Fullscreen patch
 	    patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" >> "$_where"/last_build_config.log
 	    patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
 	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
-	if [ $_large_address_aware == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
-	  if [ $_use_staging == "true" ]; then
+	if [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
+	  if [ "$_use_staging" == "true" ]; then
 	    patch -Np1 < ../'LAA-staging-legacy.patch' && echo "Applied large address aware override support (legacy)" >> "$_where"/last_build_config.log
 	  else
 	    patch -Np1 < ../'LAA-legacy.patch' && echo "Applied large address aware override support (legacy)" >> "$_where"/last_build_config.log
@@ -751,12 +751,12 @@ prepare() {
 	fi
 
 	# Enable STAGING_SHARED_MEMORY by default - https://wiki.winehq.org/Wine-Staging_Environment_Variables#Shared_Memory
-	if [ $_stg_shared_mem_default == "true" ] && [ $_use_staging == "true" ]; then
+	if [ "$_stg_shared_mem_default" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  patch -Np1 < ../'enable_stg_shared_mem_def.patch' && echo "Enable STAGING_SHARED_MEMORY by default" >> "$_where"/last_build_config.log
 	fi
 
 	# wine user patches
-	if [ $_user_patches == "true" ]; then
+	if [ "$_user_patches" == "true" ]; then
 	  _userpatch_target="plain-wine"
 	  _userpatch_ext="my"
 	  user_patcher
@@ -768,30 +768,30 @@ prepare() {
 	# Set custom version tags
 	local _version_tags=()
 	_version_tags+=(TkG) # watermark to keep track of TkG builds independently of the settings
-	if [ $_use_staging == "true" ]; then
+	if [ "$_use_staging" == "true" ]; then
 	  _version_tags+=(Staging)
 	else
 	  _version_tags+=(Plain)
 	fi
-	if [ $_use_esync == "true" ]; then
+	if [ "$_use_esync" == "true" ]; then
 	  _version_tags+=(Esync)
 	fi
-	if [ $_use_pba == "true" ] && [ "$_pba_version" != "none" ]; then
+	if [ "$_use_pba" == "true" ] && [ "$_pba_version" != "none" ]; then
 	  _version_tags+=(PBA)
 	fi
-	if [ $_use_vkd3d == "true" ] && [[ $_dxvk_dxgi != "true" ]]; then
+	if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
 	  _version_tags+=(Vkd3d)
 	fi
-	if [ $_use_dxvk == "true" ]; then
+	if [ "$_use_dxvk" == "true" ]; then
 	  _version_tags+=(Dxvk)
-	  if [ $_use_dxup == "true" ]; then
+	  if [ "$_use_dxup" == "true" ]; then
 	    _version_tags+=(Dxup)
 	  fi
 	fi
 	sed -i "s/\\\1/\\\1  ( ${_version_tags[*]} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
 	# dxvk user patches
-	if [ $_user_patches == "true" ] && [ $_use_dxvk == "true" ]; then
+	if [ "$_user_patches" == "true" ] && [ "$_use_dxvk" == "true" ]; then
 	  _userpatch_target="dxvk"
 	  _userpatch_ext="mydxvk"
 	  cd "${srcdir}"/"${_dxvksrcdir}"
@@ -800,7 +800,7 @@ prepare() {
 	fi
 
 	# dxup user patches
-	if [ $_user_patches == "true" ] && [ $_use_dxup == "true" ]; then
+	if [ "$_user_patches" == "true" ] && [ "$_use_dxup" == "true" ]; then
 	  _userpatch_target="dxup"
 	  _userpatch_ext="mydxup"
 	  cd "${srcdir}"/"${_dxupsrcdir}"
@@ -815,7 +815,7 @@ prepare() {
 	rm	-rf "${srcdir}"/wine-tkg-*-{32,64}-build
 
 	# no compilation
-	if [ $_NOCOMPILE == "true" ]; then
+	if [ "$_NOCOMPILE" == "true" ]; then
 	  msg2 'make prepare function fail by using Gandalf'
 	  YOU_SHALL_NOT_PASS
 	fi
@@ -834,8 +834,8 @@ build() {
 	local _prefix=/usr
 
 	# External install
-	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
-	  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
 	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
@@ -856,7 +856,7 @@ build() {
 		#--disable-tests
 		# Gstreamer was disabled for FS#33655
 
-	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	  # make using all available threads
 	  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
 	else
@@ -881,7 +881,7 @@ build() {
 		  #--disable-tests
 	fi
 
-	if [ $_LOCAL_OPTIMIZED == 'true' ]; then
+	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	  # make using all available threads
 	  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
 	else
@@ -890,16 +890,16 @@ build() {
 	fi
 
 	# Build DXVK winelib
-	if [ $_use_dxvk == "true" ]; then
+	if [ "$_use_dxvk" == "true" ]; then
 	  cd "${srcdir}"/"${_dxvksrcdir}"
-	  if [ $_dxvk_dxgi == "true" ]; then
+	  if [ "$_dxvk_dxgi" == "true" ]; then
 	    touch plzdxgi
 	  fi
 	  mkdir build
 	  patch -Np1 < ../'dxvk-winelib.patch'
 	  ./package-release-wine.sh master build --no-package
 	  # Build DXUP winelib
-	  if [ $_use_dxup == "true" ]; then
+	  if [ "$_use_dxup" == "true" ]; then
 	    cd "${srcdir}"/"${_dxupsrcdir}"
 	    mkdir build
 	    patch -Np1 < ../'dxup-winelib.patch'
@@ -913,11 +913,11 @@ package() {
 	local _prefix=/usr
 
 	# External install
-	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
-	  if [[ $_EXTERNAL_INSTALL_TYPE == "lutris" ]]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
 	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
 	  fi
-	  if [[ $_EXTERNAL_NOVER == "true" ]]; then
+	  if [ "$_EXTERNAL_NOVER" == "true" ]; then
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
 	  else
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
@@ -945,30 +945,30 @@ package() {
 	ln -s "../conf.avail/30-$pkgname-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.d/30-$pkgname-win32-aliases.conf"
 
 	# wine binfmt
-	if [[ $_EXTERNAL_INSTALL == true ]]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
 	  mkdir -p "${pkgdir}/usr/lib/binfmt.d"
 	  # change binfmt.conf to actual installed path
 	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
 	else
 	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 	  # disable mime-types registering
-	  if [[ $_MIME_NOPE == true ]]; then
+	  if [ "$_MIME_NOPE" == "true" ]; then
 	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/usr/share/wine/wine.inf -i
 	  fi
 	fi
 
 	# dxvk
-	if [ $_use_dxvk == "true" ]; then
+	if [ "$_use_dxvk" == "true" ]; then
 	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/lib32/wine
 	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	  # dxup
-	  if [ $_use_dxup == "true" ]; then
+	  if [ "$_use_dxup" == "true" ]; then
 	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x32/* "${pkgdir}$_prefix"/lib32/wine
 	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	  fi
 	fi
 
-	if [ $_use_esync == "true" ]; then
+	if [ "$_use_esync" == "true" ]; then
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
 	  msg2 'Remember to export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
@@ -979,9 +979,9 @@ package() {
 	fi
 
 	# External install
-	if [[ $_EXTERNAL_INSTALL == "true" ]]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
 	  msg2 "### This wine will be installed to: $_prefix"
-	  if [[ $_EXTERNAL_INSTALL_TYPE != "lutris" ]]; then
+	  if [ "$_EXTERNAL_INSTALL_TYPE" != "lutris" ]; then
 	    msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
 	  fi
 	fi
@@ -1033,9 +1033,9 @@ md5sums=('SKIP'
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
 
-if [ $_NUKR == "true" ]; then
+if [ "$_NUKR" == "true" ]; then
   # Sanitization
-  rm -rf "$srcdir"/$_esyncsrcdir
+  rm -rf "$srcdir"/"$_esyncsrcdir"
   rm -rf "$srcdir"/*.patch
   rm -rf "$srcdir"/*.tgz
   rm -rf "$srcdir"/*.conf
