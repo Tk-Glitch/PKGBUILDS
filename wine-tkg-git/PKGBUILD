@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.2.r6.gd12fcebb
+pkgver=4.2.r8.g38aa047c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -107,11 +107,9 @@ else
     msg2 "Using Faudio for xaudio2"
   fi
 
-  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-    pkgname="${pkgname/%-git/-optimized-git}"
-    msg2 "Using custom compiler optimizations. Optional flag, if used: -march=$_OPTIONAL_MARCHFLAG"
-  else
-    msg2 "Using makepkg.conf optimization flags"
+  if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
+    pkgname="${pkgname/%-git/-marchopt-git}"
+    msg2 "Using -march=$_OPTIONAL_MARCHFLAG"
   fi
 fi
 
@@ -458,7 +456,7 @@ prepare() {
 
 	# apply compiler choice and optimizations
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
-	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
+	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG && echo "Using $_OPTIONAL_MARCHFLAG" >> "$_where"/last_build_config.log
 	fi
 
 	if [ "$_NO_MSGS_FLAGS" == "true" ]; then
@@ -787,6 +785,9 @@ prepare() {
 	  if [ "$_use_dxup" == "true" ]; then
 	    _version_tags+=(Dxup)
 	  fi
+	fi
+	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
+	  _version_tags+=("$_OPTIONAL_MARCHFLAG")
 	fi
 	sed -i "s/\\\1/\\\1  ( ${_version_tags[*]} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
