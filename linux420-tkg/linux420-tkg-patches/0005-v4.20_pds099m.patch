@@ -3300,7 +3300,7 @@ index 000000000000..23db1e4be7a6
 +	rq->curr->time_slice /= 2;
 +	p->time_slice = rq->curr->time_slice;
 +#ifdef CONFIG_SCHED_HRTICK
-+	hrtick_start(rq, rq->curr->time_slice);
++	hrtick_start(rq, US_TO_NS(rq->curr->time_slice));
 +#endif
 +
 +	if (p->time_slice < RESCHED_US) {
