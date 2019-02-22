@@ -5,7 +5,7 @@ pkgver=4.2.r8.g38aa047c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=127
+eval pkgrel=128
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -85,6 +85,11 @@ else
   if [ "$_use_pba" == "true" ]; then
 #    pkgname="${pkgname/%-git/-pba-git}"
     msg2 "Using pba patchset"
+  fi
+
+  if [ "$_use_legacy_gallium_nine" == "true" ]; then
+    pkgname="${pkgname/%-git/-nine-git}"
+    msg2 "Using gallium nine patchset (legacy)"
   fi
 
   if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
@@ -436,6 +441,10 @@ prepare() {
 	  fi
 	fi
 
+	if [ "$_use_legacy_gallium_nine" == "true" ]; then
+	  echo "Using gallium nine patchset (legacy)" >> "$_where"/last_build_config.log
+	fi
+
 	if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
 	  _configure_args+=(--with-vkd3d)
 	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
@@ -725,8 +734,27 @@ prepare() {
 	  fi
 	fi
 
+	# d3d9 patches
+	if [ "$_use_legacy_gallium_nine" == "true" ] && [ "$_use_staging" == "true" ] && ! git merge-base --is-ancestor e24b16247d156542b209ae1d08e2c366eee3071a HEAD; then
+	  wget -O "$_where"/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O "$_where"/staging-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/staging-helper.patch
+	  patch -Np1 < "$_where"/staging-helper.patch
+	  patch -Np1 < "$_where"/wine-d3d9.patch
+	  autoreconf -f
+	  _configure_args+=(--with-d3d9-nine)
+	elif [ "$_use_legacy_gallium_nine" == "true" ] && [ "$_use_staging" != "true" ] && ! git merge-base --is-ancestor e24b16247d156542b209ae1d08e2c366eee3071a HEAD; then
+	  wget -O "$_where"/wine-d3d9.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/wine-d3d9.patch
+	  wget -O "$_where"/d3d9-helper.patch https://raw.githubusercontent.com/sarnex/wine-d3d9-patches/master/d3d9-helper.patch
+	  patch -Np1 < "$_where"/d3d9-helper.patch
+	  patch -Np1 < "$_where"/wine-d3d9.patch
+	  autoreconf -f
+	  _configure_args+=(--with-d3d9-nine)
+	elif [ "$_use_legacy_gallium_nine" == "true" ] && git merge-base --is-ancestor e24b16247d156542b209ae1d08e2c366eee3071a HEAD; then
+	  echo "Legacy Gallium Nine disabled due to known issues with selected Wine version" >> "$_where"/last_build_config.log
+	fi
+
 	# GLSL toggle patch - Allows for use of ARB instead of GLSL
-	if [ "$_GLSL_toggle" == "true" ] && [ "$_use_staging" == "true" ]; then
+	if [ "$_GLSL_toggle" == "true" ] && [ "$_use_staging" == "true" ] && [ "$_use_legacy_gallium_nine" != "true" ]; then
 	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
 	fi
 
@@ -785,6 +813,9 @@ prepare() {
 	fi
 	if [ "$_use_pba" == "true" ] && [ "$_pba_version" != "none" ]; then
 	  _version_tags+=(PBA)
+	fi
+	if [ "$_use_legacy_gallium_nine" == "true" ]; then
+	  _version_tags+=(Nine)
 	fi
 	if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
 	  _version_tags+=(Vkd3d)
