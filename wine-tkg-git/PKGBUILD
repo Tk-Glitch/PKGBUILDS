@@ -5,7 +5,7 @@ pkgver=4.2.r9.gb74293fb
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=129
+eval pkgrel=130
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -293,6 +293,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'enable_stg_shared_mem_def.patch' # Enable STAGING_SHARED_MEMORY by default
 		'LAA-legacy.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
 		'LAA-staging-legacy.patch' # Same as above, for staging
+		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
+		'LAA-staging.patch' # Same as above, for staging
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -787,6 +789,12 @@ prepare() {
 	  else
 	    patch -Np1 < ../'LAA-legacy.patch' && echo "Applied large address aware override support (legacy)" >> "$_where"/last_build_config.log
 	  fi
+	elif [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
+	  if [ "$_use_staging" == "true" ]; then
+	    patch -Np1 < ../'LAA-staging.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	  else
+	    patch -Np1 < ../'LAA.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	  fi
 	fi
 
 	# Enable STAGING_SHARED_MEMORY by default - https://wiki.winehq.org/Wine-Staging_Environment_Variables#Shared_Memory
@@ -1074,7 +1082,9 @@ md5sums=('SKIP'
          'c1bc0ab0ca1d531deaf32d0a58e5fbed'
          '07b48859d0b274c9b35be4de3016ae27'
          '3cb83a83c7ed9335eddbef665f4d89f9'
-         '25e20e66ee3b2896f2979ba4e16ff767')
+         '25e20e66ee3b2896f2979ba4e16ff767'
+         'afd2e119b0d5aac290a0b89324624fb4'
+         '3d52653b8f98cf5e0d7305fdbd5cb2c2')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
