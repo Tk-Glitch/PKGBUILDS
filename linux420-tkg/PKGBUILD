@@ -43,7 +43,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=12
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=29
+pkgrel=30
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -407,11 +407,18 @@ prepare() {
     plain ""
     plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
     plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-    read -p "`echo $'    > N/y : '`" CONDITION6;
+    read -p "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
   fi
-  if [ "$CONDITION6" == "y" ] || [ "$_ksm_uksm" == "true" ]; then
-    sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
+  if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
     patch -Np1 -i ../uksm-${_basekernel}.patch
+    sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
+    echo "CONFIG_KSM_LEGACY=y" >> ./.config
+    echo "# CONFIG_UKSM is not set" >> ./.config
+  elif [ "$CONDITION6" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
+    patch -Np1 -i ../uksm-${_basekernel}.patch
+    sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
+    echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
+    echo "CONFIG_UKSM=y" >> ./.config
   fi
 
   # bcachefs
