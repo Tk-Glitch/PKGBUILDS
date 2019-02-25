@@ -244,6 +244,7 @@ optdepends=(
     'cups'                  'zapcc'
     'samba'                 'clang'
     'dosbox'                'ccache'
+    'faudio'                'lib32-faudio'
 )
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
