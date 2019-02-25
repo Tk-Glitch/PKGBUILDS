@@ -247,7 +247,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
 		'f4skyrimse-fix.patch' # Fo4 & Skyrim SE Script Extender fix
-		'fallout4.patch' # Fallout 4 dsound fix
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
 		'sims_2-fix-legacy.patch' # Sims 2 fix for <4.1
@@ -554,12 +553,6 @@ prepare() {
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ "$_f4skyrimse_fix" == "true" ]; then
 	  patch -Np1 < ../'f4skyrimse-fix.patch' && echo "Applied F4/SkyrimSE Script Extender fix" >> "$_where"/last_build_config.log
-	fi
-
-	# Fallout 4 dsound workaround
-	# https://bugs.winehq.org/show_bug.cgi?id=41271
-	if [ "$_fallout4dsound_fix" == "true" ]; then
-	  patch -Np1 < ../'fallout4.patch' && echo "Applied Fallout 4 Dsound workaround" >> "$_where"/last_build_config.log
 	fi
 
 	# Magic The Gathering: Arena crash fix
@@ -1039,7 +1032,6 @@ md5sums=('SKIP'
          'SKIP'
          'a49bc2bb374d5ea5045ada5401cd91a3'
          'ecada2fc8abda49c6bb788c25f05a822'
-         'd1a18945f2ca46fa3fce70e157393a01'
          'f50501943759c8731d40eb521e36e6da'
          '6c73650482fa00d91d2957e13079eab7'
          '6e301f262f004b930ffc3000839d837b'
