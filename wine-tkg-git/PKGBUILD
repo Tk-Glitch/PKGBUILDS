@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.2.r9.gb74293fb
+pkgver=4.2.r11.g7c1618b1
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -97,9 +97,13 @@ else
     msg2 "Using gallium nine patchset (legacy)"
   fi
 
-  if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
-    pkgname="${pkgname/%-git/-vkd3d-git}"
-    msg2 "Using VKD3D for d3d12 translation"
+  if [ "$_use_vkd3d" == "true" ]; then
+    if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
+      pkgname="${pkgname/%-git/-vkd3d-git}"
+      msg2 "Using VKD3D for d3d12 translation"
+    else
+      msg2 "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !"
+    fi
   fi
 
   if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ]; then
@@ -212,8 +216,10 @@ if [ "$_use_dxvk" == "true" ]; then
 fi
 
 # vkd3d deps
-if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
-  makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
+if [ "$_use_vkd3d" == "true" ]; then
+  if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
+    makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
+  fi
 fi
 
 # faudio deps
@@ -453,11 +459,13 @@ prepare() {
 	  echo "Using gallium nine patchset (legacy)" >> "$_where"/last_build_config.log
 	fi
 
-	if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
-	  _configure_args+=(--with-vkd3d)
-	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
-	elif [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" == "true" ]; then
-	  echo "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !" >> "$_where"/last_build_config.log
+	if [ "$_use_vkd3d" == "true" ]; then
+	  if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
+	    _configure_args+=(--with-vkd3d)
+	    echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
+	  else
+	    echo "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !" >> "$_where"/last_build_config.log
+	  fi
 	fi
 
 	if [ "$_use_dxvk" == "true" ]; then
@@ -830,8 +838,10 @@ prepare() {
 	if [ "$_use_legacy_gallium_nine" == "true" ]; then
 	  _version_tags+=(Nine)
 	fi
-	if [ "$_use_vkd3d" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
-	  _version_tags+=(Vkd3d)
+	if [ "$_use_vkd3d" == "true" ]; then
+	  if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
+	    _version_tags+=(Vkd3d)
+	  fi
 	fi
 	if [ "$_use_dxvk" == "true" ]; then
 	  _version_tags+=(Dxvk)
