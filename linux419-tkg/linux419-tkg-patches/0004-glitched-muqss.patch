@@ -53,12 +53,13 @@ index 84a1d08d68551..57c3036a68952 100644
 diff --git a/kernel/sched/MuQSS.c b/kernel/sched/MuQSS.c
 --- a/kernel/sched/MuQSS.c
 +++ b/kernel/sched/MuQSS.c
-@@ -1011,6 +1011,10 @@ static void resched_curr(struct rq *rq)
+@@ -1011,6 +1011,11 @@ static void resched_curr(struct rq *rq)
  #define CPUIDLE_THREAD_BUSY    (16)
  #define CPUIDLE_DIFF_NODE      (32)
  
 +#ifdef CONFIG_SCHED_SMT
 +DEFINE_STATIC_KEY_FALSE(sched_smt_present);
++EXPORT_SYMBOL_GPL(sched_smt_present);
 +#endif
 +
  /*
