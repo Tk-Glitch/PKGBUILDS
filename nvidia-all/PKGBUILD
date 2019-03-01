@@ -531,7 +531,7 @@ if [ "$_dkms" == "false" ]; then
 
   # Blacklist Nouveau
   mkdir -p "${pkgdir}/usr/lib/modprobe.d"
-  echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
+  echo -e "blacklist nouveau\nblacklist nvidiafb" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
   rm -v ${where}/options
   }
@@ -624,7 +624,7 @@ if [ "$_dkms" == "true" ]; then
 
     # Blacklist Nouveau
     mkdir -p "${pkgdir}/usr/lib/modprobe.d"
-    echo "blacklist nouveau" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
+    echo -e "blacklist nouveau\nblacklist nvidiafb" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
 
