@@ -1108,7 +1108,7 @@ index f5516bae0c1b..fe1d4aeb6d69 100644
 +#endif
 diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
 new file mode 100644
-index 000000000000..23db1e4be7a6
+index 000000000000..20fb77b2ef17
 --- /dev/null
 +++ b/kernel/sched/pds.c
 @@ -0,0 +1,6483 @@
@@ -1198,7 +1198,7 @@ index 000000000000..23db1e4be7a6
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99m by Alfred Chen.\n");
++	printk(KERN_INFO "pds: PDS-mq CPU Scheduler 0.99n by Alfred Chen.\n");
 +}
 +
 +/*
