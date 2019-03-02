@@ -435,7 +435,7 @@ prepare() {
   # bfq-mq
   if [ -z "$_bfqmq" ]; then
     plain ""
-    plain "Add bfq-mq support? https://github.com/Algodev-github/bfq-mq"
+    plain "Add bfq-mq (BFQ devel) and bfq-sq support? https://github.com/Algodev-github/bfq-mq"
     read -p "`echo $'    > N/y : '`" CONDITION8;
   fi
   if [ "$CONDITION8" == "y" ] || [ "$_bfqmq" == "true" ]; then
