@@ -608,7 +608,7 @@ package_lib32-nvidia-utils-tkg() {
 
     rm -rf "${pkgdir}"/usr/{include,share,bin}
     mkdir -p "${pkgdir}/usr/share/licenses"
-    ln -s $_pkgbasename "${pkgdir}/usr/share/licenses/${pkgname}"
+    ln -s nvidia-utils/ "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 
 if [ "$_dkms" == "true" ]; then
