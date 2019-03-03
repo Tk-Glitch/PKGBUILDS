@@ -262,7 +262,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
 		'sims_2-fix-legacy.patch' # Sims 2 fix for <4.1
-		'sims_2-fix.patch' # Sims 2 fix for 4.2+
+		'sims_2-fix-4.2-.patch' # Sims 2 fix for 4.2 and lower
+		'sims_2-fix.patch' # Sims 2 fix for 4.3+
 		'sims_3-oldnvidia.patch' # No.
 		'mwo.patch' # Mechwarrior Online fix
 		'pythonfix.patch' # Backported Python/Sims4 squash patch for <=3.18
@@ -576,8 +577,8 @@ prepare() {
 	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
 	fi
 
-	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets - The actual patch is applied after staging
-	if [ "$_sims2_fix" == "true" ]; then
+	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets for 4.2+devel and lower - The actual patch is applied after staging
+	if [ "$_sims2_fix" == "true" ] && ! git merge-base --is-ancestor d88f12950761e9ff8d125a579de6e743979f4945 HEAD; then
 	  _staging_args+=(-W wined3d-WINED3D_RS_COLORWRITEENABLE -W wined3d-Indexed_Vertex_Blending)
 	fi
 
@@ -728,8 +729,10 @@ prepare() {
 
 	# The Sims 2 fix - https://bugs.winehq.org/show_bug.cgi?id=8051
 	if [ "$_sims2_fix" == "true" ]; then
-	  if git merge-base --is-ancestor 4de2da1d146248ed872ae45c30b8d485832f4ac8 HEAD; then
+	  if git merge-base --is-ancestor d88f12950761e9ff8d125a579de6e743979f4945 HEAD; then
 	    patch -Np1 < ../'sims_2-fix.patch' && echo "Applied The Sims 2 fix" >> "$_where"/last_build_config.log
+	  elif git merge-base --is-ancestor 4de2da1d146248ed872ae45c30b8d485832f4ac8 HEAD; then
+	    patch -Np1 < ../'sims_2-fix-4.2-.patch' && echo "Applied The Sims 2 fix (4.2 and lower)" >> "$_where"/last_build_config.log
 	  else
 	    patch -Np1 < ../'sims_2-fix-legacy.patch' && echo "Applied The Sims 2 fix (legacy)" >> "$_where"/last_build_config.log
 	  fi
@@ -1060,6 +1063,7 @@ md5sums=('SKIP'
          '6c73650482fa00d91d2957e13079eab7'
          '6e301f262f004b930ffc3000839d837b'
          'cd52a9b26c15fd210cd5ed1da178dcb1'
+         '65906da954430bde504dd47a69f23f6f'
          '342a6e02f73c06120ce01cc887489d9c'
          'd34ec9e86cbbf48b485a8c6f99d24921'
          'a527081e5f6eca3aec0b390d96d8587b'
