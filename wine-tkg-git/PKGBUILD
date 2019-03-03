@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.2.r11.g7c1618b1
+pkgver=4.2.r20.g5e8beb5f
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=130
+eval pkgrel=131
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -226,6 +226,7 @@ fi
 if [ "$_use_faudio" == "true" ]; then
   makedepends=("${makedepends[@]}" faudio-git lib32-faudio-git)
 fi
+
 optdepends=(
     'giflib'                'lib32-giflib'
     'libpng'                'lib32-libpng'
