@@ -558,11 +558,15 @@ prepare() {
 	if [ "$_use_faudio" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if git merge-base --is-ancestor 9422b844b59282db04af533451f50661de56b9ca HEAD; then
 	    _staging_args+=(-W xaudio2-revert -W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges) # Disable xaudio2 staging patchsets for faudio
-	    _configure_args+=(--with-faudio)
+	    if [ "$_faudio_ignorecheck" != "true" ]; then
+	      _configure_args+=(--with-faudio)
+	    fi
 	  elif git merge-base --is-ancestor 47fbcece36cad190c4d18f7636df67d1382b7545 HEAD && ! git merge-base --is-ancestor 3e390b1aafff47df63376a8ca4293c515d74f4ba HEAD; then
 	    patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
 	    _staging_args+=(-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges) # Disable xaudio2 staging patchsets for faudio
-	    _configure_args+=(--with-faudio)
+	    if [ "$_faudio_ignorecheck" != "true" ]; then
+	      _configure_args+=(--with-faudio)
+	    fi
 	  fi
 	fi
 
@@ -717,7 +721,7 @@ prepare() {
 	  fi
 	fi
 	# /esync
-	
+
 	# Launch with dedicated gpu desktop entry patch
 	if [ "$_launch_with_dedicated_gpu" == "true" ]; then
 	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch' && echo "Applied launch with dedicated gpu desktop entry patch" >> "$_where"/last_build_config.log
