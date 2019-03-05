@@ -1,7 +1,7 @@
 # Wine-tkg lutris builds changelog
 
 4.3
-- Sync'd with staging up to 1edb7d5;
+- Sync'd with staging up to 923434c;
 
 - Disable the previously enabled workaround for plasma systray as it was found to break GNOME systray.
 
