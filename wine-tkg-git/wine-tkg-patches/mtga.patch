@@ -1,8 +1,21 @@
+diff --git a/dlls/msi/files.c b/dlls/msi/files.c
+index 5a88c147e0..47c0de61e0 100644
+--- a/dlls/msi/files.c
++++ b/dlls/msi/files.c
+@@ -87,6 +87,8 @@ static BOOL is_obsoleted_by_patch( MSIPACKAGE *package, MSIFILE *file )
+ 
+ static msi_file_state calculate_install_state( MSIPACKAGE *package, MSIFILE *file )
+ {
++    return msifs_overwrite;
++
+     MSICOMPONENT *comp = file->Component;
+     VS_FIXEDFILEINFO *file_version;
+     WCHAR *font_version;
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
-index c4e02dacb1..94aa5f132a 100644
+index 9f4a08fdb9..035ad680eb 100644
 --- a/dlls/ntdll/thread.c
 +++ b/dlls/ntdll/thread.c
-@@ -914,7 +914,7 @@ NTSTATUS set_thread_context( HANDLE handle, const context_t *context, BOOL *self
+@@ -778,7 +778,7 @@ NTSTATUS set_thread_context( HANDLE handle, const context_t *context, BOOL *self
  NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int flags, BOOL *self )
  {
      NTSTATUS ret;
@@ -11,7 +24,7 @@ index c4e02dacb1..94aa5f132a 100644
  
      SERVER_START_REQ( get_thread_context )
      {
-@@ -929,7 +929,7 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
+@@ -793,7 +793,7 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
  
      if (ret == STATUS_PENDING)
      {
@@ -20,7 +33,7 @@ index c4e02dacb1..94aa5f132a 100644
          {
              SERVER_START_REQ( get_thread_context )
              {
-@@ -949,7 +949,6 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
+@@ -813,7 +813,6 @@ NTSTATUS get_thread_context( HANDLE handle, context_t *context, unsigned int fla
              else break;
          }
          NtResumeThread( handle, &dummy );
