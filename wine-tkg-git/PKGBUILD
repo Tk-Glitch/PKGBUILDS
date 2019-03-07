@@ -1001,13 +1001,15 @@ package() {
 	  fi
 	fi
 
-	# package wine 32-bit
-	# (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
-	msg2 'Packaging Wine-32...'
-	cd "${srcdir}/${pkgname}"-32-build
-	make 	prefix="${pkgdir}$_prefix" \
-			libdir="${pkgdir}$_prefix/lib32" \
-			dlldir="${pkgdir}$_prefix/lib32/wine" install
+	if [ "$_NOLIB32" != "true" ]; then
+	  # package wine 32-bit
+	  # (according to the wine wiki, this reverse 32-bit/64-bit packaging order is important)
+	  msg2 'Packaging Wine-32...'
+	  cd "${srcdir}/${pkgname}"-32-build
+	  make 	  prefix="${pkgdir}$_prefix" \
+			  libdir="${pkgdir}$_prefix/lib32" \
+			  dlldir="${pkgdir}$_prefix/lib32/wine" install
+	fi
 
 	# package wine 64-bit
 	msg2 'Packaging Wine-64...'
@@ -1036,11 +1038,15 @@ package() {
 
 	# dxvk
 	if [ "$_use_dxvk" == "true" ]; then
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	  if [ "$_NOLIB32" != "true" ]; then
+	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	  fi
 	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	  # dxup
 	  if [ "$_use_dxup" == "true" ]; then
-	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	    if [ "$_NOLIB32" != "true" ]; then
+	      cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	    fi
 	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x64/* "${pkgdir}$_prefix"/lib/wine
 	  fi
 	fi
