@@ -8310,3 +8310,70 @@ index 9d402e7fc949..89e56560cba2 100644
  	};
  	struct wakeup_test_data *x = data;
  
+diff --git a/kernel/sched/cpufreq_schedutil.c b/kernel/sched/cpufreq_schedutil.c
+index 14f3234c1567ed213be051a15a0444f24327e85e..1bf2db019d8972b862566b28b0cbbcc1a9f7e721 100644
+--- a/kernel/sched/cpufreq_schedutil.c
++++ b/kernel/sched/cpufreq_schedutil.c
+@@ -916,6 +916,7 @@ static int __init sugov_register(void)
+ fs_initcall(sugov_register);
+ 
+ #ifdef CONFIG_ENERGY_MODEL
++#ifndef CONFIG_SCHED_PDS
+ extern bool sched_energy_update;
+ extern struct mutex sched_energy_mutex;
+ 
+@@ -946,4 +947,10 @@ void sched_cpufreq_governor_change(struct cpufreq_policy *policy,
+ 	}
+ 
+ }
++#else /* CONFIG_SCHED_PDS */
++void sched_cpufreq_governor_change(struct cpufreq_policy *policy,
++				  struct cpufreq_governor *old_gov)
++{
++}
++#endif
+ #endif
+diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
+index cc2512eafb79ab1bd7f76ce962d00e998edac2eb..20c5749e3bb6de99a9885f4a09b4e9299d25eced 100644
+--- a/kernel/sched/pds.c
++++ b/kernel/sched/pds.c
+@@ -17,7 +17,6 @@
+ #include <linux/context_tracking.h>
+ #include <linux/compat.h>
+ #include <linux/blkdev.h>
+-#include <linux/cpuset.h>
+ #include <linux/delayacct.h>
+ #include <linux/freezer.h>
+ #include <linux/init_task.h>
+diff --git a/kernel/sched/pds_sched.h b/kernel/sched/pds_sched.h
+index 02e1381b23e55d7c33507c7947a326dcb1a12dbc..5a11c88cfbe54a56bfafe27e5d62e258756caa7f 100644
+--- a/kernel/sched/pds_sched.h
++++ b/kernel/sched/pds_sched.h
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/cpufreq.h>
+ #include <linux/cpuidle.h>
++#include <linux/cpuset.h>
+ #include <linux/ctype.h>
+ #include <linux/kthread.h>
+ #include <linux/livepatch.h>
+
+diff --git a/kernel/sched/pds.c b/kernel/sched/pds.c
+index 20c5749e3bb6de99a9885f4a09b4e9299d25eced..7e6c0cbed07b3d205a5546a58a24c3ae1deea154 100644
+--- a/kernel/sched/pds.c
++++ b/kernel/sched/pds.c
+@@ -458,11 +458,10 @@ static inline u64 static_deadline_diff(int static_prio)
+ static inline void time_slice_expired(struct task_struct *p, struct rq *rq)
+ {
+ 	p->time_slice = timeslice();
+-
+-	if (p->prio >= NORMAL_PRIO) {
++	if (p->prio >= NORMAL_PRIO)
+ 		p->deadline = rq->clock + task_deadline_diff(p);
+-		update_task_priodl(p);
+-	}
++
++	update_task_priodl(p);
+ }
+ 
+ static inline struct task_struct *rq_first_queued_task(struct rq *rq)
