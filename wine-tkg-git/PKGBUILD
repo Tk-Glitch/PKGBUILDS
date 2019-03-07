@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.3.r0.g923434cd
+pkgver=4.3.r4.g3a1bf0a0
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=132
+eval pkgrel=133
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -1070,7 +1070,7 @@ md5sums=('SKIP'
          'a49bc2bb374d5ea5045ada5401cd91a3'
          'ecada2fc8abda49c6bb788c25f05a822'
          'f50501943759c8731d40eb521e36e6da'
-         '6c73650482fa00d91d2957e13079eab7'
+         'af6b455bdace212157b9a6652ee88d41'
          '6e301f262f004b930ffc3000839d837b'
          'cd52a9b26c15fd210cd5ed1da178dcb1'
          '65906da954430bde504dd47a69f23f6f'
