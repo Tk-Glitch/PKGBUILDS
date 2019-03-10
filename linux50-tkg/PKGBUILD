@@ -37,9 +37,9 @@ _basever=50
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
-#_sub=0
-pkgver="${_basekernel}" #."${_sub}"
-pkgrel=2
+_sub=1
+pkgver="${_basekernel}"."${_sub}"
+pkgrel=3
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -52,7 +52,7 @@ else
   options=('!strip')
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
-        #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
+        "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         #"https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-${_basekernel}.patch"
         'config.x86_64' # config
         'linux50-tkg.preset' # standard config files for mkinitcpio ramdisk
@@ -75,13 +75,14 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0010-uksm-5.0.patch
 )
 sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
+            'd05db91f6b95f963bb4c92fedb1ccb300378c23cc16b09f27d2190841620d5a4'
             '6727dedef06470ffd7eedb96d958c11add3a80f0743cf32ef89b6f509a6686ef'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
             '8855fe0f9d2ae64331d3c716477349d45a1c1fb628fc16dfa5fa95d41ef5fd28'
-            '8ffebfbb1e2553ef04fc8dac1c0d9d596e40c06d59fd131b4610304d80a98b2d'
+            'ac5932f6b8918af239b6224966604d274f5884c9b19738e4c78de38ac0ca11a9'
             '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
             'eb5f83558a720667b5bb2291f74dfb35c1711fd4f17b615fc23e1b2aed314057'
             '6b4e1cba31910ff1bd097f5936687e61823ce9d6e06ee003bb6b712bf1c9c511'
@@ -136,7 +137,7 @@ prepare() {
   cd "${srcdir}/linux-${_basekernel}"
 
   # add upstream patch
-  #patch -p1 -i ../patch-"${pkgver}"
+  patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
