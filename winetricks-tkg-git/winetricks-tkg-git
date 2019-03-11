@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20181203-next
+WINETRICKS_VERSION=20190310-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -299,6 +299,16 @@ w_killall()
 {
     # shellcheck disable=SC2046,SC2086
     kill -s KILL $(pgrep $1)
+}
+
+# Some packages don't support win32, die with an appropriate message
+# Returns 64 (for tests/winetricks-test)
+w_package_unsupported_win32()
+{
+    if [ "$W_ARCH" = "win32" ] ; then
+        w_warn "This package ($W_PACKAGE) does not work on a 32-bit installation. You must use a prefix made with WINEARCH=win64."
+        exit 64
+    fi
 }
 
 # Warn user if package is broken. Optionally provide a link to the bug report.
@@ -3379,8 +3389,6 @@ winetricks_prefixmenu()
              _W_msg_mkprefix="Создать новый путь wine"
              _W_msg_unattended0="Отключить автоматическую установку"
              _W_msg_unattended1="Включить автоматическую установку"
-             _W_msg_showbroken0="Спрятать нерабочие программы (например, использующие DRM)"
-             _W_msg_showbroken1="Отобразить нерабочие программы (например, использующие DRM)"
              _W_msg_help="Просмотр справки (в веб-браузере)"
              ;;
         uk*) _W_msg_title="Winetricks - виберіть wineprefix"
@@ -3392,11 +3400,9 @@ winetricks_prefixmenu()
              _W_msg_mkprefix="створити новий wineprefix"
              _W_msg_unattended0="Вимкнути автоматичне встановлення"
              _W_msg_unattended1="Увімкнути автоматичне встановлення"
-             _W_msg_showbroken0="Сховати нестабільні додатки (наприклад з проблемами з DRM)"
-             _W_msg_showbroken1="Показати нестабільні додатки (наприклад з проблемами з DRM)"
              _W_msg_help="Переглянути довідку"
              ;;
-        zh_CN*)   _W_msg_title="Winetricks - 选择一个 wine 容器"
+        zh_CN*)   _W_msg_title="Winetricks - 选择一个 Wine 容器"
              _W_msg_body='您想要做什么？'
              _W_msg_apps='安装一个 Windows 应用'
              _W_msg_games='安装一个游戏'
@@ -3405,8 +3411,6 @@ winetricks_prefixmenu()
              _W_msg_mkprefix="创建新的 Wine 容器"
              _W_msg_unattended0="禁用静默安装"
              _W_msg_unattended1="启用静默安装"
-             _W_msg_showbroken0="隐藏有问题的程序 (比如存在版权问题的程序)"
-             _W_msg_showbroken1="有问题的程序 (比如存在版权问题的程序)"
              _W_msg_help="查看帮助"
              ;;
         zh_TW*|zh_HK*)   _W_msg_title="Winetricks - 選取一個 Wine 容器"
@@ -3415,11 +3419,9 @@ winetricks_prefixmenu()
              _W_msg_games='安裝一個遊戲'
              _W_msg_benchmarks='安裝一個基准測試軟體'
              _W_msg_default="選取預設的 Wine 容器"
-             _W_msg_mkprefix="创建新的 Wine 容器"
+             _W_msg_mkprefix="建立新的 Wine 容器"
              _W_msg_unattended0="禁用靜默安裝"
              _W_msg_unattended1="啟用靜默安裝"
-             _W_msg_showbroken0="隱藏有問題的程式 (比如存在著作權問題的程式)"
-             _W_msg_showbroken1="有問題的程式 (比如存在著作權問題的程式)"
              _W_msg_help="檢視輔助說明"
              ;;
         de*) _W_msg_title="Winetricks - wineprefix auswählen"
@@ -3431,8 +3433,6 @@ winetricks_prefixmenu()
              _W_msg_mkprefix="Neuen wineprefix erstellen"
              _W_msg_unattended0="Automatische Installation deaktivieren"
              _W_msg_unattended1="Automatische Installation aktivieren"
-             _W_msg_showbroken0="Defekte Programme nicht anzeigen (z.B. solche mit DRM Problemen)"
-             _W_msg_showbroken1="Defekte Programme anzeigen (z.B. solche mit DRM Problemen)"
              _W_msg_help="Hilfe anzeigen"
              ;;
         pl*) _W_msg_title="Winetricks - wybierz prefiks Wine"
@@ -3444,8 +3444,6 @@ winetricks_prefixmenu()
              _W_msg_mkprefix="Stwórz nowy prefiks Wine"
              _W_msg_unattended0="Wyłącz cichą instalację"
              _W_msg_unattended1="Włącz cichą instalację"
-             _W_msg_showbroken0="Ukrywaj uszkodzone aplikacje (np. z problemami z DRM)"
-             _W_msg_showbroken1="Pokazuj uszkodzone aplikacje (np. z problemami z DRM)"
              _W_msg_help="Wyświetl pomoc"
              ;;
         *)   _W_msg_title="Winetricks - choose a wineprefix"
@@ -3457,18 +3455,12 @@ winetricks_prefixmenu()
              _W_msg_mkprefix="Create new wineprefix"
              _W_msg_unattended0="Disable silent install"
              _W_msg_unattended1="Enable silent install"
-             _W_msg_showbroken0="Hide broken apps (e.g. those with DRM problems)"
-             _W_msg_showbroken1="Show broken apps (e.g. those with DRM problems)"
              _W_msg_help="View help"
              ;;
     esac
     case "$W_OPT_UNATTENDED" in
         1) _W_cmd_unattended=attended; _W_msg_unattended="$_W_msg_unattended0" ;;
         *) _W_cmd_unattended=unattended; _W_msg_unattended="$_W_msg_unattended1" ;;
-    esac
-    case "$W_OPT_SHOWBROKEN" in
-        1) _W_cmd_showbroken=hidebroken; _W_msg_showbroken="$_W_msg_showbroken0" ;;
-        *) _W_cmd_showbroken=showbroken; _W_msg_showbroken="$_W_msg_showbroken1" ;;
     esac
 
     case $WINETRICKS_GUI in
@@ -3513,7 +3505,6 @@ winetricks_prefixmenu()
                 done >> "$WINETRICKS_WORKDIR"/zenity.sh
             fi
             printf %s " FALSE $_W_cmd_unattended '$_W_msg_unattended'" >> "$WINETRICKS_WORKDIR"/zenity.sh
-            printf %s " FALSE $_W_cmd_showbroken '$_W_msg_showbroken'" >> "$WINETRICKS_WORKDIR"/zenity.sh
 
             sh "$WINETRICKS_WORKDIR"/zenity.sh | tr '|' ' '
             ;;
@@ -3546,7 +3537,6 @@ winetricks_prefixmenu()
                 done
             fi
             printf %s " $_W_cmd_unattended '$_W_msg_unattended' off"
-            printf %s " $_W_cmd_showbroken '$_W_msg_showbroken' off"
             ) > "$WINETRICKS_WORKDIR"/kdialog.sh
             sh "$WINETRICKS_WORKDIR"/kdialog.sh
             ;;
@@ -3668,28 +3658,28 @@ winetricks_mainmenu()
              _W_msg_dlls="安装 Windows DLL 或组件"
              _W_msg_fonts='安装字体'
              _W_msg_settings='修改设置'
-             _W_msg_winecfg='运行 winecfg'
+             _W_msg_winecfg='运行 Wine 配置程序'
              _W_msg_regedit='运行注册表'
              _W_msg_taskmgr='运行任务管理器'
              _W_msg_explorer='运行资源管理器'
              _W_msg_uninstaller='运行卸载程序'
              _W_msg_shell='运行命令提示窗口 (作为调试)'
              _W_msg_folder='浏览容器中的文件'
-             _W_msg_annihilate="删除当前容器所有相关文件，包括启动器，完全卸载"
+             _W_msg_annihilate="删除容器中所有数据和应用程序"
              ;;
         zh_TW*|zh_HK*)   _W_msg_title="Winetricks - 目前容器路徑是 \"$WINEPREFIX\""
              _W_msg_body='管理目前容器'
-             _W_msg_dlls="裝載 Windows DLL 或套件"
-             _W_msg_fonts='裝載字型'
+             _W_msg_dlls="安裝 Windows DLL 或套件"
+             _W_msg_fonts='安裝字型'
              _W_msg_settings='修改設定'
-             _W_msg_winecfg='執行 winecfg'
-             _W_msg_regedit='執行註冊表'
-             _W_msg_taskmgr='執行工作管理者'
-             _W_msg_explorer='執行資源經理'
-             _W_msg_uninstaller='執行反安裝程式'
-             _W_msg_shell='執行指令輔助說明視窗 (作為除錯)'
+             _W_msg_winecfg='執行 Wine 設定程式'
+             _W_msg_regedit='執行登錄編輯程式'
+             _W_msg_taskmgr='執行工作管理員'
+             _W_msg_explorer='執行檔案總管'
+             _W_msg_uninstaller='執行解除安裝程式'
+             _W_msg_shell='執行命令提示視窗 (作為偵錯)'
              _W_msg_folder='瀏覽容器中的檔案'
-             _W_msg_annihilate="移除目前容器所有相依檔案，包括啟動器，完全卸載"
+             _W_msg_annihilate="刪除容器中所有資料和應用程式"
              ;;
         *)   _W_msg_title="Winetricks - current prefix is \"$WINEPREFIX\""
              _W_msg_body='What would you like to do to this wineprefix?'
@@ -3988,8 +3978,6 @@ winetricks_showmenu()
                         --column År \
                         --column Medie \
                         --column Status \
-                        --column 'Size (MB)' \
-                        --column 'Time (sec)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4006,8 +3994,6 @@ winetricks_showmenu()
                         --column Jahr \
                         --column Media \
                         --column Status \
-                        --column 'Größe (MB)' \
-                        --column 'Zeit (sec)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4024,8 +4010,6 @@ winetricks_showmenu()
                         --column Rok \
                         --column Media \
                         --column Status \
-                        --column 'Rozmiar (MB)' \
-                        --column 'Czas (sek)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4042,8 +4026,6 @@ winetricks_showmenu()
                         --column Год \
                         --column Источник \
                         --column Статус \
-                        --column 'Размер (МБ)' \
-                        --column 'Время (сек)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4060,8 +4042,6 @@ winetricks_showmenu()
                         --column Рік \
                         --column Медіа \
                         --column Статус \
-                        --column 'Розмір (МБ)' \
-                        --column 'Час (сек)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4078,8 +4058,6 @@ winetricks_showmenu()
                         --column 发行年 \
                         --column 媒介 \
                         --column 状态 \
-                        --column '文件大小 (MB)' \
-                        --column '时间 (秒)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4096,8 +4074,6 @@ winetricks_showmenu()
                         --column 發行年 \
                         --column 媒介 \
                         --column 狀態 \
-                        --column '檔案大小 (MB)' \
-                        --column '時間 (秒)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4114,8 +4090,6 @@ winetricks_showmenu()
                         --column Year \
                         --column Media \
                         --column Status \
-                        --column 'Size (MB)' \
-                        --column 'Time (sec)' \
                         --height $WINETRICKS_MENU_HEIGHT \
                         --width $WINETRICKS_MENU_WIDTH \
                         "
@@ -4131,27 +4105,22 @@ winetricks_showmenu()
                     title='?'
                     # shellcheck disable=SC1090
                     . "$metadatafile"
-                    # shellcheck disable=SC2154
-                    if test "$W_OPT_SHOWBROKEN" = 1 || test "$wine_showstoppers" = ""; then
-                        # Compute cached and downloadable flags
-                        flags=""
-                        winetricks_is_cached "$code" && flags="$_W_cached"
-                        installed=FALSE
-                        if winetricks_is_installed "$code"; then
-                            installed=TRUE
-                            echo "$code" >> "$WINETRICKS_WORKDIR"/installed.txt
-                        fi
-                        printf %s " $installed \
-                            $code \
-                            \"$title\" \
-                            \"$publisher\" \
-                            \"$year\" \
-                            \"$media\" \
-                            \"$flags\" \
-                            \"$size_MB\" \
-                            \"$time_sec\" \
-                        "
+                    # Compute cached and downloadable flags
+                    flags=""
+                    winetricks_is_cached "$code" && flags="$_W_cached"
+                    installed=FALSE
+                    if winetricks_is_installed "$code"; then
+                        installed=TRUE
+                        echo "$code" >> "$WINETRICKS_WORKDIR"/installed.txt
                     fi
+                    printf %s " $installed \
+                        $code \
+                        \"$title\" \
+                        \"$publisher\" \
+                        \"$year\" \
+                        \"$media\" \
+                        \"$flags\" \
+                    "
                 )
             done >> "$WINETRICKS_WORKDIR"/zenity.sh
 
@@ -5410,7 +5379,6 @@ Optionen:
     --no-clean        Temp Verzeichnisse nicht löschen (nützlich beim debuggen)
 -q, --unattended      Keine Fragen stellen, alles automatisch installieren
 -r, --ddrescue        Alternativer Zugriffsmodus (hilft bei zerkratzten Disks)
-    --showbroken      Auch Verben anzeigen die momentan in Wine nicht funktionieren
 -t  --torify          Run downloads under torify, if available
     --verify          Wenn Möglisch automatische GUI Tests für Verben starten
 -v, --verbose         Alle ausgeführten Kommandos anzeigen
@@ -5452,7 +5420,6 @@ Options:
     --no-clean        Don't delete temp directories (useful during debugging)
 -q, --unattended      Don't ask any questions, just install automatically
 -r, --ddrescue        Retry hard when caching scratched discs
-    --showbroken      Even show verbs that are currently broken in wine
 -t  --torify          Run downloads under torify, if available
     --verify          Run (automated) GUI tests for verbs, if available
 -v, --verbose         Echo all commands as they are executed
@@ -5497,7 +5464,6 @@ winetricks_handle_option()
         -q|--unattended) winetricks_set_unattended 1 ;;
         -r|--ddrescue) WINETRICKS_OPT_DD=ddrescue ;;
         --self-update) winetricks_selfupdate;;
-        --showbroken) W_OPT_SHOWBROKEN=1 ;;
         -t|--torify)  WINETRICKS_OPT_TORIFY=1 ;;
         --update-rollback) winetricks_selfupdate_rollback;;
         -v|--verbose) WINETRICKS_OPT_VERBOSE=1 ; set -x;;
@@ -5986,11 +5952,14 @@ w_metadata d3dcompiler_43 dlls \
     year="2010" \
     media="download" \
     file1="../directx9/directx_Jun2010_redist.exe" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dcompiler_43.dll" \
-    wine_showstoppers="24013"   # list a showstopper to hide this from average users for now
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dcompiler_43.dll"
 
 load_d3dcompiler_43()
 {
+    if w_workaround_wine_bug 24013; then
+        w_warn "Native d3dcompiler_43 may cause some d3d10 apps to crash, see https://bugs.winehq.org/show_bug.cgi?id=24013"
+    fi
+
     dllname=d3dcompiler_43
 
     helper_directx_Jun2010
@@ -7228,6 +7197,25 @@ load_dxvk96()
 {
     # https://github.com/doitsujin/dxvk
     w_download "https://github.com/doitsujin/dxvk/releases/download/v0.96/dxvk-0.96.tar.gz" 9d054c1e7a4f59825c651b14d3cfbf0d8c724763f485b3d59c89f1d7194b2206
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
+w_metadata dxvk100 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (1.0)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-1.0.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk100()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v1.0/dxvk-1.0.tar.gz" 8c8d26544609532201c10e6f5309bf5e913b5ca5b985932928ef9ab238de6dc2
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 
@@ -11288,7 +11276,7 @@ load_wsh57()
 #----------------------------------------------------------------
 
 w_metadata xact dlls \
-    title="MS XACT Engine" \
+    title="MS XACT Engine (32-bit only)" \
     publisher="Microsoft" \
     year="2010" \
     media="download" \
@@ -11331,6 +11319,52 @@ load_xact()
     # and xaudio?_?.dll, but not xaudio2_8 (unsupported)
     for x in 0 1 2 3 4 5 6 7 ; do
         w_try_regsvr "$(basename "$W_SYSTEM32_DLLS/xaudio2_${x}")"
+    done
+}
+
+#----------------------------------------------------------------
+
+w_metadata xact_x64 dlls \
+    title="MS XACT Engine (64-bit only)" \
+    publisher="Microsoft" \
+    year="2010" \
+    media="download" \
+    file1="../directx9/directx_Jun2010_redist.exe" \
+    installed_file1="${W_SYSTEM64_DLLS_WIN64:-does_not_exist}/xactengine2_0.dll"
+
+load_xact_x64()
+{
+    w_package_unsupported_win32
+    if w_workaround_wine_bug 41618; then
+        w_warn "While this helps some games, it completely breaks others. You've been warned."
+    fi
+
+    helper_directx_Jun2010
+
+    # Extract xactengine?_?.dll, X3DAudio?_?.dll, xaudio?_?.dll, xapofx?_?.dll
+    w_try_cabextract -d "$W_TMP" -L -F '*_xact_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
+    w_try_cabextract -d "$W_TMP" -L -F '*_x3daudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
+    w_try_cabextract -d "$W_TMP" -L -F '*_xaudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
+
+    for x in "$W_TMP"/*.cab ; do
+        w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xactengine*.dll' "$x"
+        w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xaudio*.dll' "$x"
+        w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'x3daudio*.dll' "$x"
+        w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xapofx*.dll' "$x"
+    done
+
+    w_override_dlls native,builtin xaudio2_0 xaudio2_1 xaudio2_2 xaudio2_3 xaudio2_4 xaudio2_5 xaudio2_6 xaudio2_7
+    w_override_dlls native,builtin x3daudio1_0 x3daudio1_1 x3daudio1_2 x3daudio1_3 x3daudio1_4 x3daudio1_5 x3daudio1_6 x3daudio1_7
+    w_override_dlls native,builtin xapofx1_1 xapofx1_2 xapofx1_3 xapofx1_4 xapofx1_5
+
+    # Register xactengine?_?.dll
+    for x in "$W_SYSTEM64_DLLS"/xactengine* ; do
+        w_try_regsvr64 "$(basename "$x")"
+    done
+
+    # and xaudio?_?.dll, but not xaudio2_8 (unsupported)
+    for x in 0 1 2 3 4 5 6 7 ; do
+        w_try_regsvr64 "$(basename "$W_SYSTEM64_DLLS/xaudio2_${x}")"
     done
 }
 
@@ -14469,7 +14503,7 @@ load_vc2010express()
     w_try_cd "$W_TMP"/VCExpress
 
     # Uninstall wine-mono, installer doesn't attempt to install native .Net if mono is installed,
-    # Then the installer throws and exception and fails
+    # Then the installer throws an exception and fails
     # See https://github.com/Winetricks/winetricks/issues/1165
     w_call remove_mono
 
@@ -17282,13 +17316,10 @@ w_metadata mfsx_demo games \
     year="2006" \
     media="download" \
     file1="FSXDemo.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Microsoft Games/Microsoft Flight Simulator X Demo/fsx.exe" \
-    wine_showstoppers="26411"
+    installed_exe1="$W_PROGRAMS_X86_WIN/Microsoft Games/Microsoft Flight Simulator X Demo/fsx.exe"
 
 load_mfsx_demo()
 {
-    w_workaround_wine_bug 26411 "Game hangs on first screen for me"
-
     if w_workaround_wine_bug 25139 "Setting virtual desktop so license screen shows up on first run"; then
         w_call vd=1024x768
     fi
@@ -17711,18 +17742,12 @@ w_metadata masseffect2 games \
     media="dvd" \
     file1="MassEffect2.iso" \
     file2="ME2_Disc2.iso" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Mass Effect 2/Binaries/MassEffect2.exe" \
-    wine_showstoppers="23184"
+    installed_exe1="$W_PROGRAMS_X86_WIN/Mass Effect 2/Binaries/MassEffect2.exe"
 
 load_masseffect2()
 {
     w_mount MassEffect2
     w_read_key
-
-    # FIXME: only do this for Nvidia graphics cards
-    if w_workaround_wine_bug 23151 "Disabling glsl"; then
-        w_call glsl=disabled
-    fi
 
     w_ahk_do "
         SetTitleMatchMode, 2
@@ -17787,11 +17812,6 @@ w_metadata masseffect2_demo games \
 load_masseffect2_demo()
 {
     w_download http://static.cdn.ea.com/bioware/u/f/eagames/bioware/masseffect2/ME2_DEMO/MassEffect2DemoEN.exe 4ec5ce1dc90c10512324d24cba2b5b9ba1e1872ed4c23e3ede0fc0accc7d2ff2
-
-    # FIXME: only do this for Nvidia graphics cards
-    if w_workaround_wine_bug 23151 "Disabling glsl"; then
-        w_call glsl=disabled
-    fi
 
     # Don't let self-extractor write into $W_CACHE
     case "$W_PLATFORM" in
@@ -18277,11 +18297,14 @@ w_metadata rct3deluxe games \
     year="2004" \
     media="cd" \
     file1="RCT3.iso" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Atari/RollerCoaster Tycoon 3/RCT3.EXE"\
-    wine_showstoppers="21448"
+    installed_exe1="$W_PROGRAMS_X86_WIN/Atari/RollerCoaster Tycoon 3/RCT3.EXE"
 
 load_rct3deluxe()
 {
+    if w_workaround_wine_bug 21448; then
+        w_warn "DRM doesn't work, see https://bugs.winehq.org/show_bug.cgi?id=21448"
+    fi
+
     w_mount RCT3
 
     # FIXME: make videos and music work
@@ -18401,8 +18424,7 @@ w_metadata sims3 games \
     year="2009" \
     media="dvd" \
     file1="Sims3.iso" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/The Sims 3/Game/Bin/TS3.exe" \
-    wine_showstoppers="26273"
+    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/The Sims 3/Game/Bin/TS3.exe"
 
 load_sims3()
 {
@@ -18467,8 +18489,7 @@ w_metadata simsmed games \
     year="2011" \
     media="dvd" \
     file1="TSimsM.iso" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/The Sims Medieval/Game/Bin/TSM.exe" \
-    wine_showstoppers="26273"
+    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/The Sims Medieval/Game/Bin/TSM.exe"
 
 load_simsmed()
 {
@@ -18566,8 +18587,7 @@ w_metadata sims3_gen games \
     year="2011" \
     media="dvd" \
     file1="Sims3EP04.iso" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/The Sims 3 Generations/Game/Bin/TS3EP04.exe" \
-    wine_showstoppers="26273"
+    installed_exe1="$W_PROGRAMS_X86_WIN/Electronic Arts/The Sims 3 Generations/Game/Bin/TS3EP04.exe"
 
 load_sims3_gen()
 {
@@ -20984,8 +21004,6 @@ execute_command()
             ;;
         unattended) winetricks_set_unattended 1 ;;
         attended) winetricks_set_unattended 0 ;;
-        showbroken) W_OPT_SHOWBROKEN=1 ;;
-        hidebroken) W_OPT_SHOWBROKEN=0 ;;
         arch=*) winetricks_set_winearch "$arg" ;;
         prefix=*) winetricks_set_wineprefix "$arg" ;;
         annihilate) winetricks_annihilate_wineprefix ;;

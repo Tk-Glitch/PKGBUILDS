@@ -29,7 +29,7 @@ index dffa6207..eabf4511 100755
 -            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xapofx*.dll' "$x"
 -        done
 -    fi
-+    # Don't install 64-bit xact DLLs. They are broken in Wine, see:
++    # Don't install 64-bit xact DLLs by default. They are broken in Wine, see:
 +    # https://bugs.winehq.org/show_bug.cgi?id=41618#c5
 +
 +    w_override_dlls native,builtin xaudio2_0 xaudio2_1 xaudio2_2 xaudio2_3 xaudio2_4 xaudio2_5 xaudio2_6 xaudio2_7

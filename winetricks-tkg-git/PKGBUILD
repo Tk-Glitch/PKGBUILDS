@@ -4,7 +4,7 @@
 # Contributor: Tk-Glitch <ti3nou@gmail.com>
 
 pkgname=winetricks-tkg-git
-pkgver=20181203.r34.g19d6699
+pkgver=20190310.r2.gb247962
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'
@@ -36,7 +36,7 @@ package() {
 
 	cd winetricks
 
-	# xact 64 bit is required for various games to not have broken audio (i.e. UT, hellblade etc.), so revert this commit https://github.com/Winetricks/winetricks/commit/f2b3d268d941120d13b4c3c3960b78a879d37761
+	# If Faudio isn't used, xact 64 bit is required for various games to not have broken audio (i.e. UT, hellblade etc.), so revert this commit https://github.com/Winetricks/winetricks/commit/f2b3d268d941120d13b4c3c3960b78a879d37761
 	patch -Np1 -R < ../'xact.revert.patch'
 
 	# dotnet471 support, 64-bit mostly working
@@ -49,6 +49,6 @@ package() {
 }
 
 md5sums=('SKIP'
-         '88d731e3e0eb9d699d6d2dc40996819d'
+         '89e0bdb6779861d3e043bf3e3317933e'
          '27ca3b6aee0ce7310db9da3b194f2aaf'
          'f8cea6f47347496f2215b331d9513e56')
