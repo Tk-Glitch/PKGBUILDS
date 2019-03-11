@@ -17,6 +17,8 @@
 # Putting patch files in DXVKBUILD/patches will auto-apply them if the extension is .dxvkpatch, auto-revert them if the extension is .dxvkrevert, or ignore them if any other extension (or none) is used
 
 DXVK_BRANCH=master # DXVK branch to use
+CUSTOM_COMMIT=0 # Set to 1 to enable custom commit checkout
+DXVK_COMMIT= # targetted custom commit
 DXVK_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
 
 PATCHIN=1 # Enables auto-application of all patches present in ./DXVKBUILD/patches - It WILL make your tree dirty if any patch is applied
@@ -60,6 +62,10 @@ fi
 
 if [ "$DXVK_AUTOUPDATE" == "1" ]; then
   git pull
+fi
+
+if [ -n $DXVK_COMMIT ] && [ "$CUSTOM_COMMIT" == "1" ]; then
+  git checkout $DXVK_COMMIT
 fi
 
 GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`

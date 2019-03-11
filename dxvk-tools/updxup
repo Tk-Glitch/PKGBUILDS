@@ -17,6 +17,8 @@
 # Putting patch files in DXUPBUILD/patches will auto-apply them if the extension is .dxuppatch, auto-revert them if the extension is .dxuprevert, or ignore them if any other extension (or none) is used
 
 DXUP_BRANCH=d3d9-dev # DXUP branch to use
+CUSTOM_COMMIT=0 # Set to 1 to enable custom commit checkout
+DXUP_COMMIT= # targetted custom commit
 DXUP_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
 
 PATCHIN=1 # Enables auto-application of all patches present in ./DXUPBUILD/patches - It WILL make your tree dirty if any patch is applied
@@ -60,6 +62,10 @@ fi
 
 if [ "$DXUP_AUTOUPDATE" == "1" ]; then
   git pull
+fi
+
+if [ -n $DXUP_COMMIT ] && [ "$CUSTOM_COMMIT" == "1" ]; then
+  git checkout $DXUP_COMMIT
 fi
 
 GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`
