@@ -975,7 +975,7 @@ build() {
 	  mkdir build
 	  patch -Np1 < ../'dxvk-winelib.patch'
 	  if [ "$_NOLIB32" == "true" ]; then
-	    sed -i "s/build_arch 32//g" package-release-wine.sh
+	    sed -i "/build_arch 32/d" package-release-wine.sh
 	  fi
 	  ./package-release-wine.sh master build --no-package
 	  # Build DXUP winelib
@@ -984,7 +984,7 @@ build() {
 	    mkdir build
 	    patch -Np1 < ../'dxup-winelib.patch'
 	    if [ "$_NOLIB32" == "true" ]; then
-	      sed -i "s/build_arch 32//g" package-release-wine.sh
+	      sed -i "/build_arch 32/d" package-release-wine.sh
 	    fi
 	    ./package-release-wine.sh master build --no-package
 	  fi
