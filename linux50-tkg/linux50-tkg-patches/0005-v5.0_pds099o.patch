@@ -1226,7 +1226,7 @@ index 000000000000..cc2512eafb79
 + * 1: Yield only to better priority/deadline tasks. (default)
 + * 2: Expire timeslice and recalculate deadline.
 + */
-+int sched_yield_type __read_mostly = 0;
++int sched_yield_type __read_mostly = 1;
 +
 +/*
 + * The quota handed out to tasks of all priority levels when refilling their

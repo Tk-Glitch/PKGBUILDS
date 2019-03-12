@@ -21,7 +21,7 @@ if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
   read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\n    4.BMQ(experimental)\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
+    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "4" ]; then
@@ -30,7 +30,7 @@ if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
 elif [ "$_cpusched" == "muqss" ]; then
-  echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
+  echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
@@ -97,11 +97,11 @@ sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             '781820373cd919ca3f3a6e65e026ed0a26fd844b194428a3a0e4a58d8aef2dbb'
             '8a0d331ea73068f77bc7218a1bf29bd558ce5df7c45b166480090c2e0e2a985a'
             'eb5f83558a720667b5bb2291f74dfb35c1711fd4f17b615fc23e1b2aed314057'
-            '6b4e1cba31910ff1bd097f5936687e61823ce9d6e06ee003bb6b712bf1c9c511'
+            '1565e14c5100ec263ce2e43ab45c056f12c6bc062c298cfbdf8191bfe189a50f'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '9f7a524cc28142b075ffc76291d901b8d6257f7a8b44b1883d83bab6ca3ef086'
             '69d4c97845bae3508613ae493f1266daac5c876682918ada9acf0ab560b731a2'
-            '3bb99f31376de6a598c5f2738b5e50dc2e7cf820604ef0a03781ed6ce7cafedb')
+            '42adcaf8f7389631707244a2cc5d64e7eeaf7915af83fb05c96fc59428b19798')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -164,7 +164,7 @@ prepare() {
   # exFAT
   #patch -Np1 -i ../0007-exFAT-support.patch
 
-  if [ "${_cpusched}" == "muqss" ]; then
+  if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
     patch -Np1 -i ../0004-5.0-ck1.patch
     patch -Np1 -i ../0004-glitched-muqss.patch
@@ -189,7 +189,7 @@ prepare() {
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
-  if [ "${_cpusched}" == "muqss" ]; then
+  if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS default config
     echo "CONFIG_SCHED_MUQSS=y" >> ./.config
   elif [ "${_cpusched}" == "pds" ]; then
@@ -205,6 +205,33 @@ prepare() {
     sed -i -e 's/# CONFIG_CFS_BANDWIDTH is not set/CONFIG_CFS_BANDWIDTH=y/' ./.config
     sed -i -e 's/# CONFIG_CGROUP_CPUACCT is not set/CONFIG_CGROUP_CPUACCT=y/' ./.config
     sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
+  fi
+
+  # sched yield type
+  if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
+    if [ -n "$_sched_yield_type" ] && [ "$_sched_yield_type" -le "2" ]; then
+      sed -i -e "s/int sched_yield_type __read_mostly = 1;/int sched_yield_type __read_mostly = ${_sched_yield_type};/" ./kernel/sched/"${_cpusched}".c
+    else
+      plain ""
+      plain "CPU sched_yield_type - Choose what sort of yield sched_yield will perform."
+      plain ""
+      plain "For PDS and MuQSS:"
+      plain "0: No yield."
+      plain "1: Yield only to better priority/deadline tasks."
+      plain "2: Expire timeslice and recalculate deadline."
+      plain ""
+      plain "For BMQ (experimental) - No recommended value yet, so try for yourself x) :"
+      plain "0: No yield."
+      plain "1: Deboost and requeue task. (default)"
+      read -p "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended) - Using this option on BMQ will fallback to "1"\n  [0-2?]: '`" CONDITION0;
+    fi
+    if [ "$CONDITION0" == "1" ]; then
+      msg2 "Using default CPU sched yield type (1)"
+    elif [ "$CONDITION0" == "2" ]; then
+      sed -i -e 's/int sched_yield_type __read_mostly = 1;/int sched_yield_type __read_mostly = 2;/' ./kernel/sched/"${_cpusched}".c
+    else
+      sed -i -e 's/int sched_yield_type __read_mostly = 1;/int sched_yield_type __read_mostly = 0;/' ./kernel/sched/"${_cpusched}".c
+    fi
   fi
 
   # zenify
@@ -598,7 +625,7 @@ package_linux50-tkg-pds() {
 hackbase
 }
 
-package_linux50-tkg-muqss() {
+package_linux50-tkg-MuQSS() {
 hackbase
 }
 
@@ -614,7 +641,7 @@ package_linux50-tkg-pds-headers() {
 hackheaders
 }
 
-package_linux50-tkg-muqss-headers() {
+package_linux50-tkg-MuQSS-headers() {
 hackheaders
 }
 

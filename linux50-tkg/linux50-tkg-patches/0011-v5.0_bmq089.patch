@@ -745,7 +745,7 @@ index 000000000000..b0e233a73542
 + * 0: No yield.
 + * 1: Deboost and requeue task. (default)
 + */
-+int sched_yield_type __read_mostly = 0;
++int sched_yield_type __read_mostly = 1;
 +
 +static inline int ts_overrun(struct task_struct *p, struct rq *rq)
 +{
