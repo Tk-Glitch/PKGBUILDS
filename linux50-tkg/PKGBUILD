@@ -19,12 +19,16 @@ fi
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -p "`echo $'  > 1.PDS\n    2.CFS\nchoice[1-2?]: '`" CONDITION;
+  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
+    echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "3" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
+elif [ "$_cpusched" == "muqss" ]; then
+  echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
@@ -39,7 +43,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=3
+pkgrel=4
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -64,8 +68,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0002-clear-patches.patch
         0003-glitched-base.patch
         0003-glitched-cfs.patch
-        #0004-glitched-muqss.patch
-        #0004-5.0-ck1.patch
+        0004-glitched-muqss.patch
+        0004-5.0-ck1.patch
         0005-glitched-pds.patch
         0005-v5.0_pds099o.patch
         0006-add-acs-overrides_iommu.patch
@@ -84,6 +88,8 @@ sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             '8855fe0f9d2ae64331d3c716477349d45a1c1fb628fc16dfa5fa95d41ef5fd28'
             'ac5932f6b8918af239b6224966604d274f5884c9b19738e4c78de38ac0ca11a9'
             '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
+            '781820373cd919ca3f3a6e65e026ed0a26fd844b194428a3a0e4a58d8aef2dbb'
+            '8a0d331ea73068f77bc7218a1bf29bd558ce5df7c45b166480090c2e0e2a985a'
             'eb5f83558a720667b5bb2291f74dfb35c1711fd4f17b615fc23e1b2aed314057'
             '6b4e1cba31910ff1bd097f5936687e61823ce9d6e06ee003bb6b712bf1c9c511'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
@@ -150,7 +156,11 @@ prepare() {
   # exFAT
   #patch -Np1 -i ../0007-exFAT-support.patch
 
-  if [ "${_cpusched}" == "pds" ]; then
+  if [ "${_cpusched}" == "muqss" ]; then
+    # MuQSS
+    patch -Np1 -i ../0004-5.0-ck1.patch
+    patch -Np1 -i ../0004-glitched-muqss.patch
+  elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
     patch -Np1 -i ../0005-v5.0_pds099o.patch
     patch -Np1 -i ../0005-glitched-pds.patch
@@ -167,7 +177,10 @@ prepare() {
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
-  if [ "${_cpusched}" == "pds" ]; then
+  if [ "${_cpusched}" == "muqss" ]; then
+    # MuQSS default config
+    echo "CONFIG_SCHED_MUQSS=y" >> ./.config
+  elif [ "${_cpusched}" == "pds" ]; then
     # PDS default config
     echo "CONFIG_SCHED_PDS=y" >> ./.config
   else
