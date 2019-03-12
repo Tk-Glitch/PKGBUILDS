@@ -19,11 +19,13 @@ fi
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
+  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\n    4.BMQ(experimental)\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
     echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "4" ]; then
+    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
@@ -33,6 +35,8 @@ elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
   echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "bmq" ]; then
+  echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
 fi
 
 source "$_where"/cpuschedset
@@ -43,7 +47,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -77,6 +81,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0008-bcachefs.patch
         #0009-bfq-mq.patch
         0010-uksm-5.0.patch
+        0011-glitched-bmq.patch
+        0011-v5.0_bmq089.patch
 )
 sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             'd05db91f6b95f963bb4c92fedb1ccb300378c23cc16b09f27d2190841620d5a4'
@@ -93,7 +99,9 @@ sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             'eb5f83558a720667b5bb2291f74dfb35c1711fd4f17b615fc23e1b2aed314057'
             '6b4e1cba31910ff1bd097f5936687e61823ce9d6e06ee003bb6b712bf1c9c511'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            '9f7a524cc28142b075ffc76291d901b8d6257f7a8b44b1883d83bab6ca3ef086')
+            '9f7a524cc28142b075ffc76291d901b8d6257f7a8b44b1883d83bab6ca3ef086'
+            '69d4c97845bae3508613ae493f1266daac5c876682918ada9acf0ab560b731a2'
+            '3bb99f31376de6a598c5f2738b5e50dc2e7cf820604ef0a03781ed6ce7cafedb')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -164,6 +172,10 @@ prepare() {
     # PDS-mq
     patch -Np1 -i ../0005-v5.0_pds099o.patch
     patch -Np1 -i ../0005-glitched-pds.patch
+  elif [ "${_cpusched}" == "bmq" ]; then
+    # BMQ
+    patch -Np1 -i ../0011-v5.0_bmq089.patch
+    patch -Np1 -i ../0011-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
   fi
@@ -183,6 +195,10 @@ prepare() {
   elif [ "${_cpusched}" == "pds" ]; then
     # PDS default config
     echo "CONFIG_SCHED_PDS=y" >> ./.config
+  elif [ "${_cpusched}" == "bmq" ]; then
+    # BMQ default config
+    echo "CONFIG_SCHED_BMQ=y" >> ./.config
+    echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
   else
     # CFS default config
     sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
@@ -590,6 +606,10 @@ package_linux50-tkg-cfs() {
 hackbase
 }
 
+package_linux50-tkg-bmq() {
+hackbase
+}
+
 package_linux50-tkg-pds-headers() {
 hackheaders
 }
@@ -599,6 +619,10 @@ hackheaders
 }
 
 package_linux50-tkg-cfs-headers() {
+hackheaders
+}
+
+package_linux50-tkg-bmq-headers() {
 hackheaders
 }
 
@@ -640,6 +664,10 @@ function exit_cleanup {
     rm -f "$srcdir"/linux-${_basekernel}/include/linux/skip_list.h
     rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/pds.c
     rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/pds_sched.h
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-BMQ.txt
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/bmq.c
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/bmq_sched.h
 
     rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-BFS.txt
     rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-MuQSS.txt
