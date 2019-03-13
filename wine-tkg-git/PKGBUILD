@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.3.r6.g01adefa7
+pkgver=4.3.r9.g993b6c9c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=134
+eval pkgrel=135
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -278,6 +278,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r2.patch' # For 3.17+
 		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+ - non-staging only
 		'esync-compat-fixes-r3.patch' # For 3.20+
+		'esync-compat-fixes-r3.1.patch' # Addon for 4.4+
 		'esync-no_alloc_handle.patch' # esync staging extended support patch
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -671,6 +672,13 @@ prepare() {
 	    cd "${srcdir}"/"${_esyncsrcdir}"
 	    patch -Np1 < ../'esync-compat-fixes-r3.patch' && echo "Using esync 3.20+ compat fixes" >> "$_where"/last_build_config.log
 	    cd "${srcdir}"/"${_winesrcdir}"
+
+	    # if using a wine version that includes 7ba361b, apply 4.4+ additional fixes
+	    if git merge-base --is-ancestor 7ba361b47bc95df624eac83c170d6c1a4041d8f8 HEAD; then # ntdll: Add support for returning previous state argument in event functions
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      patch -Np1 < ../'esync-compat-fixes-r3.1.patch' && echo "Using esync 4.4+ additional compat fixes" >> "$_where"/last_build_config.log
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
 	  elif git merge-base --is-ancestor aec7befb5115d866724149bbc5576c7259fef820 HEAD; then # server: Avoid potential size overflow for empty object attributes
 	    if [ "$_use_staging" == "true" ]; then
@@ -1098,6 +1106,7 @@ md5sums=('SKIP'
          'c4b104892b0501781789aadc5a95b261'
          'e32c770f6aa964e6093fe734c7dd6c0a'
          'd86e0feaeb690efe521ac3cc852fac12'
+         'f3c95dcaeab28d8b97e80a5e9d9a1c01'
          '46f612602ee7698b840a4e757194cfa7'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
