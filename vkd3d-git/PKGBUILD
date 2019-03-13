@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.1.r344.gf1bfb13
+pkgver=1.1.r346.g6c141d7
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
