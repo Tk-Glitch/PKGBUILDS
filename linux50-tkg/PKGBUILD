@@ -45,9 +45,9 @@ _basever=50
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
-_sub=1
+_sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=5
+pkgrel=6
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -85,7 +85,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0011-v5.0_bmq089.patch
 )
 sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
-            'd05db91f6b95f963bb4c92fedb1ccb300378c23cc16b09f27d2190841620d5a4'
+            '2715d463b92bd629da579661e3a2a19c0b87f31083bc60b7e33c380293fe10a4'
             '6727dedef06470ffd7eedb96d958c11add3a80f0743cf32ef89b6f509a6686ef'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
