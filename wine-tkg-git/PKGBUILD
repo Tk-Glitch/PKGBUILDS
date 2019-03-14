@@ -5,7 +5,7 @@ pkgver=4.3.r9.g993b6c9c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=135
+eval pkgrel=136
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -268,6 +268,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'sims_3-oldnvidia.patch' # No.
 		'mwo.patch' # Mechwarrior Online fix
 		'pythonfix.patch' # Backported Python/Sims4 squash patch for <=3.18
+		'resident_evil_4_hack.patch' # Fixes broken rendering
 		'woff-hack.patch' # Hack for child window rendering support for vk - Fixes World of Final Fantasy
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
@@ -606,6 +607,11 @@ prepare() {
 	# Mechwarrior Online fix - https://mwomercs.com/forums/topic/268847-running-the-game-on-ubuntu-steam-play/page__st__20__p__6195387#entry6195387
 	if [ "$_mwo_fix" == "true" ]; then
 	  patch -Np1 < ../'mwo.patch' && echo "Applied Mechwarrior Online fix" >> "$_where"/last_build_config.log
+	fi
+
+	# Resident Evil 4 hack - https://bugs.winehq.org/show_bug.cgi?id=46336
+	if [ "$_re4_fix" == "true" ]; then
+	  patch -Np1 < ../'resident_evil_4_hack.patch' && echo "Applied Resident Evil 4 hack" >> "$_where"/last_build_config.log
 	fi
 
 	# World of Final Fantasy hack - https://bugs.winehq.org/show_bug.cgi?id=45277
