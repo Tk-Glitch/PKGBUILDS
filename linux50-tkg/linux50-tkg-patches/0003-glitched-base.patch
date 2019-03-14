@@ -6155,3 +6155,131 @@ index a29043ea9..3fb219747 100644
  #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
  static unsigned long arch_zone_lowest_possible_pfn[MAX_NR_ZONES] __initdata;
  
+From da3f6d2f7a0c041126a4a3405cf85dad0ba201a1 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 8 Mar 2019 00:58:53 +0100
+Subject: [PATCH] netfilter: nf_tables: fix set double-free in abort path
+
+The abort path can cause a double-free of an anonymous set.
+Added-and-to-be-aborted rule looks like this:
+
+udp dport { 137, 138 } drop
+
+The to-be-aborted transaction list looks like this:
+
+newset
+newsetelem
+newsetelem
+rule
+
+This gets walked in reverse order, so first pass disables the rule, the
+set elements, then the set.
+
+After synchronize_rcu(), we then destroy those in same order: rule, set
+element, set element, newset.
+
+Problem is that the anonymous set has already been bound to the rule, so
+the rule (lookup expression destructor) already frees the set, when then
+cause use-after-free when trying to delete the elements from this set,
+then try to free the set again when handling the newset expression.
+
+Rule releases the bound set in first place from the abort path, this
+causes the use-after-free on set element removal when undoing the new
+element transactions. To handle this, skip new element transaction if
+set is bound from the abort path.
+
+This is still causes the use-after-free on set element removal.  To
+handle this, remove transaction from the list when the set is already
+bound.
+
+Joint work with Florian Westphal.
+
+Fixes: f6ac85858976 ("netfilter: nf_tables: unbind set in rule from commit path")
+Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1325
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |  6 ++----
+ net/netfilter/nf_tables_api.c     | 17 +++++++++++------
+ 2 files changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index b4984bbbe157..3d58acf94dd2 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -416,7 +416,8 @@ struct nft_set {
+ 	unsigned char			*udata;
+ 	/* runtime data below here */
+ 	const struct nft_set_ops	*ops ____cacheline_aligned;
+-	u16				flags:14,
++	u16				flags:13,
++					bound:1,
+ 					genmask:2;
+ 	u8				klen;
+ 	u8				dlen;
+@@ -1329,15 +1330,12 @@ struct nft_trans_rule {
+ struct nft_trans_set {
+ 	struct nft_set			*set;
+ 	u32				set_id;
+-	bool				bound;
+ };
+ 
+ #define nft_trans_set(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set)
+ #define nft_trans_set_id(trans)	\
+ 	(((struct nft_trans_set *)trans->data)->set_id)
+-#define nft_trans_set_bound(trans)	\
+-	(((struct nft_trans_set *)trans->data)->bound)
+ 
+ struct nft_trans_chain {
+ 	bool				update;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 4893f248dfdc..e1724f9d8b9d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -127,7 +127,7 @@ static void nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set)
+ 	list_for_each_entry_reverse(trans, &net->nft.commit_list, list) {
+ 		if (trans->msg_type == NFT_MSG_NEWSET &&
+ 		    nft_trans_set(trans) == set) {
+-			nft_trans_set_bound(trans) = true;
++			set->bound = true;
+ 			break;
+ 		}
+ 	}
+@@ -6617,8 +6617,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+ 		break;
+ 	case NFT_MSG_NEWSET:
+-		if (!nft_trans_set_bound(trans))
+-			nft_set_destroy(nft_trans_set(trans));
++		nft_set_destroy(nft_trans_set(trans));
+ 		break;
+ 	case NFT_MSG_NEWSETELEM:
+ 		nft_set_elem_destroy(nft_trans_elem_set(trans),
+@@ -6691,8 +6690,11 @@ static int __nf_tables_abort(struct net *net)
+ 			break;
+ 		case NFT_MSG_NEWSET:
+ 			trans->ctx.table->use--;
+-			if (!nft_trans_set_bound(trans))
+-				list_del_rcu(&nft_trans_set(trans)->list);
++			if (nft_trans_set(trans)->bound) {
++				nft_trans_destroy(trans);
++				break;
++			}
++			list_del_rcu(&nft_trans_set(trans)->list);
+ 			break;
+ 		case NFT_MSG_DELSET:
+ 			trans->ctx.table->use++;
+@@ -6700,8 +6702,11 @@ static int __nf_tables_abort(struct net *net)
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
++			if (nft_trans_elem_set(trans)->bound) {
++				nft_trans_destroy(trans);
++				break;
++			}
+ 			te = (struct nft_trans_elem *)trans->data;
+-
+ 			te->set->ops->remove(net, te->set, &te->elem);
+ 			atomic_dec(&te->set->nelems);
+ 			break;
