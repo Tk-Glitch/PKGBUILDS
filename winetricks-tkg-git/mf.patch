@@ -1,0 +1,106 @@
+diff --git a/src/winetricks b/src/winetricks
+index 823c0360..56a10227 100755
+--- a/src/winetricks
++++ b/src/winetricks
+@@ -9355,14 +9355,100 @@ w_metadata mf dlls \
+ 
+ load_mf()
+ {
++    # Apparently we need a lot more:
++    # https://gist.github.com/Matoking/2017eeffc1cee82f4797530c67707437
++    # https://lutris.net/games/install/10999/view
++    # https://github.com/Winetricks/winetricks/issues/1132
++    #
++    # FIXME: these are also referenced, but I can't find downloads for them
++    # FIXME: mediafoundation.dll
++    # FIXME: mf_.dll
++    # FIXME: mferror.dll
++    # FIXME: msmpeg2adec.dll - not in service packs, but there is msmpeg2enc.dll in win7sp1
++    # FIXME: msmpeg2vdec.dll - not in service packs, but there is msmpeg2enc.dll in win7sp1
++
++    w_download_to "$W_CACHE/$W_PACKAGE" https://lutris.net/files/tools/dll/mfplat/x32/mfplat.dll 1d41496b65c6a3fd463a4e38f5ed856c1d283459e1cbaf8869dbdf2bfa5fc5ad mfplat.dll.32
++    w_try cp "$W_CACHE/$W_PACKAGE/mfplat.dll.32" "$W_SYSTEM32_DLLS/mfplat.dll"
++
+     helper_win7sp1 x86_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_9e6699276b03c38e/mf.dll
+     w_try cp "$W_TMP/x86_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_9e6699276b03c38e/mf.dll" "$W_SYSTEM32_DLLS/mf.dll"
+ 
++    helper_win7sp1 x86_microsoft-windows-mfreadwrite_31bf3856ad364e35_6.1.7601.17514_none_bb5d51ef76468729/mfreadwrite.dll
++    w_try cp "$W_TMP/x86_microsoft-windows-mfreadwrite_31bf3856ad364e35_6.1.7601.17514_none_bb5d51ef76468729/mfreadwrite.dll" "$W_SYSTEM32_DLLS/mfreadwrite.dll"
++
++    helper_win7sp1 x86_microsoft-windows-sqmapi_31bf3856ad364e35_6.1.7601.17514_none_00451cf8631056b6/sqmapi.dll
++    w_try cp "$W_TMP/x86_microsoft-windows-sqmapi_31bf3856ad364e35_6.1.7601.17514_none_00451cf8631056b6/sqmapi.dll" "$W_SYSTEM32_DLLS/sqmapi.dll"
++
++    helper_win7sp1 x86_microsoft-windows-wmadmod_31bf3856ad364e35_6.1.7601.17514_none_885655287c3a2a8e/wmadmod.dll
++    w_try cp "$W_TMP/x86_microsoft-windows-wmadmod_31bf3856ad364e35_6.1.7601.17514_none_885655287c3a2a8e/wmadmod.dll" "$W_SYSTEM32_DLLS/wmadmod.dll"
++
++    helper_win7sp1 x86_microsoft-windows-wmvdecod_31bf3856ad364e35_6.1.7601.17514_none_c491ee3d3e923b78/wmvdecod.dll
++    w_try cp "$W_TMP/x86_microsoft-windows-wmvdecod_31bf3856ad364e35_6.1.7601.17514_none_c491ee3d3e923b78/wmvdecod.dll" "$W_SYSTEM32_DLLS/wmvdecod.dll"
++
+     if [ "$W_ARCH" = "win64" ]; then
++        w_download_to "$W_CACHE/$W_PACKAGE" https://lutris.net/files/tools/dll/mfplat/x64/mfplat.dll 81c13718b01e698ddc31d13f60335cc6182c9f4cef9e29ece2a5ba5a4f138a1c mfplat.dll.64
++        w_try cp "$W_CACHE/$W_PACKAGE/mfplat.dll.64" "$W_SYSTEM64_DLLS/mfplat.dll"
++
+         helper_win7sp1_x64 amd64_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_fa8534ab236134c4/mf.dll
+         w_try cp "$W_TMP/amd64_microsoft-windows-mediafoundation_31bf3856ad364e35_6.1.7601.17514_none_fa8534ab236134c4/mf.dll" "$W_SYSTEM64_DLLS/mf.dll"
++
++        helper_win7sp1_x64 amd64_microsoft-windows-mfreadwrite_31bf3856ad364e35_6.1.7601.17514_none_177bed732ea3f85f/mfreadwrite.dll
++        w_try cp "$W_TMP/amd64_microsoft-windows-mfreadwrite_31bf3856ad364e35_6.1.7601.17514_none_177bed732ea3f85f/mfreadwrite.dll" "$W_SYSTEM64_DLLS/mfreadwrite.dll"
++
++        helper_win7sp1_x64 amd64_microsoft-windows-sqmapi_31bf3856ad364e35_6.1.7601.17514_none_5c63b87c1b6dc7ec/sqmapi.dll
++        w_try cp "$W_TMP/amd64_microsoft-windows-sqmapi_31bf3856ad364e35_6.1.7601.17514_none_5c63b87c1b6dc7ec/sqmapi.dll" "$W_SYSTEM64_DLLS/sqmapi.dll"
++
++        helper_win7sp1_x64 amd64_microsoft-windows-wmadmod_31bf3856ad364e35_6.1.7601.17514_none_e474f0ac34979bc4/wmadmod.dll
++        w_try cp "$W_TMP/amd64_microsoft-windows-wmadmod_31bf3856ad364e35_6.1.7601.17514_none_e474f0ac34979bc4/wmadmod.dll" "$W_SYSTEM64_DLLS/wmadmod.dll"
++
++        helper_win7sp1_x64 amd64_microsoft-windows-wmvdecod_31bf3856ad364e35_6.1.7601.17514_none_20b089c0f6efacae/wmvdecod.dll
++        w_try cp "$W_TMP/amd64_microsoft-windows-wmvdecod_31bf3856ad364e35_6.1.7601.17514_none_20b089c0f6efacae/wmvdecod.dll" "$W_SYSTEM64_DLLS/wmvdecod.dll"
+     fi
+ 
++    cat > "$W_TMP"/mf.reg <<_EOF_
++REGEDIT4
++
++[HKEY_LOCAL_MACHINE\\Software\\Wine\\LicenseInformation]
++"msmpeg2adec-AACDecoderV2AddInEnable"=dword:00000001
++"msmpeg2adec-AACDecoderV2InSKU"=dword:00000001
++"msmpeg2adec-DolbyDigitalDecoderV2AddInEnable"=dword:00000001
++"msmpeg2adec-DolbyDigitalDecoderV2InSKU"=dword:00000001
++"msmpeg2vdec-H264VideoDecoderV2AddInEnable"=dword:00000001
++"msmpeg2vdec-H264VideoDecoderV2InSKU"=dword:00000001
++"msmpeg2vdec-MPEG2VideoDecoderV2AddInEnable"=dword:00000001
++"msmpeg2vdec-MPEG2VideoDecoderV2InSKU"=dword:00000001
++
++[HKEY_CLASSES_ROOT\\CLSID\\{271C3902-6095-4c45-A22F-20091816EE9E}]
++@="MPEG4 Byte Stream Handler"
++
++[HKEY_CLASSES_ROOT\\CLSID\\{271C3902-6095-4c45-A22F-20091816EE9E}\\InprocServer32]
++@="mf.dll"
++"ThreadingModel"="Both"
++
++[HKEY_CLASSES_ROOT\\CLSID\\{477EC299-1421-4bdd-971F-7CCB933F21AD}]
++@="File Scheme Handler"
++
++[HKEY_CLASSES_ROOT\\CLSID\\{477EC299-1421-4bdd-971F-7CCB933F21AD}\\InprocServer32]
++@="mf.dll"
++"ThreadingModel"="Both"
++
++[HKEY_CLASSES_ROOT\\CLSID\\{48e2ed0f-98c2-4a37-bed5-166312ddd83f}]
++@="MFReadWrite Class Factory"
++
++[HKEY_CLASSES_ROOT\\CLSID\\{48e2ed0f-98c2-4a37-bed5-166312ddd83f}\\InprocServer32]
++@="mfreadwrite.dll"
++"ThreadingModel"="Both"
++
++_EOF_
++
++    w_try_regedit "$W_TMP_WIN"\\mf.reg
++
++    w_override_dlls native,builtin mf
++    w_override_dlls native,builtin mfplat
++    w_override_dlls native,builtin mfreadwrite
++    w_override_dlls native,builtin sqmapi
++    w_override_dlls native,builtin wmadmod
++    w_override_dlls native,builtin wmvdecod
+     w_override_dlls native,builtin mf
+ }
+ 
+
