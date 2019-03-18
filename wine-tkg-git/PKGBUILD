@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.3.r9.g993b6c9c
+pkgver=4.4.r2.g18e878bc
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -306,6 +306,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'LAA-staging-legacy.patch' # Same as above, for staging
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
 		'LAA-staging.patch' # Same as above, for staging
+		'winevulkan-1.1.103.patch' # Update winevulkan
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -540,6 +541,11 @@ prepare() {
 	# https://bugs.winehq.org/show_bug.cgi?id=43530
 	export CFLAGS="${CFLAGS/-fno-plt/}"
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
+
+	# Update winevulkan
+	if [ "$_update_winevulkan" == "true" ]; then
+	  patch -Np1 < ../'winevulkan-1.1.103.patch' && echo "Applied winevulkan 1.1.103 patch" >> "$_where"/last_build_config.log
+	fi
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ "$_clock_monotonic" == "true" ]; then
@@ -1137,7 +1143,8 @@ md5sums=('SKIP'
          '3cb83a83c7ed9335eddbef665f4d89f9'
          '25e20e66ee3b2896f2979ba4e16ff767'
          'afd2e119b0d5aac290a0b89324624fb4'
-         '3d52653b8f98cf5e0d7305fdbd5cb2c2')
+         '3d52653b8f98cf5e0d7305fdbd5cb2c2'
+         '1c4738e438debf72266b96d09f465b25')
 
 function exit_cleanup {
   rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
