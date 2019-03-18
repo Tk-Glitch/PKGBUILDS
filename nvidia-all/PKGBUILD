@@ -271,6 +271,10 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
   # Patch the dkms tree... Only once
   if [ "$_dkms_patch" == "1" ]; then
+    if [[ $pkgver = 396* ]]; then
+      msg2 "Applying kernel-4.19.dkmsp for dkms..."
+      patch -Np1 < "$where"/kernel-4.19.dkmsp
+    fi
     msg2 "Applying $_dp for dkms..."
     patch -Np1 < "$where"/"$_dp"
     if [ "$_oldstuff" == "1" ]; then
