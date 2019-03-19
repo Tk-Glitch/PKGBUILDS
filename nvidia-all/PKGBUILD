@@ -88,7 +88,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=36
+pkgrel=37
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -121,6 +121,7 @@ source=($_source_name
         '01-ipmi-vm.dkmsfix' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx) - DKMS
         '02-ipmi-vm.dkmsfix' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+) -DKMS
         'kernel-4.16.patch' # 4.16 workaround
+        'kernel-4.16.dkmsp' # 4.16 dkms workaround
         'kernel-4.19.patch' # 4.19 workaround
         'kernel-4.19.dkmsp' # 4.19 dkms workaround
         'kernel-5.0.patch' # 5.0 workaround
@@ -137,6 +138,7 @@ md5sums=("$_md5sum"
          '1b8f3fb35131c2d0f39900c2bb5ad111'
          '14460615a9d4e247c8d9bcae8776ed48'
          '84f1f2ecdccf377fc86323f8ad7b7469'
+         'adb83cede754daf5adb001f077b1ff67'
          '4bc92732727482b545b60589aacd44d8'
          '8c56c81b736b7a5387870b7391401e28'
          '54fbd790d7025e52e3de352eb46695c3'
@@ -205,6 +207,17 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # Use separate source directories
     cp -r kernel kernel-$_kernel
 
+    # kernel version variables
+    if (( $(vercmp "$_kernel" "4.16") >= 0 )); then
+      _kernel416="1"
+    fi
+    if (( $(vercmp "$_kernel" "4.19") >= 0 )); then
+      _kernel419="1"
+    fi
+    if (( $(vercmp "$_kernel" "5.0") >= 0 )); then
+      _kernel50="1"
+    fi
+
     # Fix for "unknown type name 'ipmi_user_t'" (required for older than 2018.12.7 drivers when used on 4.20+)
     if (( $(vercmp "$_kernel" "4.20") >= 0 )); then
       if [[ $pkgver = 396* ]] || [[ $pkgver = 410.5* ]] || [[ $pkgver = 410.6* ]] || [[ $pkgver = 410.7* ]] || [[ $pkgver = 415.1* ]]; then
@@ -248,35 +261,31 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
     cd ..
 
-    # dkms-only patches
-    if [ "$_dkms" == "true" ]; then
-      for _dp in $(printf -- '%s\n' ${source[@]} | grep .dkmsp); do
-        _dpatch=$(echo $_dp | grep -Po "\d+\.\d+")
-
-        if [[ $pkgver != 396* ]] && [ "$_dp" == "kernel-4.19.dkmsp" ]; then
-          msg2 "Skipping $_dp as it doesn't apply to this driver version..."
-        elif [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [ "$_dp" == "kernel-5.0.dkmsp" ]; then
-          msg2 "Skipping $_dp as it doesn't apply to this driver version..."
-        else
-          if (( $(vercmp "$_kernel" "$_dpatch") >= 0 )); then
-            _dkms_patch="1"
-          else
-             msg2 "Skipping $_dp..."  # List these, instead of ignoring silently
-          fi
-        fi
-      done
-    fi
-
   done
 
-  # Patch the dkms tree... Only once
-  if [ "$_dkms_patch" == "1" ]; then
-    if [[ $pkgver = 396* ]]; then
-      msg2 "Applying kernel-4.19.dkmsp for dkms..."
-      patch -Np1 < "$where"/kernel-4.19.dkmsp
+  # dkms patches
+  if [ "$_dkms" == "true" ]; then
+    if [ "$_kernel416" == "1" ]; then
+      msg2 "Applying kernel-4.16.dkmsp for dkms..."
+      patch -Np1 -i "$where"/kernel-4.16.dkmsp
     fi
-    msg2 "Applying $_dp for dkms..."
-    patch -Np1 < "$where"/"$_dp"
+    if [ "$_kernel419" == "1" ]; then
+      if [[ $pkgver = 396* ]]; then
+        msg2 "Applying kernel-4.19.dkmsp for dkms..."
+        patch -Np1 -i "$where"/kernel-4.19.dkmsp
+      else
+        msg2 "Skipping kernel-4.19.dkmsp as it doesn't apply to this driver version..."
+      fi
+    fi
+    if [ "$_kernel50" == "1" ]; then
+      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]]; then
+        msg2 "Skipping kernel-5.0.dkmsp as it doesn't apply to this driver version..."
+      else
+        msg2 "Applying kernel-5.0.dkmsp for dkms..."
+        patch -Np1 -i "$where"/kernel-5.0.dkmsp
+      fi
+    fi
+
     if [ "$_oldstuff" == "1" ]; then
       msg2 "Applying 01-ipmi-vm.dkmsfix for dkms..."
       patch -Np1 -i "$srcdir"/01-ipmi-vm.dkmsfix
