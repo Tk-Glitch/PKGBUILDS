@@ -9,12 +9,12 @@ _lib32="true"
 
 # Version selector
 if [ ! -e options ]; then
-  read -p "  Build the regular version or the git one?`echo $'\n\n  > 1.Regular 1.14.4^0 (default and recommended)\n\n    2.Git (lib32 will be disabled)\n\nchoice[1-2?]: '`" CONDITION;
+  read -p "  Build the regular version or the git one?`echo $'\n\n  > 1.Regular 1.14.4+2+gc324028 (default and recommended)\n\n    2.Git (lib32 will be disabled)\n\nchoice[1-2?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_gitext="-git"' > options
       echo '_lib32="false"' >> options
     else
-      echo '_commit="#commit=1c21e61bc18cdbf94ee6510f837a7ddc65c8831e"' > options # version 1.14.4^0
+      echo '_commit="#commit=c3240282afdcfc37e1873830f06a9bca79a5cec6"' > options # version 1.14.4+2+gc324028
     fi
 fi
 
@@ -33,7 +33,7 @@ else
   pkgname=("$_basename-tkg$_gitext")
 fi
 
-pkgver=1.14.4
+pkgver=1.14.4+2+gc324028
 pkgrel=1
 pkgdesc="GStreamer Multimedia Framework ffmpeg Plugin"
 url="https://gstreamer.freedesktop.org/"
@@ -84,9 +84,10 @@ optdepends=(
         'lib32-rockchip-mpp'
 )
 
-source=("git+https://anongit.freedesktop.org/git/gstreamer/gst-libav$_commit"
-        "gst-common::git+https://anongit.freedesktop.org/git/gstreamer/common"
-        "git+https://git.videolan.org/git/ffmpeg" "git://git.libav.org/gas-preprocessor")
+source=("git+https://gitlab.freedesktop.org/gstreamer/gst-libav.git#commit=$_commit"
+        "gst-common::git+https://gitlab.freedesktop.org/gstreamer/common.git"
+        "git+https://git.ffmpeg.org/ffmpeg.git"
+        "git://git.libav.org/gas-preprocessor.git")
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
