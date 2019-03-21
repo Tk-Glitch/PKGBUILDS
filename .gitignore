@@ -3,3 +3,17 @@
 *~
 *.orig
 *.log
+*.run
+*.tgz
+*.xz
+*.pkg
+*.bak
+*/src/
+*/pkg/
+wine-tkg-git/wine-staging-git/
+wine-tkg-git/wine-git/
+wine-tkg-git/dxvk/
+wine-tkg-git/dxup/
+spirv-tools-git/SPIRV-Headers/
+spirv-tools-git/SPIRV-Tools/
+vkd3d-git/vkd3d/
