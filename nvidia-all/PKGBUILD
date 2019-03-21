@@ -95,6 +95,8 @@ license=('custom:NVIDIA')
 optdepends=('linux-headers' 'linux-lts-headers: Build the module for LTS Arch kernel')
 options=('!strip')
 
+cp "$where"/patches/* "$where" && cp "$where"/system/* "$where"
+
 # Installer name
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
 
@@ -116,16 +118,16 @@ source=($_source_name
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'nvidia-utils-tkg.sysusers'
-        '01-ipmi-vm.fix' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx)
-        '02-ipmi-vm.fix' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+)
-        '01-ipmi-vm.dkmsfix' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx) - DKMS
-        '02-ipmi-vm.dkmsfix' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+) -DKMS
+        '01-ipmi-vm.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx)
+        '02-ipmi-vm.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+)
+        '01-ipmi-vm-dkms.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx) - DKMS
+        '02-ipmi-vm-dkms.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+) -DKMS
         'kernel-4.16.patch' # 4.16 workaround
-        'kernel-4.16.dkmsp' # 4.16 dkms workaround
+        'kernel-4.16-dkms.diff' # 4.16 dkms workaround
         'kernel-4.19.patch' # 4.19 workaround
-        'kernel-4.19.dkmsp' # 4.19 dkms workaround
+        'kernel-4.19-dkms.diff' # 4.19 dkms workaround
         'kernel-5.0.patch' # 5.0 workaround
-        'kernel-5.0.dkmsp') # 5.0 dkms workaround
+        'kernel-5.0-dkms.diff') # 5.0 dkms workaround
 
 msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
 
@@ -223,12 +225,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       if [[ $pkgver = 396* ]] || [[ $pkgver = 410.5* ]] || [[ $pkgver = 410.6* ]] || [[ $pkgver = 410.7* ]] || [[ $pkgver = 415.1* ]]; then
         _oldstuff="1"
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
-        msg2 "Applying 01-ipmi-vm.fix for $_kernel..."
-        patch -p2 -i "$srcdir"/01-ipmi-vm.fix
+        msg2 "Applying 01-ipmi-vm.diff for $_kernel..."
+        patch -p2 -i "$srcdir"/01-ipmi-vm.diff
         if [[ $pkgver != 396* ]]; then
           _youngeryetoldstuff="1"
-          msg2 "Applying 02-ipmi-vm.fix for $_kernel..."
-          patch -p2 -i "$srcdir"/02-ipmi-vm.fix
+          msg2 "Applying 02-ipmi-vm.diff for $_kernel..."
+          patch -p2 -i "$srcdir"/02-ipmi-vm.diff
         fi
         cd ..
       else
@@ -266,33 +268,33 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
   # dkms patches
   if [ "$_dkms" == "true" ]; then
     if [ "$_kernel416" == "1" ]; then
-      msg2 "Applying kernel-4.16.dkmsp for dkms..."
-      patch -Np1 -i "$where"/kernel-4.16.dkmsp
+      msg2 "Applying kernel-4.16-dkms.diff for dkms..."
+      patch -Np1 -i "$where"/kernel-4.16-dkms.diff
     fi
     if [ "$_kernel419" == "1" ]; then
       if [[ $pkgver = 396* ]]; then
-        msg2 "Applying kernel-4.19.dkmsp for dkms..."
-        patch -Np1 -i "$where"/kernel-4.19.dkmsp
+        msg2 "Applying kernel-4.19-dkms.diff for dkms..."
+        patch -Np1 -i "$where"/kernel-4.19-dkms.diff
       else
-        msg2 "Skipping kernel-4.19.dkmsp as it doesn't apply to this driver version..."
+        msg2 "Skipping kernel-4.19-dkms.diff as it doesn't apply to this driver version..."
       fi
     fi
     if [ "$_kernel50" == "1" ]; then
       if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]]; then
-        msg2 "Skipping kernel-5.0.dkmsp as it doesn't apply to this driver version..."
+        msg2 "Skipping kernel-5.0-dkms.diff as it doesn't apply to this driver version..."
       else
-        msg2 "Applying kernel-5.0.dkmsp for dkms..."
-        patch -Np1 -i "$where"/kernel-5.0.dkmsp
+        msg2 "Applying kernel-5.0-dkms.diff for dkms..."
+        patch -Np1 -i "$where"/kernel-5.0-dkms.diff
       fi
     fi
 
     if [ "$_oldstuff" == "1" ]; then
-      msg2 "Applying 01-ipmi-vm.dkmsfix for dkms..."
-      patch -Np1 -i "$srcdir"/01-ipmi-vm.dkmsfix
+      msg2 "Applying 01-ipmi-vm-dkms.diff for dkms..."
+      patch -Np1 -i "$srcdir"/01-ipmi-vm-dkms.diff
     fi
     if [ "$_youngeryetoldstuff" == "1" ]; then
-      msg2 "Applying 02-ipmi-vm.dkmsfix for dkms..."
-      patch -Np1 -i "$srcdir"/02-ipmi-vm.dkmsfix
+      msg2 "Applying 02-ipmi-vm-dkms.diff for dkms..."
+      patch -Np1 -i "$srcdir"/02-ipmi-vm-dkms.diff
     fi
   fi
 }
@@ -648,6 +650,11 @@ fi
 function exit_cleanup {
   # Sanitization
   rm -f "${where}"/options
+  rm -f "${where}"/*.conf
+  rm -f "${where}"/*.install
+  rm -f "${where}"/*.patch
+  rm -f "${where}"/*.diff
+  rm -f "${where}"/nvidia-utils-tkg.sysusers
   rm -rf "${where}"/src/*
 
   remove_deps
