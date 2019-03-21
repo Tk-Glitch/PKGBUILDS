@@ -10,7 +10,7 @@ Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PK
 
 Can be built with Faudio (requires both faudio-git and lib32-faudio-git packages from AUR) - https://github.com/FNA-XNA/FAudio
 
-**Can also be built with your own patches - See README in ./wine-tkg-userpatches for instructions**
+**Can also be built with your own patches - See [README in ./wine-tkg-userpatches](wine-tkg-userpatches/README.md) for instructions**
 
 Wine : https://github.com/wine-mirror/wine
 
@@ -63,7 +63,7 @@ git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
 
 
-## Build  :
+## Build :
 
 From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
 ```
