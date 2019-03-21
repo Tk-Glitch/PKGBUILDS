@@ -1078,6 +1078,8 @@ package() {
 	  fi
 	fi
 
+	cp "$_where"/last_build_config.log "${pkgdir}$_prefix"/share/wine/wine-tkg-config.txt
+
 	if [ "$_use_esync" == "true" ]; then
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
