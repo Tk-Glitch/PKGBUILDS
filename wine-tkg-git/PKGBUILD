@@ -5,7 +5,7 @@ pkgver=4.4.r6.gf2b1d2dc
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=137
+eval pkgrel=138
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -369,6 +369,10 @@ user_patcher() {
 	fi
 }
 
+nonuser_patcher() {
+  msg2 "Applying ${_patchname}" && patch -Np1 < ../"$_patchname" && echo "${_patchmsg}" >> "$_where"/last_build_config.log
+}
+
 pkgver() {
 	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}/${_stgsrcdir}"
@@ -546,22 +550,22 @@ prepare() {
 
 	# Update winevulkan
 	if [ "$_update_winevulkan" == "true" ] && ! git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && git merge-base --is-ancestor eb39d3dbcac7a8d9c17211ab358cda4b7e07708a HEAD; then
-	  patch -Np1 < ../'winevulkan-1.1.103.patch' && echo "Applied winevulkan 1.1.103 patch" >> "$_where"/last_build_config.log
+	  _patchname='winevulkan-1.1.103.patch' && _patchmsg="Applied winevulkan 1.1.103 patch" && nonuser_patcher
 	fi
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
 	if [ "$_clock_monotonic" == "true" ]; then
-	  patch -Np1 < ../'use_clock_monotonic.patch' && echo "Applied clock_monotonic patch" >> "$_where"/last_build_config.log
+	  _patchname='use_clock_monotonic.patch' && _patchmsg="Applied clock_monotonic patch" && nonuser_patcher
 	fi
 
 	# Fixes (partially) systray on plasma 5 - https://bugs.winehq.org/show_bug.cgi?id=38409
 	if [ "$_plasma_systray_fix" == "true" ]; then
-	  patch -Np1 < ../'plasma_systray_fix.patch' && echo "Applied plasma 5 systray fix" >> "$_where"/last_build_config.log
+	  _patchname='plasma_systray_fix.patch' && _patchmsg="Applied plasma 5 systray fix" && nonuser_patcher
 	fi
 
 	# Bypass compositor in fullscreen mode - Reduces stuttering and improves performance
 	if [ "$_FS_bypass_compositor" == "true" ]; then
-	  patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch" >> "$_where"/last_build_config.log
+	  _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch" && nonuser_patcher
 	fi
 
 	# Use faudio for xaudio2 - https://github.com/aeikum/wine/commits/faudio-fixups
@@ -572,7 +576,7 @@ prepare() {
 	      _configure_args+=(--with-faudio)
 	    fi
 	  elif git merge-base --is-ancestor 47fbcece36cad190c4d18f7636df67d1382b7545 HEAD && ! git merge-base --is-ancestor 3e390b1aafff47df63376a8ca4293c515d74f4ba HEAD; then
-	    patch -Np1 < ../'faudio-exp.patch' && echo "Applied faudio for xaudio2 patch" >> "$_where"/last_build_config.log
+	    _patchname='faudio-exp.patch' && _patchmsg="Applied faudio for xaudio2 patch" && nonuser_patcher
 	    _staging_args+=(-W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges) # Disable xaudio2 staging patchsets for faudio
 	    if [ "$_faudio_ignorecheck" != "true" ]; then
 	      _configure_args+=(--with-faudio)
@@ -583,18 +587,18 @@ prepare() {
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
 	if [ "$_poe_fix" == "true" ]; then
-	  patch -Np1 < ../'poe-fix.patch' && echo "Applied Path of Exile DX11 fix" >> "$_where"/last_build_config.log
+	  _patchname='poe-fix.patch' && _patchmsg="Applied Path of Exile DX11 fix" && nonuser_patcher
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ "$_f4skyrimse_fix" == "true" ]; then
-	  patch -Np1 < ../'f4skyrimse-fix.patch' && echo "Applied F4/SkyrimSE Script Extender fix" >> "$_where"/last_build_config.log
+	  _patchname='f4skyrimse-fix.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix" && nonuser_patcher
 	fi
 
 	# Magic The Gathering: Arena crash fix
 	if [ "$_mtga_fix" == "true" ]; then
-	  patch -Np1 < ../'mtga.patch' && echo "Applied MTGA crashfix" >> "$_where"/last_build_config.log
+	  _patchname='mtga.patch' && _patchmsg="Applied MTGA crashfix" && nonuser_patcher
 	fi
 
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets for 4.2+devel and lower - The actual patch is applied after staging
@@ -604,7 +608,7 @@ prepare() {
 
 	# The Sims 3 fix - reverts 6823abd521c0c12d20d9171fb5ae8b300009d082 to fix Sims 3 on older than 415.xx nvidia drivers - https://bugs.winehq.org/show_bug.cgi?id=45361
 	if [ "$_sims3_fix" == "true" ] && git merge-base --is-ancestor 6823abd521c0c12d20d9171fb5ae8b300009d082 HEAD; then
-	  patch -Np1 < ../'sims_3-oldnvidia.patch' && echo "Applied The Sims 3 Debian&co nvidia fix" >> "$_where"/last_build_config.log
+	  _patchname='sims_3-oldnvidia.patch' && _patchmsg="Applied The Sims 3 Debian&co nvidia fix" && nonuser_patcher
 	fi
 
 	# Python fix for <=3.18 (backported from zzhiyi's patches) - fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999 - The actual patch is applied after staging
@@ -614,23 +618,23 @@ prepare() {
 
 	# Mechwarrior Online fix - https://mwomercs.com/forums/topic/268847-running-the-game-on-ubuntu-steam-play/page__st__20__p__6195387#entry6195387
 	if [ "$_mwo_fix" == "true" ]; then
-	  patch -Np1 < ../'mwo.patch' && echo "Applied Mechwarrior Online fix" >> "$_where"/last_build_config.log
+	  _patchname='mwo.patch' && _patchmsg="Applied Mechwarrior Online fix" && nonuser_patcher
 	fi
 
 	# Resident Evil 4 hack - https://bugs.winehq.org/show_bug.cgi?id=46336
 	if [ "$_re4_fix" == "true" ]; then
-	  patch -Np1 < ../'resident_evil_4_hack.patch' && echo "Applied Resident Evil 4 hack" >> "$_where"/last_build_config.log
+	  _patchname='resident_evil_4_hack.patch' && _patchmsg="Applied Resident Evil 4 hack" && nonuser_patcher
 	fi
 
 	# World of Final Fantasy hack - https://bugs.winehq.org/show_bug.cgi?id=45277
 	if [ "$_woff_fix" == "true" ]; then
-	  patch -Np1 < ../'woff-hack.patch' && echo "Applied World of Final Fantasy hack" >> "$_where"/last_build_config.log
+	  _patchname='woff-hack.patch' && _patchmsg="Applied World of Final Fantasy hack" && nonuser_patcher
 	fi
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ "$_steam_fix" == "true" ]; then
-	  patch -Np1 < ../'steam.patch' && echo "Applied steam crossover hack" >> "$_where"/last_build_config.log
+	  _patchname='steam.patch' && _patchmsg="Applied steam crossover hack" && nonuser_patcher
 	fi
 
 	# Disable server-send_hardware_message staging patchset if found - Fixes FFXIV/Warframe/Crysis 3 (...) mouse jittering issues on 3.19 staging and lower.
@@ -652,7 +656,7 @@ prepare() {
 	# CSMT toggle patch - Corrects the CSMT toggle to be more logical
 	if [ "$_CSMT_toggle" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
-	  patch -Np1 < ../'CSMT-toggle.patch' && echo "Applied CSMT toggle logic patch" >> "$_where"/last_build_config.log
+	  _patchname='CSMT-toggle.patch' && _patchmsg="Applied CSMT toggle logic patch" && nonuser_patcher
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
@@ -679,18 +683,18 @@ prepare() {
 	    if [ "$_use_staging" == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-staging-fixes-r3.patch' && echo "Using esync staging 3.20+ compat fixes" >> "$_where"/last_build_config.log
+	      _patchname='esync-staging-fixes-r3.patch' && _patchmsg="Using esync staging 3.20+ compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 
 	    cd "${srcdir}"/"${_esyncsrcdir}"
-	    patch -Np1 < ../'esync-compat-fixes-r3.patch' && echo "Using esync 3.20+ compat fixes" >> "$_where"/last_build_config.log
+	    _patchname='esync-compat-fixes-r3.patch' && _patchmsg="Using esync 3.20+ compat fixes" && nonuser_patcher
 	    cd "${srcdir}"/"${_winesrcdir}"
 
 	    # if using a wine version that includes 7ba361b, apply 4.4+ additional fixes
 	    if git merge-base --is-ancestor 7ba361b47bc95df624eac83c170d6c1a4041d8f8 HEAD; then # ntdll: Add support for returning previous state argument in event functions
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-compat-fixes-r3.1.patch' && echo "Using esync 4.4+ additional compat fixes" >> "$_where"/last_build_config.log
+	      _patchname='esync-compat-fixes-r3.1.patch' && _patchmsg="Using esync 4.4+ additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
@@ -698,34 +702,34 @@ prepare() {
 	    if [ "$_use_staging" == "true" ]; then
 	      # fixes for esync patches to apply to staging
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-staging-fixes-r2.patch' && echo "Using esync staging 3.17+ compat fixes" >> "$_where"/last_build_config.log
+	      _patchname='esync-staging-fixes-r2.patch' && _patchmsg="Using esync staging 3.17+ compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    # if using a wine version that includes c099655, use 3.19+ addon fixes
 	    elif git merge-base --is-ancestor c0996553a1d9056e1b89871fc8c3fb0bfb5a4f0c HEAD; then #  server: Support FILE_SKIP_COMPLETION_PORT_ON_SUCCESS on server-side asyncs
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-compat-fixes-r2.1.patch' && echo "Using esync 3.19+ compat addon fixes" >> "$_where"/last_build_config.log
+	      _patchname='esync-compat-fixes-r2.1.patch' && _patchmsg="Using esync 3.19+ compat addon fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 
 	    cd "${srcdir}"/"${_esyncsrcdir}"
-	    patch -Np1 < ../'esync-compat-fixes-r2.patch' && echo "Using esync 3.17+ compat fixes" >> "$_where"/last_build_config.log
+	    _patchname='esync-compat-fixes-r2.patch' && _patchmsg="Using esync 3.17+ compat fixes" && nonuser_patcher
 	    cd "${srcdir}"/"${_winesrcdir}"
 	  else
 	    # 3.10 - 3.16
 	    if [ "$_use_staging" == "true" ]; then
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-staging-fixes-r1.patch' && echo "Using esync staging 3.16- compat fixes" >> "$_where"/last_build_config.log
+	      _patchname='esync-staging-fixes-r1.patch' && _patchmsg="Using esync staging 3.16- compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 
 	    cd "${srcdir}"/"${_esyncsrcdir}"
-	    patch -Np1 < ../'esync-compat-fixes-r1.patch' && echo "Using esync 3.16- compat fixes" >> "$_where"/last_build_config.log
+	    _patchname='esync-compat-fixes-r1.patch' && _patchmsg="Using esync 3.16- compat fixes" && nonuser_patcher
 	    cd "${srcdir}"/"${_winesrcdir}"
 
 	    # if using a wine version that includes 57212f6, apply 3.14+ additional fixes
 	    if git merge-base --is-ancestor 57212f64f8e4fef0c63c633940e13d407c0f2069 HEAD; then # kernel32: Add AttachConsole implementation
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      patch -Np1 < ../'esync-compat-fixes-r1.1.patch' && echo "Using esync 3.14+ additional compat fixes" >> "$_where"/last_build_config.log
+	      _patchname='esync-compat-fixes-r1.1.patch' && _patchmsg="Using esync 3.14+ additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  fi
@@ -738,41 +742,40 @@ prepare() {
 
 	  # Fix for server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName)
 	  if [ "$_use_staging" == "true" ]; then
-	    msg2 "Applying esync-no_alloc_handle.patch"
-	    patch -Np1 < ../'esync-no_alloc_handle.patch'
+	    _patchname='esync-no_alloc_handle.patch' && _patchmsg="Using esync-no_alloc_handle patch to fix server-Desktop_Refcount ws2_32-WSACleanup ws2_32-TransmitFile server-Pipe_ObjectName with Esync enabled" && nonuser_patcher
 	  fi
 	fi
 	# /esync
 
 	# Launch with dedicated gpu desktop entry patch
 	if [ "$_launch_with_dedicated_gpu" == "true" ]; then
-	  patch -Np1 < ../'launch-with-dedicated-gpu-desktop-entry.patch' && echo "Applied launch with dedicated gpu desktop entry patch" >> "$_where"/last_build_config.log
+	  _patchname='launch-with-dedicated-gpu-desktop-entry.patch' && _patchmsg="Applied launch with dedicated gpu desktop entry patch" && nonuser_patcher
 	fi
 
 	# Low latency alsa audio - https://blog.thepoon.fr/osuLinuxAudioLatency/
 	if [ "$_lowlatency_audio" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  patch -Np1 < ../'lowlatency_audio.patch' && echo "Applied low latency alsa audio patch" >> "$_where"/last_build_config.log
+	  _patchname='lowlatency_audio.patch' && _patchmsg="Applied low latency alsa audio patch" && nonuser_patcher
 	fi
 
 	# Fortnite Fix - Currently not working anymore
 	if [ "$_fortnite_fix" == "true" ]; then
-	  patch -Np1 < ../'fortnite.patch' && echo "Applied Fortnite crashfix" >> "$_where"/last_build_config.log
+	  _patchname='fortnite.patch' && _patchmsg="Applied Fortnite crashfix" && nonuser_patcher
 	fi
 
 	# The Sims 2 fix - https://bugs.winehq.org/show_bug.cgi?id=8051
 	if [ "$_sims2_fix" == "true" ]; then
 	  if git merge-base --is-ancestor d88f12950761e9ff8d125a579de6e743979f4945 HEAD; then
-	    patch -Np1 < ../'sims_2-fix.patch' && echo "Applied The Sims 2 fix" >> "$_where"/last_build_config.log
+	    _patchname='sims_2-fix.patch' && _patchmsg="Applied The Sims 2 fix" && nonuser_patcher
 	  elif git merge-base --is-ancestor 4de2da1d146248ed872ae45c30b8d485832f4ac8 HEAD; then
-	    patch -Np1 < ../'sims_2-fix-4.2-.patch' && echo "Applied The Sims 2 fix (4.2 and lower)" >> "$_where"/last_build_config.log
+	    _patchname='sims_2-fix-4.2-.patch' && _patchmsg="Applied The Sims 2 fix (4.2 and lower)" && nonuser_patcher
 	  else
-	    patch -Np1 < ../'sims_2-fix-legacy.patch' && echo "Applied The Sims 2 fix (legacy)" >> "$_where"/last_build_config.log
+	    _patchname='sims_2-fix-legacy.patch' && _patchmsg="Applied The Sims 2 fix (legacy)" && nonuser_patcher
 	  fi
 	fi
 
 	# Python fix for <=3.18 (backported from zzhiyi's patches) - fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
 	if [ "$_318python_fix" == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
-	  patch -Np1 < ../'pythonfix.patch' && echo "Applied Python/The Sims 4 fix" >> "$_where"/last_build_config.log
+	  _patchname='pythonfix.patch' && _patchmsg="Applied Python/The Sims 4 fix" && nonuser_patcher
 	fi
 
 	# apply wine-pba patchset
@@ -780,7 +783,7 @@ prepare() {
 	  if [ "$_pba_version" == "none" ]; then
 	    echo "PBA disabled due to known issues with selected Wine version" >> "$_where"/last_build_config.log
 	  else
-	    patch -Np1 < ../"PBA${_pba_version}.patch" && echo "Using pba (${_pba_version}) patchset" >> "$_where"/last_build_config.log
+	    _patchname="PBA${_pba_version}.patch" && _patchmsg="Using pba (${_pba_version}) patchset" && nonuser_patcher
 	  fi
 	fi
 
@@ -805,23 +808,27 @@ prepare() {
 
 	# GLSL toggle patch - Allows for use of ARB instead of GLSL
 	if [ "$_GLSL_toggle" == "true" ] && [ "$_use_staging" == "true" ] && [ "$_use_legacy_gallium_nine" != "true" ]; then
-	  patch -Np1 < ../'GLSL-toggle.patch' && echo "Applied GLSL toggle patch" >> "$_where"/last_build_config.log
+	  _patchname='GLSL-toggle.patch' && _patchmsg="Applied GLSL toggle patch" && nonuser_patcher
 	fi
 
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" == "true" ]; then
-	    if git merge-base --is-ancestor 6e87235523f48d523285409dcbbd7885df9948d0 HEAD; then
-	      patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	    if git merge-base --is-ancestor 57bb5cce75aed1cb06172cc0b6b696dfb008e7c1 HEAD; then
+	      _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
+	    elif git merge-base --is-ancestor 6e87235523f48d523285409dcbbd7885df9948d0 HEAD; then
+	      _patchname='valve_proton_fullscreen_hack-staging-4.4.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.4)" && nonuser_patcher
 	    else
-	      patch -Np1 < ../'valve_proton_fullscreen_hack-staging-legacy.patch' && echo "Applied Proton fullscreen hack patch (legacy)" >> "$_where"/last_build_config.log
+	      _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
 	    fi
 	  elif [ "$_FS_bypass_compositor" == "false" ]; then # Force-enable FS_bypass_compositor patch if disabled as it's a dependency Proton Fullscreen patch
-	    patch -Np1 < ../'FS_bypass_compositor.patch' && echo "Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" >> "$_where"/last_build_config.log
-	    if git merge-base --is-ancestor 6e87235523f48d523285409dcbbd7885df9948d0 HEAD; then
-	      patch -Np1 < ../'valve_proton_fullscreen_hack-staging.patch' && echo "Applied Proton fullscreen hack patch" >> "$_where"/last_build_config.log
+	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" && nonuser_patcher
+	    if git merge-base --is-ancestor 57bb5cce75aed1cb06172cc0b6b696dfb008e7c1 HEAD; then
+	      _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
+	    elif git merge-base --is-ancestor 6e87235523f48d523285409dcbbd7885df9948d0 HEAD; then
+	      _patchname='valve_proton_fullscreen_hack-staging-4.4.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.4)" && nonuser_patcher
 	    else
-	      patch -Np1 < ../'valve_proton_fullscreen_hack-staging-legacy.patch' && echo "Applied Proton fullscreen hack patch (legacy)" >> "$_where"/last_build_config.log
+	      _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
 	    fi
 	  fi
 	fi
@@ -829,21 +836,21 @@ prepare() {
 	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
 	if [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
 	  if [ "$_use_staging" == "true" ]; then
-	    patch -Np1 < ../'LAA-staging-legacy.patch' && echo "Applied large address aware override support (legacy)" >> "$_where"/last_build_config.log
+	    _patchname='LAA-staging-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
 	  else
-	    patch -Np1 < ../'LAA-legacy.patch' && echo "Applied large address aware override support (legacy)" >> "$_where"/last_build_config.log
+	    _patchname='LAA-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
 	  fi
 	elif [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
 	  if [ "$_use_staging" == "true" ]; then
-	    patch -Np1 < ../'LAA-staging.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	    _patchname='LAA-staging.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
 	  else
-	    patch -Np1 < ../'LAA.patch' && echo "Applied large address aware override support" >> "$_where"/last_build_config.log
+	    _patchname='LAA.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
 	  fi
 	fi
 
 	# Enable STAGING_SHARED_MEMORY by default - https://wiki.winehq.org/Wine-Staging_Environment_Variables#Shared_Memory
 	if [ "$_stg_shared_mem_default" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  patch -Np1 < ../'enable_stg_shared_mem_def.patch' && echo "Enable STAGING_SHARED_MEMORY by default" >> "$_where"/last_build_config.log
+	  _patchname='enable_stg_shared_mem_def.patch' && _patchmsg="Enable STAGING_SHARED_MEMORY by default" && nonuser_patcher
 	fi
 
 	# wine user patches
@@ -995,7 +1002,7 @@ build() {
 	    touch plzdxgi
 	  fi
 	  mkdir build
-	  patch -Np1 < ../'dxvk-winelib.patch'
+	  _patchname='dxvk-winelib.patch' && _patchmsg="Using dxvk-winelib patch" && nonuser_patcher
 	  if [ "$_NOLIB32" == "true" ]; then
 	    sed -i "/build_arch 32/d" package-release-wine.sh
 	  fi
@@ -1004,7 +1011,7 @@ build() {
 	  if [ "$_use_dxup" == "true" ]; then
 	    cd "${srcdir}"/"${_dxupsrcdir}"
 	    mkdir build
-	    patch -Np1 < ../'dxup-winelib.patch'
+	    _patchname='dxup-winelib.patch' && _patchmsg="Using dxup-winelib patch" && nonuser_patcher
 	    if [ "$_NOLIB32" == "true" ]; then
 	      sed -i "/build_arch 32/d" package-release-wine.sh
 	    fi
