@@ -5,7 +5,7 @@ pkgver=4.4.r6.gf2b1d2dc
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=136
+eval pkgrel=137
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -16,6 +16,7 @@ _where=$PWD # track basedir as different Arch based distros are moving srcdir ar
 _configure_args=() # additional args to ./configure will be added during prepare()
 
 cp "$_where"/wine-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+cp "$_where"/wine-tkg-userpatches/*.my* "$_where" # copy userpatches inside the PKGBUILD's dir
 
 source "$_where"/customization.cfg # load default configuration from file
 
@@ -1160,6 +1161,7 @@ fi
 
   # Remove temporarily copied patches
   rm -rf "$_where"/*.patch
+  rm -rf "$_where"/*.my*
   rm -rf "$_where"/*.conf
 
   remove_deps
