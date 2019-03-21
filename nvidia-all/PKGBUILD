@@ -20,7 +20,7 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.418.49.04 (vulkan dev)\n  2.415.27 (short lived)\n  3.418.56 (long lived)\n  4.418.30 (beta)\n  5.Custom version (396.45 to 415.xx series)\nchoice[1-4?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.418.49.04 (vulkan dev)\n  2.415.27 (short lived)\n  3.418.56 (long lived)\n  4.418.30 (beta)\n  5.Custom version (396.45 to 415.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
