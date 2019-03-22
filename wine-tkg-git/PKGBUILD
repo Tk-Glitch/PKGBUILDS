@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.4.r6.gf2b1d2dc
+pkgver=4.4.r7.g5bc795f9
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -417,7 +417,7 @@ prepare() {
 	# holds extra arguments to staging's patcher script, if applicable
 	local _staging_args=()
 
-	if [ "$_use_staging" == "true" ]; then
+	if [ "$_use_staging" == "true" ] && [ "$_staging_upstreamignore" != "true" ]; then
 	  # change back to the wine upstream commit that this version of wine-staging is based in
 	  msg2 'Changing wine HEAD to the wine-staging base commit...'
 	  git checkout "$(../"$_stgsrcdir"/patches/patchinstall.sh --upstream-commit)"
