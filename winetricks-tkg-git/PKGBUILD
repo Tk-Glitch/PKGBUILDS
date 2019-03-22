@@ -22,7 +22,8 @@ provides=('winetricks')
 source=('git+https://github.com/Winetricks/winetricks.git'
         'xact.revert.patch'
         'dotnet471.patch'
-        'lutris-tkg.patch')
+        'lutris-tkg.patch'
+        'vcrun2017.patch')
 
 pkgver() {
 	cd winetricks
@@ -45,10 +46,14 @@ package() {
 	# fix lutris tkg builds version detection
 	patch -Np1 < ../'lutris-tkg.patch'
 
+	# fix for vcrun2017 failing to install / updated installer
+	patch -Np1 < ../'vcrun2017.patch'
+
 	make DESTDIR="$pkgdir" install
 }
 
 md5sums=('SKIP'
          '89e0bdb6779861d3e043bf3e3317933e'
          '27ca3b6aee0ce7310db9da3b194f2aaf'
-         'f8cea6f47347496f2215b331d9513e56')
+         'f8cea6f47347496f2215b331d9513e56'
+         '567767d10395eb5a78e13de313816fc9')
