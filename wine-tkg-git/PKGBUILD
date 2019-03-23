@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.4.r7.g5bc795f9
+pkgver=4.4.r7.gd963a250
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -225,7 +225,7 @@ fi
 
 # faudio deps
 if [ "$_use_faudio" == "true" ]; then
-  makedepends=("${makedepends[@]}" faudio-git lib32-faudio-git)
+  makedepends=("${makedepends[@]}" faudio lib32-faudio)
 fi
 
 optdepends=(
