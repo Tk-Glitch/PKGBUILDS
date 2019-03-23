@@ -1,0 +1,742 @@
+From aa88eb017be4c3615d0f8aab8a2e16769a6568ad Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Wed, 27 Dec 2017 13:31:59 -0600
+Subject: [PATCH] loader: Set up Steam stuff in the registry
+
+---
+ loader/wine.inf.in | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index 5767b29887c..75d5f4a7216 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -75,7 +75,8 @@ AddReg=\
+     Tapi,\
+     Timezones,\
+     VersionInfo,\
+-    LicenseInformation
++    LicenseInformation, \
++    SteamClient
+ 
+ [DefaultInstall.ntamd64]
+ RegisterDlls=RegisterDllsSection
+@@ -103,7 +104,8 @@ AddReg=\
+     Tapi,\
+     Timezones,\
+     VersionInfo.ntamd64,\
+-    LicenseInformation
++    LicenseInformation, \
++    SteamClient.ntamd64
+ 
+ [Wow64Install]
+ RegisterDlls=RegisterDllsSection
+@@ -118,7 +120,8 @@ AddReg=\
+     Misc,\
+     Tapi,\
+     VersionInfo.ntamd64,\
+-    LicenseInformation
++    LicenseInformation, \
++    SteamClient.ntamd64
+ 
+ [DefaultInstall.Services]
+ AddService=BITS,0,BITSService
+@@ -3518,3 +3521,13 @@ HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-Shanghai-EnableGame",0x1
+ HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-Solitaire-EnableGame",0x10001,0x00000001
+ HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-SpiderSolitaire-EnableGame",0x10001,0x00000001
+ HKLM,Software\Wine\LicenseInformation,"Shell-PremiumInBoxGames-Chess-EnableGame",0x10001,0x00000001
++
++[SteamClient]
++HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
++HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16422%\Steam\steamclient.dll"
++HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16422%\Steam"
++
++[SteamClient.ntamd64]
++HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
++HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
++HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
+
+From bc614834ee153ce33449c06e697b4a30748e9257 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 27 Apr 2017 13:25:04 -0500
+Subject: [PATCH] HACK kernel32: Substitute the current pid for the Steam
+ client pid
+
+---
+ dlls/kernel32/process.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
+index 85e0042024c..9c957f02c06 100644
+--- a/dlls/kernel32/process.c
++++ b/dlls/kernel32/process.c
+@@ -3001,6 +3001,22 @@ HANDLE WINAPI OpenProcess( DWORD access, BOOL inherit, DWORD id )
+     OBJECT_ATTRIBUTES   attr;
+     CLIENT_ID           cid;
+ 
++    if(id == 0xfffe)
++        /* STEAMOS HACK:
++         * On Windows, the Steam client puts its process ID into the registry
++         * at:
++         *
++         *   [HKCU\Software\Valve\Steam\ActiveProcess]
++         *   PID=dword:00000008
++         *
++         * Games get that pid from the registry and then query it with
++         * OpenProcess to ensure Steam is running. Since we aren't running the
++         * Windows Steam in Wine, instead we hack this magic number into the
++         * registry and then substitute the game's process itself in its place
++         * so it can query a valid process.
++         */
++        id = GetCurrentProcessId();
++
+     cid.UniqueProcess = ULongToHandle(id);
+     cid.UniqueThread = 0; /* FIXME ? */
+ 
+From a277e32030a31abe90af9d38462f1159bc94b7b0 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 11 May 2017 10:50:08 -0500
+Subject: [PATCH] HACK: kernel32: Swap requests for steamclient.dll with
+ lsteamclient
+
+---
+ dlls/kernel32/module.c | 63 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 63 insertions(+)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index 118829895b7..cf3a0b5ed98 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -76,6 +76,23 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
+ };
+ static CRITICAL_SECTION dlldir_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+ 
++static const WCHAR steamclientW[] = {'s','t','e','a','m','c','l','i','e','n','t',0};
++static const WCHAR steamclient_pathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m','\\','s','t','e','a','m','c','l','i','e','n','t','.','d','l','l',0};;
++static HMODULE steamclient_hmod = NULL;
++static HMODULE lsteamclient_hmod = NULL;
++
++static WCHAR *strcasestrW( const WCHAR *str, const WCHAR *sub )
++{
++    while (*str)
++    {
++        const WCHAR *p1 = str, *p2 = sub;
++        while (*p1 && *p2 && tolowerW(*p1) == tolowerW(*p2)) { p1++; p2++; }
++        if (!*p2) return (WCHAR *)str;
++        str++;
++    }
++    return NULL;
++}
++
+ /****************************************************************************
+  *              GetDllDirectoryA   (KERNEL32.@)
+  */
+@@ -710,6 +727,10 @@ BOOL WINAPI GetModuleHandleExW( DWORD flags, LPCWSTR name, HMODULE *module )
+     else
+     {
+         UNICODE_STRING wstr;
++        if(steamclient_hmod != NULL && strcasestrW(name, steamclientW)){
++            *module = steamclient_hmod;
++            return TRUE;
++        }
+         RtlInitUnicodeString( &wstr, name );
+         status = LdrGetDllHandle( NULL, 0, &wstr, &ret );
+     }
+@@ -818,6 +839,11 @@ DWORD WINAPI GetModuleFileNameW( HMODULE hModule, LPWSTR lpFileName, DWORD size
+     NTSTATUS nts;
+     WIN16_SUBSYSTEM_TIB *win16_tib;
+ 
++    if(steamclient_hmod != NULL && hModule == steamclient_hmod){
++        memcpy(lpFileName, steamclient_pathW, sizeof(steamclient_pathW));
++        return sizeof(steamclient_pathW)/sizeof(WCHAR);
++    }
++
+     if (!hModule && ((win16_tib = NtCurrentTeb()->Tib.SubSystemTib)) && win16_tib->exe_name)
+     {
+         len = min(size, win16_tib->exe_name->Length / sizeof(WCHAR));
+@@ -1194,6 +1220,7 @@ static HMODULE load_library( const UNICODE_STRING *libname, DWORD flags )
+     NTSTATUS nts;
+     HMODULE hModule;
+     WCHAR *load_path;
++    const WCHAR *p;
+     const DWORD load_library_search_flags = (LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR |
+                                              LOAD_LIBRARY_SEARCH_APPLICATION_DIR |
+                                              LOAD_LIBRARY_SEARCH_USER_DIRS |
+@@ -1207,6 +1234,36 @@ static HMODULE load_library( const UNICODE_STRING *libname, DWORD flags )
+     if( flags & unsupported_flags)
+         FIXME("unsupported flag(s) used (flags: 0x%08x)\n", flags);
+ 
++    if((p = strcasestrW(libname->Buffer, steamclientW)) &&
++            (p == libname->Buffer ||
++             *(p - 1) != 'l')){
++
++        if(!lsteamclient_hmod)
++            lsteamclient_hmod = LoadLibraryA("lsteamclient.dll");
++
++        if(!steamclient_hmod){
++            HANDLE f = CreateFileW(steamclient_pathW,
++                    GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
++                    NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++            if(f != INVALID_HANDLE_VALUE){
++                DWORD sz, readed;
++
++                sz = GetFileSize(f, NULL);
++
++                steamclient_hmod = HeapAlloc(GetProcessHeap(), 0, sz);
++                ReadFile(f, steamclient_hmod, sz, &readed, NULL);
++
++                CloseHandle(f);
++            }else{
++                /* this will fail DRM checks, but otherwise should work */
++                ERR("somehow failed to load steamclient\n");
++                steamclient_hmod = lsteamclient_hmod;
++            }
++        }
++
++        return steamclient_hmod;
++    }
++
+     if (flags & load_library_search_flags)
+         load_path = get_dll_load_path_search_flags( libname->Buffer, flags );
+     else
+@@ -1362,6 +1419,9 @@ BOOL WINAPI DECLSPEC_HOTPATCH FreeLibrary(HINSTANCE hLibModule)
+         return FALSE;
+     }
+ 
++    if(steamclient_hmod != NULL && hLibModule == steamclient_hmod)
++        return TRUE;
++
+     if ((ULONG_PTR)hLibModule & 3) /* this is a datafile module */
+     {
+         if ((ULONG_PTR)hLibModule & 1)
+@@ -1410,6 +1470,9 @@ FARPROC get_proc_address( HMODULE hModule, LPCSTR function )
+ 
+     if (!hModule) hModule = NtCurrentTeb()->Peb->ImageBaseAddress;
+ 
++    if(steamclient_hmod != NULL && hModule == steamclient_hmod)
++        hModule = lsteamclient_hmod;
++
+     if ((ULONG_PTR)function >> 16)
+     {
+         ANSI_STRING     str;
+
+From acda0915ca65ea7e818fbb89bae14894602cf845 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 5 Jun 2017 14:41:28 -0500
+Subject: [PATCH] HACK: kernel32: Load hard-coded Steam.dll path if relative
+ load fails
+
+Some games (Call of Duty is one example) try to just
+LoadLibrary("Steam.dll") with no path. If that fails, it complains
+"Failed to find Steam". This works on Windows because Steam sets the
+PATH environment variable to include <C:\Program Files\Steam\>, which is
+where Steam.dll lives, before launching the game. However, the Linux
+Steam obviously doesn't do that. For this reason, we place Steam.dll in
+there and this hack loads it correctly for the games.
+
+TODO: is this enough? Should we put that path into PATH like on Windows,
+in case it tries to load other binaries?
+---
+ dlls/kernel32/module.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index cf3a0b5ed98..6ca438d3ae2 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -77,6 +77,8 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
+ static CRITICAL_SECTION dlldir_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+ 
+ static const WCHAR steamclientW[] = {'s','t','e','a','m','c','l','i','e','n','t',0};
++static const WCHAR steamdllW[] = {'S','t','e','a','m','.','d','l','l',0};
++static const WCHAR full_steamdllW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m','\\','S','t','e','a','m','.','d','l','l',0};
+ static const WCHAR steamclient_pathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m','\\','s','t','e','a','m','c','l','i','e','n','t','.','d','l','l',0};;
+ static HMODULE steamclient_hmod = NULL;
+ static HMODULE lsteamclient_hmod = NULL;
+@@ -1302,6 +1304,12 @@ static HMODULE load_library( const UNICODE_STRING *libname, DWORD flags )
+     }
+ done:
+     HeapFree( GetProcessHeap(), 0, load_path );
++
++    if(!hModule && !strcmpiW(libname->Buffer, steamdllW))
++        /* tried and failed to load Steam.dll from PATH. try again
++         * with known-good path */
++        return LoadLibraryW(full_steamdllW);
++
+     return hModule;
+ }
+ 
+From 183eac81ab4739735c4f49d25c1384d98f17655d Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 9 Jun 2017 10:31:27 -0500
+Subject: [PATCH] HACK: kernel32: Return steamclient instead of lsteamclient
+ during GetModuleHandleEx
+
+Found a game which passes the result from GetProcAddress to this. Ugh.
+---
+ dlls/kernel32/module.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index 6ca438d3ae2..a1a2b0e100c 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -725,6 +725,8 @@ BOOL WINAPI GetModuleHandleExW( DWORD flags, LPCWSTR name, HMODULE *module )
+     {
+         void *dummy;
+         if (!(ret = RtlPcToFileHeader( (void *)name, &dummy ))) status = STATUS_DLL_NOT_FOUND;
++        if(steamclient_hmod != NULL && ret == lsteamclient_hmod)
++            ret = steamclient_hmod;
+     }
+     else
+     {
+
+From 3835eee939a9e8c6a8f29733307a8531053a3616 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 13 Jun 2017 12:35:56 -0500
+Subject: [PATCH] HACK: kernel32: Put Steam program files dir into PATH
+
+---
+ dlls/kernel32/module.c | 23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index a1a2b0e100c..ef0295081c8 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -78,7 +78,7 @@ static CRITICAL_SECTION dlldir_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+ 
+ static const WCHAR steamclientW[] = {'s','t','e','a','m','c','l','i','e','n','t',0};
+ static const WCHAR steamdllW[] = {'S','t','e','a','m','.','d','l','l',0};
+-static const WCHAR full_steamdllW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m','\\','S','t','e','a','m','.','d','l','l',0};
++static const DWORD steamdllW_len = 9;
+ static const WCHAR steamclient_pathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m','\\','s','t','e','a','m','c','l','i','e','n','t','.','d','l','l',0};;
+ static HMODULE steamclient_hmod = NULL;
+ static HMODULE lsteamclient_hmod = NULL;
+@@ -890,12 +890,18 @@ static const WCHAR *get_dll_system_path(void)
+ 
+     if (!cached_path)
+     {
++        static const WCHAR steamProgramPathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m',0};
++        static const DWORD steamProgramPathW_len = 22;
+         WCHAR *p, *path;
+-        int len = 1;
++        int len = 2;
+ 
++        len += steamProgramPathW_len;
+         len += 2 * GetSystemDirectoryW( NULL, 0 );
+         len += GetWindowsDirectoryW( NULL, 0 );
+         p = path = HeapAlloc( GetProcessHeap(), 0, len * sizeof(WCHAR) );
++        strcpyW(p, steamProgramPathW);
++        p += steamProgramPathW_len;
++        *p++ = ';';
+         GetSystemDirectoryW( p, path + len - p);
+         p += strlenW(p);
+         /* if system directory ends in "32" add 16-bit version too */
+@@ -1307,10 +1313,15 @@ static HMODULE load_library( const UNICODE_STRING *libname, DWORD flags )
+ done:
+     HeapFree( GetProcessHeap(), 0, load_path );
+ 
+-    if(!hModule && !strcmpiW(libname->Buffer, steamdllW))
+-        /* tried and failed to load Steam.dll from PATH. try again
+-         * with known-good path */
+-        return LoadLibraryW(full_steamdllW);
++    if(!hModule){
++        DWORD len = lstrlenW(libname->Buffer);
++        if(len > steamdllW_len &&
++                !strcmpiW(libname->Buffer + len - steamdllW_len, steamdllW)){
++            /* tried and failed to load some path ending in Steam.dll. try
++             * again without hard-coded path */
++            return LoadLibraryW(steamdllW);
++        }
++    }
+ 
+     return hModule;
+ }
+
+From a2f9e2806acdd83aa9121baea4a8a908e2a9e909 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 28 Dec 2017 09:43:36 -0600
+Subject: [PATCH] kernel32: Support steamclient64
+
+---
+ dlls/kernel32/module.c | 11 ++++++++---
+ loader/wine.inf.in     |  1 +
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index ef0295081c8..32f9ddf6718 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -76,10 +76,17 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
+ };
+ static CRITICAL_SECTION dlldir_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+ 
++#if defined(__x86_64__)
++static const WCHAR steamclientW[] = {'s','t','e','a','m','c','l','i','e','n','t','6','4',0};
++static const WCHAR steamclient_pathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s',' ','(','x','8','6',')','\\','S','t','e','a','m','\\','s','t','e','a','m','c','l','i','e','n','t','6','4','.','d','l','l',0};
++#else
+ static const WCHAR steamclientW[] = {'s','t','e','a','m','c','l','i','e','n','t',0};
++static const WCHAR steamclient_pathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s',' ','(','x','8','6',')','\\','S','t','e','a','m','\\','s','t','e','a','m','c','l','i','e','n','t','.','d','l','l',0};
++#endif
++static const WCHAR steamProgramPathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s',' ','(','x','8','6',')','\\','S','t','e','a','m',0};
++static const DWORD steamProgramPathW_len = 28;
+ static const WCHAR steamdllW[] = {'S','t','e','a','m','.','d','l','l',0};
+ static const DWORD steamdllW_len = 9;
+-static const WCHAR steamclient_pathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m','\\','s','t','e','a','m','c','l','i','e','n','t','.','d','l','l',0};;
+ static HMODULE steamclient_hmod = NULL;
+ static HMODULE lsteamclient_hmod = NULL;
+ 
+@@ -890,8 +897,6 @@ static const WCHAR *get_dll_system_path(void)
+ 
+     if (!cached_path)
+     {
+-        static const WCHAR steamProgramPathW[] = {'C',':','\\','P','r','o','g','r','a','m',' ','F','i','l','e','s','\\','S','t','e','a','m',0};
+-        static const DWORD steamProgramPathW_len = 22;
+         WCHAR *p, *path;
+         int len = 2;
+ 
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index 75d5f4a7216..7fe2f49dcd9 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -3530,4 +3530,5 @@ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16422%\Steam"
+ [SteamClient.ntamd64]
+ HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
++HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll64",,"%16426%\Steam\steamclient64.dll"
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
+
+From 0400502cb3bb695476003d1d986cf35bdea79f2f Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 29 Mar 2018 11:09:53 -0500
+Subject: [PATCH] HACK: wine.inf: Add native,builtin overrides for msvcrt DLLs
+
+---
+ loader/wine.inf.in | 54 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index 357a3b66b2d..bb178c65c37 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -3526,9 +3526,63 @@ HKLM,Software\Wine\LicenseInformation,"Shell-PremiumInBoxGames-Chess-EnableGame"
+ HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16422%\Steam\steamclient.dll"
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16422%\Steam"
++;;Likely want *80 and *90 too, but those require removing Wine's manifest files.
++HKCU,Software\Wine\DllOverrides,"atl100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"atl110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"atl120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-conio-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-heap-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-locale-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-math-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-runtime-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-stdio-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-time-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"atl140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"concrt140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"ucrtbase",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcruntime140",0x2,"native,builtin"
+ 
+ [SteamClient.ntamd64]
+ HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll64",,"%16426%\Steam\steamclient64.dll"
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
++;;Likely want *80 and *90 too, but those require removing Wine's manifest files.
++HKCU,Software\Wine\DllOverrides,"atl100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp100",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"atl110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp110",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"atl120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp120",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-conio-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-heap-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-locale-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-math-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-runtime-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-stdio-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"api-ms-win-crt-time-l1-1-0",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"atl140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"concrt140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcp140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"msvcr140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"ucrtbase",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcomp140",0x2,"native,builtin"
++HKCU,Software\Wine\DllOverrides,"vcruntime140",0x2,"native,builtin"
+
+From bf02d103fde2c2e54a074b03021f47e4672d4b01 Mon Sep 17 00:00:00 2001
+From: Nikolay Sivov <nsivov@codeweavers.com>
+Date: Mon, 5 Nov 2018 18:45:57 +0300
+Subject: [PATCH] Add missing InstallPath registry value.
+
+So UPlay won't try to install Steam.
+---
+ loader/wine.inf.in | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index 44ce3cd6639..aafac2ef3d2 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -3565,6 +3565,7 @@ HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll64",,"%16426%\Steam\steamclient64.dll"
+ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
++HKLM,Software\Wow6432Node\Valve\Steam,"InstallPath",,"%16422%\Steam"
+ ;;Likely want *80 and *90 too, but those require removing Wine's manifest files.
+ HKCU,Software\Wine\DllOverrides,"atl100",0x2,"native,builtin"
+ HKCU,Software\Wine\DllOverrides,"msvcp100",0x2,"native,builtin"
+
+From bac899cd4531229baa7633d67578b74a2a98468f Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 19 Mar 2018 11:34:35 -0500
+Subject: [PATCH] kernel32: Don't force-load Steam.dll
+
+This must fail for older DRM which walks up the FS tree searching for
+Steam.dll to work correctly.
+---
+ dlls/kernel32/module.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index 32f9ddf6718..342e408b555 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -1318,16 +1318,6 @@ static HMODULE load_library( const UNICODE_STRING *libname, DWORD flags )
+ done:
+     HeapFree( GetProcessHeap(), 0, load_path );
+ 
+-    if(!hModule){
+-        DWORD len = lstrlenW(libname->Buffer);
+-        if(len > steamdllW_len &&
+-                !strcmpiW(libname->Buffer + len - steamdllW_len, steamdllW)){
+-            /* tried and failed to load some path ending in Steam.dll. try
+-             * again without hard-coded path */
+-            return LoadLibraryW(steamdllW);
+-        }
+-    }
+-
+     return hModule;
+ }
+ 
+From 7bd039f34f5fc1123524ddb22769f6e16e7d9c88 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 11 May 2017 10:01:16 -0500
+Subject: [PATCH] HACK: ws2_32: Fake success when trying to bind to an IPX
+ address
+
+---
+ dlls/ws2_32/socket.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/dlls/ws2_32/socket.c b/dlls/ws2_32/socket.c
+index 164a48ce751..b9248c9bd5e 100644
+--- a/dlls/ws2_32/socket.c
++++ b/dlls/ws2_32/socket.c
+@@ -3332,6 +3332,13 @@ int WINAPI WS_bind(SOCKET s, const struct WS_sockaddr* name, int namelen)
+                     else if (interface_bind(s, fd, &uaddr.addr))
+                         in4->sin_addr.s_addr = htonl(INADDR_ANY);
+                 }
++
++                if(name->sa_family ==  WS_AF_IPX){
++                    /* Quake (and similar family) fails if we can't bind to an IPX address. This often
++                     * doesn't work on Linux, so just fake success. */
++                    return 0;
++                }
++
+                 if (bind(fd, &uaddr.addr, uaddrlen) < 0)
+                 {
+                     int loc_errno = errno;
+
+From 819b923a3b761944b094f5f20b881c501a522f20 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 19 Jan 2018 14:01:07 -0600
+Subject: [PATCH] HACK: advapi32: Use steamuser as Wine username
+
+---
+ dlls/advapi32/advapi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/advapi32/advapi.c b/dlls/advapi32/advapi.c
+index 1c528ef7419..87792f4fbc9 100644
+--- a/dlls/advapi32/advapi.c
++++ b/dlls/advapi32/advapi.c
+@@ -84,7 +84,7 @@ GetUserNameA( LPSTR lpszName, LPDWORD lpSize )
+ BOOL WINAPI
+ GetUserNameW( LPWSTR lpszName, LPDWORD lpSize )
+ {
+-    const char *name = wine_get_user_name();
++    const char *name = "steamuser"/*wine_get_user_name()*/;
+     DWORD i, len = MultiByteToWideChar( CP_UNIXCP, 0, name, -1, NULL, 0 );
+     LPWSTR backslash;
+ 
+From ec9e7190ea7045012b6e33e5ee64cd678bec68c9 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 22 Jan 2018 14:32:40 -0600
+Subject: [PATCH] HACK: shell32: Never create links to the user's home dirs
+
+---
+ dlls/shell32/shellpath.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/dlls/shell32/shellpath.c b/dlls/shell32/shellpath.c
+index f08474b3635..2f637f25537 100644
+--- a/dlls/shell32/shellpath.c
++++ b/dlls/shell32/shellpath.c
+@@ -4424,6 +4424,7 @@ static void _SHCreateSymbolicLinks(void)
+     pszPersonal = wine_get_unix_file_name(wszTempPath);
+     if (!pszPersonal) return;
+ 
++#if 0
+     hr = XDG_UserDirLookup(xdg_dirs, num, &xdg_results);
+     if (FAILED(hr)) xdg_results = NULL;
+ 
+@@ -4477,6 +4478,7 @@ static void _SHCreateSymbolicLinks(void)
+     }
+     else
+     {
++#endif
+         /* '$HOME' doesn't exist. Create 'My Pictures', 'My Videos' and 'My Music' subdirs
+          * in '%USERPROFILE%\\My Documents' or fail silently if they already exist. */
+         pszHome = NULL;
+@@ -4486,8 +4488,11 @@ static void _SHCreateSymbolicLinks(void)
+             if (_SHAppendToUnixPath(szMyStuffTarget, MAKEINTRESOURCEW(aidsMyStuff[i])))
+                 mkdir(szMyStuffTarget, 0777);
+         }
++#if 0
+     }
++#endif
+ 
++#if 0
+     /* Create symbolic links for 'My Pictures', 'My Videos' and 'My Music'. */
+     for (i=0; i < ARRAY_SIZE(aidsMyStuff); i++)
+     {
+@@ -4532,13 +4537,17 @@ static void _SHCreateSymbolicLinks(void)
+         symlink(szMyStuffTarget, pszMyStuff);
+         heap_free(pszMyStuff);
+     }
++#endif
+ 
++#if 0
+     /* Last but not least, the Desktop folder */
+     if (pszHome)
+         strcpy(szDesktopTarget, pszHome);
+     else
+         strcpy(szDesktopTarget, pszPersonal);
++#endif
+     heap_free(pszPersonal);
++#if 0
+ 
+     xdg_desktop_dir = xdg_results ? xdg_results[num - 1] : NULL;
+     if (xdg_desktop_dir ||
+@@ -4565,6 +4574,7 @@ static void _SHCreateSymbolicLinks(void)
+             heap_free(xdg_results[i]);
+         heap_free(xdg_results);
+     }
++#endif
+ }
+ 
+ /******************************************************************************
+
+From 134fa05a0e39b63bfec75d0823ebe49e4c9cae64 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 7 Jun 2018 14:37:03 -0500
+Subject: [PATCH] HACK: winex11.drv: Disable XIM by default
+
+libx11 has a race condition that causes XIM to crash with "double free
+or corruption" errors, see winehq bug 35041. Disabling XIM works around
+this, though special input methods (CJK, etc.) will no longer work.
+---
+ dlls/winex11.drv/x11drv_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
+index db87d188236..81a63a20689 100644
+--- a/dlls/winex11.drv/x11drv_main.c
++++ b/dlls/winex11.drv/x11drv_main.c
+@@ -93,7 +93,7 @@ static void *err_callback_arg;               /* error callback argument */
+ static int err_callback_result;              /* error callback result */
+ static unsigned long err_serial;             /* serial number of first request */
+ static int (*old_error_handler)( Display *, XErrorEvent * );
+-static BOOL use_xim = TRUE;
++static BOOL use_xim = FALSE;
+ static char input_style[20];
+ 
+ #define IS_OPTION_TRUE(ch) \
+
+From d012d137e4099d1b12079a49a8a5632d205e0a9f Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 24 Sep 2018 12:37:49 -0500
+Subject: [PATCH] HACK: dbghelp: Disable DWARF parsing
+
+Patch by Zeb. Our DWARF parser has been known to crash winedbg in some
+cases. Since probably no concerned parties are going to be using plain
+winedbg, just don't bother parsing anything.
+---
+ dlls/dbghelp/dwarf.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/dlls/dbghelp/dwarf.c b/dlls/dbghelp/dwarf.c
+index 31c008abb8f..ce689dbe6cf 100644
+--- a/dlls/dbghelp/dwarf.c
++++ b/dlls/dbghelp/dwarf.c
+@@ -3516,6 +3516,11 @@ BOOL dwarf2_parse(struct module* module, unsigned long load_offset,
+     BOOL                ret = TRUE;
+     struct module_format* dwarf2_modfmt;
+ 
++/* Our DWARF parser has been known to crash winedbg in some cases. Since
++ * probably no concerned parties are going to be using plain winedbg, just don't
++ * bother parsing anything. */
++return FALSE;
++
+     dwarf2_init_section(&eh_frame,                fmap, ".eh_frame",     NULL,             &eh_frame_sect);
+     dwarf2_init_section(&section[section_debug],  fmap, ".debug_info",   ".zdebug_info",   &debug_sect);
+     dwarf2_init_section(&section[section_abbrev], fmap, ".debug_abbrev", ".zdebug_abbrev", &debug_abbrev_sect);
+
+From a13270aea50af90aa6c721080b956870d67d81c2 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 30 Mar 2018 10:40:43 -0500
+Subject: [PATCH] winedbg: When crash dialog is not shown, dump crash info to
+ stderr
+
+This way the backtrace and such will appear in the log file instead of
+going to stdout, which we don't capture.
+---
+ programs/winedbg/tgt_active.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/programs/winedbg/tgt_active.c b/programs/winedbg/tgt_active.c
+index f632ca0414d..72e63327831 100644
+--- a/programs/winedbg/tgt_active.c
++++ b/programs/winedbg/tgt_active.c
+@@ -874,6 +874,9 @@ enum dbg_start dbg_active_auto(int argc, char* argv[])
+         if (event) thread = display_crash_details( event );
+         if (thread) dbg_houtput = output = create_temp_file();
+         break;
++    case TRUE:
++        dbg_houtput = GetStdHandle(STD_ERROR_HANDLE);
++        break;
+     }
+ 
+     input = parser_generate_command_file("echo Modules:", "info share",

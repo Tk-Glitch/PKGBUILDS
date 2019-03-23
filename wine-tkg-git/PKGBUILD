@@ -5,7 +5,7 @@ pkgver=4.4.r7.gd963a250
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=138
+eval pkgrel=139
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -70,6 +70,45 @@ else
   fi
 fi
 
+function exit_cleanup {
+if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+  echo "_protontkg_version=${pkgver}" > "$_where"/../proton-tkg/proton_tkg_token
+fi
+
+rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
+
+if [ "$_NUKR" == "true" ]; then
+  # Sanitization
+  rm -rf "$srcdir"/"$_esyncsrcdir"
+  rm -rf "$srcdir"/*.patch
+  rm -rf "$srcdir"/*.tgz
+  rm -rf "$srcdir"/*.conf
+  msg2 'exit cleanup done'
+fi
+
+  # Remove temporarily copied patches
+  rm -rf "$_where"/*.patch
+  rm -rf "$_where"/*.my*
+  rm -rf "$_where"/*.conf
+
+  remove_deps
+}
+
+# Check for proton-tkg token to prevent broken state
+if [ -e ../proton-tkg/proton_tkg_token ]; then
+  _EXTERNAL_INSTALL="true"
+  _EXTERNAL_INSTALL_TYPE="proton"
+  _EXTERNAL_NOVER="false"
+  _use_dxvk="true"
+  _dxvk_dxgi="true"
+  _use_faudio="true"
+elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+  error "It looks like you're attempting to build a Proton version of wine-tkg-git."
+  error "This special option doesn't use pacman and requires you to run 'proton-tkg.sh' script from proton-tkg dir."
+  exit_cleanup
+  exit
+fi
+
 if [ -n "$_PKGNAME_OVERRIDE" ]; then
   if [ "$_PKGNAME_OVERRIDE" == "none" ]; then
     pkgname="${pkgname}"
@@ -129,12 +168,16 @@ else
 fi
 
 # External install
-if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
   pkgname="${pkgname/%-git/-$_EXTERNAL_INSTALL_TYPE-git}"
   if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
     _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
   fi
   msg2 "Installing to $_DEFAULT_EXTERNAL_PATH/$pkgname"
+elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+  pkgname="proton_dist"
+  _DEFAULT_EXTERNAL_PATH="$HOME/.steam/root/compatibilitytools.d"
+  msg2 "Installing to $_DEFAULT_EXTERNAL_PATH/proton_tkg"
 fi
 
 # custom plain wine commit to pass to git
@@ -210,6 +253,7 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'meson'                 'ninja'
     'glslang'               'wget'
     'ocl-icd'               'lib32-ocl-icd'
+    'opencl-headers'
 )
 # We need wine installed to build DXVK winelib
 if [ "$_use_dxvk" == "true" ]; then
@@ -309,6 +353,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
 		'LAA-staging.patch' # Same as above, for staging
 		'winevulkan-1.1.103.patch' # Update winevulkan
+		'proton-tkg.patch' # Proton-tkg
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -853,6 +898,10 @@ prepare() {
 	  _patchname='enable_stg_shared_mem_def.patch' && _patchmsg="Enable STAGING_SHARED_MEMORY by default" && nonuser_patcher
 	fi
 
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches" && nonuser_patcher
+	fi
+
 	# wine user patches
 	if [ "$_user_patches" == "true" ]; then
 	  _userpatch_target="plain-wine"
@@ -940,11 +989,14 @@ build() {
 	local _prefix=/usr
 
 	# External install
-	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
 	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  #_DEFAULT_EXTERNAL_PATH="$HOME/.steam/root/compatibilitytools.d"
+	  _prefix=""
 	fi
 
 	# build wine 64-bit
@@ -1025,7 +1077,7 @@ package() {
 	local _prefix=/usr
 
 	# External install
-	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
 	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
 	  fi
@@ -1034,6 +1086,9 @@ package() {
 	  else
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	  fi
+	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  #_DEFAULT_EXTERNAL_PATH="$HOME/.steam/root/compatibilitytools.d"
+	  _prefix=""
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
@@ -1053,16 +1108,22 @@ package() {
 			libdir="${pkgdir}$_prefix/lib" \
 			dlldir="${pkgdir}$_prefix/lib/wine" install
 
-	# freetype font smoothing for win32 applications
-	install -d "$pkgdir"/etc/fonts/conf.{avail,d}
-	install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail/30-$pkgname-win32-aliases.conf"
-	ln -s "../conf.avail/30-$pkgname-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.d/30-$pkgname-win32-aliases.conf"
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ] || [ "$_EXTERNAL_INSTALL" != "true" ]; then
+	  # freetype font smoothing for win32 applications
+	  install -d "$pkgdir"/etc/fonts/conf.{avail,d}
+	  install -m644 "${srcdir}/30-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.avail/30-$pkgname-win32-aliases.conf"
+	  ln -s "../conf.avail/30-$pkgname-win32-aliases.conf" "${pkgdir}/etc/fonts/conf.d/30-$pkgname-win32-aliases.conf"
+	fi
 
 	# wine binfmt
 	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
-	  mkdir -p "${pkgdir}/usr/lib/binfmt.d"
-	  # change binfmt.conf to actual installed path
-	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
+	  if [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/share/wine/wine.inf -i
+	  else
+	    mkdir -p "${pkgdir}/usr/lib/binfmt.d"
+	    # change binfmt.conf to actual installed path
+	    sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
+	  fi
 	else
 	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 	  # disable mime-types registering
@@ -1099,13 +1160,14 @@ package() {
 	fi
 
 	# External install
-	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  msg2 "### This wine will be installed to: $_prefix"
-	  if [ "$_EXTERNAL_INSTALL_TYPE" != "lutris" ]; then
+	  if [ "$_EXTERNAL_INSTALL_TYPE" == "opt" ]; then
 	    msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
 	  fi
 	fi
 }
+
 md5sums=('SKIP'
          'SKIP'
          'SKIP'
@@ -1156,26 +1218,7 @@ md5sums=('SKIP'
          '25e20e66ee3b2896f2979ba4e16ff767'
          'afd2e119b0d5aac290a0b89324624fb4'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
-         '1c4738e438debf72266b96d09f465b25')
-
-function exit_cleanup {
-  rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
-
-if [ "$_NUKR" == "true" ]; then
-  # Sanitization
-  rm -rf "$srcdir"/"$_esyncsrcdir"
-  rm -rf "$srcdir"/*.patch
-  rm -rf "$srcdir"/*.tgz
-  rm -rf "$srcdir"/*.conf
-  msg2 'exit cleanup done'
-fi
-
-  # Remove temporarily copied patches
-  rm -rf "$_where"/*.patch
-  rm -rf "$_where"/*.my*
-  rm -rf "$_where"/*.conf
-
-  remove_deps
-}
+         '1c4738e438debf72266b96d09f465b25'
+         '1f835dea59620155186c97fad1e2f895')
 
 trap exit_cleanup EXIT
