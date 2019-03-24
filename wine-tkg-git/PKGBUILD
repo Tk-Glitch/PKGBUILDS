@@ -5,7 +5,7 @@ pkgver=4.4.r7.gd963a250
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=139
+eval pkgrel=140
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -75,7 +75,7 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   echo "_protontkg_version=${pkgver}" > "$_where"/../proton-tkg/proton_tkg_token
 fi
 
-rm -fv "$_where"/BIG_UGLY_FROGMINER # state tracker end
+rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
 
 if [ "$_NUKR" == "true" ]; then
   # Sanitization
@@ -102,6 +102,7 @@ if [ -e ../proton-tkg/proton_tkg_token ]; then
   _use_dxvk="true"
   _dxvk_dxgi="true"
   _use_faudio="true"
+  _use_libfonts="true"
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   error "It looks like you're attempting to build a Proton version of wine-tkg-git."
   error "This special option doesn't use pacman and requires you to run 'proton-tkg.sh' script from proton-tkg dir."
@@ -270,6 +271,11 @@ fi
 # faudio deps
 if [ "$_use_faudio" == "true" ]; then
   makedepends=("${makedepends[@]}" faudio lib32-faudio)
+fi
+
+# liberation fonts deps
+if [ "$_use_libfonts" == "true" ]; then
+  depend=("${depend[@]}" fontforge python-fonttools)
 fi
 
 optdepends=(
@@ -1219,6 +1225,6 @@ md5sums=('SKIP'
          'afd2e119b0d5aac290a0b89324624fb4'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
          '1c4738e438debf72266b96d09f465b25'
-         '1f835dea59620155186c97fad1e2f895')
+         '96c13b5fc90f27939fb1ba25b8d4ad18')
 
 trap exit_cleanup EXIT

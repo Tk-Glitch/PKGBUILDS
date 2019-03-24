@@ -6,7 +6,7 @@ It can create Steamplay compatible wine builds based on wine-tkg-git + additiona
 
 **This is not standalone**
 
-Running the proton-tkg.sh script will launch the usual wine-tkg-git building process.. With extra spice.
+Running the proton-tkg.sh script will launch the usual wine-tkg-git building process... with extra spice. **Older than 3.16 wine bases are untested.**
 
 **Resulting builds will be installed in `~/.steam/steam/compatibilitytools.d`**
 
@@ -17,3 +17,7 @@ The following wine-tkg-git options will be enforced (might change in the future)
 - _use_dxvk="true"
 - _dxvk_dxgi="true"
 - _use_faudio="true"
+
+**Note: No SteamVR support for compatibility reasons.**
+
+**Currently ships with a prebuilt 32-bit lsteamclient.dll.so lib as building attempts either produced a 64-bit lib or failed. Any help is appreciated!**

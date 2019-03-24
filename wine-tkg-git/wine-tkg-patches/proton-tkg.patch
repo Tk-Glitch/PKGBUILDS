@@ -740,3 +740,574 @@ index f632ca0414d..72e63327831 100644
      }
  
      input = parser_generate_command_file("echo Modules:", "info share",
+
+From 1091eaf13692b16ed66328ceeebfc587075fec6c Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Thu, 25 Oct 2018 12:50:45 -0500
+Subject: [PATCH] HACK: wined3d: Fake an AMD card in place of Nvidia cards
+
+Some games assume they can load the nvapi library if the hardware is an
+nvidia card. This obviously fails in Wine. So fake that all nvidia
+hardware is actually an AMD card, so they don't try to load nvapi.
+---
+ dlls/wined3d/adapter_gl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/dlls/wined3d/adapter_gl.c b/dlls/wined3d/adapter_gl.c
+index b8a2060cf46..8259d92ebac 100644
+--- a/dlls/wined3d/adapter_gl.c
++++ b/dlls/wined3d/adapter_gl.c
+@@ -1009,6 +1009,14 @@ static const struct wined3d_gpu_description *query_gpu_description(const struct
+         vendor = wined3d_settings.pci_vendor_id;
+         TRACE("Overriding vendor PCI ID with 0x%04x.\n", vendor);
+     }
++    else if(vendor == HW_VENDOR_NVIDIA)
++    {
++        /* XXX: Fake having an AMD card in order to avoid games trying to load
++         * the Windows-only nvapi library. */
++        WARN("Nvidia card detected. Faking an AMD RX 480!\n");
++        vendor = HW_VENDOR_AMD;
++        device = CARD_AMD_RADEON_RX_480;
++    }
+ 
+     if (wined3d_settings.pci_device_id != PCI_DEVICE_NONE)
+     {
+
+From 29a2c4f1b8cad98e94c67e4c068d9096969074ee Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 20 Aug 2018 10:58:09 -0500
+Subject: [PATCH] secur32: Return real Unix username from
+ GetUserNameEx(NameDisplay)
+
+---
+ dlls/secur32/secur32.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/secur32/secur32.c b/dlls/secur32/secur32.c
+index ec189fda104..1c662adf44b 100644
+--- a/dlls/secur32/secur32.c
++++ b/dlls/secur32/secur32.c
+@@ -34,6 +34,7 @@
+ #include "thunks.h"
+ #include "lmcons.h"
+ 
++#include "wine/library.h"
+ #include "wine/list.h"
+ #include "wine/debug.h"
+ #include "wine/unicode.h"
+@@ -1201,9 +1202,25 @@ BOOLEAN WINAPI GetUserNameExW(
+             return FALSE;
+         }
+ 
++    case NameDisplay:
++        {
++            const char *name = wine_get_user_name();
++            DWORD len = MultiByteToWideChar( CP_UNIXCP, 0, name, -1, NULL, 0 );
++
++            if (len > *nSize)
++            {
++                SetLastError( ERROR_MORE_DATA );
++                *nSize = len;
++                return FALSE;
++            }
++
++            *nSize = len - 1;
++            MultiByteToWideChar( CP_UNIXCP, 0, name, -1, lpNameBuffer, len );
++            return TRUE;
++        }
++
+     case NameUnknown:
+     case NameFullyQualifiedDN:
+-    case NameDisplay:
+     case NameUniqueId:
+     case NameCanonical:
+     case NameUserPrincipal:
+
+
+From 63f934962cb97d69ed71604985716e7479f822b1 Mon Sep 17 00:00:00 2001
+From: Nikolay Sivov <nsivov@codeweavers.com>
+Date: Tue, 23 Oct 2018 16:18:20 +0300
+Subject: [PATCH] wine.inf: Add font registry entries.
+
+---
+ loader/wine.inf.in | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index 1f94c38d0c6..df2b43d9106 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -181,6 +181,7 @@ CurrentVersion="Software\Microsoft\Windows\CurrentVersion"
+ CurrentVersionNT="Software\Microsoft\Windows NT\CurrentVersion"
+ FontSubStr="Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes"
+ Control="System\CurrentControlSet\Control"
++FontsNT="Software\Microsoft\Windows NT\CurrentVersion\Fonts"
+ 
+ [Classes]
+ HKCR,.chm,,2,"chm.file"
+@@ -614,6 +615,10 @@ HKLM,%FontSubStr%,"Times New Roman CYR,204",,"Times New Roman,204"
+ HKLM,%FontSubStr%,"Times New Roman Greek,161",,"Times New Roman,161"
+ HKLM,%FontSubStr%,"Times New Roman TUR,162",,"Times New Roman,162"
+ HKLM,System\CurrentControlSet\Hardware Profiles\Current\Software\Fonts,"LogPixels",0x10003,0x00000060
++HKLM,%FontsNT%,"Arial (TrueType)",,"arial.ttf"
++HKLM,%FontsNT%,"Arial Bold (TrueType)",,"arialbd.ttf"
++HKLM,%FontsNT%,"Times New Roman (TrueType)",,"times.ttf"
++HKLM,%FontsNT%,"Courier New (TrueType)",,"cour.ttf"
+ 
+ [MCI]
+ HKLM,%Mci32Str%,"AVIVideo",,"mciavi32.dll"
+     
+From 174d487bf8ef5bec22c3663f50a276ae59d0a931 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 30 Oct 2018 13:04:06 -0500
+Subject: [PATCH] wine.inf: Substitute Times New Roman for Palatino Linotype
+
+For AOE2HD launcher.
+---
+ loader/wine.inf.in | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index df2b43d9106..44ce3cd6639 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -619,6 +619,7 @@ HKLM,%FontsNT%,"Arial (TrueType)",,"arial.ttf"
+ HKLM,%FontsNT%,"Arial Bold (TrueType)",,"arialbd.ttf"
+ HKLM,%FontsNT%,"Times New Roman (TrueType)",,"times.ttf"
+ HKLM,%FontsNT%,"Courier New (TrueType)",,"cour.ttf"
++HKCU,Software\Wine\Fonts\Replacements,"Palatino Linotype",,"Times New Roman"
+ 
+ [MCI]
+ HKLM,%Mci32Str%,"AVIVideo",,"mciavi32.dll"
+
+From aa7fa7ce94bd4e49e3843a8ea398d29882518e43 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 6 Aug 2018 08:06:03 -0500
+Subject: [PATCH] server: Set default timeout to 0
+
+The Steam client will be waiting for the wineserver to exit to set up
+some environment variables, so make it wait as short as possible.
+---
+ server/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/server/main.c b/server/main.c
+index 20d3c48c4d9..aca8738c4c0 100644
+--- a/server/main.c
++++ b/server/main.c
+@@ -42,7 +42,7 @@
+ /* command-line options */
+ int debug_level = 0;
+ int foreground = 0;
+-timeout_t master_socket_timeout = 3 * -TICKS_PER_SEC;  /* master socket timeout, default is 3 seconds */
++timeout_t master_socket_timeout = 0; /* master socket timeout, default is 3 seconds */
+ const char *server_argv0;
+ 
+ /* parse-line args */
+
+From 7f3acf21721b44b106ec8c6b61f0bf81aeb7f16a Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 13 Jul 2018 10:40:01 -0500
+Subject: [PATCH] HACK: mscoree: Don't install wine-mono on prefix creation
+
+---
+ dlls/mscoree/mscoree_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/mscoree/mscoree_main.c b/dlls/mscoree/mscoree_main.c
+index 5612ff6b89a..a0320dafc39 100644
+--- a/dlls/mscoree/mscoree_main.c
++++ b/dlls/mscoree/mscoree_main.c
+@@ -778,7 +778,7 @@ static BOOL install_wine_mono(void)
+ 
+ HRESULT WINAPI DllRegisterServer(void)
+ {
+-    install_wine_mono();
++    /*install_wine_mono();*/
+ 
+     return __wine_register_resources( MSCOREE_hInstance );
+ }
+
+From 059a15a1d521a6ba79273b2ade923822b1532205 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Fri, 13 Jul 2018 10:40:27 -0500
+Subject: [PATCH] HACK: mshtml: Don't install wine-gecko on prefix creation
+
+We only want to install this on demand.
+---
+ dlls/mshtml/main.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/dlls/mshtml/main.c b/dlls/mshtml/main.c
+index 6ce8198aee5..f84d92cc860 100644
+--- a/dlls/mshtml/main.c
++++ b/dlls/mshtml/main.c
+@@ -530,8 +530,6 @@ HRESULT WINAPI DllRegisterServer(void)
+     hres = __wine_register_resources( hInst );
+     if(SUCCEEDED(hres))
+         hres = register_server(TRUE);
+-    if(SUCCEEDED(hres))
+-        load_gecko();
+ 
+     return hres;
+ }
+
+From 1ef83da3b15171782dc009bb6649665769122aa5 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 15 Jan 2019 10:10:47 -0600
+Subject: [PATCH] kernel32: Don't pass SDL_AUDIODRIVER from Linux environment
+
+---
+ dlls/kernel32/process.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
+index 9c957f02c06..e14b514ccc1 100644
+--- a/dlls/kernel32/process.c
++++ b/dlls/kernel32/process.c
+@@ -137,6 +137,7 @@ static inline BOOL is_special_env_var( const char *var )
+             !strncmp( var, "TEMP=", sizeof("TEMP=")-1 ) ||
+             !strncmp( var, "TMP=", sizeof("TMP=")-1 ) ||
+             !strncmp( var, "QT_", sizeof("QT_")-1 ) ||
++            !strncmp( var, "SDL_AUDIODRIVER=", sizeof("SDL_AUDIODRIVER=")-1 ) ||
+             !strncmp( var, "VK_", sizeof("VK_")-1 ));
+ }
+ 
+From 59e3f7faf3aca068ca37ad274490e4d7bcd85907 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 11 Jun 2018 13:40:24 -0500
+Subject: [PATCH] kernel32: Implement Set and GetThreadDescription
+
+---
+ dlls/kernel32/kernel32.spec  |   2 +
+ dlls/kernel32/tests/thread.c |  46 ++++++++++++++
+ dlls/kernel32/thread.c       | 112 ++++++++++++++++++++++++++++++++---
+ include/winbase.h            |   2 +
+ 4 files changed, 154 insertions(+), 8 deletions(-)
+
+diff --git a/dlls/kernel32/kernel32.spec b/dlls/kernel32/kernel32.spec
+index f1d75b8e1c6..98f37215756 100644
+--- a/dlls/kernel32/kernel32.spec
++++ b/dlls/kernel32/kernel32.spec
+@@ -847,6 +847,7 @@
+ @ stdcall GetTempPathA(long ptr)
+ @ stdcall GetTempPathW(long ptr)
+ @ stdcall GetThreadContext(long ptr)
++@ stdcall GetThreadDescription(long ptr)
+ @ stdcall GetThreadErrorMode()
+ @ stdcall GetThreadGroupAffinity(long ptr)
+ @ stdcall GetThreadId(ptr)
+@@ -1447,6 +1448,7 @@
+ @ stdcall SetTermsrvAppInstallMode(long)
+ @ stdcall SetThreadAffinityMask(long long)
+ @ stdcall SetThreadContext(long ptr)
++@ stdcall SetThreadDescription(long ptr)
+ @ stdcall SetThreadErrorMode(long ptr)
+ @ stdcall SetThreadExecutionState(long)
+ @ stdcall SetThreadGroupAffinity(long ptr ptr)
+diff --git a/dlls/kernel32/tests/thread.c b/dlls/kernel32/tests/thread.c
+index b69d2eb371f..2be405e7ae7 100644
+--- a/dlls/kernel32/tests/thread.c
++++ b/dlls/kernel32/tests/thread.c
+@@ -102,6 +102,8 @@ static NTSTATUS (WINAPI *pNtQueryInformationThread)(HANDLE,THREADINFOCLASS,PVOID
+ static BOOL (WINAPI *pSetThreadGroupAffinity)(HANDLE,const GROUP_AFFINITY*,GROUP_AFFINITY*);
+ static NTSTATUS (WINAPI *pNtSetInformationThread)(HANDLE,THREADINFOCLASS,LPCVOID,ULONG);
+ static NTSTATUS (WINAPI *pNtSetLdtEntries)(ULONG,ULONG,ULONG,ULONG,ULONG,ULONG);
++static HRESULT (WINAPI *pSetThreadDescription)(HANDLE,const WCHAR *);
++static HRESULT (WINAPI *pGetThreadDescription)(HANDLE,WCHAR **);
+ 
+ static HANDLE create_target_process(const char *arg)
+ {
+@@ -1594,6 +1596,47 @@ static void test_ThreadErrorMode(void)
+     pSetThreadErrorMode(oldmode, NULL);
+ }
+ 
++static void test_ThreadDescription(void)
++{
++    HRESULT hr;
++    static const WCHAR test_nameW[] = {'t','e','s','t','_','n','a','m','e',0};
++    static const WCHAR emptyW[] = {0};
++    WCHAR *out;
++
++    if (!pSetThreadDescription)
++    {
++        win_skip("SetThreadDescription not implemented\n");
++        return;
++    }
++
++    if(0)
++    {
++        /* crash on win10 */
++        hr = pGetThreadDescription(GetCurrentThread(), NULL);
++    }
++
++    hr = pGetThreadDescription(GetCurrentThread(), &out);
++    ok(hr == 0x10000000, "GetThreadDescription failed: 0x%x\n", hr);
++    todo_wine ok(!lstrcmpW(out, emptyW), "Got non-empty thread name: %s\n", wine_dbgstr_w(out));
++    LocalFree(out);
++
++    hr = pSetThreadDescription(GetCurrentThread(), test_nameW);
++    ok(hr == 0x10000000, "SetThreadDescription failed: 0x%x\n", hr);
++
++    hr = pGetThreadDescription(GetCurrentThread(), &out);
++    ok(hr == 0x10000000, "GetThreadDescription failed: 0x%x\n", hr);
++    ok(!lstrcmpW(test_nameW, out), "Got wrong thread name: %s\n", wine_dbgstr_w(out));
++    LocalFree(out);
++
++    hr = pSetThreadDescription(GetCurrentThread(), NULL);
++    ok(hr == 0x10000000, "SetThreadDescription should have failed: 0x%x\n", hr);
++
++    hr = pGetThreadDescription(GetCurrentThread(), &out);
++    ok(hr == 0x10000000, "GetThreadDescription failed: 0x%x\n", hr);
++    ok(!lstrcmpW(emptyW, out), "Got wrong thread name: %s\n", wine_dbgstr_w(out));
++    LocalFree(out);
++}
++
+ #if (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))) || (defined(_MSC_VER) && defined(__i386__))
+ static inline void set_fpu_cw(WORD cw)
+ {
+@@ -2024,6 +2067,8 @@ static void init_funcs(void)
+ 
+     X(GetThreadGroupAffinity);
+     X(SetThreadGroupAffinity);
++    X(SetThreadDescription);
++    X(GetThreadDescription);
+ 
+     X(FlsAlloc);
+     X(FlsFree);
+@@ -2096,6 +2141,7 @@ START_TEST(thread)
+    test_TLS();
+    test_FLS();
+    test_ThreadErrorMode();
++   test_ThreadDescription();
+ #if (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))) || (defined(_MSC_VER) && defined(__i386__))
+    test_thread_fpu_cw();
+ #endif
+diff --git a/dlls/kernel32/thread.c b/dlls/kernel32/thread.c
+index a86ad3443a4..6cc11a69fed 100644
+--- a/dlls/kernel32/thread.c
++++ b/dlls/kernel32/thread.c
+@@ -28,6 +28,9 @@
+ #ifdef HAVE_UNISTD_H
+ # include <unistd.h>
+ #endif
++#ifdef HAVE_SYS_PRCTL_H
++# include <sys/prctl.h>
++#endif
+ 
+ #include "ntstatus.h"
+ #define WIN32_NO_STATUS
+@@ -35,6 +38,7 @@
+ #include "winbase.h"
+ #include "winerror.h"
+ #include "winternl.h"
++#include "winnls.h"
+ #include "wine/exception.h"
+ #include "wine/library.h"
+ #include "wine/server.h"
+@@ -269,20 +273,112 @@ BOOL WINAPI GetThreadContext( HANDLE handle,     /* [in]  Handle to thread with
+ 
+ 
+ /***********************************************************************
+- * Wow64GetThreadContext [KERNEL32.@]
+- */
++* Wow64GetThreadContext [KERNEL32.@]
++*/
+ BOOL WINAPI Wow64GetThreadContext( HANDLE handle, WOW64_CONTEXT *context)
+ {
+ #ifdef __i386__
+-    NTSTATUS status = NtGetContextThread( handle, (CONTEXT *)context );
++NTSTATUS status = NtGetContextThread( handle, (CONTEXT *)context );
+ #elif defined(__x86_64__)
+-    NTSTATUS status = RtlWow64GetThreadContext( handle, context );
++NTSTATUS status = RtlWow64GetThreadContext( handle, context );
+ #else
+-    NTSTATUS status = STATUS_NOT_IMPLEMENTED;
+-    FIXME("not implemented on this platform\n");
++NTSTATUS status = STATUS_NOT_IMPLEMENTED;
++FIXME("not implemented on this platform\n");
+ #endif
+-    if (status) SetLastError( RtlNtStatusToDosError(status) );
+-    return !status;
++if (status) SetLastError( RtlNtStatusToDosError(status) );
++return !status;
++}
++
++
++/* ??? MSDN says it should be HRESULT, but we get this */
++#define THREADDESC_SUCCESS 0x10000000
++
++/***********************************************************************
++* SetThreadDescription [KERNEL32.@]  Sets name of thread.
++*
++* RETURNS
++*    Success: TRUE
++*    Failure: FALSE
++*/
++HRESULT WINAPI SetThreadDescription( HANDLE handle, const WCHAR *descW )
++{
++TRACE("(%p,%s)\n", handle, wine_dbgstr_w( descW ));
++
++if (handle != GetCurrentThread())
++{
++    FIXME("Can't set other thread description\n");
++    return THREADDESC_SUCCESS;
++}
++
++#ifdef HAVE_PRCTL
++
++#ifndef PR_SET_NAME
++# define PR_SET_NAME 15
++#endif
++
++if (descW)
++{
++    DWORD length;
++    char *descA;
++
++    length = WideCharToMultiByte( CP_UNIXCP, 0, descW, -1, NULL, 0, NULL, NULL );
++    if (!(descA = HeapAlloc( GetProcessHeap(), 0, length ))) return E_OUTOFMEMORY;
++    WideCharToMultiByte( CP_UNIXCP, 0, descW, -1, descA, length, NULL, NULL );
++
++    prctl( PR_SET_NAME, descA );
++
++    HeapFree( GetProcessHeap(), 0, descA );
++}
++else
++    prctl( PR_SET_NAME, "" );
++
++#endif  /* HAVE_PRCTL */
++
++return THREADDESC_SUCCESS;
++}
++
++
++/***********************************************************************
++* GetThreadDescription [KERNEL32.@]  Retrieves name of thread.
++*
++* RETURNS
++*    Success: TRUE
++*    Failure: FALSE
++*/
++HRESULT WINAPI GetThreadDescription( HANDLE handle, WCHAR **descW )
++{
++#ifdef HAVE_PRCTL
++char descA[16];
++#endif
++
++*descW = LocalAlloc( 0, 16 * sizeof(WCHAR) );
++if(!*descW)
++    return E_OUTOFMEMORY;
++
++if (handle != GetCurrentThread())
++{
++    FIXME("Can't get other thread description\n");
++    (*descW)[0] = 0;
++    return THREADDESC_SUCCESS;
++}
++
++#ifdef HAVE_PRCTL
++#ifndef PR_GET_NAME
++# define PR_GET_NAME 16
++#endif
++
++    if (prctl( PR_GET_NAME, descA ) != 0)
++    {
++        (*descW)[0] = 0;
++        return THREADDESC_SUCCESS;
++    }
++
++    MultiByteToWideChar( CP_UNIXCP, 0, descA, -1, *descW, 16 );
++#else
++    (*descW)[0] = 0;
++#endif
++
++    return THREADDESC_SUCCESS;
+ }
+ 
+ 
+diff --git a/include/winbase.h b/include/winbase.h
+index 8b26308b956..bfbc81ca098 100644
+--- a/include/winbase.h
++++ b/include/winbase.h
+@@ -2247,6 +2247,7 @@ WINBASEAPI DWORD       WINAPI GetTickCount(void);
+ WINBASEAPI ULONGLONG   WINAPI GetTickCount64(void);
+ WINBASEAPI DWORD       WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION);
+ WINBASEAPI BOOL        WINAPI GetThreadContext(HANDLE,CONTEXT *);
++WINBASEAPI HRESULT     WINAPI GetThreadDescription(HANDLE,WCHAR **);
+ WINBASEAPI DWORD       WINAPI GetThreadErrorMode(void);
+ WINBASEAPI INT         WINAPI GetThreadPriority(HANDLE);
+ WINBASEAPI BOOL        WINAPI GetThreadPriorityBoost(HANDLE,PBOOL);
+@@ -2612,6 +2613,7 @@ WINBASEAPI DWORD       WINAPI SetTapeParameters(HANDLE,DWORD,LPVOID);
+ WINBASEAPI DWORD       WINAPI SetTapePosition(HANDLE,DWORD,DWORD,DWORD,DWORD,BOOL);
+ WINBASEAPI DWORD_PTR   WINAPI SetThreadAffinityMask(HANDLE,DWORD_PTR);
+ WINBASEAPI BOOL        WINAPI SetThreadContext(HANDLE,const CONTEXT *);
++WINBASEAPI HRESULT     WINAPI SetThreadDescription(HANDLE,const WCHAR *);
+ WINBASEAPI BOOL        WINAPI SetThreadErrorMode(DWORD,LPDWORD);
+ WINBASEAPI DWORD       WINAPI SetThreadExecutionState(EXECUTION_STATE);
+ WINBASEAPI DWORD       WINAPI SetThreadIdealProcessor(HANDLE,DWORD);
+
+From 971dc3c4225b33fb5346187cd37e8355f265800f Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 18 Jun 2018 07:56:35 -0500
+Subject: [PATCH] ntdll: Notice THREADNAME_INFO exceptions and set thread name
+ on Linux
+
+Patch by Zeb.
+---
+ dlls/ntdll/exception.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/dlls/ntdll/exception.c b/dlls/ntdll/exception.c
+index f85381079a2..ffe048de8c0 100644
+--- a/dlls/ntdll/exception.c
++++ b/dlls/ntdll/exception.c
+@@ -26,6 +26,9 @@
+ #include <errno.h>
+ #include <signal.h>
+ #include <stdarg.h>
++#ifdef HAVE_PRCTL
++#include <sys/prctl.h>
++#endif
+ 
+ #include "ntstatus.h"
+ #define WIN32_NO_STATUS
+@@ -143,6 +146,16 @@ void wait_suspend( CONTEXT *context )
+ }
+ 
+ 
++/* "How to: Set a Thread Name in Native Code"
++ * https://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx */
++typedef struct tagTHREADNAME_INFO
++{
++   DWORD   dwType;     /* Must be 0x1000 */
++   LPCSTR  szName;     /* Pointer to name - limited to 9 bytes (8 characters + terminator) */
++   DWORD   dwThreadID; /* Thread ID (-1 = caller thread) */
++   DWORD   dwFlags;    /* Reserved for future use.  Must be zero. */
++} THREADNAME_INFO;
++
+ /**********************************************************************
+  *           send_debug_event
+  *
+@@ -162,6 +175,21 @@ NTSTATUS send_debug_event( EXCEPTION_RECORD *rec, int first_chance, CONTEXT *con
+     for (i = 0; i < min( rec->NumberParameters, EXCEPTION_MAXIMUM_PARAMETERS ); i++)
+         params[i] = rec->ExceptionInformation[i];
+ 
++    if (rec->ExceptionCode == 0x406d1388)
++    {
++        const THREADNAME_INFO *threadname = (const THREADNAME_INFO *)rec->ExceptionInformation;
++
++        if (threadname->dwThreadID == -1)
++        {
++#ifdef HAVE_PRCTL
++#ifndef PR_SET_NAME
++# define PR_SET_NAME 15
++#endif
++            prctl( PR_SET_NAME, threadname->szName );
++#endif
++        }
++    }
++
+     context_to_server( &server_context, context );
+ 
+     SERVER_START_REQ( queue_exception_event )

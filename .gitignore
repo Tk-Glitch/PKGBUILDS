@@ -17,3 +17,6 @@ wine-tkg-git/dxup/
 spirv-tools-git/SPIRV-Headers/
 spirv-tools-git/SPIRV-Tools/
 vkd3d-git/vkd3d/
+proton-tkg/Proton/
+proton-tkg/liberation-fonts/
+proton-tkg/proton_template/share/

@@ -183,6 +183,7 @@ else:
 #for performance, logging is disabled by default; override with user_settings.py
 env["DXVK_LOG_LEVEL"] = "none"
 env["WINEDEBUG"] = "-all"
+env["WINEDLLOVERRIDES"] = "winedbg.exe,nvapi,nvapi64=d"
 env.pop("WINEARCH", "")
 
 if ld_path_var in os.environ:
