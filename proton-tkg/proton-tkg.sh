@@ -105,8 +105,8 @@ if [ -e proton_dist*.tar.xz ]; then
   cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
   cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
 
-  # Inject prebuit 32-bit lsteamclient lib in our wine-tkg-git build for now as we are unable to compile it yet -- Any help appreciated FIXME
-  #cp -v proton_template/lsteamclient/lib/wine/lsteamclient.dll.so proton_dist_tmp/lib/wine/
+  echo ''
+  echo "Packaging..."
 
   # Package
   cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../proton_tkg_$_protontkg_version
@@ -114,9 +114,6 @@ if [ -e proton_dist*.tar.xz ]; then
 
   # Grab conf template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_tkg_$_protontkg_version/version && cp proton_template/conf/* proton_tkg_$_protontkg_version/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" ./proton_tkg_$_protontkg_version/compatibilitytool.vdf
-
-  echo ''
-  echo "Installing..."
 
   # Nuke same version if exists before copying new build
   if [ -e $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version ]; then
