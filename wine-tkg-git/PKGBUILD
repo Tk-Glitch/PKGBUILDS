@@ -1007,7 +1007,7 @@ build() {
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix="$HOME/.steam/root/compatibilitytools.d/$pkgname-$_realwineversion/dist" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--disable-tests)
+	  _prefix="" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--disable-tests)
 	fi
 
 	# build wine 64-bit

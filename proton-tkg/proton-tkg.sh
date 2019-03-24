@@ -93,12 +93,12 @@ if [ -e proton_dist*.tar.xz ]; then
 
   cd build/lsteamclient.win64
   winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS .
-  make -C $_where/Proton/build/lsteamclient.win64
+  make -C $_where/Proton/build/lsteamclient.win64 && strip lsteamclient.dll.so
   cd ../..
 
   cd build/lsteamclient.win32
   winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS .
-  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_where/Proton/build/lsteamclient.win32
+  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_where/Proton/build/lsteamclient.win32 && strip lsteamclient.dll.so
   cd $_where
 
   # Inject lsteamclient libs in our wine-tkg-git build
