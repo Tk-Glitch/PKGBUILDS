@@ -81,30 +81,32 @@ if [ -e proton_dist*.tar.xz ]; then
   git reset --hard HEAD
   git clean -xdf
 
-  export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt"
-
+  export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll"
+  export CFLAGS="-O2 -g"
+  export CXXFLAGS="-Wno-attributes -O2 -g" 
+  
   mkdir -p build/lsteamclient.win64
-  #mkdir -p build/lsteamclient.win32
+  mkdir -p build/lsteamclient.win32
 
   cp -a lsteamclient/* build/lsteamclient.win64
-  #cp -a lsteamclient/* build/lsteamclient.win32
+  cp -a lsteamclient/* build/lsteamclient.win32
 
   cd build/lsteamclient.win64
-  winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS --dll .
-  export  CXXFLAGS="-Wno-attributes -O2 -g" CFLAGS="-O2 -g" && make -C $_where/Proton/build/lsteamclient.win64
-  #cd ../..
+  winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS .
+  make -C $_where/Proton/build/lsteamclient.win64
+  cd ../..
 
-  #cd build/lsteamclient.win32
-  #winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS --dll .
-  #export LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes -O2 -g" CFLAGS="-m32 -O2 -g" && make -C $_where/Proton/build/lsteamclient.win32
+  cd build/lsteamclient.win32
+  winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS .
+  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_where/Proton/build/lsteamclient.win32
   cd $_where
 
   # Inject lsteamclient libs in our wine-tkg-git build
   cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
-  #cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so ./proton_dist_tmp/lib/wine/
+  cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
 
   # Inject prebuit 32-bit lsteamclient lib in our wine-tkg-git build for now as we are unable to compile it yet -- Any help appreciated FIXME
-  cp -v proton_template/lsteamclient/lib/wine/lsteamclient.dll.so proton_dist_tmp/lib/wine/
+  #cp -v proton_template/lsteamclient/lib/wine/lsteamclient.dll.so proton_dist_tmp/lib/wine/
 
   # Package
   cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../proton_tkg_$_protontkg_version
