@@ -148,22 +148,12 @@ else
   fi
 
   if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ]; then
-		if [ "$_dxvk_async" == "true"]; then
-			pkgname="${pkgname/%-git/-dxvk+up+async-git}"
-			msg2 "Using DXVK async patches."
-		else
-			pkgname="${pkgname/%-git/-dxvk+up-git}"
-		fi
+		pkgname="${pkgname/%-git/-dxvk+up-git}"
     msg2 "Using DXUP for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
   fi
 
   if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ]; then
-    if [ "$_dxvk_async" == "true" ]; then
-			pkgname="${pkgname/%-git/-dxvk+async-git}"
-			msg2 "Using DXVK async patches."
-		else
-			pkgname="${pkgname/%-git/-dxvk-git}"
-		fi
+    pkgname="${pkgname/%-git/-dxvk-git}"
     msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
   fi
 
@@ -1182,7 +1172,7 @@ package() {
 	  msg2 '##########################################################################################################################'
 	fi
 
-	if [ "$_dxvk_async" == "true" ]; then
+	if [  "$_use_dxvk" == "true" && "$_dxvk_async" == "true" ]; then
 	  msg2 '################################################'
 	  msg2 ''
 	  msg2 'Remember to export DXVK_ASYNC=1 to use ASYNC'
