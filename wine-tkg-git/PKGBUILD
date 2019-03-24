@@ -956,6 +956,9 @@ prepare() {
 	  if [ "$_use_dxup" == "true" ]; then
 	    _version_tags+=(Dxup)
 	  fi
+	  if [ "$_dxvk_async" == "true" ]; then
+	    _version_tags+=(Async)
+	  fi
 	fi
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _version_tags+=("$_OPTIONAL_MARCHFLAG")
