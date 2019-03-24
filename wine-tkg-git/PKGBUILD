@@ -148,7 +148,7 @@ else
   fi
 
   if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ]; then
-    pkgname="${pkgname/%-git/-dxvk+up-git}"
+		pkgname="${pkgname/%-git/-dxvk+up-git}"
     msg2 "Using DXUP for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
   fi
 
@@ -359,7 +359,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
 		'LAA-staging.patch' # Same as above, for staging
 		'winevulkan-1.1.103.patch' # Update winevulkan
-		'proton-tkg.patch' # Proton-tkg
+		'proton-tkg.patch' # Proton-tkg,
+		'dxvk-async.patch' # DXVK async patch
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -945,6 +946,9 @@ prepare() {
 	  if [ "$_use_dxup" == "true" ]; then
 	    _version_tags+=(Dxup)
 	  fi
+	  if [ "$_dxvk_async" == "true" ]; then
+	    _version_tags+=(Async)
+	  fi
 	fi
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _version_tags+=("$_OPTIONAL_MARCHFLAG")
@@ -1058,6 +1062,9 @@ build() {
 	  fi
 	  mkdir build
 	  _patchname='dxvk-winelib.patch' && _patchmsg="Using dxvk-winelib patch" && nonuser_patcher
+		if [ "$_dxvk_async" == "true" ]; then
+			_patchname='dxvk-async.patch' && _patchmsg="Using dxvk-async patch" && nonuser_patcher
+		fi
 	  if [ "$_NOLIB32" == "true" ]; then
 	    sed -i "/build_arch 32/d" package-release-wine.sh
 	  fi
@@ -1163,6 +1170,16 @@ package() {
 	  msg2 '##########################################################################################################################'
 	fi
 
+	if [  "$_use_dxvk" == "true" && "$_dxvk_async" == "true" ]; then
+	  msg2 '################################################'
+	  msg2 ''
+	  msg2 'Remember to export DXVK_ASYNC=1 to use ASYNC'
+	  msg2 ''
+	  msg2 'https://github.com/jomihaka/dxvk-poe-hack'
+	  msg2 ''
+	  msg2 '################################################'
+	fi
+
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  msg2 "### This wine will be installed to: $_prefix"
@@ -1223,6 +1240,7 @@ md5sums=('SKIP'
          'afd2e119b0d5aac290a0b89324624fb4'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
          '1c4738e438debf72266b96d09f465b25'
-         '96c13b5fc90f27939fb1ba25b8d4ad18')
+         '96c13b5fc90f27939fb1ba25b8d4ad18'
+         'cc0af6b6b3d2a8dac13c825231ff87fa')
 
 trap exit_cleanup EXIT
