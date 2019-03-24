@@ -8,18 +8,10 @@
 
 ### While some of the scripts might work fine on any distro, the PKGBUILDs will only work on distros using pacman and makepkg, usually found on Arch-linux and distros based on it (like Antergos or Manjaro).
 
- * Clone a single folder from this repo (you need to have the `subversion` package installed) :
-```
-svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/folder_name
-```
-*For example, in case you want to clone the nvidia-dev-all folder, the command would be :* `svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/nvidia-dev-all`
-
-
  * Clone the whole thing (that enables you to use `git pull` to get updates) :
 ```
 git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
-
 
  * Build packages :
 
@@ -31,6 +23,13 @@ That will grab the required dependencies, build, then install the newly created 
 
 
  * For bash scripts, just run them from their respective directory.
+
+
+ * You can also clone a single folder from the repo (you need to have the `subversion` package installed) but it might break inter-dependencies :
+```
+svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/folder_name
+```
+*For example, in case you want to clone the nvidia-dev-all folder, the command would be :* `svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/nvidia-dev-all`
 
 
 ## Why aren't the PKGBUILDs on AUR ?! :

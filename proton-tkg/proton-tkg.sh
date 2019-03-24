@@ -8,7 +8,7 @@
 _where=$PWD
 
 echo ""
-echo "Proton-tkg-git"
+echo "Proton-tkg"
 echo 'Also known as "Some kind of build wrapper for wine-tkg-git"'
 echo ""
 

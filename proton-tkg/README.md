@@ -1,8 +1,8 @@
-# Proton-tkg-git
+# Proton-tkg
 
-This is an addon script for wine-tkg-git.
+This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git).
 
-It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries.
+It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries. Wine-staging based? Latest master? Yup, you can.
 
 **This is not standalone**
 

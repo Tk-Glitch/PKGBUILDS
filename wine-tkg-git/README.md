@@ -2,13 +2,15 @@
 
 This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about. Lutris "tkg" (previously esync-staging-pba) builds are created using this pkgbuild - https://github.com/lutris/wine
 
+You can now turn your wine-tkg-git builds to Steamplay compatible and use them directly from Steam! - https://github.com/Tk-Glitch/PKGBUILDS/tree/master/proton-tkg
+
 **Since this is a -git package, wine and wine-staging sources will be pulled from latest master branches by default. You can define specific releases commit in the cfg file if needed.**
 
-Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support) - https://github.com/doitsujin/dxvk
+*Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support)* - https://github.com/doitsujin/dxvk
 
-Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/vkd3d-git is recommended) - https://source.winehq.org/git/vkd3d.git
+*Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/vkd3d-git is recommended)* - https://source.winehq.org/git/vkd3d.git
 
-Can be built with Faudio (requires both faudio-git and lib32-faudio-git packages from AUR) - https://github.com/FNA-XNA/FAudio
+*Can be built with Faudio (requires both faudio and lib32-faudio packages installed)* - https://github.com/FNA-XNA/FAudio
 
 **Can also be built with your own patches - See [README in ./wine-tkg-userpatches](wine-tkg-userpatches/README.md) for instructions**
 
@@ -50,14 +52,8 @@ Some daily builds (pacman packages) are available on http://lonewolf-builder.duc
 
 ## Download the source :
 
- * Clone only this repo (you need to have the `subversion` package installed) :
-```
-svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/wine-tkg-git
-```
 
-OR
-
- * Clone the whole thing (that enables you to use `git pull` to get updates) :
+ * Clone the repo (that enables you to use `git pull` to get updates) :
 ```
 git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
