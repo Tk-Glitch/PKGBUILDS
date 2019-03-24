@@ -301,10 +301,10 @@ with prefix_lock:
     else:
         upgrade_pfx(None)
 
-    if not os.path.exists(prefix + "/user.reg"):
+#    if not os.path.exists(prefix + "/user.reg"):
         #copy default prefix into place
-        with open(os.environ["STEAM_COMPAT_DATA_PATH"] + "/tracked_files", "w") as tfiles:
-            mergedirs(basedir + "/dist/share/default_pfx", prefix, tfiles)
+#        with open(os.environ["STEAM_COMPAT_DATA_PATH"] + "/tracked_files", "w") as tfiles:
+#            mergedirs(basedir + "/dist/share/default_pfx", prefix, tfiles)
 
     with open(version_file, "w") as f:
         f.write(CURRENT_PREFIX_VERSION + "\n")
