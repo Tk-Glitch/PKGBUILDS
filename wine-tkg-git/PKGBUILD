@@ -993,6 +993,8 @@ build() {
 	cd "${srcdir}"
 
 	local _prefix=/usr
+	local _lib32name="lib32"
+	local _lib64name="lib"
 
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
@@ -1001,8 +1003,7 @@ build() {
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  #_DEFAULT_EXTERNAL_PATH="$HOME/.steam/root/compatibilitytools.d"
-	  _prefix=""
+	  _prefix="$HOME/.steam/root/compatibilitytools.d/$pkgname-$_realwineversion/dist" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--disable-tests)
 	fi
 
 	# build wine 64-bit
@@ -1011,14 +1012,12 @@ build() {
 	cd  "${srcdir}"/"${pkgname}"-64-build
 	../${_winesrcdir}/configure \
 		--prefix="$_prefix" \
-		--libdir="$_prefix/lib" \
+		--libdir="$_prefix/$_lib64name" \
 		--with-x \
 		--with-gstreamer \
 		--enable-win64 \
 		--with-xattr \
-		"${_configure_args[@]}" \
-		#--disable-tests
-		# Gstreamer was disabled for FS#33655
+		"${_configure_args[@]}"
 
 	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	  # make using all available threads
@@ -1028,7 +1027,6 @@ build() {
 	  schedtool -B -n 1 -e ionice -n 1 make
 	fi
 
-
 	if [ "$_NOLIB32" != "true" ]; then
 	  # build wine 32-bit
 	  export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
@@ -1036,13 +1034,12 @@ build() {
 	  cd "${srcdir}/${pkgname}"-32-build
 	  ../${_winesrcdir}/configure \
 		  --prefix="$_prefix" \
-		  --libdir="$_prefix/lib32" \
+		  --libdir="$_prefix/$_lib32name" \
 		  --with-x \
 		  --with-gstreamer \
 		  --with-xattr \
 		  "${_configure_args[@]}" \
-		  --with-wine64="${srcdir}/${pkgname}"-64-build \
-		  #--disable-tests
+		  --with-wine64="${srcdir}/${pkgname}"-64-build
 	fi
 
 	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
@@ -1081,6 +1078,8 @@ build() {
 package() {
 
 	local _prefix=/usr
+	local _lib32name="lib32"
+	local _lib64name="lib"
 
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
@@ -1093,8 +1092,7 @@ package() {
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	  fi
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  #_DEFAULT_EXTERNAL_PATH="$HOME/.steam/root/compatibilitytools.d"
-	  _prefix=""
+	  _prefix="" && _lib32name="lib" && _lib64name="lib64"
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
@@ -1103,16 +1101,16 @@ package() {
 	  msg2 'Packaging Wine-32...'
 	  cd "${srcdir}/${pkgname}"-32-build
 	  make 	  prefix="${pkgdir}$_prefix" \
-			  libdir="${pkgdir}$_prefix/lib32" \
-			  dlldir="${pkgdir}$_prefix/lib32/wine" install
+			  libdir="${pkgdir}$_prefix/$_lib32name" \
+			  dlldir="${pkgdir}$_prefix/$_lib32name/wine" install
 	fi
 
 	# package wine 64-bit
 	msg2 'Packaging Wine-64...'
 	cd "${srcdir}/${pkgname}"-64-build
 	make 	prefix="${pkgdir}$_prefix" \
-			libdir="${pkgdir}$_prefix/lib" \
-			dlldir="${pkgdir}$_prefix/lib/wine" install
+			libdir="${pkgdir}$_prefix/$_lib64name" \
+			dlldir="${pkgdir}$_prefix/$_lib64name/wine" install
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ] || [ "$_EXTERNAL_INSTALL" != "true" ]; then
 	  # freetype font smoothing for win32 applications
@@ -1141,15 +1139,15 @@ package() {
 	# dxvk
 	if [ "$_use_dxvk" == "true" ]; then
 	  if [ "$_NOLIB32" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/"$_lib32name"/wine
 	  fi
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/lib/wine
+	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
 	  # dxup
 	  if [ "$_use_dxup" == "true" ]; then
 	    if [ "$_NOLIB32" != "true" ]; then
-	      cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x32/* "${pkgdir}$_prefix"/lib32/wine
+	      cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x32/* "${pkgdir}$_prefix"/"$_lib32name"/wine
 	    fi
-	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x64/* "${pkgdir}$_prefix"/lib/wine
+	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
 	  fi
 	fi
 
