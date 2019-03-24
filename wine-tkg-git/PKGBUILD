@@ -425,6 +425,10 @@ nonuser_patcher() {
   msg2 "Applying ${_patchname}" && patch -Np1 < ../"$_patchname" && echo "${_patchmsg}" >> "$_where"/last_build_config.log
 }
 
+_describe_wine() {
+  git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
+}
+
 pkgver() {
 	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}/${_stgsrcdir}"
@@ -433,7 +437,7 @@ pkgver() {
 	fi
 
 	# retrieve current wine version - if staging is enabled, staging version will be used instead
-	git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
+	_describe_wine
 }
 
 prepare() {
@@ -479,12 +483,12 @@ prepare() {
 	echo "# Last $pkgname configuration :" > "$_where"/last_build_config.log
 	echo "" >> "$_where"/last_build_config.log
 
-	_realwineversion=$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')
+	_realwineversion=$(_describe_wine)
 	echo "Wine (plain) version: $_realwineversion" >> "$_where"/last_build_config.log
 
 	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
-	  _realwineversion=$(git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//')
+	  _realwineversion=$(_describe_wine)
 	  echo "Using wine-staging patchset (version $_realwineversion)" >> "$_where"/last_build_config.log
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
@@ -1096,6 +1100,13 @@ package() {
 	  if [ "$_EXTERNAL_NOVER" == "true" ]; then
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
 	  else
+	    # $_realwineversion doesn't carry over into the fakeroot environment
+	    if [ "$_use_staging" == "true" ]; then
+	      cd "$srcdir/$_stgsrcdir"
+	    else
+	      cd "$srcdir/$_winesrcdir"
+	    fi
+	    _realwineversion=$(_describe_wine)
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	  fi
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
