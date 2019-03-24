@@ -4,7 +4,7 @@ This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILD
 
 It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries. Wine-staging based? Latest master? Yup, you can.
 
-**This is not standalone**
+**This is not standalone and requires Steam. If you want a standalone wine build, use [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git) instead.**
 
 Running the proton-tkg.sh script will launch the usual wine-tkg-git building process... with extra spice. **Older than 3.16 wine bases are untested.**
 
@@ -19,5 +19,3 @@ The following wine-tkg-git options will be enforced (might change in the future)
 - _use_faudio="true"
 
 **Note: No SteamVR support for compatibility reasons.**
-
-**Currently ships with a prebuilt 32-bit lsteamclient.dll.so lib as building attempts either produced a 64-bit lib or failed. Any help is appreciated!**
