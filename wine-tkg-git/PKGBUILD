@@ -148,7 +148,7 @@ else
   fi
 
   if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ]; then
-		pkgname="${pkgname/%-git/-dxvk+up-git}"
+    pkgname="${pkgname/%-git/-dxvk+up-git}"
     msg2 "Using DXUP for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
   fi
 
