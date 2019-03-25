@@ -18,4 +18,12 @@ The following wine-tkg-git options will be enforced (might change in the future)
 - _dxvk_dxgi="true"
 - _use_faudio="true"
 
-**Note: No SteamVR support for compatibility reasons.**
+**All other wine-tkg-git settings can be tweaked such as wine version, staging, esync, game fixes (etc.) and the userpatches functionality is kept intact**
+
+## Things to know :
+
+- DXVK winelib currently has limitations versus mingw built. It might prevent some games to see your GPU even though most games should be fine. Installing a mingw built DXVK (using winetricks for example) to such game's prefix is a workaround.
+- Proton doesn't like running games from NTFS. Consider symlinking your compatdata dir(s) (usually found in /SteamApps) to some place on an EXT4 partition.
+- SteamVR support is missing for compatibility reasons.
+- Dinput SDL support is missing for lazyness reasons.
+- In the userpatches folder, you'll find two patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them.
