@@ -47,7 +47,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
 _sub=4
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=9
+pkgrel=10
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -82,7 +82,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0009-bfq-mq.patch
         0010-uksm-5.0.patch
         0011-glitched-bmq.patch
-        0011-v5.0_bmq090.patch
+        0011-v5.0_bmq091.patch
 )
 sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             'f83a9669cc5d7fa0c8f4f235ebe5a33029c9153f6d1607be3a78e933949aeb9a'
@@ -100,8 +100,8 @@ sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             '1565e14c5100ec263ce2e43ab45c056f12c6bc062c298cfbdf8191bfe189a50f'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '9f7a524cc28142b075ffc76291d901b8d6257f7a8b44b1883d83bab6ca3ef086'
-            'c42177e18e2ec797278502c8166f6b90877de7beb6cce1177f66a1b5fcfbaf66'
-            '7a5ed5e6d628c4ef20791afd4bad1bd071d87d04ffded8ce7cc1d209ee92425b')
+            '69d4c97845bae3508613ae493f1266daac5c876682918ada9acf0ab560b731a2'
+            '2d9d643e24355e1b36cbf49728da99b317e938f898c57412fc1da2ce261d726f')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -174,7 +174,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0011-v5.0_bmq090.patch
+    patch -Np1 -i ../0011-v5.0_bmq091.patch
     patch -Np1 -i ../0011-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch

@@ -106,30 +106,3 @@ index 9270a4370d54..30d01e647417 100644
  /*
   * The total number of pages which are beyond the high watermark within all
   * zones.
-
-diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
-index a393df2be45f4c2a927837695d0e900d8b4adc9b..a430dbe24c96f400713b7d07da42b2baebc790e4 100644
---- a/kernel/sched/bmq.c
-+++ b/kernel/sched/bmq.c
-@@ -605,8 +605,9 @@ static inline void dequeue_task(struct task_struct *p, struct rq *rq, int flags)
- 		clear_bit(p->bmq_idx, rq->queue.bitmap);
- 		update_sched_rq_watermark(rq);
- 	}
--	if (1 == --rq->nr_running)
-+	--rq->nr_running;
- #ifdef CONFIG_SMP
-+	if (1 == rq->nr_running)
- 		cpumask_clear_cpu(cpu_of(rq), &sched_rq_pending_mask);
- #endif
- 
-@@ -632,8 +633,9 @@ static inline void enqueue_task(struct task_struct *p, struct rq *rq, int flags)
- 	bmq_add_task(p, &rq->queue, p->bmq_idx);
- 	set_bit(p->bmq_idx, rq->queue.bitmap);
- 	update_sched_rq_watermark(rq);
--	if (2 == ++rq->nr_running)
-+	++rq->nr_running;
- #ifdef CONFIG_SMP
-+	if (2 == rq->nr_running)
- 		cpumask_set_cpu(cpu_of(rq), &sched_rq_pending_mask);
- #endif
- 
