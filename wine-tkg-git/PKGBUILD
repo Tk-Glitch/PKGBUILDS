@@ -18,7 +18,12 @@ _configure_args=() # additional args to ./configure will be added during prepare
 cp "$_where"/wine-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
 cp "$_where"/wine-tkg-userpatches/*.my* "$_where" # copy userpatches inside the PKGBUILD's dir
 
-source "$_where"/customization.cfg # load default configuration from file
+# load default configuration from file
+if [ -e ../proton-tkg/proton_tkg_token ]; then
+  source ../proton-tkg/proton-tkg.cfg
+else
+  source "$_where"/customization.cfg
+fi
 
 # Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
 if [ -e "$_EXT_CONFIG_PATH" ]; then
@@ -43,8 +48,12 @@ else
       msg2 "by editing the $_EXT_CONFIG_PATH file."
       msg2 ''
       msg2 'In case you are only using a partial config file, remaining'
-      msg2 'values will be loaded from the customization.cfg file next to'
-      msg2 'this PKGBUILD.'
+      msg2 'values will be loaded from the .cfg file next to this script !'
+    elif [ -e ../proton-tkg/proton_tkg_token ]; then
+      msg2 'by editing the proton-tkg.cfg file in the proton-tkg dir,'
+      msg2 'or by creating a custom config, for example'
+      msg2 '~/.config/frogminer/proton-tkg.cfg (path set in config file)'
+      msg2 'to override some or all of its values.'
     else
       msg2 'by editing the customization.cfg file next to this PKGBUILD,'
       msg2 'or by creating a custom config, for example'
@@ -65,14 +74,19 @@ else
     if [ -e "$_EXT_CONFIG_PATH" ]; then
       source "$_EXT_CONFIG_PATH" && msg2 "External config loaded" # load external configuration from file again, in case of changes.
     else
-      source "$_where"/customization.cfg # load configuration from file again, in case of changes.
+      # load default configuration from file again, in case of change
+      if [ -e ../proton-tkg/proton_tkg_token ]; then
+        source ../proton-tkg/proton-tkg/proton-tkg.cfg
+      else
+        source "$_where"/customization.cfg
+      fi
     fi
   fi
 fi
 
 function exit_cleanup {
 if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-  echo "_protontkg_version=${pkgver}" > "$_where"/../proton-tkg/proton_tkg_token
+  echo "_protontkg_version=${pkgver}" >> "$_where"/../proton-tkg/proton_tkg_token
 fi
 
 rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
@@ -94,14 +108,24 @@ fi
   remove_deps
 }
 
-# Check for proton-tkg token to prevent broken state
+# Check for proton-tkg token to prevent broken state as we need to enforce some defaults for Proton-tkg
 if [ -e ../proton-tkg/proton_tkg_token ]; then
+  _LOCAL_PRESET=""
   _EXTERNAL_INSTALL="true"
   _EXTERNAL_INSTALL_TYPE="proton"
   _EXTERNAL_NOVER="false"
-  _use_dxvk="true"
+  _NOLIB32="false"
+  _NUKR="true"
+  _esync_version=""
   _use_faudio="true"
+  _highcorecount_fix="true"
+  _update_winevulkan="true"
   _use_libfonts="true"
+    if [ $_use_dxvk_winelib == "true" ]; then
+      _use_dxvk="true"
+    else
+      echo '_prebuilt_dxvk="true"' > "$_where"/../proton-tkg/proton_tkg_token
+    fi
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   error "It looks like you're attempting to build a Proton version of wine-tkg-git."
   error "This special option doesn't use pacman and requires you to run 'proton-tkg.sh' script from proton-tkg dir."
@@ -1263,7 +1287,7 @@ md5sums=('SKIP'
          'afd2e119b0d5aac290a0b89324624fb4'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
          '1c4738e438debf72266b96d09f465b25'
-         '96c13b5fc90f27939fb1ba25b8d4ad18'
+         '1211a402068b46091402d0ad00fad099'
          'cc0af6b6b3d2a8dac13c825231ff87fa'
          'd047619c11d95c4c9bbefae564876950')
 

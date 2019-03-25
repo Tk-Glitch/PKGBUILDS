@@ -46,8 +46,8 @@ if [ -e proton_dist*.tar.xz ]; then
   mv proton_dist*.tar.xz $_nowhere/
   cd $_nowhere
 
-  # Wine-tkg-git has injected version in the token for us
-  # Get the value back and get rid of the token
+  # Wine-tkg-git has injected versioning in the token for us
+  # Get the values back and get rid of the token
   source proton_tkg_token
   rm proton_tkg_token
 
@@ -104,6 +104,16 @@ if [ -e proton_dist*.tar.xz ]; then
   # Inject lsteamclient libs in our wine-tkg-git build
   cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
   cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
+
+  # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below if you aren't building using dxvk-tools
+  if [ "$_prebuilt_dxvk" == "true" ]; then
+    if [ -d ./dxvk ]; then
+      mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
+      mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
+    else
+      echo "Your config file is set up to include prebuilt DXVK, but you seem to be missing it."
+    fi
+  fi
 
   echo ''
   echo "Packaging..."
