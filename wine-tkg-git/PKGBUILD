@@ -5,7 +5,7 @@ pkgver=4.4.r7.gd963a250
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=140
+eval pkgrel=141
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -320,6 +320,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'pythonfix.patch' # Backported Python/Sims4 squash patch for <=3.18
 		'resident_evil_4_hack.patch' # Fixes broken rendering
 		'woff-hack.patch' # Hack for child window rendering support for vk - Fixes World of Final Fantasy
+		'warframe-launcher.patch' # Fix for Warframe Launcher failing to update itself
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -360,6 +361,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'winevulkan-1.1.103.patch' # Update winevulkan
 		'proton-tkg.patch' # Proton-tkg,
 		'dxvk-async.patch' # DXVK async patch
+		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -645,6 +647,11 @@ prepare() {
 	  _patchname='poe-fix.patch' && _patchmsg="Applied Path of Exile DX11 fix" && nonuser_patcher
 	fi
 
+	# Fix for Warframe Launcher failing to update itself - https://bugs.winehq.org/show_bug.cgi?id=33845 https://bugs.winehq.org/show_bug.cgi?id=45701
+	if [ "$_warframelauncher_fix" == "true" ]; then
+	  _patchname='warframe-launcher.patch' && _patchmsg="Applied Warframe Launcher fix" && nonuser_patcher
+	fi
+
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ "$_f4skyrimse_fix" == "true" ]; then
@@ -831,6 +838,11 @@ prepare() {
 	# Python fix for <=3.18 (backported from zzhiyi's patches) - fix for python and needed for "The Sims 4" to work - replaces staging partial implementation - https://bugs.winehq.org/show_bug.cgi?id=44999
 	if [ "$_318python_fix" == "true" ] && ! git merge-base --is-ancestor 3ebd2f0be30611e6cf00468c2980c5092f91b5b5 HEAD; then
 	  _patchname='pythonfix.patch' && _patchmsg="Applied Python/The Sims 4 fix" && nonuser_patcher
+	fi
+
+	# Fix crashes or perf issues related to high core count setups - Fixed in 4.0 - https://bugs.winehq.org/show_bug.cgi?id=45453
+	if [ "$_highcorecount_fix" == "true" ] && ! git merge-base --is-ancestor ed75a7b3443e79f9d63e97eeebcce2d2f40c507b HEAD; then
+	  _patchname='high-core-count-fix.patch' && _patchmsg="Applied high core count fix" && nonuser_patcher
 	fi
 
 	# apply wine-pba patchset
@@ -1215,6 +1227,7 @@ md5sums=('SKIP'
          'a527081e5f6eca3aec0b390d96d8587b'
          'f063189ec090d9071397d455d271199d'
          '6766554ceda75c32b79e0d33c216396f'
+         '5b07ab957a128801b6c45e30b31432a7'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
@@ -1251,6 +1264,7 @@ md5sums=('SKIP'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
          '1c4738e438debf72266b96d09f465b25'
          '96c13b5fc90f27939fb1ba25b8d4ad18'
-         'cc0af6b6b3d2a8dac13c825231ff87fa')
+         'cc0af6b6b3d2a8dac13c825231ff87fa'
+         'd047619c11d95c4c9bbefae564876950')
 
 trap exit_cleanup EXIT
