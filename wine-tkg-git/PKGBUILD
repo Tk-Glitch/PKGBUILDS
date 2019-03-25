@@ -100,7 +100,6 @@ if [ -e ../proton-tkg/proton_tkg_token ]; then
   _EXTERNAL_INSTALL_TYPE="proton"
   _EXTERNAL_NOVER="false"
   _use_dxvk="true"
-  _dxvk_dxgi="true"
   _use_faudio="true"
   _use_libfonts="true"
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
