@@ -125,6 +125,12 @@ if [ -e proton_dist*.tar.xz ]; then
   # Grab conf template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_tkg_$_protontkg_version/version && cp proton_template/conf/* proton_tkg_$_protontkg_version/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" ./proton_tkg_$_protontkg_version/compatibilitytool.vdf
 
+  if [ "$_prebuilt_dxvk" == "true" ]; then
+    mv proton_tkg_$_protontkg_version/proton.prebuilt proton_tkg_$_protontkg_version/proton
+  else
+    mv proton_tkg_$_protontkg_version/proton.winelib proton_tkg_$_protontkg_version/proton
+  fi
+
   # Nuke same version if exists before copying new build
   if [ -e $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version ]; then
     rm -rf $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version

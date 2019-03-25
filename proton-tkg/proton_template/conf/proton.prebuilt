@@ -183,7 +183,6 @@ else:
 #for performance, logging is disabled by default; override with user_settings.py
 env["DXVK_LOG_LEVEL"] = "none"
 env["WINEDEBUG"] = "-all"
-env["WINEDLLOVERRIDES"] = "winedbg.exe,nvapi,nvapi64=d"
 env.pop("WINEARCH", "")
 
 if ld_path_var in os.environ:
@@ -236,9 +235,20 @@ if "STEAM_COMPAT_CONFIG" in os.environ:
 else:
     config_opts = set()
 
+if "wined3d11" in config_opts:
+    config_opts.add("wined3d")
+
+if not check_environment("PROTON_USE_WINED3D", "wined3d"):
+    check_environment("PROTON_USE_WINED3D11", "wined3d")
+check_environment("PROTON_NO_D3D11", "nod3d11")
+check_environment("PROTON_NO_D3D10", "nod3d10")
 check_environment("PROTON_NO_ESYNC", "noesync")
 check_environment("PROTON_FORCE_LARGE_ADDRESS_AWARE", "forcelgadd")
 check_environment("PROTON_OLD_GL_STRING", "oldglstr")
+check_environment("PROTON_DXVK_ASYNC", "dxvkasync")
+check_environment("PROTON_NVAPI_DISABLE", "nonvapi")
+check_environment("PROTON_WINEDBG_DISABLE", "nowinedbg")
+check_environment("PROTON_PULSE_LOWLATENCY", "pulselowlat")
 
 if not "noesync" in config_opts:
     env["WINEESYNC"] = "1"
@@ -254,6 +264,15 @@ if "forcelgadd" in config_opts:
     #setting LARGE_ADDRESS_AWARE. If it does, then add an AppDefault in the
     #registry, so that it doesn't impact every executable in the prefix.
     env["WINE_LARGE_ADDRESS_AWARE"] = "1"
+
+if "dxvkasync" in config_opts:
+    env["DXVK_ASYNC"] = "1"
+
+if "nvapidisable" in config_opts:
+    os.environ["WINEDLLOVERRIDES"] = "nvapi,nvapi64=d"
+
+if "pulselowlat" in config_opts:
+    env["PULSE_LATENCY_MSEC"] = "60"
 
 lfile = None
 if "SteamGameId" in env:
@@ -330,6 +349,47 @@ with prefix_lock:
             if os.path.isfile(dstfile):
                 os.remove(dstfile)
             try_copy(steamdir + "/legacycompat/" + f, dstfile)
+
+    dxvkfiles = ("d3d11", "d3d10", "d3d10core", "d3d10_1", "dxgi")
+    def make_dxvk_links(dll_dir, link_dir):
+        for f in dxvkfiles:
+            dst = link_dir + "/" + f + ".dll"
+            src = dll_dir + "/" + f + ".dll"
+            if os.path.lexists(dst):
+                os.remove(dst)
+            os.symlink(src, dst)
+
+    if "wined3d" in config_opts:
+        #use gl-based wined3d for d3d11 and d3d10
+        make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
+            prefix + "drive_c/windows/system32")
+        make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+            prefix + "drive_c/windows/syswow64")
+    else:
+        #use vulkan-based dxvk for d3d11 and d3d10
+        make_dxvk_links(basedir + "/dist/lib64/wine/dxvk/",
+            prefix + "drive_c/windows/system32")
+        make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
+            prefix + "drive_c/windows/syswow64")
+        for f in dxvkfiles:
+            dlloverrides[f] = "n"
+
+if "nod3d11" in config_opts:
+    dlloverrides["d3d11"] = ""
+    if "dxgi" in dlloverrides:
+        del dlloverrides["dxgi"]
+
+if "nod3d10" in config_opts:
+    dlloverrides["d3d10_1"] = ""
+    dlloverrides["d3d10"] = ""
+    dlloverrides["dxgi"] = ""
+
+if "nonvapi" in config_opts:
+    dlloverrides["nvapi"] = "d"
+    dlloverrides["nvapi64"] = "d"
+
+if "nowinedbg" in config_opts:
+    dlloverrides["winedbg.exe"] = "d"
 
 s = ""
 for dll in dlloverrides:
