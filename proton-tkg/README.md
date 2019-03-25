@@ -15,7 +15,6 @@ The following wine-tkg-git options will be enforced (might change in the future)
 - _EXTERNAL_INSTALL_TYPE="proton"
 - _EXTERNAL_NOVER="false"
 - _use_dxvk="true"
-- _dxvk_dxgi="true"
 - _use_faudio="true"
 
 **All other wine-tkg-git settings can be tweaked such as wine version, staging, esync, game fixes (etc.) and the userpatches functionality is kept intact**
