@@ -10,6 +10,8 @@
 
 # LUTRIS UPDATE WITH : ./updxvk lutris - (Put 'TkG' as DXVK version in lutris afterwards to use your fresh build)
 
+# PROTON-TKG READY WITH : ./updxvk proton-tkg - (You'll need to set _use_dxvk_winelib to "false" in your proton-tkg.cfg for your next proton-tkg build to use these DXVK dlls)
+
 # FOR BOTH UPDATE AND BATCH UPDATE : optional - build number of the build you want to install
 # ex for UPDATE: ./updxvk /home/user/WinePrefixes/DEBUG f4a92a685f8b2f135dc6fe493ea9ce726aa79a52-2018-05-05-16:14:00
 # ex for BATCH UPDATE: ./updxvk batch f4a92a685f8b2f135dc6fe493ea9ce726aa79a52-2018-05-05-16:14:00
@@ -185,7 +187,7 @@ fi
 }
 
 # External / Dynamic
-if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ]; then
+if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ] && [ "$1" != "proton-tkg" ]; then
   if [ -d $1 ]; then
     WINEPREFIX="$1"
     if [ "$2" == "32" ]; then
@@ -260,6 +262,37 @@ if [ "$1" == "lutris" ]; then
       echo "Put 'TkG' as DXVK version in lutris to use your fresh build"
       echo ""
       echo "###########################################################"
+
+    fi
+
+fi
+
+# Proton-tkg
+if [ "$1" == "proton-tkg" ]; then
+
+  wineserver -k
+
+    if [ ! -f ./DXVKBUILD/$DXVK_BRANCH/last-HEAD ]; then
+
+      echo "You need to build before you can update ! Run updxvk build first"
+
+    else
+
+      . ./DXVKBUILD/$DXVK_BRANCH/last-HEAD
+
+      rm -rf ../proton-tkg/dxvk
+      mkdir -p ../proton-tkg/dxvk/x64
+      mkdir -p ../proton-tkg/dxvk/x32
+      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/win64/* ../proton-tkg/dxvk/x64
+      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/win32/* ../proton-tkg/dxvk/x32
+
+      echo ""
+      echo "###############################################################"
+      echo ""
+      echo "This DXVK build will be integrated to you next Proton-tkg build"
+      echo "      !!! as long as DXVK winelib is disabled in cfg !!!"
+      echo ""
+      echo "###############################################################"
 
     fi
 
