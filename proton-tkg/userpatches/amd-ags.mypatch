@@ -1,5 +1,5 @@
 From afaf271f5ae5a74ddc3914301c0103f1a67c0bb2 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?J=C3=B3zef=20Kucia?= <jkucia@codeweavers.com>
+From: Józef Kucia <jkucia@codeweavers.com>
 Date: Mon, 23 Jul 2018 19:53:20 +0200
 Subject: [PATCH] amd_ags_x64: Import v5.1.1 amd_ags.h.
 
@@ -961,7 +961,7 @@ index 00000000000..9c3e37e52e5
 +#endif // AMD_AGS_H
 
 From e10f7f83b4d7c4269b93b79912cb3ee4ba58187e Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?J=C3=B3zef=20Kucia?= <jkucia@codeweavers.com>
+From: Józef Kucia <jkucia@codeweavers.com>
 Date: Mon, 23 Jul 2018 19:53:20 +0200
 Subject: [PATCH] amd_ags_x64: Make amd_ags.h usable with gcc.
 
@@ -1276,7 +1276,7 @@ index 9c3e37e52e5..a83a1f88692 100644
 
 
 From e0c31d82fb16f5a5b4346bf4c0729613244cfbd1 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?J=C3=B3zef=20Kucia?= <jkucia@codeweavers.com>
+From: Józef Kucia <jkucia@codeweavers.com>
 Date: Mon, 23 Jul 2018 19:53:20 +0200
 Subject: [PATCH] amd_ags_x64: Add dll.
 
