@@ -1,4 +1,4 @@
-# DXVK and DXUP scripts to build/patch/install/update, also Lutris compatible (DXVK only, Lutris doesn't support DXUP yet).
+# DXVK and DXUP scripts to build/patch/install/update, Lutris and Proton-tkg compatible.
 
 ### Requirements:
 - [wine 3.10](https://www.winehq.org/) or newer
@@ -12,6 +12,15 @@ Inside the dxvk-tools directory, run:
 ```
 ./updxvk build
 ```
+
+### Exporting DXVK DLLs for Proton-tkg
+
+Still inside the dxvk-tools directory, after you ran the command above, run:
+```
+./updxvk proton-tkg
+```
+*DXVK files will be copied in a folder next to proton-tkg script, ready for building.*
+
 
 ### Building DXUP DLL
 
