@@ -5,7 +5,7 @@
 # This script creates Steamplay compatible wine builds based on wine-tkg-git and additional proton patches and libraries.
 # It is not standalone and can be considered an addon to wine-tkg-git PKGBUILD and patchsets.
 
-_where=$PWD
+_nowhere=$PWD
 
 echo '       .---.`               `.---.       '
 echo '    `/syhhhyso-           -osyhhhys/`    '
@@ -43,8 +43,8 @@ makepkg -s
 
 # Copy the resulting package in here to begin our work
 if [ -e proton_dist*.tar.xz ]; then
-  mv proton_dist*.tar.xz $_where/
-  cd $_where
+  mv proton_dist*.tar.xz $_nowhere/
+  cd $_nowhere
 
   # Wine-tkg-git has injected version in the token for us
   # Get the value back and get rid of the token
@@ -67,10 +67,10 @@ if [ -e proton_dist*.tar.xz ]; then
   cd liberation-fonts
   git reset --hard HEAD
   git clean -xdf
-  patch -Np1 < $_where/'LiberationMono-Regular.patch'
+  patch -Np1 < $_nowhere/'LiberationMono-Regular.patch'
   make
-  cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf $_where/proton_template/share/fonts/
-  cd $_where
+  cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf $_nowhere/proton_template/share/fonts/
+  cd $_nowhere
 
   # Grab share template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/ #&& echo "1552061114" > ./proton_dist_tmp/share/default_pfx/.update-timestamp
@@ -93,13 +93,13 @@ if [ -e proton_dist*.tar.xz ]; then
 
   cd build/lsteamclient.win64
   winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS .
-  make -C $_where/Proton/build/lsteamclient.win64 && strip lsteamclient.dll.so
+  make -C $_nowhere/Proton/build/lsteamclient.win64 && strip lsteamclient.dll.so
   cd ../..
 
   cd build/lsteamclient.win32
   winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS .
-  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_where/Proton/build/lsteamclient.win32 && strip lsteamclient.dll.so
-  cd $_where
+  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_nowhere/Proton/build/lsteamclient.win32 && strip lsteamclient.dll.so
+  cd $_nowhere
 
   # Inject lsteamclient libs in our wine-tkg-git build
   cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
@@ -110,7 +110,7 @@ if [ -e proton_dist*.tar.xz ]; then
 
   # Package
   cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../proton_tkg_$_protontkg_version
-  cd $_where && rm -rf proton_dist_tmp
+  cd $_nowhere && rm -rf proton_dist_tmp
 
   # Grab conf template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_tkg_$_protontkg_version/version && cp proton_template/conf/* proton_tkg_$_protontkg_version/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" ./proton_tkg_$_protontkg_version/compatibilitytool.vdf
@@ -123,6 +123,6 @@ if [ -e proton_dist*.tar.xz ]; then
   mv proton_tkg_$_protontkg_version $HOME/.steam/root/compatibilitytools.d/ && echo "" && echo "Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
 
 else
-  rm proton_tkg_token
+  rm $_nowhere/proton_tkg_token
   echo "The required proton_dist package is missing! Wine-tkg-git compilation may have failed."
 fi
