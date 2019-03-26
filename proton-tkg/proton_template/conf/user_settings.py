@@ -4,10 +4,10 @@ user_settings = {
     #logs are saved to $HOME/steam-$STEAM_APP_ID.log, overwriting any previous log with that name
 #     "WINEDEBUG": "", #"+timestamp,+pid,+tid,+seh,+debugstr,+module",
 
-    # Disable nvapi and nvapi64
+    #Disable nvapi and nvapi64
      "PROTON_NVAPI_DISABLE": "1",
 
-    # Disable winedbg
+    #Disable winedbg
      "PROTON_WINEDBG_DISABLE": "1",
 
     #Enable IMAGE_FILE_LARGE_ADDRESS_AWARE override

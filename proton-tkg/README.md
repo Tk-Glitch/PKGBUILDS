@@ -39,7 +39,7 @@ Proton-tkg builds are coming with special additional features you can enable/dis
 - `PROTON_PULSE_LOWLATENCY` - Enabled by default, it'll set Pulseaudio latency to 60ms. This usually helps with audio crackling issues on some setups.
 - `PROTON_DXVK_ASYNC` - Disabled by default, it'll enable DXVK's async pipecompiler on a compatible DXVK build. Known as the "poe hack", that option *could* be unsafe, so beware.
 
-You can also change there default value before building in your `proton-tkg.cfg` file.
+You can also change their default values before building in your `proton-tkg.cfg` file.
 
 
 ## Other things to know :
