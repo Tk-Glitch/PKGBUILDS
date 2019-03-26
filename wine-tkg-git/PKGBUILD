@@ -378,6 +378,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r2.1.patch' # Addon for 3.19+ - non-staging only
 		'esync-compat-fixes-r3.patch' # For 3.20+
 		'esync-compat-fixes-r3.1.patch' # Addon for 4.4+
+		'esync-compat-fixes-r3.2.patch' # Addon for 4.5+
 		'esync-no_alloc_handle.patch' # esync staging extended support patch
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -804,6 +805,13 @@ prepare() {
 	    if git merge-base --is-ancestor 7ba361b47bc95df624eac83c170d6c1a4041d8f8 HEAD; then # ntdll: Add support for returning previous state argument in event functions
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      _patchname='esync-compat-fixes-r3.1.patch' && _patchmsg="Using esync 4.4+ additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    # if using a wine version that includes b2a546c, apply 4.5+ additional fixes
+	    if git merge-base --is-ancestor b2a546c92dabee8ab1c3d5b9fecc84d99caf0e76 HEAD; then # server: Introduce kernel_object struct for generic association between server and kernel objects.
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.2.patch' && _patchmsg="Using esync 4.5+ additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
@@ -1284,6 +1292,7 @@ md5sums=('SKIP'
          'e32c770f6aa964e6093fe734c7dd6c0a'
          'd86e0feaeb690efe521ac3cc852fac12'
          'f3c95dcaeab28d8b97e80a5e9d9a1c01'
+         'b10e6f8732dbc1e07b59730f9aeea21e'
          '46f612602ee7698b840a4e757194cfa7'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
