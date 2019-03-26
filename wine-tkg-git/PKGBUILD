@@ -104,6 +104,9 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   echo "_proton_pulse_lowlat=${_proton_pulse_lowlat}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_force_LAA=${_proton_force_LAA}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_dxvk_async=${_proton_dxvk_async}" >> "$_proton_tkg_path"/proton_tkg_token
+  if [ "$_use_dxvk_winelib" != "true" ]
+    echo '_prebuilt_dxvk="true"' >> "$_proton_tkg_path"/proton_tkg_token
+  fi
 fi
 
 rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
@@ -142,9 +145,7 @@ if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; th
     if [ $_use_dxvk_winelib == "true" ]; then
       _use_dxvk="true"
     else
-      if [ -n "$_prebuilt_dxvk" ]; then
-        echo '_prebuilt_dxvk="true"' >> "$_proton_tkg_path"/proton_tkg_token
-      fi
+      _use_dxvk="false"
     fi
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   error "It looks like you're attempting to build a Proton version of wine-tkg-git."
