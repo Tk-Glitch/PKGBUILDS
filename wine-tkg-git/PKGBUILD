@@ -104,7 +104,7 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   echo "_proton_pulse_lowlat=${_proton_pulse_lowlat}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_force_LAA=${_proton_force_LAA}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_dxvk_async=${_proton_dxvk_async}" >> "$_proton_tkg_path"/proton_tkg_token
-  if [ "$_use_dxvk_winelib" != "true" ]
+  if [ "$_use_dxvk_winelib" != "true" ]; then
     echo '_prebuilt_dxvk="true"' >> "$_proton_tkg_path"/proton_tkg_token
   fi
 fi
