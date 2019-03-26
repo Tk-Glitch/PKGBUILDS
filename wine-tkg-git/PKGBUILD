@@ -5,7 +5,7 @@ pkgver=4.4.r8.g0d4d90ee
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=141
+eval pkgrel=142
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -18,9 +18,10 @@ _configure_args=() # additional args to ./configure will be added during prepare
 cp "$_where"/wine-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
 cp "$_where"/wine-tkg-userpatches/*.my* "$_where" # copy userpatches inside the PKGBUILD's dir
 
-# load default configuration from file
-if [ -e ../proton-tkg/proton_tkg_token ]; then
-  source ../proton-tkg/proton-tkg.cfg
+# load default configuration from files
+if [ -e "$_where"/proton_tkg_token ]; then
+  source "$_where"/proton_tkg_token
+  source "$_proton_tkg_path"/proton-tkg.cfg
 else
   source "$_where"/customization.cfg
 fi
@@ -49,7 +50,7 @@ else
       msg2 ''
       msg2 'In case you are only using a partial config file, remaining'
       msg2 'values will be loaded from the .cfg file next to this script !'
-    elif [ -e ../proton-tkg/proton_tkg_token ]; then
+    elif [ -e "$_proton_tkg_path"/proton_tkg_token ]; then
       msg2 'by editing the proton-tkg.cfg file in the proton-tkg dir,'
       msg2 'or by creating a custom config, for example'
       msg2 '~/.config/frogminer/proton-tkg.cfg (path set in config file)'
@@ -75,8 +76,8 @@ else
       source "$_EXT_CONFIG_PATH" && msg2 "External config loaded" # load external configuration from file again, in case of changes.
     else
       # load default configuration from file again, in case of change
-      if [ -e ../proton-tkg/proton_tkg_token ]; then
-        source ../proton-tkg/proton-tkg/proton-tkg.cfg
+      if [ -e "$_proton_tkg_path"/proton_tkg_token ]; then
+        source "$_proton_tkg_path"/proton-tkg.cfg
       else
         source "$_where"/customization.cfg
       fi
@@ -85,15 +86,28 @@ else
 fi
 
 function exit_cleanup {
-if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+# Proton-tkg specifics to send to token
+if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ -n "$_proton_tkg_path" ]; then
   if [ -n "$_PROTON_NAME_ADDON" ]; then
-    echo "_protontkg_version=${pkgver}.${_PROTON_NAME_ADDON}" >> "$_where"/../proton-tkg/proton_tkg_token
+    echo "_protontkg_version=${pkgver}.${_PROTON_NAME_ADDON}" >> "$_proton_tkg_path"/proton_tkg_token
   else
-    echo "_protontkg_version=${pkgver}" >> "$_where"/../proton-tkg/proton_tkg_token
+    echo "_protontkg_version=${pkgver}" >> "$_proton_tkg_path"/proton_tkg_token
   fi
+  if [ -n "$_proton_dxvk_configfile" ]; then
+    echo "_proton_dxvk_configfile=${_proton_dxvk_configfile}" >> "$_proton_tkg_path"/proton_tkg_token
+  fi
+  if [ -n "$_proton_dxvk_hud" ]; then
+    echo "_proton_dxvk_hud=${_proton_dxvk_hud}" >> "$_proton_tkg_path"/proton_tkg_token
+  fi
+  echo "_proton_nvapi_disable=${_proton_nvapi_disable}" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_proton_winedbg_disable=${_proton_winedbg_disable}" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_proton_pulse_lowlat=${_proton_pulse_lowlat}" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_proton_force_LAA=${_proton_force_LAA}" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_proton_dxvk_async=${_proton_dxvk_async}" >> "$_proton_tkg_path"/proton_tkg_token
 fi
 
 rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
+rm -f "$_where"/proton_tkg_token && msg2 'Removed Proton-tkg token - Valve Ribbit' # state tracker end
 
 if [ "$_NUKR" == "true" ]; then
   # Sanitization
@@ -112,8 +126,8 @@ fi
   remove_deps
 }
 
-# Check for proton-tkg token to prevent broken state as we need to enforce some defaults for Proton-tkg
-if [ -e ../proton-tkg/proton_tkg_token ]; then
+# Check for proton-tkg token to prevent broken state as we need to enforce some defaults
+if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; then
   _LOCAL_PRESET=""
   _EXTERNAL_INSTALL="true"
   _EXTERNAL_INSTALL_TYPE="proton"
@@ -128,7 +142,9 @@ if [ -e ../proton-tkg/proton_tkg_token ]; then
     if [ $_use_dxvk_winelib == "true" ]; then
       _use_dxvk="true"
     else
-      echo '_prebuilt_dxvk="true"' > "$_where"/../proton-tkg/proton_tkg_token
+      if [ -n "$_prebuilt_dxvk" ]; then
+        echo '_prebuilt_dxvk="true"' >> "$_proton_tkg_path"/proton_tkg_token
+      fi
     fi
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   error "It looks like you're attempting to build a Proton version of wine-tkg-git."

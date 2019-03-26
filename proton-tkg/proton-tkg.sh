@@ -6,6 +6,7 @@
 # It is not standalone and can be considered an addon to wine-tkg-git PKGBUILD and patchsets.
 
 _nowhere=$PWD
+_wine_tkg_git_path=${_nowhere}/../wine-tkg-git # Change to wine-tkg-git path if needed
 
 echo '       .---.`               `.---.       '
 echo '    `/syhhhyso-           -osyhhhys/`    '
@@ -34,11 +35,11 @@ echo ''
 echo 'Also known as "Some kind of build wrapper for wine-tkg-git"'
 echo ''
 
-# We'll need a token to pass to register to wine-tkg-git
-touch proton_tkg_token
+# We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
+echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token $_wine_tkg_git_path/
 
 # Now let's build
-cd ../wine-tkg-git
+cd $_wine_tkg_git_path
 makepkg -s
 
 # Copy the resulting package in here to begin our work
@@ -46,10 +47,8 @@ if [ -e proton_dist*.tar.xz ]; then
   mv proton_dist*.tar.xz $_nowhere/
   cd $_nowhere
 
-  # Wine-tkg-git has injected versioning in the token for us
-  # Get the values back and get rid of the token
+  # Wine-tkg-git has injected versioning in the token for us, so get the values back
   source proton_tkg_token
-  rm proton_tkg_token
 
   # Create required dirs
   mkdir -p $HOME/.steam/root/compatibilitytools.d
@@ -73,7 +72,7 @@ if [ -e proton_dist*.tar.xz ]; then
   cd $_nowhere
 
   # Grab share template and inject version
-  echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/ #&& echo "1552061114" > ./proton_dist_tmp/share/default_pfx/.update-timestamp
+  echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/
 
   # Clone Proton tree as we need to build lsteamclient libs
   git clone https://github.com/ValveSoftware/Proton # It'll complain the path already exists on subsequent builds
@@ -105,7 +104,7 @@ if [ -e proton_dist*.tar.xz ]; then
   cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
   cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
 
-  # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below if you aren't building using dxvk-tools
+  # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
   if [ "$_prebuilt_dxvk" == "true" ]; then
     if [ -d ./dxvk ]; then
       mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
@@ -125,6 +124,40 @@ if [ -e proton_dist*.tar.xz ]; then
   # Grab conf template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_tkg_$_protontkg_version/version && cp proton_template/conf/* proton_tkg_$_protontkg_version/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" ./proton_tkg_$_protontkg_version/compatibilitytool.vdf
 
+  # Set Proton-tkg user_settings.py defaults
+  if [ "$_proton_nvapi_disable" == "true" ]; then
+    sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  else
+    sed -i 's/.*PROTON_NVAPI_DISABLE.*/#    "PROTON_NVAPI_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  fi
+  if [ "$_proton_winedbg_disable" == "true" ]; then
+    sed -i 's/.*PROTON_WINEDBG_DISABLE.*/     "PROTON_WINEDBG_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  else
+        sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#    "PROTON_WINEDBG_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  fi
+  if [ "$_proton_force_LAA" == "true" ]; then
+    sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/     "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  else
+    sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/#    "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  fi
+  if [ "$_proton_pulse_lowlat" == "true" ]; then
+    sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/     "PROTON_PULSE_LOWLATENCY": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  else
+    sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#    "PROTON_PULSE_LOWLATENCY": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  fi
+  if [ "$_proton_dxvk_async" == "true" ]; then
+    sed -i 's/.*PROTON_DXVK_ASYNC.*/     "PROTON_DXVK_ASYNC": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  else
+    sed -i 's/.*PROTON_DXVK_ASYNC.*/#    "PROTON_DXVK_ASYNC": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+  fi
+  if [ -n "$_proton_dxvk_configfile" ]; then
+    sed -i "s|.*DXVK_CONFIG_FILE.*|     \"DXVK_CONFIG_FILE\": \"${_proton_dxvk_configfile}\",|g" proton_tkg_$_protontkg_version/user_settings.py
+  fi
+  if [ -n "$_proton_dxvk_hud" ]; then
+    sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" proton_tkg_$_protontkg_version/user_settings.py
+  fi
+
+  # Use the corresponding script depending on DXVK type
   if [ "$_prebuilt_dxvk" == "true" ]; then
     mv proton_tkg_$_protontkg_version/proton.prebuilt proton_tkg_$_protontkg_version/proton
   else
@@ -135,6 +168,9 @@ if [ -e proton_dist*.tar.xz ]; then
   if [ -e $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version ]; then
     rm -rf $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version
   fi
+
+  # Get rid of the token
+  rm proton_tkg_token
 
   mv proton_tkg_$_protontkg_version $HOME/.steam/root/compatibilitytools.d/ && echo "" && echo "Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
 
