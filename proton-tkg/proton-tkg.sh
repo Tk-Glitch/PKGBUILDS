@@ -110,6 +110,10 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
     if [ -d ./dxvk ]; then
       mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
       mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
+      if [ "$_dxvk_dxgi" != "true" ]; then
+        rm proton_dist_tmp/lib64/wine/dxvk/dxgi.dll
+        rm proton_dist_tmp/lib/wine/dxvk/dxgi.dll
+      fi
     else
       echo "Your config file is set up to include prebuilt DXVK, but you seem to be missing it."
     fi
