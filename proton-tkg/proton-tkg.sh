@@ -36,19 +36,20 @@ echo 'Also known as "Some kind of build wrapper for wine-tkg-git"'
 echo ''
 
 # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
-echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token $_wine_tkg_git_path/
+echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "$_wine_tkg_git_path"/
 
 # Now let's build
-cd $_wine_tkg_git_path
+cd "$_wine_tkg_git_path"
 makepkg -s
 
-# Copy the resulting package in here to begin our work
-if [ -e proton_dist*.tar* ]; then
-  mv proton_dist*.tar* $_nowhere/
-  cd $_nowhere
+# Wine-tkg-git has injected versioning and settings in the token for us, so get the values back
+source $_nowhere/proton_tkg_token
 
-  # Wine-tkg-git has injected versioning in the token for us, so get the values back
-  source proton_tkg_token
+# Copy the resulting package in here to begin our work
+if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
+  mv "$_proton_pkgdest"/proton_dist*.tar* $_nowhere/
+
+  cd $_nowhere
 
   # Create required dirs
   mkdir -p $HOME/.steam/root/compatibilitytools.d
@@ -173,7 +174,6 @@ if [ -e proton_dist*.tar* ]; then
   rm proton_tkg_token
 
   mv proton_tkg_$_protontkg_version $HOME/.steam/root/compatibilitytools.d/ && echo "" && echo "Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
-
 else
   rm $_nowhere/proton_tkg_token
   echo "The required proton_dist package is missing! Wine-tkg-git compilation may have failed."

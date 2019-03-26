@@ -107,6 +107,7 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   if [ "$_use_dxvk_winelib" != "true" ]; then
     echo '_prebuilt_dxvk="true"' >> "$_proton_tkg_path"/proton_tkg_token
   fi
+  echo "_proton_pkgdest='${PKGDEST}'" >> "$_proton_tkg_path"/proton_tkg_token
 fi
 
 rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
