@@ -43,8 +43,8 @@ cd $_wine_tkg_git_path
 makepkg -s
 
 # Copy the resulting package in here to begin our work
-if [ -e proton_dist*.tar.xz ]; then
-  mv proton_dist*.tar.xz $_nowhere/
+if [ -e proton_dist*.tar* ]; then
+  mv proton_dist*.tar* $_nowhere/
   cd $_nowhere
 
   # Wine-tkg-git has injected versioning in the token for us, so get the values back
@@ -57,8 +57,8 @@ if [ -e proton_dist*.tar.xz ]; then
   mkdir -p proton_template/share/fonts
 
   # Extract our custom package
-  tar -xvf proton_dist*.tar.xz -C ./proton_dist_tmp >/dev/null 2>&1
-  rm proton_dist*.tar.xz
+  tar -xvf proton_dist*.tar* -C ./proton_dist_tmp >/dev/null 2>&1
+  rm proton_dist*.tar*
 
   # Liberation Fonts
   rm -f proton_template/share/fonts/*
