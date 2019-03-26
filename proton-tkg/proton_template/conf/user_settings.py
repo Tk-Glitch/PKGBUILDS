@@ -19,6 +19,9 @@ user_settings = {
     #Set DXVK logging level
 #     "DXVK_LOG_LEVEL": "info",
 
+    #Set DXVK custom config path
+#     "DXVK_CONFIG_FILE": "",
+
     #Enable DXVK Async pipecompiler
 #     "PROTON_DXVK_ASYNC": "1",
 
