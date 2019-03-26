@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.4.r7.gd963a250
+pkgver=4.4.r8.g0d4d90ee
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -86,7 +86,11 @@ fi
 
 function exit_cleanup {
 if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-  echo "_protontkg_version=${pkgver}" >> "$_where"/../proton-tkg/proton_tkg_token
+  if [ -n "$_PROTON_NAME_ADDON" ]; then
+    echo "_protontkg_version=${pkgver}.${_PROTON_NAME_ADDON}" >> "$_where"/../proton-tkg/proton_tkg_token
+  else
+    echo "_protontkg_version=${pkgver}" >> "$_where"/../proton-tkg/proton_tkg_token
+  fi
 fi
 
 rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end

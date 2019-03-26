@@ -2,9 +2,10 @@
 
 This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git).
 
-### It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries. Wine-staging based? Latest master? Yup, you can. ### ( **Older than 3.16 wine bases are untested.** )
+### It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries. Wine-staging based? Latest master? Yup, you can.
+( **Older than 3.16 wine bases are untested.** )
 
-### This is not standalone and requires Steam. If you want a standalone wine build, use [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git) instead. ###
+### This is not standalone and requires Steam. If you want a standalone wine build, use [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git) instead.
 
 **The following wine-tkg-git options will be enforced (might change in the future):**
 - `_EXTERNAL_INSTALL="true"`
@@ -31,12 +32,14 @@ You can find all your usual options in the proton-tkg.cfg file. If you create a 
 
 ## Things to know :
 
-1. DXVK winelib currently has limitations and might prevent some (rare) games to see your GPU. Making a non-winelib build is recommended for compatibility sakes. Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
+- DXVK winelib currently has limitations and might prevent some (rare) games to see your GPU. Making a non-winelib build is recommended for compatibility sakes. Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
 
-2. Proton doesn't like running games from NTFS. Consider symlinking your compatdata dir(s) (usually found in /SteamApps) to some place on an EXT4 partition.
+- Proton doesn't like running games from NTFS. Consider symlinking your compatdata dir(s) (usually found in /SteamApps) to some place on an EXT4 partition.
 
-3. SteamVR support is missing for compatibility reasons.
+- SteamVR support is missing for compatibility reasons.
 
-4. Dinput SDL support is missing for lazyness reasons.
+- Dinput SDL support is missing for lazyness reasons.
 
-5. In the userpatches folder, you'll find two patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them.
+- In the userpatches folder, you'll find two patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them. They might not apply cleanly on older wine bases.
+
+- Proton-tkg builds will get installed in `~/.steam/root/compatibilitytools.d directory`. If you want to uninstall a build, just delete its folder there and restart Steam.
