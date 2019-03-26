@@ -1010,9 +1010,9 @@ index b69d2eb371f..2be405e7ae7 100644
 --- a/dlls/kernel32/tests/thread.c
 +++ b/dlls/kernel32/tests/thread.c
 @@ -102,6 +102,8 @@ static NTSTATUS (WINAPI *pNtQueryInformationThread)(HANDLE,THREADINFOCLASS,PVOID
- static BOOL (WINAPI *pGetThreadGroupAffinity)(HANDLE,GROUP_AFFINITY*);
  static BOOL (WINAPI *pSetThreadGroupAffinity)(HANDLE,const GROUP_AFFINITY*,GROUP_AFFINITY*);
  static NTSTATUS (WINAPI *pNtSetInformationThread)(HANDLE,THREADINFOCLASS,LPCVOID,ULONG);
+ static NTSTATUS (WINAPI *pNtSetLdtEntries)(ULONG,ULONG,ULONG,ULONG,ULONG,ULONG);
 +static HRESULT (WINAPI *pSetThreadDescription)(HANDLE,const WCHAR *);
 +static HRESULT (WINAPI *pGetThreadDescription)(HANDLE,WCHAR **);
  
