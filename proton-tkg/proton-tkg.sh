@@ -8,6 +8,9 @@
 _nowhere=$PWD
 _wine_tkg_git_path=${_nowhere}/../wine-tkg-git # Change to wine-tkg-git path if needed
 
+# Make sure we're not using proton_3.7 /s
+_proton_branch="proton_4.2"
+
 echo '       .---.`               `.---.       '
 echo '    `/syhhhyso-           -osyhhhys/`    '
 echo '   .syNMdhNNhss/``.---.``/sshNNhdMNys.   '
@@ -67,6 +70,7 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   cd liberation-fonts
   git reset --hard HEAD
   git clean -xdf
+  git pull
   patch -Np1 < $_nowhere/'LiberationMono-Regular.patch'
   make
   cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf $_nowhere/proton_template/share/fonts/
@@ -75,15 +79,17 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   # Grab share template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/
 
-  # Clone Proton tree as we need to build lsteamclient libs
+  # Clone Proton tree as we need to build some tools from it
   git clone https://github.com/ValveSoftware/Proton # It'll complain the path already exists on subsequent builds
   cd Proton
   git reset --hard HEAD
   git clean -xdf
+  git checkout $_proton_branch
+  git pull
 
   export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll"
   export CFLAGS="-O2 -g"
-  export CXXFLAGS="-Wno-attributes -O2 -g" 
+  export CXXFLAGS="-Wno-attributes -O2 -g"
   
   mkdir -p build/lsteamclient.win64
   mkdir -p build/lsteamclient.win32
@@ -104,6 +110,23 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   # Inject lsteamclient libs in our wine-tkg-git build
   cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
   cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
+
+  # Build steam helper
+  if [[ $_proton_branch == proton_4.* ]]; then
+    mkdir -p Proton/build/steam.win32
+    cp -a Proton/steam_helper/* Proton/build/steam.win32
+    cd Proton/build/steam.win32
+
+    export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32"
+
+    winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
+    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_nowhere/Proton/build/steam.win32 && strip steam.exe.so
+    cd $_nowhere
+
+    # Inject steam helper winelib and libsteam_api lib in our wine-tkg-git build
+    cp -v Proton/build/steam.win32/steam.exe.so proton_dist_tmp/lib/wine/
+    cp -v Proton/build/steam.win32/libsteam_api.so proton_dist_tmp/lib/
+  fi
 
   # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
   if [ "$_prebuilt_dxvk" == "true" ]; then
