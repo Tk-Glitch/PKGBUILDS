@@ -1099,7 +1099,7 @@ build() {
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix="" && _lib32name="lib" && _lib64name="lib64"
+	  _prefix="" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_GCC_FLAGS -Wl,-rpath-link,$_prefix/$_lib64name"
 	fi
 
 	# build wine 64-bit
@@ -1121,6 +1121,10 @@ build() {
 	else
 	  # make using makepkg settings
 	  schedtool -B -n 1 -e ionice -n 1 make
+	fi
+
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  export LDFLAGS="$_GCC_FLAGS -Wl,-rpath-link,$_prefix/$_lib32name"
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
