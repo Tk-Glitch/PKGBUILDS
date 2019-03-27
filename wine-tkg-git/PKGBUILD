@@ -991,6 +991,11 @@ prepare() {
 	  user_patcher
 	fi
 
+	# Disable tests by default, enable back with _enable_tests="true"
+	if [ "$_ENABLE_TESTS" != "true" ]; then
+	  _configure_args+=(--disable-tests)
+	fi
+
 	# Set custom version so that it reports the same as pkgver
 	sed -i "s/GIT_DIR=\$(top_srcdir)\\/.git git describe HEAD 2>\\/dev\\/null || echo \"wine-\$(PACKAGE_VERSION)\"/echo \"wine-$_realwineversion\"/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
@@ -1082,7 +1087,7 @@ build() {
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix="" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--disable-tests)
+	  _prefix="" && _lib32name="lib" && _lib64name="lib64"
 	fi
 
 	# build wine 64-bit
