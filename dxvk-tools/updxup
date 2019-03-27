@@ -124,6 +124,8 @@ if [ -d ../DXUPBUILD/dxup-$DXUP_BRANCH/x32 ] && [ -d ../DXUPBUILD/dxup-$DXUP_BRA
   echo "Your files were built in $ROOT/DXUPBUILD/$DXUP_BRANCH/$GIT_HEAD"
   rm -f ../DXUPBUILD/$DXUP_BRANCH/last-HEAD
   echo "CURRENT_HEAD=$GIT_HEAD" >> ../DXUPBUILD/$DXUP_BRANCH/last-HEAD
+else
+  rm -rf ../DXUPBUILD/*-$DXUP_BRANCH
 fi
 
 }

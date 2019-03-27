@@ -126,6 +126,8 @@ if [ -d ../DXVKBUILD/dxvk-$DXVK_BRANCH/x32 ] && [ -d ../DXVKBUILD/dxvk-$DXVK_BRA
   echo "Your files were built in $ROOT/DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD"
   rm -f ../DXVKBUILD/$DXVK_BRANCH/last-HEAD
   echo "CURRENT_HEAD=$GIT_HEAD" >> ../DXVKBUILD/$DXVK_BRANCH/last-HEAD
+else
+  rm -rf ../DXVKBUILD/*-$DXVK_BRANCH
 fi
 
 }
@@ -289,7 +291,7 @@ if [ "$1" == "proton-tkg" ]; then
       echo ""
       echo "###############################################################"
       echo ""
-      echo "This DXVK build will be integrated to you next Proton-tkg build"
+      echo "This DXVK build will be integrated to your next Proton-tkg build"
       echo "      !!! as long as DXVK winelib is disabled in cfg !!!"
       echo ""
       echo "###############################################################"
