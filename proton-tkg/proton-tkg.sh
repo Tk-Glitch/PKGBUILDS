@@ -74,10 +74,6 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   patch -Np1 < $_nowhere/'LiberationMono-Regular.patch'
   make
   cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf $_nowhere/proton_template/share/fonts/
-  cd $_nowhere
-
-  # Grab share template and inject version
-  echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/
 
   # Clone Proton tree as we need to build some tools from it
   git clone https://github.com/ValveSoftware/Proton # It'll complain the path already exists on subsequent builds
@@ -86,11 +82,21 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   git clean -xdf
   git checkout $_proton_branch
   git pull
+  cd $_nowhere
+
+  # Embed fake data to spoof desired fonts
+  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSans-Regular "Arial" "Arial" "Arial"
+  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSans-Bold "Arial-Bold" "Arial" "Arial Bold"
+  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSerif-Regular "TimesNewRoman" "Times New Roman" "Times New Roman"
+  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationMono-Regular "CourierNew" "Courier New" "Courier New"
+
+  # Grab share template and inject version
+  echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/
 
   export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll"
   export CFLAGS="-O2 -g"
   export CXXFLAGS="-Wno-attributes -O2 -g"
-  
+
   mkdir -p build/lsteamclient.win64
   mkdir -p build/lsteamclient.win32
 
