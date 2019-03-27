@@ -320,7 +320,9 @@ with prefix_lock:
     else:
         upgrade_pfx(None)
 
-#    if not os.path.exists(prefix + "/user.reg"):
+    if not os.path.exists(prefix + "/user.reg"):
+        # Run wineboot to let wine create the prefix
+        run_wine([wine_path, "wineboot"])
         #copy default prefix into place
 #        with open(os.environ["STEAM_COMPAT_DATA_PATH"] + "/tracked_files", "w") as tfiles:
 #            mergedirs(basedir + "/dist/share/default_pfx", prefix, tfiles)
