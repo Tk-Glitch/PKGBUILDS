@@ -74,6 +74,7 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   patch -Np1 < $_nowhere/'LiberationMono-Regular.patch'
   make
   cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf $_nowhere/proton_template/share/fonts/
+  cd $_nowhere
 
   # Clone Proton tree as we need to build some tools from it
   git clone https://github.com/ValveSoftware/Proton # It'll complain the path already exists on subsequent builds
