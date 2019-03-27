@@ -83,7 +83,6 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   git clean -xdf
   git checkout $_proton_branch
   git pull
-  cd $_nowhere
 
   # Embed fake data to spoof desired fonts
   fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSans-Regular "Arial" "Arial" "Arial"
@@ -94,6 +93,7 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   # Grab share template and inject version
   echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/
 
+  # Build lsteamclient libs
   export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll"
   export CFLAGS="-O2 -g"
   export CXXFLAGS="-Wno-attributes -O2 -g"
