@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.4.r8.g0d4d90ee
+pkgver=4.4.r9.ga02caca0
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=143
+eval pkgrel=144
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -379,7 +379,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r3.patch' # For 3.20+
 		'esync-compat-fixes-r3.1.patch' # Addon for 4.4+
 		'esync-compat-fixes-r3.2.patch' # Addon for 4.5+
-		'esync-no_alloc_handle.patch' # esync staging extended support patch
+		'esync-no_alloc_handle.patch' # esync staging extended support patch (<4.5)
+		'esync-no_kernel_obj_list.patch' # esync staging extended support patch (4.5+)
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
 		'PBA314+.patch' # For 3.14-3.16
@@ -860,7 +861,11 @@ prepare() {
 
 	  # Fix for server-Desktop_Refcount and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName)
 	  if [ "$_use_staging" == "true" ]; then
-	    _patchname='esync-no_alloc_handle.patch' && _patchmsg="Using esync-no_alloc_handle patch to fix server-Desktop_Refcount ws2_32-WSACleanup ws2_32-TransmitFile server-Pipe_ObjectName with Esync enabled" && nonuser_patcher
+	    if git merge-base --is-ancestor b2a546c92dabee8ab1c3d5b9fecc84d99caf0e76 HEAD; then #  server: Introduce kernel_object struct for generic association between server and kernel objects.
+	      _patchname='esync-no_kernel_obj_list.patch' && _patchmsg="Using esync-no_kernel_obj_list patch to fix server-Desktop_Refcount ws2_32-WSACleanup ws2_32-TransmitFile server-Pipe_ObjectName with Esync enabled" && nonuser_patcher
+	    else
+	      _patchname='esync-no_alloc_handle.patch' && _patchmsg="Using esync-no_alloc_handle patch to fix server-Desktop_Refcount ws2_32-WSACleanup ws2_32-TransmitFile server-Pipe_ObjectName with Esync enabled" && nonuser_patcher
+	    fi
 	  fi
 	fi
 	# /esync
@@ -1304,6 +1309,7 @@ md5sums=('SKIP'
          'f3c95dcaeab28d8b97e80a5e9d9a1c01'
          'b10e6f8732dbc1e07b59730f9aeea21e'
          '46f612602ee7698b840a4e757194cfa7'
+         '274503edc7df3591318a12e65d756b91'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
          'd27ec22ee6815a97b4d28ccdfc0420fe'
