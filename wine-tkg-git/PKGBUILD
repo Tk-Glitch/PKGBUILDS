@@ -412,6 +412,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'dxvk-async.patch' # DXVK async patch
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
+		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -987,6 +988,10 @@ prepare() {
 	  else
 	    _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches" && nonuser_patcher
 	  fi
+	  # Enforce mscvrt Dlls to native then builtin - from Proton
+	  if [ "$_msvcrt_nativebuiltin" == "true" ]; then
+	    _patchname='msvcrt_nativebuiltin.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches
@@ -1335,9 +1340,10 @@ md5sums=('SKIP'
          'afd2e119b0d5aac290a0b89324624fb4'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
          '1c4738e438debf72266b96d09f465b25'
-         '54333800ea5c115dd7eab364469f4f1f'
-         '28f83a9b05968a0bd6a0f6c5f2a3ec5f'
+         '889d5238f2dba1aea439465db3ffe56e'
+         '7ef7cf8fbb1d42daa4bafdf2462abb7e'
          'cc0af6b6b3d2a8dac13c825231ff87fa'
-         'd047619c11d95c4c9bbefae564876950')
+         'd047619c11d95c4c9bbefae564876950'
+         '22d3b0b1ff7f2104312b5eb29959cb2e')
 
 trap exit_cleanup EXIT
