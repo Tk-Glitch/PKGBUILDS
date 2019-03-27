@@ -91,7 +91,7 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationMono-Regular "CourierNew" "Courier New" "Courier New"
 
   # Grab share template and inject version
-  echo "1552061114 proton-tkg-$_protontkg_version" > proton_dist_tmp/version && cp -r proton_template/share/* proton_dist_tmp/share/
+  echo "1552061114 proton-tkg-$_protontkg_version" > $_nowhere/proton_dist_tmp/version && cp -r $_nowhere/proton_template/share/* $_nowhere/proton_dist_tmp/share/
 
   # Build lsteamclient libs
   export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll"
