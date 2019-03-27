@@ -11,32 +11,34 @@ _wine_tkg_git_path=${_nowhere}/../wine-tkg-git # Change to wine-tkg-git path if 
 # Make sure we're not using proton_3.7 /s
 _proton_branch="proton_4.2"
 
-echo '       .---.`               `.---.       '
-echo '    `/syhhhyso-           -osyhhhys/`    '
-echo '   .syNMdhNNhss/``.---.``/sshNNhdMNys.   '
-echo '   +sdMh.`+MNsssssssssssssssNM+`.hMds+   '
-echo '   :syNNdhNNhssssssssssssssshNNhdNNys:   '
-echo '    /ssyhhhysssssssssssssssssyhhhyss/    '
-echo '    .ossssssssssssssssssssssssssssso.    '
-echo '   :sssssssssssssssssssssssssssssssss:   '
-echo '  /sssssssssssssssssssssssssssssssssss/  '
-echo ' :sssssssssssssoosssssssoosssssssssssss: '
-echo ' osssssssssssssoosssssssoossssssssssssso '
-echo ' osssssssssssyyyyhhhhhhhyyyyssssssssssso '
-echo ' /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/ '
-echo '  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms  '
-echo '   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/   '
-echo '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`    '
-echo '       `-+shdNNNNNNNNNNNNNNNdhs+-`       '
-echo '             `.-:///////:-.`             '
-echo ' ______              __                      __   __          '
-echo '|   __ \.----.-----.|  |_.-----.-----.______|  |_|  |--.-----.'
-echo '|    __/|   _|  _  ||   _|  _  |     |______|   _|    <|  _  |'
-echo '|___|   |__| |_____||____|_____|__|__|      |____|__|__|___  |'
-echo '                                                       |_____|'
-echo ''
-echo 'Also known as "Some kind of build wrapper for wine-tkg-git"'
-echo ''
+cat <<'EOF'
+       .---.`               `.---.
+    `/syhhhyso-           -osyhhhys/`
+   .syNMdhNNhss/``.---.``/sshNNhdMNys.
+   +sdMh.`+MNsssssssssssssssNM+`.hMds+
+   :syNNdhNNhssssssssssssssshNNhdNNys:
+    /ssyhhhysssssssssssssssssyhhhyss/
+    .ossssssssssssssssssssssssssssso.
+   :sssssssssssssssssssssssssssssssss:
+  /sssssssssssssssssssssssssssssssssss/
+ :sssssssssssssoosssssssoosssssssssssss:
+ osssssssssssssoosssssssoossssssssssssso
+ osssssssssssyyyyhhhhhhhyyyyssssssssssso
+ /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/
+  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms
+   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/
+    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`
+       `-+shdNNNNNNNNNNNNNNNdhs+-`
+             `.-:///////:-.`
+ ______              __                      __   __
+|   __ \.----.-----.|  |_.-----.-----.______|  |_|  |--.-----.
+|    __/|   _|  _  ||   _|  _  |     |______|   _|    <|  _  |
+|___|   |__| |_____||____|_____|__|__|      |____|__|__|___  |
+                                                       |_____|
+
+Also known as "Some kind of build wrapper for wine-tkg-git"
+
+EOF
 
 # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
 echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "$_wine_tkg_git_path"/
