@@ -5,7 +5,7 @@ pkgver=4.4.r10.g271835fc
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=144
+eval pkgrel=145
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -356,7 +356,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_dxupsrcdir"::"git+https://github.com/Joshua-Ashton/dxup.git#branch=d3d9-dev"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
-		'f4skyrimse-fix.patch' # Fo4 & Skyrim SE Script Extender fix
+		'f4skyrimse-fix-1.patch' # Fo4 & Skyrim SE Script Extender fix 1/2 (merged with 12be24a)
+		'f4skyrimse-fix-2.patch' # Fo4 & Skyrim SE Script Extender fix 2/2
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
 		'sims_2-fix-legacy.patch' # Sims 2 fix for <4.1
@@ -708,7 +709,10 @@ prepare() {
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ "$_f4skyrimse_fix" == "true" ]; then
-	  _patchname='f4skyrimse-fix.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix" && nonuser_patcher
+	  if ! git merge-base --is-ancestor 12be24af8cab0e5f78795b164ec8847bafc30852 HEAD; then
+	    _patchname='f4skyrimse-fix-1.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (1)" && nonuser_patcher
+	  fi
+	  _patchname='f4skyrimse-fix-2.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (2)" && nonuser_patcher
 	fi
 
 	# Magic The Gathering: Arena crash fix
@@ -1297,7 +1301,8 @@ md5sums=('SKIP'
          'SKIP'
          'SKIP'
          'a49bc2bb374d5ea5045ada5401cd91a3'
-         'ecada2fc8abda49c6bb788c25f05a822'
+         '16acd00eb3ccc65687850002b818859c'
+         '5e3002826a916a16130c567db763dfc5'
          'f50501943759c8731d40eb521e36e6da'
          'af6b455bdace212157b9a6652ee88d41'
          '6e301f262f004b930ffc3000839d837b'
