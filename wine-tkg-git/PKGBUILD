@@ -1234,15 +1234,14 @@ package() {
 	fi
 
 	# wine binfmt
-	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
-	  if [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/share/wine/wine.inf -i
-	  else
-	    mkdir -p "${pkgdir}/usr/lib/binfmt.d"
-	    # change binfmt.conf to actual installed path
-	    sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
+	  mkdir -p "${pkgdir}/usr/lib/binfmt.d"
+	  # change binfmt.conf to actual installed path
+	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
+	  if [ "$_MIME_NOPE" == "true" ]; then
+	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}$_prefix"/share/wine/wine.inf -i
 	  fi
-	else
+	elif [ "$_EXTERNAL_INSTALL" != "true" ]; then
 	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 	  # disable mime-types registering
 	  if [ "$_MIME_NOPE" == "true" ]; then
@@ -1351,8 +1350,8 @@ md5sums=('SKIP'
          'afd2e119b0d5aac290a0b89324624fb4'
          '3d52653b8f98cf5e0d7305fdbd5cb2c2'
          '1c4738e438debf72266b96d09f465b25'
-         '889d5238f2dba1aea439465db3ffe56e'
-         '7ef7cf8fbb1d42daa4bafdf2462abb7e'
+         '0a63f893e35dab5130e8b4239406adc8'
+         '07e63573292fa2ad1655e5fe562a3863'
          '498d9dea03eeedad973f7e33e11b48c0'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e')
