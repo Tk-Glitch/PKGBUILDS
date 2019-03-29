@@ -487,8 +487,12 @@ prepare() {
 build() {
   cd "${srcdir}/linux-${_basekernel}"
 
+  if [ "$_force_all_threads" == "true" ]; then
+    _force_all_threads=-j$(nproc)
+  fi
+
   # build!
-  time schedtool -B -n 1 -e ionice -n 1 make LOCALVERSION= bzImage modules
+  time schedtool -B -n 1 -e ionice -n 1 make $_force_all_threads LOCALVERSION= bzImage modules
 }
 
 hackbase() {
