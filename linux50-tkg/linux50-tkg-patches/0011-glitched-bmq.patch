@@ -106,3 +106,17 @@ index 9270a4370d54..30d01e647417 100644
  /*
   * The total number of pages which are beyond the high watermark within all
   * zones.
+
+diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
+index 986f7671e0eb0326bf3a9f934b82f1a0003209f8..bc69176c2a08db3c72015a119027da6ef47204db 100644
+--- a/kernel/sched/bmq.c
++++ b/kernel/sched/bmq.c
+@@ -4600,7 +4600,7 @@ static void do_sched_yield(void)
+ 
+ 	rq = this_rq_lock_irq(&rf);
+ 
+-	if (rt_task(current)) {
++	if (!rt_task(current)) {
+ 		current->boost_prio = MAX_PRIORITY_ADJ;
+ 		requeue_task(current, rq);
+ 	}
