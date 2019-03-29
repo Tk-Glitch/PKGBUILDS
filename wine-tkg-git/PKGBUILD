@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.4.r10.g271835fc
+pkgver=4.4.r12.g7ba10a3e
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=145
+eval pkgrel=146
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -414,6 +414,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'dxvk-async.patch' # DXVK async patch
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
+		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -988,6 +989,11 @@ prepare() {
 	  _patchname='enable_stg_shared_mem_def.patch' && _patchmsg="Enable STAGING_SHARED_MEMORY by default" && nonuser_patcher
 	fi
 
+	# Nvidia hate - Prevents building of nvapi/nvapi64, nvcuda, nvcuvid and nvencodeapi/nvencodeapi64 libs
+	if [ "$_nvidia_hate" == "true" ]; then
+	  _patchname='nvidia-hate.patch' && _patchmsg="Hatin' on novideo" && nonuser_patcher
+	fi
+
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
 	  if [ "$_use_staging" == "true" ]; then
 	    _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging)" && nonuser_patcher
@@ -1354,6 +1360,7 @@ md5sums=('SKIP'
          '07e63573292fa2ad1655e5fe562a3863'
          '498d9dea03eeedad973f7e33e11b48c0'
          'd047619c11d95c4c9bbefae564876950'
-         '22d3b0b1ff7f2104312b5eb29959cb2e')
+         '22d3b0b1ff7f2104312b5eb29959cb2e'
+         'bcf6dd7c16f37f20cca6ec4edfab5b34')
 
 trap exit_cleanup EXIT
