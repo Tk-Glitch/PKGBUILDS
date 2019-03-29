@@ -526,6 +526,8 @@ prepare() {
 
 	# holds extra arguments to staging's patcher script, if applicable
 	local _staging_args=()
+	# grabs userdefined staging args if any
+	_staging_args+=($_staging_userargs)
 
 	if [ "$_use_staging" == "true" ] && [ "$_staging_upstreamignore" != "true" ]; then
 	  # change back to the wine upstream commit that this version of wine-staging is based in
