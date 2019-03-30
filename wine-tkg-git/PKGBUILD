@@ -1225,9 +1225,9 @@ build() {
 	  fi
 	  mkdir build
 	  _patchname='dxvk-winelib.patch' && _patchmsg="Using dxvk-winelib patch" && nonuser_patcher
-		if [ "$_dxvk_async" == "true" ]; then
-			_patchname='dxvk-async.patch' && _patchmsg="Using dxvk-async patch" && nonuser_patcher
-		fi
+	  if [ "$_dxvk_async" == "true" ]; then
+	    _patchname='dxvk-async.patch' && _patchmsg="Using dxvk-async patch" && nonuser_patcher
+	  fi
 	  if [ "$_NOLIB32" == "true" ]; then
 	    sed -i "/build_arch 32/d" package-release-wine.sh
 	  fi

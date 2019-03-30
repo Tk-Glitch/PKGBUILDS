@@ -1,5 +1,7 @@
 # Wine to rule them all !
 
+## There is currently a know issue when building DXVK/DXUP/D9VK winelib with meson 0.50. Please use meson 0.49.x or lower for now.
+
 This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about. Lutris "tkg" (previously esync-staging-pba) builds are created using this pkgbuild - https://github.com/lutris/wine
 
 You can now turn your wine-tkg-git builds to Steamplay compatible and use them directly from Steam! - https://github.com/Tk-Glitch/PKGBUILDS/tree/master/proton-tkg
