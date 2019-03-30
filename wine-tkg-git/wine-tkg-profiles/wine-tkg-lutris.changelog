@@ -1,5 +1,15 @@
 # Wine-tkg lutris builds changelog
 
+4.5
+- Sync'd with staging up to cf0a72b;
+
+- The "sims2" variant was renamed to "shadervalidator" and now comes with Proton FS hack enabled - apparently it fixes gamemaker 1 games besides The Sims 2
+
+- New "warframe" variant to fix official launcher self-update loop bug - Except for the Warframe fix, it's similar to Protonified
+
+- Rebased Esync and Proton fs hack patchsets for 4.5 (Also, the Proton FS hack was updated with Proton 4.2 changes, fixing potential xorg errors and adding GDI support)
+
+
 4.4
 - Sync'd with staging up to 18e878b;
 
