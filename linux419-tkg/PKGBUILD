@@ -472,6 +472,8 @@ build() {
 
   if [ "$_force_all_threads" == "true" ]; then
     _force_all_threads=-j$(nproc)
+  else
+    _force_all_threads=""
   fi
 
   # build!
