@@ -114,6 +114,11 @@ echo ""
 echo "#################"
 ./package-release.sh $D9VK_BRANCH ../D9VKBUILD --no-package
 
+# Workarounds dxvk dirs
+if [ -d ../D9VKBUILD/dxvk-$D9VK_BRANCH ]; then
+  mv ../D9VKBUILD/dxvk-$D9VK_BRANCH ../D9VKBUILD/d9vk-$D9VK_BRANCH
+fi
+
 if [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ] && [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ]; then
   mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ../D9VKBUILD/d9vk-$D9VK_BRANCH/win32
   mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ../D9VKBUILD/d9vk-$D9VK_BRANCH/win64
