@@ -438,6 +438,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
+		'proton-sdl-joy.patch' # Proton SDL joystick support
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -1044,6 +1045,10 @@ prepare() {
 	  if [ "$_msvcrt_nativebuiltin" == "true" ]; then
 	    _patchname='msvcrt_nativebuiltin.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
 	  fi
+	  # SDL Joystick support - from Proton
+	  if [ "$_sdl_joy_support" == "true" ]; then
+	    _patchname='proton-sdl-joy.patch' && _patchmsg="Enable SDL Joystick support (from Proton)" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches
@@ -1434,6 +1439,7 @@ md5sums=('SKIP'
          '498d9dea03eeedad973f7e33e11b48c0'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
-         'bcf6dd7c16f37f20cca6ec4edfab5b34')
+         'bcf6dd7c16f37f20cca6ec4edfab5b34'
+         '52f11ca72f4ee06bd2a4bc2b0314e631')
 
 trap exit_cleanup EXIT

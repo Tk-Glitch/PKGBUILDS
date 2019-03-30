@@ -50,8 +50,6 @@ You can also change their default values before building in your `proton-tkg.cfg
 
 - SteamVR support is missing for compatibility reasons.
 
-- Dinput SDL support is missing for lazyness reasons.
-
 - In the userpatches folder, you'll find three patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them. They might not apply cleanly on older wine bases.
 
 - Proton-tkg builds will get installed in `~/.steam/root/compatibilitytools.d` directory. If you want to uninstall a build, just delete its folder there and restart Steam. **MAKE SURE NO STEAM GAME IS CURRENTLY SET TO USE THAT SPECIFIC VERSION BEFORE DELETION**
