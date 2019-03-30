@@ -1,6 +1,6 @@
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Wed, 27 Mar 2019 03:20:02 +0100
-Subject: Add no_kernel_obj_list object method to esync. This is required for staging server-Desktop_Refcount patchsets and patchsets depending on it (ws2_32-WSACleanup, ws2_32-TransmitFile, server-Pipe_ObjectName). (4.5+)
+Subject: Add no_kernel_obj_list object method to esync. (4.5+)
 
 
 diff --git a/server/esync.c b/server/esync.c
