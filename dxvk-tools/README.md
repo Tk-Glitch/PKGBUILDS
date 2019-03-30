@@ -33,4 +33,6 @@ You'll find more details on the various functions (such as installation-related 
 
 # DXVK : https://github.com/doitsujin/dxvk
 
+# D9VK : https://github.com/Joshua-Ashton/d9vk
+
 # DXUP : https://github.com/Joshua-Ashton/dxup
