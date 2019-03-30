@@ -5,13 +5,14 @@ pkgver=4.4.r12.g7ba10a3e
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=146
+eval pkgrel=147
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
 _dxvksrcdir='dxvk'
 _dxupsrcdir='dxup'
+_d9vksrcdir='d9vk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _configure_args=() # additional args to ./configure will be added during prepare()
 
@@ -193,12 +194,27 @@ else
     fi
   fi
 
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ]; then
+  if [ "$_use_dxup" == "true" ] && [ "$_use_d9vk" == "true" ]; then
+    _use_dxup="false"
+    msg2 "D9VK and DXUP are both enabled and conflicting. Falling back to D9VK."
+  fi
+
+  if [ "$_use_dxvk" != "true" ] && [ "$_use_dxup" != "true" ] && [ "$_use_d9vk" == "true" ]; then
+    pkgname="${pkgname/%-git/-d9vk-git}"
+    msg2 "Using D9VK winelib for d3d9 translation"
+  fi
+
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ] && [ "$_use_d9vk" == "true" ]; then
+    pkgname="${pkgname/%-git/-d9+dxvk-git}"
+    msg2 "Using D9VK for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
+  fi
+
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ] && [ "$_use_d9vk" != "true" ]; then
     pkgname="${pkgname/%-git/-dxvk+up-git}"
     msg2 "Using DXUP for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
   fi
 
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ]; then
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ] && [ "$_use_d9vk" != "true" ]; then
     pkgname="${pkgname/%-git/-dxvk-git}"
     msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
   fi
@@ -240,6 +256,11 @@ fi
 # custom dxvk commit to pass to git
 if [ "$_use_dxvk" == "true" ]; then
   _dxvk_commit="#commit=$_dxvk_version"
+fi
+
+# custom d9vk commit to pass to git
+if [ "$_use_d9vk" == "true" ]; then
+  _d9vk_commit="#commit=$_d9vk_version"
 fi
 
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
@@ -354,6 +375,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
 		"$_dxupsrcdir"::"git+https://github.com/Joshua-Ashton/dxup.git#branch=d3d9-dev"
+		"$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
 		'f4skyrimse-fix-1.patch' # Fo4 & Skyrim SE Script Extender fix 1/2 (merged with 12be24a)
@@ -398,6 +420,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'plasma_systray_fix.patch' # Systray fix for winex11
 		'dxvk-winelib.patch' # Enables DXVK winelib building
 		'dxup-winelib.patch' # Enables DXUP winelib building
+		'd9vk-winelib.patch' # Enables D9VK winelib building
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
@@ -518,6 +541,12 @@ prepare() {
 	git reset --hard HEAD 	# restore tracked files
 	git clean -xdf 			# delete untracked files
 
+	cd "${srcdir}"/"${_d9vksrcdir}"
+
+	msg2 'Cleaning d9vk source code tree...'
+	git reset --hard HEAD 	# restore tracked files
+	git clean -xdf 			# delete untracked files
+
 	cd "${srcdir}"/"${_winesrcdir}"
 
 	msg2 'Cleaning wine source code tree...'
@@ -591,6 +620,11 @@ prepare() {
 	  fi
 	fi
 
+	if [ "$_use_d9vk" == "true" ] && [ "$_use_dxup" == "true" ]; then
+	  _use_dxup="false"
+	  echo "D9VK and DXUP are both enabled and conflicting. Falling back to D9VK." >> "$_where"/last_build_config.log
+	fi
+
 	if [ "$_use_dxvk" == "true" ]; then
 	  echo "Using DXVK winelib for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
 	  if [ "$_dxvk_dxgi" == "true" ]; then
@@ -599,6 +633,10 @@ prepare() {
 	  if [ "$_use_dxup" == "true" ]; then
 	    echo "Using DXUP winelib for d3d9 translation" >> "$_where"/last_build_config.log
 	  fi
+	fi
+
+	if [ "$_use_d9vk" == "true" ]; then
+	  echo "Using D9VK winelib for d3d9 translation" >> "$_where"/last_build_config.log
 	fi
 
 	echo "" >> "$_where"/last_build_config.log
@@ -1054,6 +1092,9 @@ prepare() {
 	    _version_tags+=(Async)
 	  fi
 	fi
+	if [ "$_use_d9vk" == "true" ]; then
+	  _version_tags+=(D9vk)
+	fi
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _version_tags+=("$_OPTIONAL_MARCHFLAG")
 	fi
@@ -1073,6 +1114,15 @@ prepare() {
 	  _userpatch_target="dxup"
 	  _userpatch_ext="mydxup"
 	  cd "${srcdir}"/"${_dxupsrcdir}"
+	  user_patcher
+	  cd "${srcdir}"/"${_winesrcdir}"
+	fi
+
+	# d9vk user patches
+	if [ "$_user_patches" == "true" ] && [ "$_use_d9vk" == "true" ]; then
+	  _userpatch_target="d9vk"
+	  _userpatch_ext="myd9vk"
+	  cd "${srcdir}"/"${_d9vksrcdir}"
 	  user_patcher
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
@@ -1188,6 +1238,17 @@ build() {
 	    ./package-release-wine.sh master build --no-package
 	  fi
 	fi
+
+	# Build D9VK winelib
+	if [ "$_use_d9vk" == "true" ]; then
+	  cd "${srcdir}"/"${_d9vksrcdir}"
+	  mkdir build
+	  _patchname='d9vk-winelib.patch' && _patchmsg="Using d9vk-winelib patch" && nonuser_patcher
+	  if [ "$_NOLIB32" == "true" ]; then
+	    sed -i "/build_arch 32/d" package-release-wine.sh
+	  fi
+	  ./package-release-wine.sh master build --no-package
+	fi
 }
 
 package() {
@@ -1272,6 +1333,14 @@ package() {
 	  fi
 	fi
 
+	# d9vk
+	if [ "$_use_d9vk" == "true" ]; then
+	  if [ "$_NOLIB32" != "true" ]; then
+	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x32/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib32name"/wine
+	  fi
+	  cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x64/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib64name"/wine
+	fi
+
 	cp "$_where"/last_build_config.log "${pkgdir}$_prefix"/share/wine/wine-tkg-config.txt
 
 	if [ "$_use_esync" == "true" ]; then
@@ -1304,6 +1373,7 @@ package() {
 }
 
 md5sums=('SKIP'
+         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -1347,6 +1417,7 @@ md5sums=('SKIP'
          '927f39348cd29ce9876871e4edb15a09'
          'b2638b27a99b9f3a2f270a85a422d430'
          'c83562eee89d7984534029199e23bc5d'
+         '54b38ef7e04e4f01c1d59fc34f2c6e57'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '6262b0ff26fd1e00eb6123db5e0a4160'
          'd9e560ab31dc2e2c4825a94ac8cf21ec'
