@@ -105,9 +105,8 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   echo "_proton_force_LAA=${_proton_force_LAA}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_dxvk_async=${_proton_dxvk_async}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_dxvk_dxgi=${_dxvk_dxgi}" >> "$_proton_tkg_path"/proton_tkg_token
-  if [ "$_use_dxvk_winelib" != "true" ]; then
-    echo '_prebuilt_dxvk="true"' >> "$_proton_tkg_path"/proton_tkg_token
-  fi
+  echo "_use_dxvk=${_use_dxvk}" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_use_d9vk=${_use_d9vk}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_pkgdest='${PKGDEST}'" >> "$_proton_tkg_path"/proton_tkg_token
 fi
 
@@ -144,11 +143,12 @@ if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; th
   _highcorecount_fix="true"
   _update_winevulkan="true"
   _use_libfonts="true"
-    if [ $_use_dxvk_winelib == "true" ]; then
-      _use_dxvk="true"
-    else
-      _use_dxvk="false"
-    fi
+  if [ "$_use_dxvk" == "winelib" ]; then
+    _use_dxvk="true"
+  fi
+  if [ "$_use_d9vk" == "winelib" ]; then
+    _use_d9vk="true"
+  fi
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   error "It looks like you're attempting to build a Proton version of wine-tkg-git."
   error "This special option doesn't use pacman and requires you to run 'proton-tkg.sh' script from proton-tkg dir."

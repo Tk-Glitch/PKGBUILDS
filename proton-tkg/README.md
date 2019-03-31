@@ -13,7 +13,11 @@ This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILD
 - `_EXTERNAL_NOVER="false"`
 - `_use_faudio="true"`
 
-**You cannot actually build proton-tkg without DXVK.** When `_use_dxvk_winelib` is set to "false", you'll need to put prebuilt DXVK dlls inside a dxvk folder, in the root folder of proton-tkg (here):
+**All other wine-tkg-git settings can be tweaked such as wine version, staging, esync, game fixes (etc.) and the userpatches functionality is kept intact.**
+
+You can find all your usual options in the proton-tkg.cfg file. If you create a proton-tkg.cfg file in ~/.config/frogminer dir, it'll be used as an override.
+
+When `_use_dxvk` is set to `"prebuilt"`, you'll need to put your prebuilt DXVK dlls inside a dxvk folder, in the root folder of proton-tkg (here):
 ```
 proton-tkg
    |
@@ -22,9 +26,14 @@ proton-tkg
           |__x32--> d3d11.dll, dxgi.dll etc.
 ```
 
-**All other wine-tkg-git settings can be tweaked such as wine version, staging, esync, game fixes (etc.) and the userpatches functionality is kept intact.**
-
-You can find all your usual options in the proton-tkg.cfg file. If you create a proton-tkg.cfg file in ~/.config/frogminer dir, it'll be used as an override.
+When `_use_d9vk` is set to `"prebuilt"`, you'll need to put your prebuilt D9VK dlls inside a d9vk folder, in the root folder of proton-tkg (here):
+```
+proton-tkg
+   |
+   |__d9vk___x64--> d3d9.dll
+          |
+          |__x32--> d3d9.dll
+```
 
 ### Running the proton-tkg.sh script will launch the usual wine-tkg-git building process... with extra spice. ###
 ```
@@ -46,10 +55,12 @@ You can also change their default values before building in your `proton-tkg.cfg
 
 - DXVK winelib currently has limitations and might prevent some (rare) games to see your GPU. Making a non-winelib build is recommended for compatibility sakes. Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
 
-- Proton doesn't like running games from NTFS. Consider symlinking your compatdata dir(s) (usually found in /SteamApps) to some place on an EXT4 partition.
+- Proton doesn't like running games from NTFS. Consider symlinking your compatdata dir(s) (usually found in /SteamApps) to some place on an EXT4 partition if you want to play games from a NTFS partition.
 
-- SteamVR support is missing for compatibility reasons.
+- SteamVR support is missing for versatility reasons. It might be added at some point.
 
 - In the userpatches folder, you'll find three patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them. They might not apply cleanly on older wine bases.
 
 - Proton-tkg builds will get installed in `~/.steam/root/compatibilitytools.d` directory. If you want to uninstall a build, just delete its folder there and restart Steam. **MAKE SURE NO STEAM GAME IS CURRENTLY SET TO USE THAT SPECIFIC VERSION BEFORE DELETION**
+
+If you end up removing a proton-tkg build that's bound to a game, you can fix the issue by replacing the missing build name with one that's available in `~/.steam/root/config/config.vdf`

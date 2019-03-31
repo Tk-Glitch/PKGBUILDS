@@ -48,18 +48,18 @@ cd "$_wine_tkg_git_path"
 makepkg -s
 
 # Wine-tkg-git has injected versioning and settings in the token for us, so get the values back
-source $_nowhere/proton_tkg_token
+source "$_nowhere/proton_tkg_token"
 
 # Copy the resulting package in here to begin our work
 if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
-  mv "$_proton_pkgdest"/proton_dist*.tar* $_nowhere/
+  mv "$_proton_pkgdest"/proton_dist*.tar* "$_nowhere"/
 
   cd $_nowhere
 
   # Create required dirs
-  mkdir -p $HOME/.steam/root/compatibilitytools.d
+  mkdir -p "$HOME/.steam/root/compatibilitytools.d"
   mkdir proton_dist_tmp
-  mkdir proton_tkg_$_protontkg_version
+  mkdir "proton_tkg_$_protontkg_version"
   mkdir -p proton_template/share/fonts
 
   # Extract our custom package
@@ -73,27 +73,27 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   git reset --hard HEAD
   git clean -xdf
   git pull
-  patch -Np1 < $_nowhere/'LiberationMono-Regular.patch'
+  patch -Np1 < "$_nowhere/proton_template/LiberationMono-Regular.patch"
   make
-  cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf $_nowhere/proton_template/share/fonts/
-  cd $_nowhere
+  cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf "$_nowhere/proton_template/share/fonts"/
+  cd "$_nowhere"
 
   # Clone Proton tree as we need to build some tools from it
   git clone https://github.com/ValveSoftware/Proton # It'll complain the path already exists on subsequent builds
   cd Proton
   git reset --hard HEAD
   git clean -xdf
-  git checkout $_proton_branch
+  git checkout "$_proton_branch"
   git pull
 
   # Embed fake data to spoof desired fonts
-  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSans-Regular "Arial" "Arial" "Arial"
-  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSans-Bold "Arial-Bold" "Arial" "Arial Bold"
-  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationSerif-Regular "TimesNewRoman" "Times New Roman" "Times New Roman"
-  fontforge -script $_nowhere/Proton/fonts/scripts/generatefont.pe $_nowhere/proton_template/share/fonts/LiberationMono-Regular "CourierNew" "Courier New" "Courier New"
+  fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Regular" "Arial" "Arial" "Arial"
+  fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Bold" "Arial-Bold" "Arial" "Arial Bold"
+  fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSerif-Regular" "TimesNewRoman" "Times New Roman" "Times New Roman"
+  fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationMono-Regular" "CourierNew" "Courier New" "Courier New"
 
   # Grab share template and inject version
-  echo "1552061114 proton-tkg-$_protontkg_version" > $_nowhere/proton_dist_tmp/version && cp -r $_nowhere/proton_template/share/* $_nowhere/proton_dist_tmp/share/
+  echo "1552061114 proton-tkg-$_protontkg_version" > "$_nowhere/proton_dist_tmp/version" && cp -r "$_nowhere/proton_template/share"/* "$_nowhere/proton_dist_tmp/share"/
 
   # Build lsteamclient libs
   export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll"
@@ -108,12 +108,12 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
 
   cd build/lsteamclient.win64
   winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS .
-  make -C $_nowhere/Proton/build/lsteamclient.win64 && strip lsteamclient.dll.so
+  make -C "$_nowhere/Proton/build/lsteamclient.win64" && strip lsteamclient.dll.so
   cd ../..
 
   cd build/lsteamclient.win32
   winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS .
-  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_nowhere/Proton/build/lsteamclient.win32 && strip lsteamclient.dll.so
+  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/lsteamclient.win32" && strip lsteamclient.dll.so
   cd $_nowhere
 
   # Inject lsteamclient libs in our wine-tkg-git build
@@ -129,7 +129,7 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
     export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32"
 
     winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
-    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C $_nowhere/Proton/build/steam.win32 && strip steam.exe.so
+    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" && strip steam.exe.so
     cd $_nowhere
 
     # Inject steam helper winelib and libsteam_api lib in our wine-tkg-git build
@@ -138,7 +138,7 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
   fi
 
   # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
-  if [ "$_prebuilt_dxvk" == "true" ]; then
+  if [ "$_use_dxvk" == "prebuilt" ]; then
     if [ -d ./dxvk ]; then
       mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
       mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
@@ -151,65 +151,81 @@ if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
     fi
   fi
 
+  # If the token gave us prebuilt d9vk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
+  if [ "$_use_d9vk" == "prebuilt" ]; then
+    if [ -d ./d9vk ]; then
+      mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/dxvk/
+      mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/dxvk/
+    else
+      echo "Your config file is set up to include prebuilt D9VK, but you seem to be missing it."
+    fi
+  fi
+
   echo ''
   echo "Packaging..."
 
   # Package
-  cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../proton_tkg_$_protontkg_version
-  cd $_nowhere && rm -rf proton_dist_tmp
+  cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../"proton_tkg_$_protontkg_version"
+  cd "$_nowhere" && rm -rf proton_dist_tmp
 
   # Grab conf template and inject version
-  echo "1552061114 proton-tkg-$_protontkg_version" > proton_tkg_$_protontkg_version/version && cp proton_template/conf/* proton_tkg_$_protontkg_version/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" ./proton_tkg_$_protontkg_version/compatibilitytool.vdf
+  echo "1552061114 proton-tkg-$_protontkg_version" > "proton_tkg_$_protontkg_version/version" && cp "proton_template/conf"/* "proton_tkg_$_protontkg_version"/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" "proton_tkg_$_protontkg_version/compatibilitytool.vdf"
 
   # Set Proton-tkg user_settings.py defaults
   if [ "$_proton_nvapi_disable" == "true" ]; then
-    sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   else
-    sed -i 's/.*PROTON_NVAPI_DISABLE.*/#    "PROTON_NVAPI_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_NVAPI_DISABLE.*/#    "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   fi
   if [ "$_proton_winedbg_disable" == "true" ]; then
-    sed -i 's/.*PROTON_WINEDBG_DISABLE.*/     "PROTON_WINEDBG_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_WINEDBG_DISABLE.*/     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   else
-        sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#    "PROTON_WINEDBG_DISABLE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+        sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#    "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   fi
   if [ "$_proton_force_LAA" == "true" ]; then
-    sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/     "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/     "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   else
-    sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/#    "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/#    "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   fi
   if [ "$_proton_pulse_lowlat" == "true" ]; then
-    sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/     "PROTON_PULSE_LOWLATENCY": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   else
-    sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#    "PROTON_PULSE_LOWLATENCY": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#    "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   fi
   if [ "$_proton_dxvk_async" == "true" ]; then
-    sed -i 's/.*PROTON_DXVK_ASYNC.*/     "PROTON_DXVK_ASYNC": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_DXVK_ASYNC.*/     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   else
-    sed -i 's/.*PROTON_DXVK_ASYNC.*/#    "PROTON_DXVK_ASYNC": "1",/g' proton_tkg_$_protontkg_version/user_settings.py
+    sed -i 's/.*PROTON_DXVK_ASYNC.*/#    "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
   fi
   if [ -n "$_proton_dxvk_configfile" ]; then
-    sed -i "s|.*DXVK_CONFIG_FILE.*|     \"DXVK_CONFIG_FILE\": \"${_proton_dxvk_configfile}\",|g" proton_tkg_$_protontkg_version/user_settings.py
+    sed -i "s|.*DXVK_CONFIG_FILE.*|     \"DXVK_CONFIG_FILE\": \"${_proton_dxvk_configfile}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
   fi
   if [ -n "$_proton_dxvk_hud" ]; then
-    sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" proton_tkg_$_protontkg_version/user_settings.py
+    sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
   fi
 
-  # Use the corresponding script depending on DXVK type
-  if [ "$_prebuilt_dxvk" == "true" ]; then
-    mv proton_tkg_$_protontkg_version/proton.prebuilt proton_tkg_$_protontkg_version/proton
-  else
-    mv proton_tkg_$_protontkg_version/proton.winelib proton_tkg_$_protontkg_version/proton
+  cd proton_tkg_$_protontkg_version
+
+  # Use the corresponding patch depending on DXVK/D9VK type combo - Default is DXVK prebuilt +no d9vk or d9vk winelib ("true" = "winelib")
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "true" ]; then
+    patch -Np1 < "$_nowhere/proton_template/proton-full-winelib.patch"
+  elif [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "prebuilt" ]; then
+    patch -Np1 < "$_nowhere/proton_template/proton-d9vk_prebuilt-dxvk_winelib.patch"
+  elif [ "$_use_dxvk" == "prebuilt" ] && [ "$_use_d9vk" == "prebuilt" ]; then
+    patch -Np1 < "$_nowhere/proton_template/proton-full-prebuilt.patch"
   fi
+
+  cd $_nowhere
 
   # Nuke same version if exists before copying new build
-  if [ -e $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version ]; then
-    rm -rf $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version
+  if [ -e "$HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
+    rm -rf "$HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
   fi
 
   # Get rid of the token
   rm proton_tkg_token
 
-  mv proton_tkg_$_protontkg_version $HOME/.steam/root/compatibilitytools.d/ && echo "" && echo "Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
+  mv "proton_tkg_$_protontkg_version" "$HOME/.steam/root/compatibilitytools.d"/ && echo "" && echo "Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
 else
   rm $_nowhere/proton_tkg_token
   echo "The required proton_dist package is missing! Wine-tkg-git compilation may have failed."
