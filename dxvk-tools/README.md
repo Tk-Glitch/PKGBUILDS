@@ -5,6 +5,7 @@
 - [Meson](http://mesonbuild.com/) build system (at least version 0.43)
 - [MinGW64](http://mingw-w64.org/) 6.0 compiler and headers (I'm providing a script for Arch based distros here : https://github.com/Tk-Glitch/PKGBUILDS/tree/master/mingw )
 - [glslang](https://github.com/KhronosGroup/glslang) compile
+- Optional : Installing ccache will greatly improve subsequent compilation times
 
 ### Building DXVK DLLs
 

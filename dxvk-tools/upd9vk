@@ -107,6 +107,17 @@ if [ "$PATCHIN" == "1" ]; then
   done
 fi
 
+if pacman -Qq ccache &> /dev/null; then
+  echo 'ccache was found and will be used'
+  sed -i "s|c = 'i686-w64-mingw32-gcc'|c = ['ccache', 'i686-w64-mingw32-gcc']|g" build-win32.txt
+  sed -i "s|c = 'x86_64-w64-mingw32-gcc'|c = ['ccache', 'x86_64-w64-mingw32-gcc']|g" build-win64.txt
+  sed -i "s|cpp = 'i686-w64-mingw32-g++'|cpp = ['ccache', 'i686-w64-mingw32-g++']|g" build-win32.txt
+  sed -i "s|cpp = 'x86_64-w64-mingw32-g++'|cpp = ['ccache', 'x86_64-w64-mingw32-g++']|g" build-win64.txt
+else
+  echo ""
+  echo 'ccache was not found and will not be used'
+fi
+
 echo "#################"
 echo ""
 echo "BUILDING"
