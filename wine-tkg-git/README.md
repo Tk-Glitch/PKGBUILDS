@@ -10,6 +10,8 @@ You can now turn your wine-tkg-git builds to Steamplay compatible and use them d
 
 *Can be built with DXVK winelib prebaked (replacing wined3d for d3d10 and d3d11 support)* - https://github.com/doitsujin/dxvk
 
+*Can be built with D9VK winelib prebaked (replacing wined3d for d3d9 support)* - https://github.com/Joshua-Ashton/d9vk
+
 *Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/vkd3d-git is recommended)* - https://source.winehq.org/git/vkd3d.git
 
 *Can be built with Faudio (requires both faudio and lib32-faudio packages installed)* - https://github.com/FNA-XNA/FAudio

@@ -33,7 +33,7 @@ You can use your own dxvk patches by giving them the .mydxvkpatch extension.
 You can also revert dxvk patches by giving them the .mydxvkrevert extension.
 
 
-## For dxup
-You can use your own dxup patches by giving them the .mydxuppatch extension.
+## For d9vk
+You can use your own dxup patches by giving them the .myd9vkpatch extension.
 
-You can also revert dxup patches by giving them the .mydxuprevert extension.
+You can also revert dxup patches by giving them the .myd9vkrevert extension.

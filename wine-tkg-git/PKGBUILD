@@ -11,7 +11,6 @@ _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
 _dxvksrcdir='dxvk'
-_dxupsrcdir='dxup'
 _d9vksrcdir='d9vk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _configure_args=() # additional args to ./configure will be added during prepare()
@@ -194,27 +193,17 @@ else
     fi
   fi
 
-  if [ "$_use_dxup" == "true" ] && [ "$_use_d9vk" == "true" ]; then
-    _use_dxup="false"
-    msg2 "D9VK and DXUP are both enabled and conflicting. Falling back to D9VK."
-  fi
-
-  if [ "$_use_dxvk" != "true" ] && [ "$_use_dxup" != "true" ] && [ "$_use_d9vk" == "true" ]; then
+  if [ "$_use_dxvk" != "true" ] && [ "$_use_d9vk" == "true" ]; then
     pkgname="${pkgname/%-git/-d9vk-git}"
     msg2 "Using D9VK winelib for d3d9 translation"
   fi
 
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ] && [ "$_use_d9vk" == "true" ]; then
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "true" ]; then
     pkgname="${pkgname/%-git/-d9+dxvk-git}"
     msg2 "Using D9VK for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
   fi
 
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" == "true" ] && [ "$_use_d9vk" != "true" ]; then
-    pkgname="${pkgname/%-git/-dxvk+up-git}"
-    msg2 "Using DXUP for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
-  fi
-
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_dxup" != "true" ] && [ "$_use_d9vk" != "true" ]; then
+  if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" != "true" ]; then
     pkgname="${pkgname/%-git/-dxvk-git}"
     msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
   fi
@@ -374,7 +363,6 @@ optdepends=(
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
-		"$_dxupsrcdir"::"git+https://github.com/Joshua-Ashton/dxup.git#branch=d3d9-dev"
 		"$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
@@ -419,7 +407,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'plasma_systray_fix.patch' # Systray fix for winex11
 		'dxvk-winelib.patch' # Enables DXVK winelib building
-		'dxup-winelib.patch' # Enables DXUP winelib building
 		'd9vk-winelib.patch' # Enables D9VK winelib building
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
@@ -536,12 +523,6 @@ prepare() {
 	git reset --hard HEAD 	# restore tracked files
 	git clean -xdf 			# delete untracked files
 
-	cd "${srcdir}"/"${_dxupsrcdir}"
-
-	msg2 'Cleaning dxup source code tree...'
-	git reset --hard HEAD 	# restore tracked files
-	git clean -xdf 			# delete untracked files
-
 	cd "${srcdir}"/"${_d9vksrcdir}"
 
 	msg2 'Cleaning d9vk source code tree...'
@@ -621,18 +602,10 @@ prepare() {
 	  fi
 	fi
 
-	if [ "$_use_d9vk" == "true" ] && [ "$_use_dxup" == "true" ]; then
-	  _use_dxup="false"
-	  echo "D9VK and DXUP are both enabled and conflicting. Falling back to D9VK." >> "$_where"/last_build_config.log
-	fi
-
 	if [ "$_use_dxvk" == "true" ]; then
 	  echo "Using DXVK winelib for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
 	  if [ "$_dxvk_dxgi" == "true" ]; then
 	    echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
-	  fi
-	  if [ "$_use_dxup" == "true" ]; then
-	    echo "Using DXUP winelib for d3d9 translation" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
@@ -1092,9 +1065,6 @@ prepare() {
 	fi
 	if [ "$_use_dxvk" == "true" ]; then
 	  _version_tags+=(Dxvk)
-	  if [ "$_use_dxup" == "true" ]; then
-	    _version_tags+=(Dxup)
-	  fi
 	  if [ "$_dxvk_async" == "true" ]; then
 	    _version_tags+=(Async)
 	  fi
@@ -1112,15 +1082,6 @@ prepare() {
 	  _userpatch_target="dxvk"
 	  _userpatch_ext="mydxvk"
 	  cd "${srcdir}"/"${_dxvksrcdir}"
-	  user_patcher
-	  cd "${srcdir}"/"${_winesrcdir}"
-	fi
-
-	# dxup user patches
-	if [ "$_user_patches" == "true" ] && [ "$_use_dxup" == "true" ]; then
-	  _userpatch_target="dxup"
-	  _userpatch_ext="mydxup"
-	  cd "${srcdir}"/"${_dxupsrcdir}"
 	  user_patcher
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
@@ -1234,16 +1195,6 @@ build() {
 	    sed -i "/build_arch 32/d" package-release-wine.sh
 	  fi
 	  ./package-release-wine.sh master build --no-package
-	  # Build DXUP winelib
-	  if [ "$_use_dxup" == "true" ]; then
-	    cd "${srcdir}"/"${_dxupsrcdir}"
-	    mkdir build
-	    _patchname='dxup-winelib.patch' && _patchmsg="Using dxup-winelib patch" && nonuser_patcher
-	    if [ "$_NOLIB32" == "true" ]; then
-	      sed -i "/build_arch 32/d" package-release-wine.sh
-	    fi
-	    ./package-release-wine.sh master build --no-package
-	  fi
 	fi
 
 	# Build D9VK winelib
@@ -1331,13 +1282,6 @@ package() {
 	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/"$_lib32name"/wine
 	  fi
 	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
-	  # dxup
-	  if [ "$_use_dxup" == "true" ]; then
-	    if [ "$_NOLIB32" != "true" ]; then
-	      cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x32/* "${pkgdir}$_prefix"/"$_lib32name"/wine
-	    fi
-	    cp -rv "${srcdir}"/"${_dxupsrcdir}"/build/dxup-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
-	  fi
 	fi
 
 	# d9vk
@@ -1383,7 +1327,6 @@ md5sums=('SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
-         'SKIP'
          'a49bc2bb374d5ea5045ada5401cd91a3'
          '16acd00eb3ccc65687850002b818859c'
          '5e3002826a916a16130c567db763dfc5'
@@ -1423,7 +1366,6 @@ md5sums=('SKIP'
          '3aafb27f35d4817942085d87904dcfc8'
          '927f39348cd29ce9876871e4edb15a09'
          'b2638b27a99b9f3a2f270a85a422d430'
-         'c83562eee89d7984534029199e23bc5d'
          '54b38ef7e04e4f01c1d59fc34f2c6e57'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '6262b0ff26fd1e00eb6123db5e0a4160'
