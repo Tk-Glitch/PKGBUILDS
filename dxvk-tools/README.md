@@ -22,17 +22,24 @@ Still inside the dxvk-tools directory, after you ran the command above, run:
 *DXVK files will be copied in a folder next to proton-tkg script, ready for building.*
 
 
-### Building DXUP DLL
+### Building D9VK DLLs
 
 Inside the dxvk-tools directory, run:
 ```
-./updxup build
+./upd9vk build
 ```
+
+### Exporting D9VK DLLs for Proton-tkg
+
+Still inside the dxvk-tools directory, after you ran the command above, run:
+```
+./upd9vk proton-tkg
+```
+*D9VK files will be copied in a folder next to proton-tkg script, ready for building.*
+
 
 You'll find more details on the various functions (such as installation-related ones) of these scripts right inside them.
 
 # DXVK : https://github.com/doitsujin/dxvk
 
 # D9VK : https://github.com/Joshua-Ashton/d9vk
-
-# DXUP : https://github.com/Joshua-Ashton/dxup
