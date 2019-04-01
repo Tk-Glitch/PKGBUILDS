@@ -21,3 +21,17 @@
  }
  
  static bool vk_barrier_parameters_from_d3d12_resource_state(unsigned int state,
+
+diff --git a/libs/vkd3d/command.c b/libs/vkd3d/command.c
+index 7adba3bed883..54986bce0044 100644
+--- a/libs/vkd3d/command.c
++++ b/libs/vkd3d/command.c
+@@ -4924,7 +4924,7 @@ static HRESULT STDMETHODCALLTYPE d3d12_command_queue_Wait(ID3D12CommandQueue *if
+ {
+     FIXME("iface %p, fence %p, value %#"PRIx64" stub!\n", iface, fence, value);
+ 
+-    return E_NOTIMPL;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE d3d12_command_queue_GetTimestampFrequency(ID3D12CommandQueue *iface,
