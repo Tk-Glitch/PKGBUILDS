@@ -249,6 +249,7 @@ check_environment("PROTON_DXVK_ASYNC", "dxvkasync")
 check_environment("PROTON_NVAPI_DISABLE", "nonvapi")
 check_environment("PROTON_WINEDBG_DISABLE", "nowinedbg")
 check_environment("PROTON_PULSE_LOWLATENCY", "pulselowlat")
+check_environment("PROTON_LOG_COMMAND_TO_PREFIX", "logcommandtoprefix")
 
 if not "noesync" in config_opts:
     env["WINEESYNC"] = "1"
@@ -273,6 +274,15 @@ if "nvapidisable" in config_opts:
 
 if "pulselowlat" in config_opts:
     env["PULSE_LATENCY_MSEC"] = "60"
+
+if "logcommandtoprefix" in config_opts:
+    comfile = None
+    comfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/launch_command"
+    if os.path.exists(comfile_path):
+        os.remove(comfile_path)
+    comfile = open(comfile_path, "w+")
+    comfile.write("Command: " + str(sys.argv[2:]) + "\n")
+    comfile.flush()
 
 lfile = None
 if "SteamGameId" in env:

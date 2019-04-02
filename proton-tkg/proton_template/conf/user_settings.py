@@ -16,6 +16,9 @@ user_settings = {
     #Reduce Pulse Latency
      "PROTON_PULSE_LOWLATENCY": "1",
 
+    #Write the command proton sends to wine for targeted prefix (/prefix/path/launch_command) - Helpful to track bound executable
+     "PROTON_LOG_COMMAND_TO_PREFIX": "1",
+
     #Set DXVK logging level
 #     "DXVK_LOG_LEVEL": "info",
 
