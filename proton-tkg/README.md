@@ -7,6 +7,20 @@ This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILD
 
 ### This is not standalone and requires Steam. If you want a standalone wine build, use [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git) instead.
 
+## How to build
+
+### Running the proton-tkg.sh script will launch the usual wine-tkg-git building process... with extra spice.
+```
+./proton-tkg.sh
+```
+
+### How to uninstall superfluous builds the easy way
+```
+./proton-tkg.sh clean
+```
+*In its current form, the uninstaller will only handle Proton-tkg builds, and requires that at least one Proton-tkg build is left after uninstalling (meaning you need two beforehand).*
+
+
 **The following wine-tkg-git options will be enforced (might change in the future):**
 - `_EXTERNAL_INSTALL="true"`
 - `_EXTERNAL_INSTALL_TYPE="proton"`
@@ -35,11 +49,6 @@ proton-tkg
           |__x32--> d3d9.dll
 ```
 
-### Running the proton-tkg.sh script will launch the usual wine-tkg-git building process... with extra spice. ###
-```
-./proton-tkg.sh
-```
-
 ## Special options and builtin features :
 
 Proton-tkg builds are coming with special additional features you can enable/disable post install in the `user_settings.py` file found in your build's folder (`~/.steam/root/compatibilitytools.d/proton_tkg_*`):
@@ -61,6 +70,6 @@ You can also change their default values before building in your `proton-tkg.cfg
 
 - In the userpatches folder, you'll find three patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them. They might not apply cleanly on older wine bases.
 
-- Proton-tkg builds will get installed in `~/.steam/root/compatibilitytools.d` directory. If you want to uninstall a build, just delete its folder there and restart Steam. **MAKE SURE NO STEAM GAME IS CURRENTLY SET TO USE THAT SPECIFIC VERSION BEFORE DELETION**
+- Proton-tkg builds will get installed in `~/.steam/root/compatibilitytools.d` directory. If no game is bound to use a specific Proton-tkg build, you can safely delete it. **IT IS HIGHLY RECOMMENDED TO USE THE UNINSTALL FUNCTION OF THE SCRIPT TO REMOVE SUPERFLUOUS BUILDS**
 
-If you end up removing a proton-tkg build that's bound to a game, you can fix the issue by replacing the missing build name with one that's available in `~/.steam/root/config/config.vdf`
+If you end up removing a Proton build (not necessarily -tkg) that's bound to a game, you can fix the issue by editing your `~/.steam/root/config/config.vdf` file and replacing the deleted build reference name with one from a currently installed build.
