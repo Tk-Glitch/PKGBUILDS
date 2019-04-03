@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.5.r4.g6f3a3b40
+pkgver=4.5.r6.g8b930aea
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=147
+eval pkgrel=148
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -716,9 +716,11 @@ prepare() {
 	  _patchname='poe-fix.patch' && _patchmsg="Applied Path of Exile DX11 fix" && nonuser_patcher
 	fi
 
-	# Fix for Warframe Launcher failing to update itself - https://bugs.winehq.org/show_bug.cgi?id=33845 https://bugs.winehq.org/show_bug.cgi?id=45701
+	# Fix for Warframe Launcher failing to update itself - https://bugs.winehq.org/show_bug.cgi?id=33845 https://bugs.winehq.org/show_bug.cgi?id=45701 - Merged in staging 8b930ae
 	if [ "$_warframelauncher_fix" == "true" ]; then
-	  _patchname='warframe-launcher.patch' && _patchmsg="Applied Warframe Launcher fix" && nonuser_patcher
+	  if [ "$_use_staging" == "true" ] && ! git merge-base --is-ancestor 33c35baa6761b00c8cef236c06cb1655f3f228d9 HEAD || [ "$_use_staging" != "true" ]; then
+	    _patchname='warframe-launcher.patch' && _patchmsg="Applied Warframe Launcher fix" && nonuser_patcher
+	  fi
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
