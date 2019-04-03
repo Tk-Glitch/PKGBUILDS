@@ -43,49 +43,7 @@ Also known as "Some kind of build wrapper for wine-tkg-git"
 EOF
 
 function proton_tkg_uninstaller {
-  cd "$HOME/.steam/root/compatibilitytools.d"
-
-  _available_builds=(*)
-  _strip_builds="${_available_builds[@]//proton_tkg_/}"
-  _config_file="$HOME/.local/share/Steam/config/config.vdf"
-
-  cp $_config_file $_config_file.bak && echo "Your config.vdf file was backed up from $_config_file (.bak)" && echo ""
-
-  echo "##############################################################"
-  echo ""
-  echo " DO NOT TRY TO UNINSTALL NON-TKG PROTON BUILDS WITH THIS TOOL!"
-  echo ""
-  echo "##############################################################"
-  echo ""
-  echo "What Proton-tkg build do you want to uninstall?"
-
-  i=1
-  for build in ${_strip_builds[@]}; do
-    echo "  $i - $build"
-    ((i++))
-  done
-
-  read -p "choice [1-$(($i-1))]: " _to_uninstall;
-
-  i=1
-  for build in ${_strip_builds[@]}; do
-    if [ "$_to_uninstall" == "$i" ]; then
-      rm -rf "proton_tkg_$build"
-      _available_builds=(*) && _newest_build="${_available_builds[-1]//proton_tkg_/}"
-      sed -i "s/\"Proton-tkg $build\"/\"Proton-tkg ${_newest_build[@]}\"/" $_config_file &&
-      echo "###########################################################################################################################"
-      echo ""
-      echo "Proton-tkg $build was uninstalled and games previously depending on it will now use Proton-tkg ${_newest_build[@]} instead."
-      echo "You will need to restart Steam for changes to take effect !"
-      echo ""
-      echo "###########################################################################################################################"
-    fi
-    ((i++))
-  done
-}
-
-# Never cross the Proton streams!
-if [ "$1" == "clean" ]; then
+  # Never cross the Proton streams!
   i=0
   for _proton_tkg in "$HOME"/.steam/root/compatibilitytools.d/proton_tkg_*; do
     if [ -d "$_proton_tkg" ]; then
@@ -95,13 +53,54 @@ if [ "$1" == "clean" ]; then
   done
 
   if [ -d "$_GOTCHA" ] && [ $i -ge 2 ]; then
-    proton_tkg_uninstaller
+    cd "$HOME/.steam/root/compatibilitytools.d"
+
+    _available_builds=(*)
+    _strip_builds="${_available_builds[@]//proton_tkg_/}"
+    _config_file="$HOME/.local/share/Steam/config/config.vdf"
+
+    cp $_config_file $_config_file.bak && echo "Your config.vdf file was backed up from $_config_file (.bak)" && echo ""
+
+    echo "##############################################################"
+    echo ""
+    echo " DO NOT TRY TO UNINSTALL NON-TKG PROTON BUILDS WITH THIS TOOL!"
+    echo ""
+    echo "##############################################################"
+    echo ""
+    echo "What Proton-tkg build do you want to uninstall?"
+
+    i=1
+    for build in ${_strip_builds[@]}; do
+      echo "  $i - $build"
+      ((i++))
+    done
+
+    read -p "choice [1-$(($i-1))]: " _to_uninstall;
+
+    i=1
+    for build in ${_strip_builds[@]}; do
+      if [ "$_to_uninstall" == "$i" ]; then
+        rm -rf "proton_tkg_$build"
+        _available_builds=(*) && _newest_build="${_available_builds[-1]//proton_tkg_/}"
+        sed -i "s/\"Proton-tkg $build\"/\"Proton-tkg ${_newest_build[@]}\"/" $_config_file &&
+        echo "###########################################################################################################################"
+        echo ""
+        echo "Proton-tkg $build was uninstalled and games previously depending on it will now use Proton-tkg ${_newest_build[@]} instead."
+        echo "You will need to restart Steam for changes to take effect !"
+        echo ""
+        echo "###########################################################################################################################"
+      fi
+      ((i++))
+    done
   elif [ -d "$_GOTCHA" ] && [ $i -eq 1 ]; then
     echo "This tool requires at least two Proton-tkg builds installed in $HOME/.steam/root/compatibilitytools.d/ and only one was found."
   else
     echo "No Proton-tkg installation found in $HOME/.steam/root/compatibilitytools.d/"
   fi
+}
 
+if [ "$1" == "clean" ]; then
+  proton_tkg_uninstaller
 else
 
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
@@ -295,6 +294,11 @@ else
     echo " Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
     echo ""
     echo "####################################################################################################"
+    echo ""
+    read -p "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
+    if [ "$_ask_uninstall" == "y" ]; then
+      proton_tkg_uninstaller
+    fi
   else
     rm $_nowhere/proton_tkg_token
     echo "The required proton_dist package is missing! Wine-tkg-git compilation may have failed."
