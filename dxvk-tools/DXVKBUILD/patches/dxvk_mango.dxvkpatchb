@@ -1,0 +1,616 @@
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index 39121e0b..0a082996 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -80,7 +80,21 @@ namespace dxvk::hud {
+ 
+ 
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+-    HudPos position = { 8.0f, 24.0f };
++    float hud_offset_x = 0;
++    float hud_offset_y = 0;
++    char const* offset_x;
++    char const* offset_y;
++    offset_x = getenv("DXVK_HUD_OFFSET_X");
++    offset_y = getenv("DXVK_HUD_OFFSET_Y");
++    if (!offset_x == 0){
++      hud_offset_x = atof(offset_x);
++    }
++    
++    if (!offset_y == 0){
++      hud_offset_y = atof(offset_y);
++    }
++
++    HudPos position = { hud_offset_x + 8.0f, hud_offset_y + 24.0f };
+     
+     if (m_config.elements.test(HudElement::DxvkVersion)) {
+       m_renderer.drawText(ctx, 16.0f,
+diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
+index 7da4b070..8225c184 100644
+--- a/src/dxvk/hud/dxvk_hud_config.cpp
++++ b/src/dxvk/hud/dxvk_hud_config.cpp
+@@ -14,6 +14,13 @@ namespace dxvk::hud {
+     { "memory",       HudElement::StatMemory        },
+     { "version",      HudElement::DxvkVersion       },
+     { "api",          HudElement::DxvkClientApi     },
++    { "gpuload",      HudElement::GpuLoad           },
++    { "cpuload",      HudElement::CpuLoad           },
++    { "cputemp",      HudElement::CpuTemp           },
++    { "cpucoreload",  HudElement::CpuCoreLoad       },
++    { "avgfps",       HudElement::AverageFps        },
++    { "1%low",        HudElement::OnePercentLow     },
++    { "0.1%low",      HudElement::PointOnePercentLow},
+   }};
+   
+   
+@@ -54,4 +61,4 @@ namespace dxvk::hud {
+     }
+   }
+   
+-}
+\ No newline at end of file
++}
+diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
+index 4468422f..b5a8129d 100644
+--- a/src/dxvk/hud/dxvk_hud_config.h
++++ b/src/dxvk/hud/dxvk_hud_config.h
+@@ -20,6 +20,13 @@ namespace dxvk::hud {
+     StatMemory        = 6,
+     DxvkVersion       = 7,
+     DxvkClientApi     = 8,
++    GpuLoad           = 9,
++    CpuLoad           = 10,
++    CpuTemp           = 11,
++    CpuCoreLoad       = 12,
++    AverageFps        = 13,
++    OnePercentLow     = 14,
++    PointOnePercentLow= 15,
+   };
+   
+   using HudElements = Flags<HudElement>;
+@@ -44,4 +51,4 @@ namespace dxvk::hud {
+    */
+   HudConfig parseHudConfigStr(const std::string& configStr);
+   
+-}
+\ No newline at end of file
++}
+diff --git a/src/dxvk/hud/dxvk_hud_font.cpp b/src/dxvk/hud/dxvk_hud_font.cpp
+index 746019dd..42b99653 100644
+--- a/src/dxvk/hud/dxvk_hud_font.cpp
++++ b/src/dxvk/hud/dxvk_hud_font.cpp
+@@ -1868,4 +1868,4 @@ namespace dxvk::hud {
+   
+   const HudFont g_hudFont = { 32, 510, 172, 5, 24, 95, g_hudFontGlyphs, g_hudFontImage };
+   
+-}
+\ No newline at end of file
++}
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index d01a8ba4..6d286613 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -2,6 +2,165 @@
+ 
+ #include <cmath>
+ #include <iomanip>
++#include <chrono>
++#include <fstream>
++#include <iostream>
++#include <sstream>
++#include <string>
++#include <thread>
++#include <vector>
++
++using namespace std;
++
++const int NUM_CPU_STATES = 10;
++
++struct Cpus{
++  size_t num;
++  string name;
++  float value;
++  string output;
++};
++
++std::string m_averageFps;
++std::string m_onePercentFps;
++std::string m_pointOnePercentFps;
++
++vector<size_t> recordedFrames;
++
++size_t numCpuCores = dxvk::thread::hardware_concurrency();
++size_t arraySize = numCpuCores + 1;
++std::vector<Cpus> cpuArray;
++
++void coreCounting(){
++  cpuArray.push_back({0, "CPU:"});
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t offset = i;
++    stringstream ss;
++    ss << "CPU" << offset << ":";
++    string cpuNameString = ss.str();
++    cpuArray.push_back({i+1 , cpuNameString});
++  }
++}
++
++std::string m_cpuUtilizationString;
++
++enum CPUStates
++{
++	S_USER = 0,
++	S_NICE,
++	S_SYSTEM,
++	S_IDLE,
++	S_IOWAIT,
++	S_IRQ,
++	S_SOFTIRQ,
++	S_STEAL,
++	S_GUEST,
++	S_GUEST_NICE
++};
++
++typedef struct CPUData
++{
++	std::string cpu;
++	size_t times[NUM_CPU_STATES];
++} CPUData;
++
++void ReadStatsCPU(std::vector<CPUData> & entries);
++
++size_t GetIdleTime(const CPUData & e);
++size_t GetActiveTime(const CPUData & e);
++
++void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2);
++
++void ReadStatsCPU(std::vector<CPUData> & entries)
++{
++	std::ifstream fileStat("/proc/stat");
++
++	std::string line;
++
++	const std::string STR_CPU("cpu");
++	const std::size_t LEN_STR_CPU = STR_CPU.size();
++	const std::string STR_TOT("tot");
++
++	while(std::getline(fileStat, line))
++	{
++		// cpu stats line found
++		if(!line.compare(0, LEN_STR_CPU, STR_CPU))
++		{
++			std::istringstream ss(line);
++
++			// store entry
++			entries.emplace_back(CPUData());
++			CPUData & entry = entries.back();
++
++			// read cpu label
++			ss >> entry.cpu;
++
++			// remove "cpu" from the label when it's a processor number
++			if(entry.cpu.size() > LEN_STR_CPU)
++				entry.cpu.erase(0, LEN_STR_CPU);
++			// replace "cpu" with "tot" when it's total values
++			else
++				entry.cpu = STR_TOT;
++
++			// read times
++			for(int i = 0; i < NUM_CPU_STATES; ++i)
++				ss >> entry.times[i];
++		}
++	}
++}
++
++size_t GetIdleTime(const CPUData & e)
++{
++	return	e.times[S_IDLE] +
++			e.times[S_IOWAIT];
++}
++
++size_t GetActiveTime(const CPUData & e)
++{
++	return	e.times[S_USER] +
++			e.times[S_NICE] +
++			e.times[S_SYSTEM] +
++			e.times[S_IRQ] +
++			e.times[S_SOFTIRQ] +
++			e.times[S_STEAL] +
++			e.times[S_GUEST] +
++			e.times[S_GUEST_NICE];
++}
++
++void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
++{
++	const size_t NUM_ENTRIES = entries1.size();
++
++	for(size_t i = 0; i < NUM_ENTRIES; ++i)
++	{
++		const CPUData & e1 = entries1[i];
++		const CPUData & e2 = entries2[i];
++		const float ACTIVE_TIME	= static_cast<float>(GetActiveTime(e2) - GetActiveTime(e1));
++		const float IDLE_TIME	= static_cast<float>(GetIdleTime(e2) - GetIdleTime(e1));
++		const float TOTAL_TIME	= ACTIVE_TIME + IDLE_TIME;
++    cpuArray[i].value = (truncf(100.f * ACTIVE_TIME / TOTAL_TIME) * 10 / 10);
++	}
++}
++
++int getCpuUsage()
++{
++	std::vector<CPUData> entries1;
++	std::vector<CPUData> entries2;
++
++	// snapshot 1
++	ReadStatsCPU(entries1);
++
++	// 100ms pause
++	std::this_thread::sleep_for(std::chrono::milliseconds(100));
++
++	// snapshot 2
++	ReadStatsCPU(entries2);
++
++	// print output
++	PrintStats(entries1, entries2);
++
++	return 0;
++}
+ 
+ namespace dxvk::hud {
+   
+@@ -17,7 +176,87 @@ namespace dxvk::hud {
+   HudFps::~HudFps() {
+     
+   }
+-  
++
++  void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil, string m_frameTimes) {
++    fstream f(file, f.out | f.app);
++    f << m_fpsString << "," << "Frametime: " << m_frameTimes << "," << cpuUtil << "," << gpuUtil;
++  }  
++
++  string getCpuTemp(string var){
++    string cpuTemp;
++    ifstream ifs (var);
++    getline (ifs, cpuTemp, (char) ifs.eof());
++    int value = stoi(cpuTemp) / 1000;
++    return std::to_string(value);
++  }
++
++  void updateCpuStrings(){
++    for (size_t i = 0; i < arraySize; i++) {
++      size_t spacing = 10;
++      string value = to_string(cpuArray[i].value);
++      value.erase( value.find_last_not_of('0') + 1, std::string::npos );
++      size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
++      string correction = "";
++      for (size_t i = 0; i < correctionValue; i++) {
++        correction.append(" ");
++      }
++      stringstream ss;
++      if (i < 11) {
++        if (i == 0) {
++          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++        } else {
++          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++        }
++      } else {
++        ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++      }
++      cpuArray[i].output = ss.str();
++    }
++  }
++
++  void recordingFrames(int fps){
++    recordedFrames.push_back(fps);
++    if (recordedFrames.size() > 1200){
++      recordedFrames.erase(recordedFrames.begin());
++    }
++    vector<size_t> sortedFrames;
++    sortedFrames = recordedFrames;
++    sort(begin(sortedFrames),end(sortedFrames));
++    size_t arrayLength = sortedFrames.size();
++    size_t sum = 0;
++    size_t average;
++    size_t minOnePercent;
++    size_t minPointOnePercent;
++    size_t max = sortedFrames[sortedFrames.size()];
++    size_t min = sortedFrames[0];
++
++    // average
++    for (size_t i = 0; i < arrayLength; i++) {
++      sum = sum + sortedFrames[i];
++    }
++    average = sum / sortedFrames.size();
++
++    // 1% min
++    sum = 0;
++    for (size_t i = 0; i < arrayLength * 0.1; i++) {
++      sum = sum + sortedFrames[i];
++    }
++    minOnePercent = sum / (arrayLength * 0.1);
++
++    // .1% min
++    sum = 0;
++    for (size_t i = 0; i < arrayLength * 0.01; i++) {
++      sum = sum + sortedFrames[i];
++    }
++    minPointOnePercent = sum / (arrayLength * 0.01);
++
++    m_averageFps = str::format("FPS Avg: ", average / 10, ".", average % 10);
++    m_onePercentFps = str::format("FPS 1%: ", minOnePercent / 10, ".", minOnePercent % 10);
++    m_pointOnePercentFps = str::format("FPS 0.1%: ", minPointOnePercent / 10, ".", minPointOnePercent % 10);
++
++    // console debugging
++    // cout << "0.1%: " << minPointOnePercent / 10 << "." << minPointOnePercent % 10 << " " << "1%: " << minOnePercent / 10 << "." << minOnePercent % 10 << " " << "average: " << average / 10 << "." << average % 10 << endl;
++  }
+ 
+   void HudFps::update() {
+     m_frameCount += 1;
+@@ -29,11 +268,40 @@ namespace dxvk::hud {
+     
+     // Update FPS string
+     if (elapsedFps.count() >= UpdateInterval) {
++      coreCounting();
++      dxvk::thread([this] () { getCpuUsage();});
++      updateCpuStrings();
++      ifstream ifs ("/tmp/nvidia-smi");
++      getline (ifs, gpuUtil, (char) ifs.eof());
++      // Using latest value in case of lost value (not sure why it happends, probably unsynced)
++      if(gpuUtil == ""){
++        gpuUtil = lastGpuUtil;
++      }else{
++        lastGpuUtil = gpuUtil;
++      }
++      string thermal_zone = "/sys/class/thermal/thermal_zone2/temp";
++      char const* thermal_zone_env;
++      thermal_zone_env = getenv("DXVK_THERMAL_ZONE");
++      if(!thermal_zone_env == 0){
++        thermal_zone = thermal_zone_env;
++      }
++      cpuTemp = getCpuTemp(thermal_zone);
++      //m_cpuUtilizationString = str::format("CPU: ", truncf(getCurrentValue() * 10) / 10, " %");
++      m_gpuUtilizationString = str::format("GPU: ", gpuUtil);
++      m_cpuTempString        = str::format("CPU T: ", cpuTemp + "C");
++      m_frameTimes = str::format(us);
+       const int64_t fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
++      recordingFrames(fps);
+       m_fpsString = str::format("FPS: ", fps / 10, ".", fps % 10);
+       
+       m_prevFpsUpdate = now;
+       m_frameCount = 0;
++      char const* logging;
++      logging = getenv("DXVK_LOG_TO_FILE");
++      if (!logging == 0){
++        cout << logging << endl;
++        printToLog(logging, m_fpsString, m_cpuUtilizationString, m_gpuUtilizationString, m_frameTimes);
++      }
+     }
+     
+     // Update frametime stuff
+@@ -46,11 +314,38 @@ namespace dxvk::hud {
+     const Rc<DxvkContext>&  context,
+           HudRenderer&      renderer,
+           HudPos            position) {
++    if (m_elements.test(HudElement::GpuLoad)) {
++      position = this->renderGpuUtilText(
++        context, renderer, position);
++    }
++    if (m_elements.test(HudElement::CpuLoad)) {
++      position = this->renderCpuUtilText(
++        context, renderer, position);
++    }
+     if (m_elements.test(HudElement::Framerate)) {
+       position = this->renderFpsText(
+         context, renderer, position);
+     }
+-    
++    if (m_elements.test(HudElement::CpuCoreLoad)) {
++      position = this->renderCpuCoreUtilText(
++        context, renderer, position);
++    }
++    if (m_elements.test(HudElement::CpuTemp)) {
++      position = this->renderCpuTempText(
++        context, renderer, position);
++    }
++    if (m_elements.test(HudElement::AverageFps)) {
++      position = this->renderAverageFps(
++        context, renderer, position);
++    }
++    if (m_elements.test(HudElement::OnePercentLow)) {
++      position = this->renderOnePercentLow(
++        context, renderer, position);
++    }
++    if (m_elements.test(HudElement::PointOnePercentLow)) {
++      position = this->renderPointOnePercentLow(
++        context, renderer, position);
++    }
+     if (m_elements.test(HudElement::Frametimes)) {
+       position = this->renderFrametimeGraph(
+         context, renderer, position);
+@@ -71,8 +366,93 @@ namespace dxvk::hud {
+     
+     return HudPos { position.x, position.y + 24 };
+   }
++
++  HudPos HudFps::renderAverageFps(
++    const Rc<DxvkContext>&  context,
++          HudRenderer&      renderer,
++          HudPos            position) {
++    renderer.drawText(context, 16.0f,
++      { position.x, position.y },
++      { 1.0f, 1.0f, 1.0f, 1.0f },
++      m_averageFps);
++
++    return HudPos { position.x, position.y + 24 };
++  }
++
++  HudPos HudFps::renderOnePercentLow(
++    const Rc<DxvkContext>&  context,
++          HudRenderer&      renderer,
++          HudPos            position) {
++    renderer.drawText(context, 16.0f,
++      { position.x, position.y },
++      { 1.0f, 1.0f, 1.0f, 1.0f },
++      m_onePercentFps);
++
++    return HudPos { position.x, position.y + 24 };
++  }
++
++  HudPos HudFps::renderPointOnePercentLow(
++    const Rc<DxvkContext>&  context,
++          HudRenderer&      renderer,
++          HudPos            position) {
++    renderer.drawText(context, 16.0f,
++      { position.x, position.y },
++      { 1.0f, 1.0f, 1.0f, 1.0f },
++      m_pointOnePercentFps);
++
++    return HudPos { position.x, position.y + 24 };
++  }
+   
+-  
++  HudPos HudFps::renderCpuUtilText(
++    const Rc<DxvkContext>&  context,
++          HudRenderer&      renderer,
++          HudPos            position) {
++    renderer.drawText(context, 16.0f,
++      { position.x, position.y },
++      { 1.0f, 1.0f, 1.0f, 1.0f },
++      cpuArray[0].output);
++
++    return HudPos { position.x, position.y + 24 };
++  }
++
++HudPos HudFps::renderCpuCoreUtilText(
++  const Rc<DxvkContext>&  context,
++        HudRenderer&      renderer,
++        HudPos            position) {
++  for (size_t i = 0; i < numCpuCores; i++) {
++    renderer.drawText(context, 16.0f,
++      { position.x, position.y + i * 24},
++      { 1.0f, 1.0f, 1.0f, 1.0f },
++      cpuArray[i + 1].output);
++    }
++
++  return HudPos { position.x, position.y + (24 * numCpuCores)};
++}
++
++  HudPos HudFps::renderCpuTempText(
++  const Rc<DxvkContext>&  context,
++        HudRenderer&      renderer,
++        HudPos            position) {
++  renderer.drawText(context, 16.0f,
++    { position.x, position.y },
++    { 1.0f, 1.0f, 1.0f, 1.0f },
++    m_cpuTempString);
++
++  return HudPos { position.x, position.y + 24 };
++}
++
++HudPos HudFps::renderGpuUtilText(
++  const Rc<DxvkContext>&  context,
++        HudRenderer&      renderer,
++        HudPos            position) {
++  renderer.drawText(context, 16.0f,
++    { position.x, position.y },
++    { 1.0f, 1.0f, 1.0f, 1.0f },
++    m_gpuUtilizationString);
++
++  return HudPos { position.x, position.y + 24 };
++}
++
+   HudPos HudFps::renderFrametimeGraph(
+     const Rc<DxvkContext>&  context,
+           HudRenderer&      renderer,
+@@ -91,7 +471,7 @@ namespace dxvk::hud {
+     
+     // Paint the time points
+     for (uint32_t i = 0; i < NumDataPoints; i++) {
+-      float us = m_dataPoints[(m_dataPointId + i) % NumDataPoints];
++      us = m_dataPoints[(m_dataPointId + i) % NumDataPoints];
+       
+       minMs = std::min(minMs, uint32_t(us / 100.0f));
+       maxMs = std::max(maxMs, uint32_t(us / 100.0f));
+@@ -130,4 +510,4 @@ namespace dxvk::hud {
+     return HudPos { position.x, position.y + 66.0f };
+   }
+   
+-}
+\ No newline at end of file
++}
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index c8c4b984..2ec20665 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -36,7 +36,20 @@ namespace dxvk::hud {
+     const HudElements m_elements;
+     
+     std::string m_fpsString;
+-    
++
++    // Variables used for my extra Hud elements. 
++    std::string cpuUtil;
++    std::string m_gpuUtilizationString;
++    std::string gpuUtil;
++    std::string lastGpuUtil;
++    std::string m_frameTimes;
++    std::string frametime;
++    std::string cpuTemp;
++    std::string m_cpuTempString;
++
++    // Moved defining of us here to more easily access it.
++    float us;
++
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
+     int64_t   m_frameCount = 0;
+@@ -48,7 +61,42 @@ namespace dxvk::hud {
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+             HudPos            position);
+-    
++
++    HudPos renderAverageFps(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
++    HudPos renderOnePercentLow(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
++    HudPos renderPointOnePercentLow(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
++    HudPos renderCpuUtilText(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
++    HudPos renderCpuCoreUtilText(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
++    HudPos renderCpuTempText(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
++    HudPos renderGpuUtilText(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++
+     HudPos renderFrametimeGraph(
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+@@ -56,4 +104,4 @@ namespace dxvk::hud {
+     
+   };
+   
+-}
+\ No newline at end of file
++}
