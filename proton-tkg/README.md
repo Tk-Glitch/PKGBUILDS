@@ -68,6 +68,8 @@ You can also change their default values before building in your `proton-tkg.cfg
 
 - SteamVR support is missing for versatility reasons. It might be added at some point.
 
+- Proton-tkg **can** handle 32-bit prefixes. However you'll have to create such a prefix by hand as the Steam client doesn't offer such an option. Also, that prefix will have to be deleted if you want to use an official Proton build with the game bound to it.
+
 - In the userpatches folder, you'll find three patches I decided against merging in the master patch for proton-tkg. You can put them in wine-tkg-git userpatches dir if you want to use them. They might not apply cleanly on older wine bases.
 
 - Proton-tkg builds will get installed in `~/.steam/root/compatibilitytools.d` directory. If no game is bound to use a specific Proton-tkg build, you can safely delete it. **IT IS HIGHLY RECOMMENDED TO USE THE UNINSTALL FUNCTION OF THE SCRIPT TO REMOVE SUPERFLUOUS BUILDS**

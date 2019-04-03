@@ -350,7 +350,10 @@ with prefix_lock:
     else:
         #linux-only fallback, really shouldn't get here
         steamdir = os.environ["HOME"] + ".steam/root/"
-    dst = prefix + "/drive_c/Program Files (x86)/"
+    if not os.path.exists(prefix + "drive_c/windows/syswow64"):
+        dst = prefix + "/drive_c/Program Files/"
+    else:
+        dst = prefix + "/drive_c/Program Files (x86)/"
     makedirs(dst + "Steam")
     filestocopy = ["steamclient.dll",
             "steamclient64.dll",
@@ -372,17 +375,27 @@ with prefix_lock:
             os.symlink(src, dst)
 
     if "wined3d" in config_opts:
-        #use gl-based wined3d for d3d11 and d3d10
-        make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
-            prefix + "drive_c/windows/system32")
-        make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
-            prefix + "drive_c/windows/syswow64")
+        if not os.path.exists(prefix + "drive_c/windows/syswow64"):
+            #use gl-based wined3d for d3d11 and d3d10 32
+            make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                prefix + "drive_c/windows/system32")
+        else:
+            #use gl-based wined3d for d3d11 and d3d10 32+64
+            make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
+                prefix + "drive_c/windows/system32")
+            make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                prefix + "drive_c/windows/syswow64")
     else:
-        #use vulkan-based dxvk for d3d11 and d3d10
-        make_dxvk_links(basedir + "/dist/lib64/wine/dxvk/",
-            prefix + "drive_c/windows/system32")
-        make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
-            prefix + "drive_c/windows/syswow64")
+        if not os.path.exists(prefix + "drive_c/windows/syswow64"):
+            #use vulkan-based dxvk for d3d11 and d3d10 32
+            make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
+                prefix + "drive_c/windows/system32")
+        else:
+            #use vulkan-based dxvk for d3d11 and d3d10 32+64
+            make_dxvk_links(basedir + "/dist/lib64/wine/dxvk/",
+                prefix + "drive_c/windows/system32")
+            make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
+                prefix + "drive_c/windows/syswow64")
         for f in dxvkfiles:
             dlloverrides[f] = "n"
 
