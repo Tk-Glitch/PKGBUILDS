@@ -45,9 +45,9 @@ _basever=50
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
-_sub=5
+_sub=6
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=12
+pkgrel=13
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -85,14 +85,14 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0011-v5.0_bmq091.patch
 )
 sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
-            '70051be96455f84e13af8a3e487a6da2ed3274843bbd26049004d4e7578365ea'
+            '188fbac8a0c853d560252f0b37ab98c6707ad8d0840394bef7e269229fefd6d3'
             '6727dedef06470ffd7eedb96d958c11add3a80f0743cf32ef89b6f509a6686ef'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
             '8855fe0f9d2ae64331d3c716477349d45a1c1fb628fc16dfa5fa95d41ef5fd28'
-            '8c98d12808728d20ae64570683df6ea093a11c784d9fb102682eb70a931f38bb'
+            'ac5932f6b8918af239b6224966604d274f5884c9b19738e4c78de38ac0ca11a9'
             '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
             '781820373cd919ca3f3a6e65e026ed0a26fd844b194428a3a0e4a58d8aef2dbb'
             '8a0d331ea73068f77bc7218a1bf29bd558ce5df7c45b166480090c2e0e2a985a'
