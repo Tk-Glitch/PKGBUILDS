@@ -1,24 +1,14 @@
-From 6e0db89f3981f85b2da96b1d5440fd492fb21ead Mon Sep 17 00:00:00 2001
+From abe236f8db69a0f65393fb081a9a91c95e64ee65 Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
-Date: Sun, 31 Mar 2019 21:50:26 +0200
+Date: Wed, 3 Apr 2019 21:02:54 +0200
 Subject: dxvk winelib + d9vk prebuilt
 
 
 diff --git a/proton b/proton
-index 9b3d5009a..5c55d3088 100755
+index b49f3ee01..febfb3ff9 100755
 --- a/proton
 +++ b/proton
-@@ -240,8 +240,7 @@ if "wined3d11" in config_opts:
- 
- if not check_environment("PROTON_USE_WINED3D", "wined3d"):
-     check_environment("PROTON_USE_WINED3D11", "wined3d")
--check_environment("PROTON_NO_D3D11", "nod3d11")
--check_environment("PROTON_NO_D3D10", "nod3d10")
-+check_environment("PROTON_NO_D3D9", "nod3d9")
- check_environment("PROTON_NO_ESYNC", "noesync")
- check_environment("PROTON_FORCE_LARGE_ADDRESS_AWARE", "forcelgadd")
- check_environment("PROTON_OLD_GL_STRING", "oldglstr")
-@@ -352,7 +351,7 @@ with prefix_lock:
+@@ -365,7 +365,7 @@ with prefix_lock:
                  os.remove(dstfile)
              try_copy(steamdir + "/legacycompat/" + f, dstfile)
  
@@ -27,37 +17,30 @@ index 9b3d5009a..5c55d3088 100755
      def make_dxvk_links(dll_dir, link_dir):
          for f in dxvkfiles:
              dst = link_dir + "/" + f + ".dll"
-@@ -362,13 +361,13 @@ with prefix_lock:
-             os.symlink(src, dst)
+@@ -376,22 +376,22 @@ with prefix_lock:
  
      if "wined3d" in config_opts:
--        #use gl-based wined3d for d3d11 and d3d10
-+        #use gl-based wined3d for d3d9
-         make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
-             prefix + "drive_c/windows/system32")
-         make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
-             prefix + "drive_c/windows/syswow64")
+         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
+-            #use gl-based wined3d for d3d11 and d3d10 32
++            #use gl-based wined3d for d3d11, d3d10 and d3d9 32
+             make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                 prefix + "drive_c/windows/system32")
+         else:
+-            #use gl-based wined3d for d3d11 and d3d10 32+64
++            #use gl-based wined3d for d3d11, d3d10 and d3d9 32+64
+             make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
+                 prefix + "drive_c/windows/system32")
+             make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                 prefix + "drive_c/windows/syswow64")
      else:
--        #use vulkan-based dxvk for d3d11 and d3d10
-+        #use vulkan-based d9vk for d3d9
-         make_dxvk_links(basedir + "/dist/lib64/wine/dxvk/",
-             prefix + "drive_c/windows/system32")
-         make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
-@@ -376,15 +375,8 @@ with prefix_lock:
-         for f in dxvkfiles:
-             dlloverrides[f] = "n"
- 
--if "nod3d11" in config_opts:
--    dlloverrides["d3d11"] = ""
--    if "dxgi" in dlloverrides:
--        del dlloverrides["dxgi"]
--
--if "nod3d10" in config_opts:
--    dlloverrides["d3d10_1"] = ""
--    dlloverrides["d3d10"] = ""
--    dlloverrides["dxgi"] = ""
-+if "nod3d9" in config_opts:
-+    dlloverrides["d3d9"] = ""
- 
- if "nonvapi" in config_opts:
-     dlloverrides["nvapi"] = "d"
+         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
+-            #use vulkan-based dxvk for d3d11 and d3d10 32
++            #use vulkan-based d9vk for d3d9 32
+             make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
+                 prefix + "drive_c/windows/system32")
+         else:
+-            #use vulkan-based dxvk for d3d11 and d3d10 32+64
++            #use vulkan-based d9vk for d3d9 32+64
+             make_dxvk_links(basedir + "/dist/lib64/wine/dxvk/",
+                 prefix + "drive_c/windows/system32")
+             make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
