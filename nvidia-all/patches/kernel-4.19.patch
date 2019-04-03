@@ -1,16 +1,7 @@
-diff --git a/kernel/nvidia-drm/nvidia-drm-connector.c b/kernel/nvidia-drm/nvidia-drm-connector.c
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-connector.c b/kernel-dkms/nvidia-drm/nvidia-drm-connector.c
 index dbda66d..99333d9 100644
---- a/kernel/nvidia-drm/nvidia-drm-connector.c
-+++ b/kernel/nvidia-drm/nvidia-drm-connector.c
-@@ -35,6 +35,8 @@
- #include <drm/drm_atomic.h>
- #include <drm/drm_atomic_helper.h>
- 
-+#include <linux/version.h>
-+
- static void nv_drm_connector_destroy(struct drm_connector *connector)
- {
-     struct nv_drm_connector *nv_connector = to_nv_connector(connector);
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-connector.c
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-connector.c
 @@ -226,7 +228,11 @@ static int nv_drm_connector_get_modes(struct drm_connector *connector)
  
  
@@ -23,19 +14,10 @@ index dbda66d..99333d9 100644
              connector, nv_connector->edid);
      }
  
-diff --git a/kernel/nvidia-drm/nvidia-drm-encoder.c b/kernel/nvidia-drm/nvidia-drm-encoder.c
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-encoder.c b/kernel-dkms/nvidia-drm/nvidia-drm-encoder.c
 index 3dc2400..e8b4aad 100644
---- a/kernel/nvidia-drm/nvidia-drm-encoder.c
-+++ b/kernel/nvidia-drm/nvidia-drm-encoder.c
-@@ -35,6 +35,8 @@
- #include <drm/drm_atomic.h>
- #include <drm/drm_atomic_helper.h>
- 
-+#include <linux/version.h>
-+
- static void nv_drm_encoder_destroy(struct drm_encoder *encoder)
- {
-     struct nv_drm_encoder *nv_encoder = to_nv_encoder(encoder);
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-encoder.c
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-encoder.c
 @@ -216,7 +218,11 @@ nv_drm_add_encoder(struct drm_device *dev, NvKmsKapiDisplay hDisplay)
  
      /* Attach encoder and connector */
@@ -48,10 +30,10 @@ index 3dc2400..e8b4aad 100644
  
      if (ret != 0) {
          NV_DRM_DEV_LOG_ERR(
-diff --git a/kernel/conftest.sh b/kernel/conftest.sh
+diff --git a/kernel-dkms/conftest.sh b/kernel-dkms/conftest.sh
 index dd61566..30c88a1 100755
---- a/kernel/conftest.sh
-+++ b/kernel/conftest.sh
+--- a/kernel-dkms/conftest.sh
++++ b/kernel-dkms/conftest.sh
 @@ -2363,17 +2363,22 @@ compile_test() {
  
          ;;
@@ -78,10 +60,10 @@ index dd61566..30c88a1 100755
                      NULL,  /* struct drm_connector *connector */
                      true); /* bool merge_type_bits */
              }"
-diff --git a/kernel/nvidia-drm/nvidia-drm.Kbuild b/kernel/nvidia-drm/nvidia-drm.Kbuild
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild b/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild
 index b4a45a7..3b7f3a1 100644
---- a/kernel/nvidia-drm/nvidia-drm.Kbuild
-+++ b/kernel/nvidia-drm/nvidia-drm.Kbuild
+--- a/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild
++++ b/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild
 @@ -74,7 +74,7 @@ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_driver_has_legacy_dev_list
  NV_CONFTEST_TYPE_COMPILE_TESTS += drm_driver_has_set_busid
  NV_CONFTEST_TYPE_COMPILE_TESTS += drm_crtc_state_has_connectors_changed

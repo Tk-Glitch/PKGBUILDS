@@ -1,7 +1,7 @@
-diff --git a/kernel/nvidia/linux_nvswitch.c b/kernel/nvidia/linux_nvswitch.c
+diff --git a/kernel-dkms/nvidia/linux_nvswitch.c b/kernel-dkms/nvidia/linux_nvswitch.c
 index 75b5598..9841775 100644
---- a/kernel/nvidia/linux_nvswitch.c
-+++ b/kernel/nvidia/linux_nvswitch.c
+--- a/kernel-dkms/nvidia/linux_nvswitch.c
++++ b/kernel-dkms/nvidia/linux_nvswitch.c
 @@ -1582,7 +1582,11 @@ nvswitch_os_snprintf_time
      struct tm t;
      NvS32 date_end;

@@ -4,19 +4,10 @@ Date: Mon, 28 Jan 2019 18:21:34 +0100
 Subject: kernel 5.0 patch
 
 
-diff --git a/kernel/common/inc/nv.h b/kernel/common/inc/nv.h
+diff --git a/kernel-dkms/common/inc/nv.h b/kernel-dkms/common/inc/nv.h
 index d52c2a1ef..f6dc2dc32 100644
---- a/kernel/common/inc/nv.h
-+++ b/kernel/common/inc/nv.h
-@@ -18,6 +18,8 @@
- #include <stdarg.h>
- #include <nv-kernel-interface-api.h>
- 
-+#include <linux/version.h>
-+
- #if !defined(NV_MIN)
- #define NV_MIN(_a,_b) ((_a) < (_b) ? (_a) : (_b))
- #endif
+--- a/kernel-dkms/common/inc/nv.h
++++ b/kernel-dkms/common/inc/nv.h
 @@ -603,6 +605,7 @@ typedef NV_STATUS (*nvPmaEvictRangeCallback)(void *, NvU64, NvU64);
  #define NV_MAX_ISR_DELAY_US           20000
  #define NV_MAX_ISR_DELAY_MS           (NV_MAX_ISR_DELAY_US / 1000)
@@ -61,10 +52,10 @@ index d52c2a1ef..f6dc2dc32 100644
  
  #ifndef NV_ALIGN_UP
  #define NV_ALIGN_UP(v,g) (((v) + ((g) - 1)) & ~((g) - 1))
-diff --git a/kernel/conftest.sh b/kernel/conftest.sh
+diff --git a/kernel-dkms/conftest.sh b/kernel-dkms/conftest.sh
 index 0ae7a2662..9a71ae7b3 100755
---- a/kernel/conftest.sh
-+++ b/kernel/conftest.sh
+--- a/kernel-dkms/conftest.sh
++++ b/kernel-dkms/conftest.sh
 @@ -1653,6 +1653,24 @@ compile_test() {
              compile_check_conftest "$CODE" "NV_DRM_AVAILABLE" "" "generic"
          ;;
@@ -90,19 +81,10 @@ index 0ae7a2662..9a71ae7b3 100755
          drm_dev_unref)
              #
              # Determine if drm_dev_unref() is present.
-diff --git a/kernel/nvidia-drm/nvidia-drm-gem.h b/kernel/nvidia-drm/nvidia-drm-gem.h
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-gem.h b/kernel-dkms/nvidia-drm/nvidia-drm-gem.h
 index f276588db..7cbdbe632 100644
---- a/kernel/nvidia-drm/nvidia-drm-gem.h
-+++ b/kernel/nvidia-drm/nvidia-drm-gem.h
-@@ -38,6 +38,8 @@
- 
- #endif
- 
-+#include <linux/version.h>
-+
- struct nv_drm_gem_object;
- 
- struct nv_drm_gem_object_funcs {
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-gem.h
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-gem.h
 @@ -79,7 +81,11 @@ static inline int nv_drm_gem_handle_create_drop_reference(
  
      /* drop reference from allocate - handle holds it now */
@@ -137,19 +119,10 @@ index f276588db..7cbdbe632 100644
  }
  
  static inline int nv_drm_gem_handle_create(struct drm_file *filp,
-diff --git a/kernel/nvidia-drm/nvidia-drm-helper.c b/kernel/nvidia-drm/nvidia-drm-helper.c
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-helper.c b/kernel-dkms/nvidia-drm/nvidia-drm-helper.c
 index 4ccf81929..7fb59bbb3 100644
---- a/kernel/nvidia-drm/nvidia-drm-helper.c
-+++ b/kernel/nvidia-drm/nvidia-drm-helper.c
-@@ -29,6 +29,8 @@
- 
- #include "nvidia-drm-helper.h"
- 
-+#include <linux/version.h>
-+
- #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
- 
- #include <drm/drmP.h>
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-helper.c
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-helper.c
 @@ -149,12 +151,20 @@ void nv_drm_atomic_clean_old_fb(struct drm_device *dev,
          if (ret == 0) {
              struct drm_framebuffer *new_fb = plane->state->fb;
@@ -171,10 +144,10 @@ index 4ccf81929..7fb59bbb3 100644
         }
         plane->old_fb = NULL;
     }
-diff --git a/kernel/nvidia-drm/nvidia-drm-helper.h b/kernel/nvidia-drm/nvidia-drm-helper.h
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-helper.h b/kernel-dkms/nvidia-drm/nvidia-drm-helper.h
 index efecc4ad7..2a0c3bbca 100644
---- a/kernel/nvidia-drm/nvidia-drm-helper.h
-+++ b/kernel/nvidia-drm/nvidia-drm-helper.h
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-helper.h
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-helper.h
 @@ -36,7 +36,9 @@
   */
  static inline void nv_drm_dev_free(struct drm_device *dev)
@@ -186,19 +159,10 @@ index efecc4ad7..2a0c3bbca 100644
      drm_dev_unref(dev);
  #else
      drm_dev_free(dev);
-diff --git a/kernel/nvidia-drm/nvidia-drm-linux.c b/kernel/nvidia-drm/nvidia-drm-linux.c
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-linux.c b/kernel-dkms/nvidia-drm/nvidia-drm-linux.c
 index 5a2bbc18c..133d8fe64 100644
---- a/kernel/nvidia-drm/nvidia-drm-linux.c
-+++ b/kernel/nvidia-drm/nvidia-drm-linux.c
-@@ -20,6 +20,8 @@
-  * DEALINGS IN THE SOFTWARE.
-  */
- 
-+#include <linux/version.h>
-+
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/err.h>
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-linux.c
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-linux.c
 @@ -151,11 +153,19 @@ void nv_drm_vunmap(void *address)
  
  uint64_t nv_drm_get_time_usec(void)
@@ -219,10 +183,10 @@ index 5a2bbc18c..133d8fe64 100644
  }
  
  #endif /* NV_DRM_AVAILABLE */
-diff --git a/kernel/nvidia-drm/nvidia-drm.Kbuild b/kernel/nvidia-drm/nvidia-drm.Kbuild
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild b/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild
 index 466b51528..bcf8aff10 100644
---- a/kernel/nvidia-drm/nvidia-drm.Kbuild
-+++ b/kernel/nvidia-drm/nvidia-drm.Kbuild
+--- a/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild
++++ b/kernel-dkms/nvidia-drm/nvidia-drm.Kbuild
 @@ -53,6 +53,7 @@ NV_CONFTEST_GENERIC_COMPILE_TESTS += drm_atomic_modeset_nonblocking_commit_avail
  NV_CONFTEST_GENERIC_COMPILE_TESTS += is_export_symbol_gpl_refcount_inc
  NV_CONFTEST_GENERIC_COMPILE_TESTS += is_export_symbol_gpl_refcount_dec_and_test
@@ -231,19 +195,10 @@ index 466b51528..bcf8aff10 100644
  NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_dev_unref
  NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_reinit_primary_mode_group
  NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_atomic_set_mode_for_crtc
-diff --git a/kernel/nvidia-modeset/nvidia-modeset-linux.c b/kernel/nvidia-modeset/nvidia-modeset-linux.c
+diff --git a/kernel-dkms/nvidia-modeset/nvidia-modeset-linux.c b/kernel-dkms/nvidia-modeset/nvidia-modeset-linux.c
 index 1b9148ee7..4c1bd3617 100644
---- a/kernel/nvidia-modeset/nvidia-modeset-linux.c
-+++ b/kernel/nvidia-modeset/nvidia-modeset-linux.c
-@@ -8,6 +8,8 @@
-  * _NVRM_COPYRIGHT_END_
-  */
- 
-+#include <linux/version.h>
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
+--- a/kernel-dkms/nvidia-modeset/nvidia-modeset-linux.c
++++ b/kernel-dkms/nvidia-modeset/nvidia-modeset-linux.c
 @@ -210,11 +212,19 @@ void NVKMS_API_CALL nvkms_usleep(NvU64 usec)
  
  NvU64 NVKMS_API_CALL nvkms_get_usec(void)
@@ -264,19 +219,10 @@ index 1b9148ee7..4c1bd3617 100644
  }
  
  int NVKMS_API_CALL nvkms_copyin(void *kptr, NvU64 uaddr, size_t n)
-diff --git a/kernel/nvidia-uvm/uvm_linux.h b/kernel/nvidia-uvm/uvm_linux.h
+diff --git a/kernel-dkms/nvidia-uvm/uvm_linux.h b/kernel-dkms/nvidia-uvm/uvm_linux.h
 index 8707ac070..990cefbd4 100644
---- a/kernel/nvidia-uvm/uvm_linux.h
-+++ b/kernel/nvidia-uvm/uvm_linux.h
-@@ -29,6 +29,8 @@
- //
- //
- 
-+#include <linux/version.h>
-+
- #ifndef _UVM_LINUX_H
- #define _UVM_LINUX_H
- 
+--- a/kernel-dkms/nvidia-uvm/uvm_linux.h
++++ b/kernel-dkms/nvidia-uvm/uvm_linux.h
 @@ -320,12 +322,21 @@ static inline uint64_t NV_DIV64(uint64_t dividend, uint64_t divisor, uint64_t *r
  /* Return a nanosecond-precise value */
  static inline NvU64 NV_GETTIME(void)
@@ -315,19 +261,10 @@ index 8707ac070..990cefbd4 100644
  }
  #endif
  
-diff --git a/kernel/nvidia/nvlink_linux.c b/kernel/nvidia/nvlink_linux.c
+diff --git a/kernel-dkms/nvidia/nvlink_linux.c b/kernel-dkms/nvidia/nvlink_linux.c
 index c13b72515..db691679c 100644
---- a/kernel/nvidia/nvlink_linux.c
-+++ b/kernel/nvidia/nvlink_linux.c
-@@ -37,6 +37,8 @@
- #include <linux/string.h>
- #include <linux/mutex.h>
- 
-+#include <linux/version.h>
-+
- #define MAX_ERROR_STRING           512
- 
- #define NV_MAX_ISR_DELAY_US           20000
+--- a/kernel-dkms/nvidia/nvlink_linux.c
++++ b/kernel-dkms/nvidia/nvlink_linux.c
 @@ -500,6 +502,7 @@ void * NVLINK_API_CALL nvlink_memcpy(void *dest, void *src, NvLength size)
      return memcpy(dest, src, size);
  }
@@ -455,19 +392,10 @@ index c13b72515..db691679c 100644
  
  void NVLINK_API_CALL nvlink_assert(int cond)
  {
-diff --git a/kernel/nvidia/os-interface.c b/kernel/nvidia/os-interface.c
+diff --git a/kernel-dkms/nvidia/os-interface.c b/kernel-dkms/nvidia/os-interface.c
 index d1c889f69..88c57b2da 100644
---- a/kernel/nvidia/os-interface.c
-+++ b/kernel/nvidia/os-interface.c
-@@ -14,6 +14,8 @@
- #include "os-interface.h"
- #include "nv-linux.h"
- 
-+#include <linux/version.h>
-+
- #define MAX_ERROR_STRING 512
- static char nv_error_string[MAX_ERROR_STRING];
- nv_spinlock_t nv_error_string_lock;
+--- a/kernel-dkms/nvidia/os-interface.c
++++ b/kernel-dkms/nvidia/os-interface.c
 @@ -426,6 +428,7 @@ NV_STATUS NV_API_CALL os_get_current_time(
      NvU32 *seconds,
      NvU32 *useconds

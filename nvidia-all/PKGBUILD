@@ -88,7 +88,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=38
+pkgrel=39
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -118,16 +118,15 @@ source=($_source_name
         '10-nvidia-drm-outputclass.conf'
         '20-nvidia.conf'
         'nvidia-utils-tkg.sysusers'
+        'linux-version.diff' # include linux version
         '01-ipmi-vm.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx)
         '02-ipmi-vm.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+)
-        '01-ipmi-vm-dkms.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (396.xx) - DKMS
-        '02-ipmi-vm-dkms.diff' # ipmi & vm patch for older than 415.22 releases (2018.12.7) (addon for 410+) -DKMS
+        'list_is_first.diff' # fix for "redefinition of ‘list_is_first’" on <418.56 drivers when used on 5.1+
         'kernel-4.16.patch' # 4.16 workaround
-        'kernel-4.16-dkms.diff' # 4.16 dkms workaround
         'kernel-4.19.patch' # 4.19 workaround
-        'kernel-4.19-dkms.diff' # 4.19 dkms workaround
         'kernel-5.0.patch' # 5.0 workaround
-        'kernel-5.0-dkms.diff') # 5.0 dkms workaround
+        'kernel-5.1.patch' # 5.1 workaround
+)
 
 msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
 
@@ -135,16 +134,14 @@ md5sums=("$_md5sum"
          '768a64259f7e8d8a46a13b876d6c443c'
          '2640eac092c220073f0668a7aaff61f7'
          '3d2894e71d81570bd00bce416d3e547d'
-         'fce77a6dbd9f8805f602f5d59e859846'
-         'a5a0320353bdbfefd5ca7b1b5b03976e'
-         '1b8f3fb35131c2d0f39900c2bb5ad111'
+         '7a825f41ada7e106c8c0b713a49b3bfa'
+         'd961d1dce403c15743eecfe3201e4b6a'
          '14460615a9d4e247c8d9bcae8776ed48'
-         '84f1f2ecdccf377fc86323f8ad7b7469'
+         '401859ea7bb4a9864af24ecd67abf34c'
          'adb83cede754daf5adb001f077b1ff67'
-         '4bc92732727482b545b60589aacd44d8'
-         '8c56c81b736b7a5387870b7391401e28'
-         '54fbd790d7025e52e3de352eb46695c3'
-         '96fe9858657e9b5bae83ae4745b22722')
+         '58d058367934813d29d38328bc3b4dcd'
+         '6cff80c311debfdb6b543e575a81820a'
+         'a3ce8ebab6506f556f4b222e2372ce87')
 
 if [ $_autoaddpatch == "true" ]; then
   # Auto-add *.patch files from $startdir to source=()
@@ -209,6 +206,11 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # Use separate source directories
     cp -r kernel kernel-$_kernel
 
+    cd "$srcdir"/"$_pkg"/kernel-$_kernel
+      msg2 "Applying linux-version.diff for $_kernel..."
+      patch -p2 -i "$srcdir"/linux-version.diff
+    cd ..
+
     # kernel version variables
     if (( $(vercmp "$_kernel" "4.16") >= 0 )); then
       _kernel416="1"
@@ -218,6 +220,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     fi
     if (( $(vercmp "$_kernel" "5.0") >= 0 )); then
       _kernel50="1"
+    fi
+    if (( $(vercmp "$_kernel" "5.1") >= 0 )); then
+      _kernel51="1"
     fi
 
     # Fix for "unknown type name 'ipmi_user_t'" (required for older than 2018.12.7 drivers when used on 4.20+)
@@ -235,6 +240,23 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         cd ..
       else
         msg2 "Skipping ipmi-vm fixes (not needed for this driver/kernel combination)"
+      fi
+    fi
+
+    if (( $(vercmp "$_kernel" "5.1") >= 0 )); then
+      # Temporary place til we get a driver that supports 5.1 OOTB
+      sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
+      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver == 415* ]] || [[ $pkgver == 418.3* ]] || [[ $pkgver == 418.4* ]]; then
+        _low418="1"
+        cd "$srcdir"/"$_pkg"/kernel-$_kernel
+        msg2 "Applying list_is_first.diff for $_kernel..."
+        # Use sed for the moving parts of the patch - Fix for "redefinition of ‘list_is_first’" (required for older than 418.56 drivers when used on 5.1+)
+        sed -i "s/static inline int list_is_first(const struct list_head \*list,/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic inline int list_is_first(const struct list_head \*list,/g" "$srcdir/$_pkg/kernel-$_kernel/common/inc/nv-list-helpers.h"
+        sed -i "s/                                const struct list_head \*head)/                                const struct list_head \*head)\n#else\nstatic inline int nv_list_is_first(const struct list_head \*list,\n                                   const struct list_head \*head)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/common/inc/nv-list-helpers.h"
+        patch -Np2 -i "$srcdir"/list_is_first.diff
+        cd ..
+      else
+        msg2 "Skipping list_is_first fixes (not needed for this driver/kernel combination)"
       fi
     fi
 
@@ -267,34 +289,53 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
   # dkms patches
   if [ "$_dkms" == "true" ]; then
+    msg2 "Applying linux-version.diff for dkms..."
+    patch -Np1 -i "$srcdir"/linux-version.diff
     if [ "$_kernel416" == "1" ]; then
-      msg2 "Applying kernel-4.16-dkms.diff for dkms..."
-      patch -Np1 -i "$where"/kernel-4.16-dkms.diff
+      msg2 "Applying kernel-4.16.patch for dkms..."
+      patch -Np1 -i "$srcdir"/kernel-4.16.patch
     fi
     if [ "$_kernel419" == "1" ]; then
       if [[ $pkgver = 396* ]]; then
-        msg2 "Applying kernel-4.19-dkms.diff for dkms..."
-        patch -Np1 -i "$where"/kernel-4.19-dkms.diff
+        msg2 "Applying kernel-4.19.patch for dkms..."
+        patch -Np1 -i "$srcdir"/kernel-4.19.patch
       else
-        msg2 "Skipping kernel-4.19-dkms.diff as it doesn't apply to this driver version..."
+        msg2 "Skipping kernel-4.19.patch as it doesn't apply to this driver version..."
       fi
     fi
     if [ "$_kernel50" == "1" ]; then
       if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]]; then
-        msg2 "Skipping kernel-5.0-dkms.diff as it doesn't apply to this driver version..."
+        msg2 "Skipping kernel-5.0.patch as it doesn't apply to this driver version..."
       else
-        msg2 "Applying kernel-5.0-dkms.diff for dkms..."
-        patch -Np1 -i "$where"/kernel-5.0-dkms.diff
+        msg2 "Applying kernel-5.0.patch for dkms..."
+        patch -Np1 -i "$srcdir"/kernel-5.0.patch
+      fi
+    fi
+    if [ "$_kernel51" == "1" ]; then
+      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [[ $pkgver != 418* ]]; then
+        msg2 "Skipping kernel-5.1.patch as it doesn't apply to this driver version..."
+      else
+        msg2 "Applying kernel-5.1.patch for dkms..."
+        patch -Np1 -i "$srcdir"/kernel-5.1.patch
+        # Temporary place til we get a driver that supports 5.1 OOTB
+        sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
+      fi
+      if [ "$_low418" == "1" ]; then
+        msg2 "Applying list_is_first.patch for dkms..."
+        # Use sed for the moving parts of the patch - Fix for "redefinition of ‘list_is_first’" (required for older than 418.56 drivers when used on 5.1+)
+        sed -i "s/static inline int list_is_first(const struct list_head \*list,/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic inline int list_is_first(const struct list_head \*list,/g" "$srcdir/$_pkg/kernel-dkms/common/inc/nv-list-helpers.h"
+        sed -i "s/                                const struct list_head \*head)/                                const struct list_head \*head)\n#else\nstatic inline int nv_list_is_first(const struct list_head \*list,\n                                   const struct list_head \*head)\n#endif/g" "$srcdir/$_pkg/kernel-dkms/common/inc/nv-list-helpers.h"
+        patch -Np1 -i "$srcdir"/list_is_first.diff
       fi
     fi
 
     if [ "$_oldstuff" == "1" ]; then
-      msg2 "Applying 01-ipmi-vm-dkms.diff for dkms..."
-      patch -Np1 -i "$srcdir"/01-ipmi-vm-dkms.diff
+      msg2 "Applying 01-ipmi-vm.diff for dkms..."
+      patch -Np1 -i "$srcdir"/01-ipmi-vm.diff
     fi
     if [ "$_youngeryetoldstuff" == "1" ]; then
-      msg2 "Applying 02-ipmi-vm-dkms.diff for dkms..."
-      patch -Np1 -i "$srcdir"/02-ipmi-vm-dkms.diff
+      msg2 "Applying 02-ipmi-vm.diff for dkms..."
+      patch -Np1 -i "$srcdir"/02-ipmi-vm.diff
     fi
   fi
 }

@@ -1,7 +1,7 @@
-diff --git a/kernel/conftest.sh b/kernel/conftest.sh
+diff --git a/kernel-dkms/conftest.sh b/kernel-dkms/conftest.sh
 index e8de161..04d6683 100755
---- a/kernel/conftest.sh
-+++ b/kernel/conftest.sh
+--- a/kernel-dkms/conftest.sh
++++ b/kernel-dkms/conftest.sh
 @@ -1780,11 +1780,14 @@ compile_test() {
              # Determine if atomic64_t and associated functions are defined
              CODE="
@@ -17,19 +17,10 @@ index e8de161..04d6683 100755
              }"
  
              compile_check_conftest "$CODE" "NV_ATOMIC64_PRESENT" "" "types"
-diff --git a/kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c b/kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c
+diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c b/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c
 index 1db7777..863bb77 100644
---- a/kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c
-+++ b/kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c
-@@ -20,6 +20,8 @@
-  * DEALINGS IN THE SOFTWARE.
-  */
- 
-+#include <linux/version.h>
-+
- #include "nvidia-drm-conftest.h"
- 
- #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
+--- a/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c
++++ b/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c
 @@ -345,7 +347,11 @@ static int __nv_drm_vma_fault(struct vm_area_struct *vma,
  
      page_offset = vmf->pgoff - drm_vma_node_start(&gem->vma_node);
@@ -42,8 +33,8 @@ index 1db7777..863bb77 100644
  
      switch (ret) {
          case 0:
---- a/kernel/nvidia/os-interface.c	2018-11-15 21:56:59.000000000 -0600
-+++ b/kernel/nvidia/os-interface.c	2018-11-26 21:53:39.970635906 -0600
+--- a/kernel-dkms/nvidia/os-interface.c	2018-11-15 21:56:59.000000000 -0600
++++ b/kernel-dkms/nvidia/os-interface.c	2018-11-26 21:53:39.970635906 -0600
 @@ -1670,7 +1670,7 @@
  
  struct nv_ipmi_softc
