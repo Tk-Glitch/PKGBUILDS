@@ -7,6 +7,8 @@
 
 # You can use the uninstall feature by calling the script with "clean" as argument : ./proton-tkg.sh clean
 
+set -e
+
 _nowhere=$PWD
 _wine_tkg_git_path=${_nowhere}/../wine-tkg-git # Change to wine-tkg-git path if needed
 
@@ -47,8 +49,7 @@ function proton_tkg_uninstaller {
   i=0
   for _proton_tkg in "$HOME"/.steam/root/compatibilitytools.d/proton_tkg_*; do
     if [ -d "$_proton_tkg" ]; then
-      _GOTCHA="$_proton_tkg"
-      ((i++))
+      _GOTCHA="$_proton_tkg" && ((i+=1))
     fi
   done
 
@@ -71,8 +72,7 @@ function proton_tkg_uninstaller {
 
     i=1
     for build in ${_strip_builds[@]}; do
-      echo "  $i - $build"
-      ((i++))
+      echo "  $i - $build" && ((i+=1))
     done
 
     read -rp "choice [1-$(($i-1))]: " _to_uninstall;
@@ -90,7 +90,7 @@ function proton_tkg_uninstaller {
         echo ""
         echo "###########################################################################################################################"
       fi
-      ((i++))
+      ((i+=1))
     done
 
     echo ""
@@ -109,6 +109,8 @@ function proton_tkg_uninstaller {
 if [ "$1" == "clean" ]; then
   proton_tkg_uninstaller
 else
+  rm -rf "$_nowhere"/proton_dist_tmp
+  rm -f "$_nowhere"/proton_dist*.tar*
 
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
   echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "$_wine_tkg_git_path"/
@@ -126,10 +128,10 @@ else
 
     cd $_nowhere
 
-    # Create required dirs
+    # Create required dirs and clean
     mkdir -p "$HOME/.steam/root/compatibilitytools.d"
-    mkdir proton_dist_tmp
-    mkdir "proton_tkg_$_protontkg_version"
+    mkdir -p proton_dist_tmp
+    rm -rf "proton_tkg_$_protontkg_version" && mkdir "proton_tkg_$_protontkg_version"
     mkdir -p proton_template/share/fonts
 
     # Extract our custom package
@@ -138,7 +140,7 @@ else
 
     # Liberation Fonts
     rm -f proton_template/share/fonts/*
-    git clone https://github.com/liberationfonts/liberation-fonts.git # It'll complain the path already exists on subsequent builds
+    git clone https://github.com/liberationfonts/liberation-fonts.git || true # It'll complain the path already exists on subsequent builds
     cd liberation-fonts
     git reset --hard HEAD
     git clean -xdf
@@ -149,7 +151,7 @@ else
     cd "$_nowhere"
 
     # Clone Proton tree as we need to build some tools from it
-    git clone https://github.com/ValveSoftware/Proton # It'll complain the path already exists on subsequent builds
+    git clone https://github.com/ValveSoftware/Proton || true # It'll complain the path already exists on subsequent builds
     cd Proton
     git reset --hard HEAD
     git clean -xdf
@@ -225,7 +227,7 @@ else
     if [ "$_use_d9vk" == "prebuilt" ]; then
       if [ -d ./d9vk ]; then
         mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/dxvk/
-         mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/dxvk/
+        mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/dxvk/
       else
         echo "Your config file is set up to include prebuilt D9VK, but you seem to be missing it."
       fi
