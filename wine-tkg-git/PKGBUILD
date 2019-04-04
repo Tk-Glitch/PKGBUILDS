@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.5.r7.g8ce5fe89
+pkgver=4.5.r8.g553986fd
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -561,6 +561,14 @@ prepare() {
 	  echo "Using wine-staging patchset (version $_realwineversion)" >> "$_where"/last_build_config.log
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
+
+	# Disable local Esync on 553986f
+	cd "${srcdir}"/"${_stgsrcdir}"
+	if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 553986fdfb111914f793ff1487d53af022e4be19 HEAD; then # eventfd_synchronization: Add patch set. 
+	  _use_esync="false"
+	   echo "Disabled the local Esync patchset to use Staging impl instead." >> "$_where"/last_build_config.log
+	fi
+	cd "${srcdir}"/"${_winesrcdir}"
 
 	if [ "$_use_esync" == "true" ]; then
 	  if [ -z "$_esync_version" ]; then
