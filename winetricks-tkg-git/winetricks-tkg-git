@@ -902,6 +902,7 @@ w_dotnet_verify()
         dotnet462) version="4.6.2" ;;
         dotnet471) version="4.7.1" ;;
         dotnet472) version="4.7.2" ;;
+        dotnet48) version="4.8" ;;
         *) echo error ; exit 1 ;;
     esac
             w_call dotnet_verifier
@@ -7238,6 +7239,25 @@ load_dxvk101()
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 
+w_metadata dxvk102 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (1.0.2)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-1.0.2.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk102()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v1.0.2/dxvk-1.0.2.tar.gz" f9504b188488d1102cba7e82c28681708f39e151af1c1ef7ebeac82d729c01ac
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
 
 #----------------------------------------------------------------
 
@@ -7256,7 +7276,7 @@ load_dxvk()
 {
     # https://github.com/doitsujin/dxvk
     # There's no stable exe URL, but they do provide a RELEASE file that lets us build one:
-    w_download_to "${W_TMP_EARLY}" "https://raw.githubusercontent.com/doitsujin/dxvk/master/RELEASE"
+    w_download_to "${W_TMP_EARLY}" "https://raw.githubusercontent.com/doitsujin/dxvk/latest-release/RELEASE"
     dxvk_version="$(cat "${W_TMP_EARLY}/RELEASE")"
     w_linkcheck_ignore=1 w_download "https://github.com/doitsujin/dxvk/releases/download/v${dxvk_version}/dxvk-${dxvk_version}.tar.gz"
     helper_dxvk "dxvk-${dxvk_version}.tar.gz" "d3d10_enabled" "3.19" "1.1.88"
@@ -8462,6 +8482,56 @@ verify_dotnet471()
 {
     w_dotnet_verify dotnet471
 }
+#----------------------------------------------------------------
+
+w_metadata dotnet48 dlls \
+    title="MS .NET 4.8" \
+    publisher="Microsoft" \
+    year="2019" \
+    media="download" \
+    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet40 dotnet46 dotnet461 dotnet462 dotnet472 vjrun20" \
+    installed_file1="c:/windows/dotnet48.installed.workaround"
+
+load_dotnet48()
+{
+    w_package_warn_win64
+
+    # Official version. See https://devblogs.microsoft.com/dotnet/announcing-net-framework-4-8-early-access-build-3745/
+    w_download https://download.visualstudio.microsoft.com/download/pr/9854b5f2-2341-4136-ad7d-1d881ab8d603/a59983c9bf08c7ae7200f356c9a604c1/ndp48-preview-x86-x64-allos-enu.exe d1c399178bf9733bc56c223f212512879e6ecdd6c647f25a1589c86c05591281
+    file_package="ndp48-preview-x86-x64-allos-enu.exe"
+    unattended_args="/sfxlang:1027 /q /norestart"
+
+    w_call remove_mono
+
+    w_call dotnet40
+    w_set_winver win7
+
+    w_try_cd "$W_CACHE/$W_PACKAGE"
+
+    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" ${W_OPT_UNATTENDED:+$unattended_args}
+    status=$?
+
+    echo "exit status: $status"
+
+    case $status in
+        0) ;;
+        105) echo "exit status $status - normal, user selected 'restart now'" ;;
+        194) echo "exit status $status - normal, user selected 'restart later'" ;;
+        5) w_die "exit status $status - user selected 'Cancel'" ;;
+        *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
+    esac
+
+    w_override_dlls native mscoree
+
+    # Do not rely on temporary files. As a workaround, touch a file instead so that we know it's been installed for list-installed
+    w_try touch "${W_WINDIR_UNIX}/dotnet48.installed.workaround"
+}
+
+verify_dotnet48()
+{
+    w_dotnet_verify dotnet48
+}
+
 #----------------------------------------------------------------
 
 w_metadata dotnet_verifier dlls \
