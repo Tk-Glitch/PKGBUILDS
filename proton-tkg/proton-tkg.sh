@@ -75,7 +75,7 @@ function proton_tkg_uninstaller {
       ((i++))
     done
 
-    read -p "choice [1-$(($i-1))]: " _to_uninstall;
+    read -rp "choice [1-$(($i-1))]: " _to_uninstall;
 
     i=1
     for build in ${_strip_builds[@]}; do
@@ -92,6 +92,13 @@ function proton_tkg_uninstaller {
       fi
       ((i++))
     done
+
+    echo ""
+    read -rp "Wanna uninstall more? N/y: " _uninstall_more;
+    echo ""
+    if [ "$_uninstall_more" == "y" ]; then
+      proton_tkg_uninstaller
+    fi
   elif [ -d "$_GOTCHA" ] && [ $i -eq 1 ]; then
     echo "This tool requires at least two Proton-tkg builds installed in $HOME/.steam/root/compatibilitytools.d/ and only one was found."
   else
@@ -295,7 +302,7 @@ else
     echo ""
     echo "####################################################################################################"
     echo ""
-    read -p "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
+    read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
     if [ "$_ask_uninstall" == "y" ]; then
       proton_tkg_uninstaller
     fi
