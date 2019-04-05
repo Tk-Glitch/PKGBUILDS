@@ -226,8 +226,8 @@ else
     # If the token gave us prebuilt d9vk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
     if [ "$_use_d9vk" == "prebuilt" ]; then
       if [ -d ./d9vk ]; then
-        mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/dxvk/
-        mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/dxvk/
+        mkdir -p proton_dist_tmp/lib64/wine/d9vk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/d9vk/
+        mkdir -p proton_dist_tmp/lib/wine/d9vk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/d9vk/
       else
         echo "Your config file is set up to include prebuilt D9VK, but you seem to be missing it."
       fi
@@ -247,27 +247,27 @@ else
     if [ "$_proton_nvapi_disable" == "true" ]; then
       sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_NVAPI_DISABLE.*/#    "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_NVAPI_DISABLE.*/#     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_winedbg_disable" == "true" ]; then
       sed -i 's/.*PROTON_WINEDBG_DISABLE.*/     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#    "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_force_LAA" == "true" ]; then
       sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/     "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/#    "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_FORCE_LARGE_ADDRESS_AWARE.*/#     "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_pulse_lowlat" == "true" ]; then
       sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#    "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_dxvk_async" == "true" ]; then
       sed -i 's/.*PROTON_DXVK_ASYNC.*/     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_DXVK_ASYNC.*/#    "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_DXVK_ASYNC.*/#     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ -n "$_proton_dxvk_configfile" ]; then
       sed -i "s|.*DXVK_CONFIG_FILE.*|     \"DXVK_CONFIG_FILE\": \"${_proton_dxvk_configfile}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
@@ -276,15 +276,17 @@ else
       sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
     fi
 
-    cd proton_tkg_$_protontkg_version
-
-    # Use the corresponding patch depending on DXVK/D9VK type combo - Default is DXVK prebuilt +no d9vk or d9vk winelib ("true" = "winelib")
+    # Use the corresponding DXVK/D9VK combo options - Default is DXVK prebuilt +no d9vk or d9vk winelib, so let's create rules for the other combinations only
+    # ("true" = "winelib")
     if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "true" ]; then
-      patch -Np1 < "$_nowhere/proton_template/proton-full-winelib.patch"
+      sed -i 's/.*PROTON_USE_WINED3D9.*/     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     elif [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "prebuilt" ]; then
-      patch -Np1 < "$_nowhere/proton_template/proton-d9vk_prebuilt-dxvk_winelib.patch"
+      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     elif [ "$_use_dxvk" == "prebuilt" ] && [ "$_use_d9vk" == "prebuilt" ]; then
-      patch -Np1 < "$_nowhere/proton_template/proton-full-prebuilt.patch"
+      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINED3D11.*/#     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
 
     cd $_nowhere

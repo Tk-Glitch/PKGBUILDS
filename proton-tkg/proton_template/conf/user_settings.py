@@ -34,6 +34,14 @@ user_settings = {
     #Use gl-based wined3d for d3d9/d3d10/d3d11 instead of vulkan-based dxvk & d9vk !!! Won't affect winelib builds !!!
 #     "PROTON_USE_WINED3D": "1",
 
+    #Use gl-based wined3d for d3d10/11 only (keeping d9vk enabled). Comment out to use vulkan-based dxvk instead.
+    #!!! DXVK winelib replaces wined3d d3d10/d3d11 and needs this option enabled !!!
+#     "PROTON_USE_WINED3D11": "1",
+
+    #Use gl-based wined3d for d3d9 only (keeping dxvk enabled). Comment out to use vulkan-based d9vk instead.
+    #!!! D9VK winelib replaces wined3d d3d9 and needs this option enabled !!!
+     "PROTON_USE_WINED3D9": "1",
+
     #Disable d3d11 entirely !!!
 #     "PROTON_NO_D3D11": "1",
 
