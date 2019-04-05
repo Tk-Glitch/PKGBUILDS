@@ -199,8 +199,11 @@ else:
 
 lfile = None
 with dist_lock:
-     run_wine([wine_path, "wineboot"])
-     run_wine([bindir + "/wineserver", "-w"])
+    if not os.path.isdir(basedir + "/dist/share/default_pfx"):
+        #make default prefix
+        env["WINEPREFIX"] = basedir + "/dist/share/default_pfx"
+    run_wine([wine_path, "wineboot"])
+    run_wine([bindir + "/wineserver", "-w"])
 
 prefix = os.environ["STEAM_COMPAT_DATA_PATH"] + "/pfx/"
 env["WINEPREFIX"] = prefix
@@ -330,12 +333,9 @@ with prefix_lock:
         upgrade_pfx(None)
 
     if not os.path.exists(prefix + "/user.reg"):
-        # Run wineboot to let wine create the prefix
-        run_wine([wine_path, "wineboot"])
-        run_wine([bindir + "/wineserver", "-w"])
         #copy default prefix into place
-#        with open(os.environ["STEAM_COMPAT_DATA_PATH"] + "/tracked_files", "w") as tfiles:
-#            mergedirs(basedir + "/dist/share/default_pfx", prefix, tfiles)
+        with open(os.environ["STEAM_COMPAT_DATA_PATH"] + "/tracked_files", "w") as tfiles:
+            mergedirs(basedir + "/dist/share/default_pfx", prefix, tfiles)
 
     with open(version_file, "w") as f:
         f.write(CURRENT_PREFIX_VERSION + "\n")
