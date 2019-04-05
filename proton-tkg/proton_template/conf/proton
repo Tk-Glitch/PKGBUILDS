@@ -277,14 +277,14 @@ if "nvapidisable" in config_opts:
 if "pulselowlat" in config_opts:
     env["PULSE_LATENCY_MSEC"] = "60"
 
+comfile = None
 if "logcommandtoprefix" in config_opts:
-    comfile = None
     comfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/launch_command"
     if os.path.exists(comfile_path):
         os.remove(comfile_path)
-    comfile = open(comfile_path, "w+")
+    comfile = open(comfile_path, "w")
     comfile.write("Command: " + str(sys.argv[2:]) + "\n")
-    comfile.flush()
+    comfile.close()
 
 lfile = None
 if "SteamGameId" in env:
