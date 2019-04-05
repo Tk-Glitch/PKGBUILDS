@@ -112,6 +112,25 @@ else
   rm -rf "$_nowhere"/proton_dist_tmp
   rm -f "$_nowhere"/proton_dist*.tar*
 
+  if [ ! -d ./dxvk ]; then
+    echo "##########################################################################################"
+    echo ""
+    echo " DXVK is missing in your proton-tkg dir. Downloading latest release from github for you..."
+    echo " If you have asked for a winelib build, don't worry, you'll get a winelib build."
+    echo ""
+    echo "##########################################################################################"
+    echo ""
+    curl -s https://api.github.com/repos/doitsujin/dxvk/releases/latest \
+    | grep "browser_download_url.*tar.gz" \
+    | cut -d : -f 2,3 \
+    | tr -d \" \
+    | wget -qi -
+    #mkdir dxvk
+    tar -xvf dxvk-*.tar.gz >/dev/null 2>&1
+    rm dxvk-*.tar.gz
+    mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
+  fi
+
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
   echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "$_wine_tkg_git_path"/
 
@@ -210,7 +229,7 @@ else
     fi
 
     # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
-    if [ "$_use_dxvk" == "prebuilt" ]; then
+    if [ "$_use_dxvk" == "prebuilt" ] || [ "$_use_dxvk" == "release" ]; then
       if [ -d ./dxvk ]; then
         mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
         mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
@@ -227,6 +246,11 @@ else
         echo ""
         echo "##################################################################################" && exit 1
       fi
+    fi
+
+    # If user asked for DXVK release, clean for next time
+    if [ "$_use_dxvk" == "release" ]; then
+      rm -rf "$_nowhere"/dxvk
     fi
 
     # If the token gave us prebuilt d9vk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
