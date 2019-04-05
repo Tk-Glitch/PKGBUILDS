@@ -219,7 +219,13 @@ else
           rm proton_dist_tmp/lib/wine/dxvk/dxgi.dll
         fi
       else
-        echo "Your config file is set up to include prebuilt DXVK, but you seem to be missing it."
+        echo "##################################################################################"
+        echo ""
+        echo " Your config file is set up to include prebuilt DXVK, but it seems to be missing !"
+        echo " Please verify that your DXVK dlls are present in the ./dxvk dir"
+        echo " See the readme for more details on how to setup DXVK for proton-tkg"
+        echo ""
+        echo "##################################################################################" && exit 1
       fi
     fi
 
@@ -229,7 +235,13 @@ else
         mkdir -p proton_dist_tmp/lib64/wine/d9vk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/d9vk/
         mkdir -p proton_dist_tmp/lib/wine/d9vk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/d9vk/
       else
-        echo "Your config file is set up to include prebuilt D9VK, but you seem to be missing it."
+        echo "##################################################################################"
+        echo ""
+        echo " Your config file is set up to include prebuilt D9VK, but it seems to be missing !"
+        echo " Please verify that your D9VK dlls are present in the ./d9vk dir"
+        echo " See the readme for more details on how to setup D9VK for proton-tkg"
+        echo ""
+        echo "##################################################################################" && exit 1
       fi
     fi
 
