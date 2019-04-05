@@ -2,7 +2,7 @@
 
 This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git).
 
-### It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries. Wine-staging based? Latest master? Yup, you can.
+It can create Steamplay compatible wine builds based on wine-tkg-git + additional proton patches and libraries. Wine-staging based? Latest master? Yup, you can.
 ( **Older than 3.16 wine bases are untested.** )
 
 ### This is not standalone and requires Steam. If you want a standalone wine build, use [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git) instead.
@@ -30,6 +30,12 @@ This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILD
 **All other wine-tkg-git settings can be tweaked such as wine version, staging, esync, game fixes (etc.) and the userpatches functionality is kept intact.**
 
 You can find all your usual options in the proton-tkg.cfg file. If you create a proton-tkg.cfg file in ~/.config/frogminer dir, it'll be used as an override.
+
+## The prebuilt DXVK/D9VK "problem"
+
+- DXVK winelib currently has limitations and might prevent some games to see your GPU. **Making a non-winelib build is recommended for compatibility sakes.** Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK and D9VK and put them where needed for proton-tkg using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
+
+### If you're not using dxvk-tools/can't build DXVK/D9VK :
 
 When `_use_dxvk` is set to `"prebuilt"`, you'll need to put your prebuilt DXVK dlls inside a dxvk folder, in the root folder of proton-tkg (here):
 ```
@@ -61,8 +67,6 @@ You can also change their default values before building in your `proton-tkg.cfg
 
 
 ## Other things to know :
-
-- DXVK winelib currently has limitations and might prevent some (rare) games to see your GPU. Making a non-winelib build is recommended for compatibility sakes. Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
 
 - Proton doesn't like running games from NTFS. Consider symlinking your compatdata dir(s) (usually found in /SteamApps) to some place on an EXT4 partition if you want to play games from a NTFS partition.
 
