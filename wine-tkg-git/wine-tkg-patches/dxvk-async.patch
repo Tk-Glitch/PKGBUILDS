@@ -234,9 +234,9 @@ index b37c9b38..34e98d3e 100644
 -  }
 -
 -
-   bool DxvkGraphicsPipeline::validatePipelineState(
-     const DxvkGraphicsPipelineStateInfo& state) const {
-     // Validate vertex input - each input slot consumed by the
+   DxvkShaderModule DxvkGraphicsPipeline::createShaderModule(
+     const Rc<DxvkShader>&                shader,
+     const DxvkShaderModuleCreateInfo&    info) const {
 diff --git a/src/dxvk/dxvk_graphics.h b/src/dxvk/dxvk_graphics.h
 index f30683b5..2c9309d6 100644
 --- a/src/dxvk/dxvk_graphics.h
@@ -362,9 +362,9 @@ index f30683b5..2c9309d6 100644
 -    void destroyPipeline(
 -            VkPipeline                     pipeline) const;
 -    
-     bool validatePipelineState(
-       const DxvkGraphicsPipelineStateInfo& state) const;
-     
+     DxvkShaderModule createShaderModule(
+       const Rc<DxvkShader>&                shader,
+       const DxvkShaderModuleCreateInfo&    info) const;
 diff --git a/src/dxvk/dxvk_image.h b/src/dxvk/dxvk_image.h
 index 20054868..bd383e76 100644
 --- a/src/dxvk/dxvk_image.h
