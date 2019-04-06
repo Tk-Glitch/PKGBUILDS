@@ -56,7 +56,7 @@ function proton_tkg_uninstaller {
   if [ -d "$_GOTCHA" ] && [ $i -ge 2 ]; then
     cd "$HOME/.steam/root/compatibilitytools.d"
 
-    _available_builds=(*)
+    _available_builds=(proton_tkg_*)
     _strip_builds="${_available_builds[@]//proton_tkg_/}"
     _config_file="$HOME/.local/share/Steam/config/config.vdf"
 
@@ -81,7 +81,7 @@ function proton_tkg_uninstaller {
     for build in ${_strip_builds[@]}; do
       if [ "$_to_uninstall" == "$i" ]; then
         rm -rf "proton_tkg_$build"
-        _available_builds=(*) && _newest_build="${_available_builds[-1]//proton_tkg_/}"
+        _available_builds=(proton_tkg_*) && _newest_build="${_available_builds[-1]//proton_tkg_/}"
         sed -i "s/\"Proton-tkg $build\"/\"Proton-tkg ${_newest_build[@]}\"/" $_config_file &&
         echo "###########################################################################################################################"
         echo ""
