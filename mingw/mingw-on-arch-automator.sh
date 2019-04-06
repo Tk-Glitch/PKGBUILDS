@@ -10,6 +10,8 @@ _pgp_auto=true
 
 _sdlandco=false
 
+_NUKR=true
+
  echo '#################################################################'
  echo ''
  echo 'Mingw on arch automator will install mingw for you. Since the'
@@ -142,6 +144,15 @@ if [ $_sdlandco == "true" ]; then
   cd mingw-w64-sdl2
   makepkg -si --noconfirm
   cd $_where
+fi
+
+if [ $_NUKR == "true" ]; then
+  # cleanup
+  echo "Cleaning up..."
+  rm -rf mingw-w64-*
+  rm -rf cloo*
+  rm -rf osl
+  rm -rf isl
 fi
 
 echo "mingw-on-arch done"
