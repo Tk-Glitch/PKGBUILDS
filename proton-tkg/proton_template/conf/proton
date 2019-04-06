@@ -281,16 +281,6 @@ if "nvapidisable" in config_opts:
 if "pulselowlat" in config_opts:
     env["PULSE_LATENCY_MSEC"] = "60"
 
-comfile = None
-if "logcommandtoprefix" in config_opts:
-    if os.path.exists(os.environ["STEAM_COMPAT_DATA_PATH"]):
-        comfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/launch_command"
-        if os.path.exists(comfile_path):
-            os.remove(comfile_path)
-        comfile = open(comfile_path, "w")
-        comfile.write("Command: " + str(sys.argv[2:]) + "\n")
-        comfile.close()
-
 lfile = None
 if "SteamGameId" in env:
     if env["WINEDEBUG"] != "-all":
@@ -334,6 +324,15 @@ with prefix_lock:
     if os.path.exists(version_file):
         with open(version_file, "r") as f:
             upgrade_pfx(f.readline().strip())
+    comfile = None
+    if "logcommandtoprefix" in config_opts:
+        if os.path.exists(os.environ["STEAM_COMPAT_DATA_PATH"]):
+            comfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/launch_command"
+            if os.path.exists(comfile_path):
+                os.remove(comfile_path)
+            comfile = open(comfile_path, "w")
+            comfile.write("Command: " + str(sys.argv[2:]) + "\n")
+            comfile.close()
     else:
         upgrade_pfx(None)
 
