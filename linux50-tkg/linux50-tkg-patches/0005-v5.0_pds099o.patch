@@ -8146,9 +8146,9 @@ index ba4d9e85feb8..ae4050e467f2 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
 @@ -127,8 +127,12 @@ static int __maybe_unused one = 1;
- static int __maybe_unused two = 2;
  static int __maybe_unused four = 4;
  static unsigned long one_ul = 1;
+ static unsigned long long_max = LONG_MAX;
 -static int one_hundred = 100;
 -static int one_thousand = 1000;
 +static int __read_mostly one_hundred = 100;
