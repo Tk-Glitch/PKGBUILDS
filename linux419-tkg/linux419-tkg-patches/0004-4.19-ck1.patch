@@ -16161,9 +16161,9 @@ index cc02050fd0c4..7dac6885128e 100644
 --- a/kernel/sysctl.c
 +++ b/kernel/sysctl.c
 @@ -126,9 +126,17 @@ static int __maybe_unused one = 1;
- static int __maybe_unused two = 2;
  static int __maybe_unused four = 4;
  static unsigned long one_ul = 1;
+ static unsigned long long_max = LONG_MAX;
 -static int one_hundred = 100;
 -static int one_thousand = 1000;
 -#ifdef CONFIG_PRINTK
@@ -16769,8 +16769,8 @@ index c9d038f91af6..af41781c233a 100644
  	    -I$(srctree)/tools/arch/$(HOSTARCH)/include/uapi \
  	    -I$(srctree)/tools/objtool/arch/$(ARCH)/include
  WARNINGS := $(EXTRA_WARNINGS) -Wno-switch-default -Wno-switch-enum -Wno-packed
--CFLAGS   += -Werror $(WARNINGS) $(KBUILD_HOSTCFLAGS) -g $(INCLUDES)
-+CFLAGS   += $(WARNINGS) $(KBUILD_HOSTCFLAGS) -g $(INCLUDES)
- LDFLAGS  += -lelf $(LIBSUBCMD) $(KBUILD_HOSTLDFLAGS)
+-CFLAGS   += -Werror $(WARNINGS) $(KBUILD_HOSTCFLAGS) -g $(INCLUDES) $(LIBELF_FLAGS)
++CFLAGS   += $(WARNINGS) $(KBUILD_HOSTCFLAGS) -g $(INCLUDES) $(LIBELF_FLAGS)
+ LDFLAGS  += $(LIBELF_LIBS) $(LIBSUBCMD) $(KBUILD_HOSTLDFLAGS)
  
  # Allow old libelf to be used:
