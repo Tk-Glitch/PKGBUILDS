@@ -80,9 +80,7 @@ function proton_tkg_uninstaller {
     i=1
     for build in ${_strip_builds[@]}; do
       if [ "$_to_uninstall" == "$i" ]; then
-        rm -rf "proton_tkg_$build"
-        _available_builds=(proton_tkg_*) && _newest_build="${_available_builds[-1]//proton_tkg_/}"
-        sed -i "s/\"Proton-tkg $build\"/\"Proton-tkg ${_newest_build[@]}\"/" $_config_file &&
+        rm -rf "proton_tkg_$build" && _available_builds=(proton_tkg_*) && _newest_build="${_available_builds[-1]//proton_tkg_/}" && sed -i "s/\"Proton-tkg $build\"/\"Proton-tkg ${_newest_build[@]}\"/" $_config_file
         echo "###########################################################################################################################"
         echo ""
         echo "Proton-tkg $build was uninstalled and games previously depending on it will now use Proton-tkg ${_newest_build[@]} instead."
