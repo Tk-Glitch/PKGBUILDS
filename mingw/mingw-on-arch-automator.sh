@@ -10,7 +10,8 @@ _pgp_auto=true
 
 _sdlandco=false
 
-_NUKR=true
+# Set to true to clean sources after building - If set to false, you'll be prompted about it
+_NUKR=false
 
  echo '#################################################################'
  echo ''
@@ -25,6 +26,13 @@ rm -rf mingw-w64-*
 rm -rf cloo*
 rm -rf osl
 rm -rf isl
+
+if [ $_NUKR == "false" ]; then
+  read -rp "Wanna clean everything after building? N/y: " _clean_mingw;
+  if [ "$_clean_mingw" == "y" ]; then
+    _NUKR=true
+  fi
+fi
 
 # PGP keys
 if [ $_pgp_auto == "true" ]; then
