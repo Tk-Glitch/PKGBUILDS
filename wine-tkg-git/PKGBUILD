@@ -566,6 +566,7 @@ prepare() {
 	cd "${srcdir}"/"${_stgsrcdir}"
 	if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 553986fdfb111914f793ff1487d53af022e4be19 HEAD; then # eventfd_synchronization: Add patch set. 
 	  _use_esync="false"
+	  _staging_esync="true"
 	   echo "Disabled the local Esync patchset to use Staging impl instead." >> "$_where"/last_build_config.log
 	fi
 	cd "${srcdir}"/"${_winesrcdir}"
@@ -1073,7 +1074,7 @@ prepare() {
 	else
 	  _version_tags+=(Plain)
 	fi
-	if [ "$_use_esync" == "true" ]; then
+	if [ "$_use_esync" == "true" ] || [ "$_staging_esync" == "true" ]; then
 	  _version_tags+=(Esync)
 	fi
 	if [ "$_use_pba" == "true" ] && [ "$_pba_version" != "none" ]; then
