@@ -40,4 +40,7 @@ While some are already available there without userpatches or lib32 support, the
 
 **If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch**
 
+## Thanks to Furkan Mustafa and all my anonymous Patrons! Much frog love to you guys <3
+
+
 **You can also donate to me via https://www.paypal.me/TkGlitch**
