@@ -1,4 +1,4 @@
-# DXVK and DXUP scripts to build/patch/install/update, Lutris and Proton-tkg compatible.
+# DXVK and D9VK scripts to build/patch/install/update, Lutris and Proton-tkg compatible.
 
 ### Requirements:
 - [wine 3.10](https://www.winehq.org/) or newer
