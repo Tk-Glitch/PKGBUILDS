@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.5.r13.g4ea094ed
+pkgver=4.5.r14.g270b403c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -1153,7 +1153,7 @@ build() {
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix="" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_GCC_FLAGS -Wl,-rpath-link,$_prefix/$_lib64name"
+	  _prefix='$ORIGIN' && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
 	fi
 
 	# build wine 64-bit
@@ -1178,7 +1178,7 @@ build() {
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  export LDFLAGS="$_GCC_FLAGS -Wl,-rpath-link,$_prefix/$_lib32name"
+	  export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
