@@ -33,6 +33,8 @@ You can find all your usual options in the proton-tkg.cfg file. If you create a 
 
 ## The prebuilt DXVK/D9VK "problem"
 
+By default, proton-tkg will download latest official DXVK release from github. You have nothing to do, it's all good. **However, if you want to build/use a development or modified version of DXVK, beware :**
+
 - DXVK winelib currently has limitations and might prevent some games to see your GPU. **Making a non-winelib build is recommended for compatibility sakes.** Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK and D9VK and put them where needed for proton-tkg using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
 
 ### If you're not using dxvk-tools/can't build DXVK/D9VK :
@@ -61,7 +63,7 @@ Proton-tkg builds are coming with special additional features you can enable/dis
 - `PROTON_NVAPI_DISABLE` - Enabled by default, it'll set nvapi and nvapi64 dlls to disabled. It is a common fix for many games.
 - `PROTON_WINEDBG_DISABLE` - Enabled by default, it'll set winedbg.exe to disabled. It's a known fix for GTA V online.
 - `PROTON_PULSE_LOWLATENCY` - Enabled by default, it'll set Pulseaudio latency to 60ms. This usually helps with audio crackling issues on some setups.
-- `PROTON_DXVK_ASYNC` - Disabled by default, it'll enable DXVK's async pipecompiler on a compatible DXVK build. Known as the "poe hack", that option *could* be unsafe, so beware.
+- `PROTON_DXVK_ASYNC` - Disabled by default, it'll enable DXVK's async pipecompiler on a compatible DXVK build (official/default DXVK build doesn't support it). Known as the "poe hack", that option *could* be unsafe for anticheats, so beware.
 
 You can also change their default values before building in your `proton-tkg.cfg` file.
 
