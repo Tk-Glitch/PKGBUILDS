@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.5.r14.g270b403c
+pkgver=4.5.r16.g52a77f6b
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=149
+eval pkgrel=150
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -392,7 +392,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r3.patch' # For 3.20+
 		'esync-compat-fixes-r3.1.patch' # Addon for 4.4+
 		'esync-compat-fixes-r3.2.patch' # Addon for 4.5+
-		'esync-compat-fixes-r3.3.patch' # Addon for 4.6+
+		'esync-compat-fixes-r3.3.patch' # Addon for 4.6+ (b3c8d5d)
+		'esync-compat-fixes-r3.4.patch' # Addon for 4.6+ (4c0e817)
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -860,7 +861,14 @@ prepare() {
 	    # if using a wine version that includes b3c8d5d, apply 4.6+ additional fixes
 	    if git merge-base --is-ancestor b3c8d5d36850e484b5cc84ab818a75db567a06a3 HEAD; then # ntdll: Use static debug info before initialization is done. 
 	      cd "${srcdir}"/"${_esyncsrcdir}"
-	      _patchname='esync-compat-fixes-r3.3.patch' && _patchmsg="Using esync 4.6+ additional compat fixes" && nonuser_patcher
+	      _patchname='esync-compat-fixes-r3.3.patch' && _patchmsg="Using esync 4.6+(b3c8d5d) additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    # if using a wine version that includes 4c0e817, apply 4.6+ additional fixes
+	    if git merge-base --is-ancestor 4c0e81728f6db575d9cbd8feb8a5374f1adec9bb HEAD; then # ntdll: Use static debug info before initialization is done. 
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.4.patch' && _patchmsg="Using esync 4.6+(4c0e817) additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
@@ -1379,6 +1387,7 @@ md5sums=('SKIP'
          'f3c95dcaeab28d8b97e80a5e9d9a1c01'
          'b10e6f8732dbc1e07b59730f9aeea21e'
          '2235fbda559247a0eb0d37d9fd6d87b5'
+         'a20e4bc565a5433c9ffd2dcb1eee53fc'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'

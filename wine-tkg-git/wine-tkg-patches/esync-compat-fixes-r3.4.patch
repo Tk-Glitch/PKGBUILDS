@@ -1,0 +1,20 @@
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Thu, 4 Apr 2019 02:05:31 +0100
+Subject: esync fixup for wine 4.6+
+
+
+diff --git a/0020-server-Create-eventfd-file-descriptors-for-thread-ob.patch b/0020-server-Create-eventfd-file-descriptors-for-thread-ob.patch
+index dc9fb913a..4c5a535f0 100644
+--- a/0020-server-Create-eventfd-file-descriptors-for-thread-ob.patch
++++ b/0020-server-Create-eventfd-file-descriptors-for-thread-ob.patch
+@@ -77,9 +77,9 @@ index e4332df4ab..fc3ca4b701 100644
+ --- a/server/thread.h
+ +++ b/server/thread.h
+ @@ -89,6 +89,7 @@ struct thread
+-     timeout_t              creation_time; /* Thread creation time */
+      timeout_t              exit_time;     /* Thread exit time */
+      struct token          *token;         /* security token associated with this thread */
++     struct list            kernel_object; /* list of kernel object pointers */
+ +    int                    esync_fd;      /* esync file descriptor (signalled on exit) */
+  };
+  
