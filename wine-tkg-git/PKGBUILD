@@ -312,8 +312,8 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'ocl-icd'               'lib32-ocl-icd'
     'opencl-headers'
 )
-# We need wine installed to build DXVK winelib
-if [ "$_use_dxvk" == "true" ]; then
+# We need wine installed to build DXVK/D9VK winelib
+if [ "$_use_dxvk" == "true" ] || [ "$_use_d9vk" == "true" ]; then
   makedepends=("${makedepends[@]}" wine)
 fi
 
