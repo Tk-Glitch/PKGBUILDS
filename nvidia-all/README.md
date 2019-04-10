@@ -1,4 +1,4 @@
-# Nvidia driver 418.30 (beta), 418.49.04 (Vulkan dev), 415.27 (short lived) & 418.56 (long lived)
+# Nvidia driver 418.30 (beta), 418.52.03 (Vulkan dev), 415.27 (short lived) & 418.56 (long lived)
 # Also supports user-selected driver version (lower than 396.45 is untested)
 
 LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (you will still be asked if you want to use the regular package). Installs for all currently installed kernels.
@@ -6,7 +6,7 @@ Unwanted packages can be disabled with switches in the PKGBUILD. Defaults to com
 
 You may need/want to add a pacman hook for nvidia depending on your setup : https://wiki.archlinux.org/index.php/NVIDIA#DRM_kernel_mode_setting
 
-418.49.04 : https://developer.nvidia.com/vulkan-driver (Vulkan dev drivers page)
+418.52.03 : https://developer.nvidia.com/vulkan-driver (Vulkan dev drivers page)
 
 415.27 & 418.56 : https://www.nvidia.com/object/unix.html
 
