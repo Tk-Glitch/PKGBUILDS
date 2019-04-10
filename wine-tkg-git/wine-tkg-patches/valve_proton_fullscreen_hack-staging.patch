@@ -3269,7 +3269,7 @@ index fc9d29c23e..e7363f7c15 100644
  
  #define NONAMELESSUNION
  #define NONAMELESSSTRUCT
-@@ -131,27 +132,223 @@ unsigned int X11DRV_Settings_GetModeCount(void)
+@@ -131,27 +132,225 @@ unsigned int X11DRV_Settings_GetModeCount(void)
   * Default handlers if resolution switching is not enabled
   *
   */
@@ -3302,6 +3302,8 @@ index fc9d29c23e..e7363f7c15 100644
 +    {1600,  900}, /* 16:9 */
 +    {1920, 1080}, /* 16:9 */
 +    {2560, 1440}, /* 16:9 */
++    {2880, 1620}, /* 16:9 */
++    {3200, 1800}, /* 16:9 */
 +    {1440,  900}, /*  8:5 */
 +    {1680, 1050}, /*  8:5 */
 +    {1920, 1200}, /*  8:5 */

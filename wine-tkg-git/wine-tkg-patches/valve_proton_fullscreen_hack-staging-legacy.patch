@@ -3764,7 +3764,7 @@ diff --git a/dlls/winex11.drv/settings.c b/dlls/winex11.drv/settings.c
 index da029058df5..00a4fa558db 100644
 --- a/dlls/winex11.drv/settings.c
 +++ b/dlls/winex11.drv/settings.c
-@@ -146,22 +146,29 @@ static struct fs_mode {
+@@ -146,22 +146,31 @@ static struct fs_mode {
      int w, h;
  } fs_modes[] = {
      {0, 0}, /* mode 0 is the real mode */
@@ -3790,6 +3790,8 @@ index da029058df5..00a4fa558db 100644
 -    {1680, 1050}, /*  8:5 */
      {1920, 1080}, /* 16:9 */
 +    {2560, 1440}, /* 16:9 */
++    {2880, 1620}, /* 16:9 */
++    {3200, 1800}, /* 16:9 */
 +    {1440,  900}, /*  8:5 */
 +    {1680, 1050}, /*  8:5 */
      {1920, 1200}, /*  8:5 */
