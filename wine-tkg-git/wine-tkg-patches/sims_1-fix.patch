@@ -1,18 +1,3 @@
---- a/dlls/ddraw/device.c	
-+++ a/dlls/ddraw/device.c	
-@@ -4820,9 +4820,10 @@ static HRESULT d3d_device7_SetTexture(IDirect3DDevice7 *iface,
-     struct ddraw_surface *surf = unsafe_impl_from_IDirectDrawSurface7(texture);
-     struct wined3d_texture *wined3d_texture = NULL;
- 
--    TRACE("iface %p, stage %u, texture %p.\n", iface, stage, texture);
-+    TRACE("iface %p, stage %u, texture %p, surf %p, surf->surface_desc.ddsCaps.dwCaps %#x.\n",
-+            iface, stage, texture, surf, surf ? surf->surface_desc.ddsCaps.dwCaps : 0);
- 
--    if (surf && (surf->surface_desc.ddsCaps.dwCaps & DDSCAPS_TEXTURE))
-+    if (surf /*&& (surf->surface_desc.ddsCaps.dwCaps & DDSCAPS_TEXTURE) */)
-         wined3d_texture = surf->wined3d_texture;
- 
-     wined3d_mutex_lock();
 diff --git a/dlls/ddraw/device.c b/dlls/ddraw/device.c
 index 713d46616a..8e049e19d4 100644
 --- a/dlls/ddraw/device.c
