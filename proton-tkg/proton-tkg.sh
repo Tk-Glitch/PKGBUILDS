@@ -62,11 +62,11 @@ function proton_tkg_uninstaller {
 
     cp $_config_file $_config_file.bak && echo "Your config.vdf file was backed up from $_config_file (.bak)" && echo ""
 
-    echo "##############################################################"
+    echo "################################################"
     echo ""
-    echo " DO NOT TRY TO UNINSTALL NON-TKG PROTON BUILDS WITH THIS TOOL!"
+    echo " PLEASE FULLY CLOSE STEAM NOW TO PREVENT ISSUES!"
     echo ""
-    echo "##############################################################"
+    echo "################################################"
     echo ""
     echo "What Proton-tkg build do you want to uninstall?"
 
