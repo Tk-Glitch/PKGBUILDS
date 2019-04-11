@@ -254,9 +254,9 @@ index 960417d428..ab2a150a1d 100755
 +            if conv.shared:
 +                f.write(conv.definition())
 +
-         for conv in self.struct_chain_conversions:
-             f.write(conv.definition())
- 
+         # Create thunks for instance and device functions.
+         # Global functions don't go through the thunks.
+         for vk_func in self.registry.funcs.values():
 @@ -2080,6 +2155,10 @@ class VkGenerator(object):
              f.write(struct.definition(align=False, conv=True, postfix="_host"))
          f.write("\n")
