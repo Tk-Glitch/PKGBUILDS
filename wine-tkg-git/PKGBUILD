@@ -5,7 +5,7 @@ pkgver=4.5.r20.g8f56ffcf
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=151
+eval pkgrel=152
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -1417,8 +1417,8 @@ md5sums=('SKIP'
          '07b48859d0b274c9b35be4de3016ae27'
          '3cb83a83c7ed9335eddbef665f4d89f9'
          '25e20e66ee3b2896f2979ba4e16ff767'
-         'afd2e119b0d5aac290a0b89324624fb4'
-         '3d52653b8f98cf5e0d7305fdbd5cb2c2'
+         '8427bb8d40cc49bc1de3a53ed82254ad'
+         '3034b1a397cad46feb641cb3d7dc8584'
          '1c4738e438debf72266b96d09f465b25'
          '0a63f893e35dab5130e8b4239406adc8'
          '07e63573292fa2ad1655e5fe562a3863'
