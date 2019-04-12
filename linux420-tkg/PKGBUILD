@@ -468,8 +468,19 @@ prepare() {
     make localmodconfig
   fi
 
-  # rewrite configuration
-  yes "" | make config >/dev/null
+  # menuconfig
+  if [ -z "$_menuconfig" ]; then
+    plain ""
+    plain "Do you want to use make menuconfig to configure the kernel before building it?"
+    read -p "`echo $'    > N/y : '`" CONDITION10;
+  fi
+  if [ "$CONDITION10" == "y" ] || [ "$_menuconfig" == "true" ]; then
+    make menuconfig
+  else
+    # rewrite configuration
+    yes "" | make config >/dev/null
+  fi
+
 }
 
 build() {
