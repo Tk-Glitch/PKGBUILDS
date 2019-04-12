@@ -2241,7 +2241,7 @@ index d478cbdcb3..6d2eb0673e 100644
 +            XMoveResizeWindow(data->display, data->whole_window, tl.x, tl.y, p.x, p.y);
 +            if(data->client_window)
 +                XMoveResizeWindow(data->display, data->client_window, 0, 0, p.x, p.y);
-+            sync_gl_drawable(hwnd, FALSE);
++            sync_gl_drawable(hwnd);
 +            update_net_wm_states( data );
 +        }
 +    }else {
@@ -2281,7 +2281,7 @@ index d478cbdcb3..6d2eb0673e 100644
 +                        data->client_rect.right - data->client_rect.left,
 +                        data->client_rect.bottom - data->client_rect.top);
 +            }
-+            sync_gl_drawable(hwnd, FALSE);
++            sync_gl_drawable(hwnd);
 +        }
      }
      release_win_data( data );
@@ -3847,7 +3847,7 @@ index 1d526bd109..3cc0604b2e 100644
      }
  
 +    if (data->fs_hack)
-+        sync_gl_drawable( hwnd, FALSE );
++        sync_gl_drawable( hwnd );
 +
      /* check if we are currently processing an event relevant to this window */
      event_type = 0;
