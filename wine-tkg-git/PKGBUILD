@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.5.r20.g8f56ffcf
+pkgver=4.5.r22.g56174c33
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -359,6 +359,7 @@ optdepends=(
     'samba'                 'clang'
     'dosbox'                'ccache'
     'faudio'                'lib32-faudio'
+    'mingw-w64-gcc'
 )
 source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
