@@ -5,7 +5,7 @@ pkgver=4.5.r22.g56174c33
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=152
+eval pkgrel=153
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -432,6 +432,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'proton-sdl-joy.patch' # Proton SDL joystick support
+		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -1062,6 +1063,9 @@ prepare() {
 	  if [ "$_sdl_joy_support" == "true" ]; then
 	    _patchname='proton-sdl-joy.patch' && _patchmsg="Enable SDL Joystick support (from Proton)" && nonuser_patcher
 	  fi
+	  if git merge-base --is-ancestor 0ffb1535517301d28c7c004eac639a9a0cc26c00 HEAD; then
+	    _patchname='proton-restore-unicode.patch' && _patchmsg="Restore installing wine/unicode.h to please Proton" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches
@@ -1427,6 +1431,7 @@ md5sums=('SKIP'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
-         '52f11ca72f4ee06bd2a4bc2b0314e631')
+         '52f11ca72f4ee06bd2a4bc2b0314e631'
+         'eea40375be4cd3615eaef5412802274b')
 
 trap exit_cleanup EXIT
