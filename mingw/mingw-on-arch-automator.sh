@@ -5,7 +5,7 @@
 _where=$PWD
 _dwarf2=true
 _fortran=true
-_cloog_git=true
+_cloog_git=false
 _pgp_auto=true
 
 _sdlandco=false
@@ -51,6 +51,8 @@ if [ $_cloog_git == "true" ]; then
   makepkg -si --noconfirm
   cd $_where
 else
+  sudo pacman -Rscnd cloog-git --noconfirm
+
   # osl
   git clone https://aur.archlinux.org/osl.git
   cd osl
