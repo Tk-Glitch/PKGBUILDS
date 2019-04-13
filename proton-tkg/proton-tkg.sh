@@ -44,6 +44,19 @@ Also known as "Some kind of build wrapper for wine-tkg-git"
 
 EOF
 
+function steam_is_running {
+  if pgrep -x steam >/dev/null; then
+    echo "###################################################"
+    echo ""
+    echo " Steam is running. Please full close it to proceed."
+    echo ""
+    echo "###################################################"
+    echo ""
+    read -rp "Press enter when ready..."
+    steam_is_running
+  fi
+}
+
 function proton_tkg_uninstaller {
   # Never cross the Proton streams!
   i=0
@@ -62,12 +75,8 @@ function proton_tkg_uninstaller {
 
     cp $_config_file $_config_file.bak && echo "Your config.vdf file was backed up from $_config_file (.bak)" && echo ""
 
-    echo "################################################"
-    echo ""
-    echo " PLEASE FULLY CLOSE STEAM NOW TO PREVENT ISSUES!"
-    echo ""
-    echo "################################################"
-    echo ""
+    steam_is_running
+
     echo "What Proton-tkg build do you want to uninstall?"
 
     i=1
