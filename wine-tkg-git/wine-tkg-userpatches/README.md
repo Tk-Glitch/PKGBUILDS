@@ -34,6 +34,6 @@ You can also revert dxvk patches by giving them the .mydxvkrevert extension.
 
 
 ## For d9vk
-You can use your own dxup patches by giving them the .myd9vkpatch extension.
+You can use your own d9vk patches by giving them the .myd9vkpatch extension.
 
-You can also revert dxup patches by giving them the .myd9vkrevert extension.
+You can also revert d9vk patches by giving them the .myd9vkrevert extension.
