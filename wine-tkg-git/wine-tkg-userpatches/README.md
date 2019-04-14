@@ -8,9 +8,9 @@ You can also symlink them from an external place by running the following comman
 
 *For example :* `ln -s /home/tkg/.config/frogminer/wine-tkg-userpatches/* wine-tkg-userpatches/`
 
-They need to be diffs against the targetted tree.
+They need to be diffs against the targeted tree.
 
-To specify the targetted tree, you need to give your patch the appropriate extension :
+To specify the targeted tree, you need to give your patch the appropriate extension :
 
 **!! Patches with unrecognized extension will get ignored !!**
 
