@@ -9,7 +9,7 @@
 
 - Added 2880x1620 and 3200x1800 selectable resolutions to variants making use of the Proton FS hack.
 
-- New "sims1" variant to fix rendering issues.
+- Added new "osu" branch coming with thepoon's low latency alsa patch to help with osu's timing issues.
 
 - Rebased & updated Proton FS hack and LAA patchsets.
 
@@ -26,6 +26,8 @@
 - New "warframe" variant to fix official launcher self-update loop bug - Except for the Warframe fix, it's similar to Protonified
 
 - Rebased Esync and Proton fs hack patchsets for 4.5 (Also, the Proton FS hack was updated with Proton 4.2 changes, fixing potential xorg errors and adding GDI support)
+
+A new "sims1" variant was added mid-way to fix rendering issues.
 
 
 
