@@ -13,7 +13,7 @@
 
 - Rebased & updated Proton FS hack and LAA patchsets.
 
-- Added amd_ags support to fix some driver check related issues and AMD hardware - https://github.com/ValveSoftware/wine/commits/proton_4.2/dlls/amd_ags_x64
+- Added amd_ags support to fix some driver check related issues on AMD hardware - https://github.com/ValveSoftware/wine/commits/proton_4.2/dlls/amd_ags_x64
 
 - The config log is now written to the root of the wine source tree (wine-tkg-config.txt) so one can know easily what patches are in use on a given variant.
 
