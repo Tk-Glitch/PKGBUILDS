@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.5.r22.g56174c33
+pkgver=4.6.r0.g3f8edce5
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1

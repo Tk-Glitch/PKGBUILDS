@@ -1,5 +1,23 @@
 # Wine-tkg lutris builds changelog
 
+4.6
+- Sync'd with staging up to 3f8edce;
+
+- The "warframe" variant was deprecated. The patch was staged, then mainlined.
+
+- STAGING_SHARED_MEMORY has been disabled by default as it was causing issues with Origin client stability.
+
+- Added 2880x1620 and 3200x1800 selectable resolutions to variants making use of the Proton FS hack.
+
+- New "sims1" variant to fix rendering issues.
+
+- Rebased & updated Proton FS hack and LAA patchsets.
+
+- Added amd_ags support to fix some driver check related issues and AMD hardware - https://github.com/ValveSoftware/wine/commits/proton_4.2/dlls/amd_ags_x64
+
+- The config log is now written to the root of the wine source tree (wine-tkg-config.txt) so one can know easily what patches are in use on a given variant.
+
+
 4.5
 - Sync'd with staging up to cf0a72b;
 
@@ -8,6 +26,7 @@
 - New "warframe" variant to fix official launcher self-update loop bug - Except for the Warframe fix, it's similar to Protonified
 
 - Rebased Esync and Proton fs hack patchsets for 4.5 (Also, the Proton FS hack was updated with Proton 4.2 changes, fixing potential xorg errors and adding GDI support)
+
 
 
 4.4
