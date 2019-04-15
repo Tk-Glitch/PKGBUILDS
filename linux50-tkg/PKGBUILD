@@ -483,7 +483,8 @@ prepare() {
   # menuconfig
   if [ -z "$_menuconfig" ]; then
     plain ""
-    plain "Do you want to use make menuconfig to configure the kernel before building it?"
+    plain "*Optional* For advanced users - Do you want to use make menuconfig to configure the kernel before building it?"
+    plain "If you do, make sure your terminal is currently 19 lines by 80 colums large or you'll get an error :D"
     read -p "`echo $'    > N/y : '`" CONDITION10;
   fi
   if [ "$CONDITION10" == "y" ] || [ "$_menuconfig" == "true" ]; then
