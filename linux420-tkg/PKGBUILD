@@ -43,7 +43,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.20
 _sub=17
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=38
+pkgrel=39
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -370,13 +370,32 @@ prepare() {
         -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
   fi
 
+  # tickless
+  if [ -z "$_full_tickless" ]; then
+    plain ""
+    plain "Use CattaRappa mode? (Full Tickless)"
+    plain "Can give higher performances in various cases but, depending on hardware, lower consistency"
+    read -p "`echo $'    > N/y : '`" CONDITION3;
+  fi
+  if [ "$CONDITION3" == "y" ] || [ "$_full_tickless" == "true" ]; then
+    sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
+    sed -i -e 's/# CONFIG_RCU_BOOST is not set/CONFIG_RCU_BOOST=y/' ./.config
+    echo "CONFIG_NO_HZ_COMMON=y" >> ./.config
+    echo "# CONFIG_RCU_FAST_NO_HZ is not set" >> ./.config
+    echo "CONFIG_RCU_BOOST_DELAY=0" >> ./.config
+    echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
+    echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
+  fi
+
   # voluntary preempt
   if [ -z "$_voluntary_preempt" ]; then
     plain ""
     plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
-    read -p "`echo $'    > N/y : '`" CONDITION3;
+    read -p "`echo $'    > N/y : '`" CONDITION31;
   fi
-  if [ "$CONDITION3" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
+  if [ "$CONDITION13" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
     sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
     sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
   fi
