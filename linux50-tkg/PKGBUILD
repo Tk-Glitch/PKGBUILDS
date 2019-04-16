@@ -19,7 +19,7 @@ fi
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -p "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\n    4.BMQ(experimental)\nchoice[1-4?]: '`" CONDITION;
+  read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\n    4.BMQ(experimental)\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
     echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
@@ -107,7 +107,7 @@ user_patcher() {
 	# To patch the user because all your base are belong to us
 	if [[ $(find "$_where" -name "*.${_userpatch_ext}patch") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -p "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  read -rp "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "$_where"/*.${_userpatch_ext}patch; do
@@ -125,7 +125,7 @@ user_patcher() {
 	fi
 	if [[ $(find "$_where" -name "*.${_userpatch_ext}revert") ]]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -p "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  read -rp "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "$_where"/*.${_userpatch_ext}revert; do
@@ -223,7 +223,7 @@ prepare() {
       plain "For BMQ (experimental) - No recommended value yet, so try for yourself x) :"
       plain "0: No yield."
       plain "1: Deboost and requeue task. (default)"
-      read -p "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended) - Using this option on BMQ will fallback to "1"\n  [0-2?]: '`" CONDITION0;
+      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended) - Using this option on BMQ will fallback to "1"\n  [0-2?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
       msg2 "Using default CPU sched yield type (1)"
@@ -353,7 +353,7 @@ prepare() {
   if [ -z "$_ftracedisable" ]; then
     plain ""
     plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
-    read -p "`echo $'    > N/y : '`" CONDITION1;
+    read -rp "`echo $'    > N/y : '`" CONDITION1;
   fi
   if [ "$CONDITION1" == "y" ] || [ "$_ftracedisable" == "true" ]; then
   sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
@@ -367,7 +367,7 @@ prepare() {
     plain ""
     plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
     plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
-    read -p "`echo $'    > N/y : '`" CONDITION2;
+    read -rp "`echo $'    > N/y : '`" CONDITION2;
   fi
   if [ "$CONDITION2" == "y" ] || [ "$_numadisable" == "true" ]; then
     # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
@@ -387,7 +387,7 @@ prepare() {
     plain ""
     plain "Use CattaRappa mode? (Full Tickless)"
     plain "Can give higher performances in various cases but, depending on hardware, lower consistency"
-    read -p "`echo $'    > N/y : '`" CONDITION3;
+    read -rp "`echo $'    > N/y : '`" CONDITION3;
   fi
   if [ "$CONDITION3" == "y" ] || [ "$_full_tickless" == "true" ]; then
     sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
@@ -405,7 +405,7 @@ prepare() {
   if [ -z "$_voluntary_preempt" ]; then
     plain ""
     plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
-    read -p "`echo $'    > N/y : '`" CONDITION31;
+    read -rp "`echo $'    > N/y : '`" CONDITION31;
   fi
   if [ "$CONDITION31" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
     sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
@@ -416,7 +416,7 @@ prepare() {
   if [ -z "$_OFenable" ]; then
     plain ""
     plain "Enable Device Tree and Open Firmware support?"
-    read -p "`echo $'    > N/y : '`" CONDITION4;
+    read -rp "`echo $'    > N/y : '`" CONDITION4;
   fi
   if [ "$CONDITION4" == "y" ] || [ "$_OFenable" == "true" ]; then
     sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
@@ -427,7 +427,7 @@ prepare() {
     plain ""
     plain "Use ACS override patch?"
     plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
-    read -p "`echo $'    > N/y : '`" CONDITION5;
+    read -rp "`echo $'    > N/y : '`" CONDITION5;
   fi
   if [ "$CONDITION5" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
@@ -438,7 +438,7 @@ prepare() {
     plain ""
     plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
     plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-    read -p "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
+    read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
   fi
   if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
     patch -Np1 -i ../0010-uksm-${_basekernel}.patch
@@ -457,7 +457,7 @@ prepare() {
   #  plain ""
   #  plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
   #  plain "https://bcachefs.org/"
-  #  read -p "`echo $'    > N/y : '`" CONDITION7;
+  #  read -rp "`echo $'    > N/y : '`" CONDITION7;
   #fi
   #if [ "$CONDITION7" == "y" ] || [ "$_bcachefs" == "true" ]; then
   #  patch -Np1 -i ../0008-bcachefs.patch
@@ -467,7 +467,7 @@ prepare() {
   #if [ -z "$_bfqmq" ]; then
   #  plain ""
   #  plain "Add bfq-mq (BFQ devel) and bfq-sq support? https://github.com/Algodev-github/bfq-mq"
-  #  read -p "`echo $'    > N/y : '`" CONDITION8;
+  #  read -rp "`echo $'    > N/y : '`" CONDITION8;
   #fi
   #if [ "$CONDITION8" == "y" ] || [ "$_bfqmq" == "true" ]; then
   #  patch -Np1 -i ../0009-bfq-mq.patch
@@ -492,7 +492,7 @@ prepare() {
     plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -p "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION9;
   fi
   if [ "$CONDITION9" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
@@ -504,7 +504,7 @@ prepare() {
     plain ""
     plain "*Optional* For advanced users - Do you want to use make menuconfig to configure the kernel before building it?"
     plain "If you do, make sure your terminal is currently 19 lines by 80 colums large or you'll get an error :D"
-    read -p "`echo $'    > N/y : '`" CONDITION10;
+    read -rp "`echo $'    > N/y : '`" CONDITION10;
   fi
   if [ "$CONDITION10" == "y" ] || [ "$_menuconfig" == "true" ]; then
     make menuconfig
