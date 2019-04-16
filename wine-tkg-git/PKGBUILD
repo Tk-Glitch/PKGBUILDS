@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.6.r0.g3f8edce5
+pkgver=4.6.r3.g36e84f29
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -494,7 +494,7 @@ user_patcher() {
 }
 
 nonuser_patcher() {
-  if [ "$_NUKR" == "true" ]; then
+  if [ "$_NUKR" != "debug" ]; then
     msg2 "Applying ${_patchname}" && patch -Np1 < ../"$_patchname" && echo "${_patchmsg}" >> "$_where"/last_build_config.log
   fi
 }
@@ -518,7 +518,7 @@ prepare() {
 	# state tracker start - FEAR THE MIGHTY FROG MINER
 	touch "${_where}"/BIG_UGLY_FROGMINER
 
-	if [ "$_NUKR" == "true" ]; then
+	if [ "$_NUKR" != "debug" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 
 	  # restore the targetted trees to their git origin state
@@ -831,7 +831,7 @@ prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
-	if [ "$_use_staging" == "true" ] && [ "$_NUKR" == "true" ]; then
+	if [ "$_use_staging" == "true" ] && [ "$_NUKR" != "debug" ]; then
 	  msg2 "Applying wine-staging patches..." && echo "Staging overrides, if any: ${_staging_args[@]}" >> "$_where"/last_build_config.log
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all "${_staging_args[@]}"
 
