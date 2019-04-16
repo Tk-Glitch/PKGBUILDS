@@ -16,6 +16,13 @@ if [ -e "$_EXT_CONFIG_PATH" ]; then
   source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
 fi
 
+# Prompt about optimized configurations. Available variable values will overwrite customization.cfg/external config ones.
+plain "Do you want to use a predefined optimized profile?"
+read -rp "`echo $'  > 1.Default\n    2.Ryzen Desktop (Performance)\nchoice[1-2?]: '`" _OPTIPROFILE;
+if [ "$_OPTIPROFILE" == "2" ]; then
+  source "$_where"/ryzen-desktop-profile.cfg && msg2 "Ryzen Desktop (Performance) profile will be used." && msg2 ""
+fi
+
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
@@ -690,6 +697,7 @@ function exit_cleanup {
   rm -rf "$_where"/*.hook
   rm -rf "$_where"/*.install
   rm -rf "$_where"/*.preset
+  rm -rf "$_where"/*-profile.cfg
   rm -rf "$_where"/config.x86_64
 
   if [ $_NUKR == "true" ]; then
