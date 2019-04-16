@@ -347,6 +347,13 @@ prepare() {
   elif [ "$_timer_freq" == "750" ]; then
     echo "# CONFIG_HZ_1000 is not set" >> ./.config
     echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+  elif [ "$_timer_freq" == "500" ]; then
+    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
+    echo "CONFIG_HZ_500=y" >> ./.config
+    echo "CONFIG_HZ_500_NODEF=y" >> ./.config
+    echo "# CONFIG_HZ_1000 is not set" >> ./.config
+    echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
   fi
 
   # ftrace
