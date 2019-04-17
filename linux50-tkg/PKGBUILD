@@ -16,13 +16,13 @@ if [ -e "$_EXT_CONFIG_PATH" ]; then
   source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
 fi
 
-if [ ! -e "$_where"/cpuschedset ]; then
+if [ -z "$_OPTIPROFILE" ] && [ ! -e "$_where"/cpuschedset ]; then
   # Prompt about optimized configurations. Available variable values will overwrite customization.cfg/external config ones.
   plain "Do you want to use a predefined optimized profile?"
   read -rp "`echo $'  > 1.Default\n    2.Ryzen Desktop (Performance)\nchoice[1-2?]: '`" _OPTIPROFILE;
-  if [ "$_OPTIPROFILE" == "2" ]; then
-    source "$_where"/ryzen-desktop-profile.cfg && msg2 "Ryzen Desktop (Performance) profile will be used." && msg2 ""
-  fi
+fi
+if [ "$_OPTIPROFILE" == "2" ]; then
+  source "$_where"/ryzen-desktop-profile.cfg && msg2 "Ryzen Desktop (Performance) profile will be used." && msg2 ""
 fi
 
 # CPU SCHED selector
