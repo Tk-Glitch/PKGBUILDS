@@ -11,5 +11,3 @@ If you want to streamline your kernel config for lower footprint and faster comp
 You can enable support for it at the beginning of the PKGBUILD file. Make sure to read everything you need to know about it.
 
 While using PDS, priority policies might induce thrashing in memory-starved scenarios. Using https://github.com/tobixen/thrash-protect (available on AUR as well) can remedy that.
-
-**Gentoo users, @ghost-101 has been working on a kernel sharing similar goals :** https://framagit.org/3/agile-kernel
