@@ -824,29 +824,6 @@ index 20d3c48c4d9..aca8738c4c0 100644
  
  /* parse-line args */
 
-From 7f3acf21721b44b106ec8c6b61f0bf81aeb7f16a Mon Sep 17 00:00:00 2001
-From: Andrew Eikum <aeikum@codeweavers.com>
-Date: Fri, 13 Jul 2018 10:40:01 -0500
-Subject: [PATCH] HACK: mscoree: Don't install wine-mono on prefix creation
-
----
- dlls/mscoree/mscoree_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/dlls/mscoree/mscoree_main.c b/dlls/mscoree/mscoree_main.c
-index 5612ff6b89a..a0320dafc39 100644
---- a/dlls/mscoree/mscoree_main.c
-+++ b/dlls/mscoree/mscoree_main.c
-@@ -778,7 +778,7 @@ static BOOL install_wine_mono(void)
- 
- HRESULT WINAPI DllRegisterServer(void)
- {
--    install_wine_mono();
-+    /*install_wine_mono();*/
- 
-     return __wine_register_resources( MSCOREE_hInstance );
- }
-
 From 059a15a1d521a6ba79273b2ade923822b1532205 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Fri, 13 Jul 2018 10:40:27 -0500
