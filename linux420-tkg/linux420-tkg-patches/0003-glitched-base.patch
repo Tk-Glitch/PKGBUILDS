@@ -5973,7 +5973,7 @@ index 2f0a0be4d344..bada807c7e59 100644
 +unsigned int sysctl_sched_wakeup_granularity		= 500000UL;
 +unsigned int normalized_sysctl_sched_wakeup_granularity	= 500000UL;
 +
-+const_debug unsigned int sysctl_sched_migration_cost	= 250000UL;
++const_debug unsigned int sysctl_sched_migration_cost	= 50000UL;
 +#else
  unsigned int sysctl_sched_wakeup_granularity		= 1000000UL;
  unsigned int normalized_sysctl_sched_wakeup_granularity	= 1000000UL;
@@ -6202,3 +6202,18 @@ index a29043ea9..3fb219747 100644
  
  static unsigned long nr_kernel_pages __meminitdata;
  static unsigned long nr_all_pages __meminitdata;
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 80bb6408f..6c8b55cd1 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -146,8 +146,7 @@ extern int mmap_rnd_compat_bits __read_mostly;
+  * not a hard limit any more. Although some userspace tools can be surprised by
+  * that.
+  */
+-#define MAPCOUNT_ELF_CORE_MARGIN	(5)
+-#define DEFAULT_MAX_MAP_COUNT	(USHRT_MAX - MAPCOUNT_ELF_CORE_MARGIN)
++#define DEFAULT_MAX_MAP_COUNT	(262144)
+ 
+ extern int sysctl_max_map_count;
+ 
