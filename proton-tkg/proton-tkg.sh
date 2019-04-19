@@ -10,7 +10,7 @@
 set -e
 
 _nowhere=$PWD
-_wine_tkg_git_path=${_nowhere}/../wine-tkg-git # Change to wine-tkg-git path if needed
+_wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
 
 # Make sure we're not using proton_3.7 /s
 _proton_branch="proton_4.2"
@@ -60,7 +60,7 @@ function steam_is_running {
 function proton_tkg_uninstaller {
   # Never cross the Proton streams!
   i=0
-  for _proton_tkg in "$HOME"/.steam/root/compatibilitytools.d/proton_tkg_*; do
+  for _proton_tkg in "$HOME/.steam/root/compatibilitytools.d"/proton_tkg_*; do
     if [ -d "$_proton_tkg" ]; then
       _GOTCHA="$_proton_tkg" && ((i+=1))
     fi
