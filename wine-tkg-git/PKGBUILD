@@ -143,6 +143,7 @@ if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; th
   _highcorecount_fix="true"
   _update_winevulkan="true"
   _use_libfonts="true"
+  _use_mono="true"
   if [ "$_use_dxvk" == "winelib" ]; then
     _use_dxvk="true"
   fi
@@ -332,6 +333,11 @@ fi
 # liberation fonts deps
 if [ "$_use_libfonts" == "true" ]; then
   depends=("${depends[@]}" fontforge python-fonttools)
+fi
+
+# wine-mono deps
+if [ "$_use_mono" == "true" ]; then
+  depends=("${depends[@]}" wine-mono)
 fi
 
 optdepends=(
