@@ -218,8 +218,8 @@ prepare() {
 
   # sched yield type
   if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
-    if [ -n "$_sched_yield_type" ] && [ "$_sched_yield_type" -le "2" ]; then
-      sed -i -e "s/int sched_yield_type __read_mostly = 1;/int sched_yield_type __read_mostly = ${_sched_yield_type};/" ./kernel/sched/"${_cpusched}".c
+    if [ -n "$_sched_yield_type" ]; then
+      CONDITION0="$_sched_yield_type"
     else
       plain ""
       plain "CPU sched_yield_type - Choose what sort of yield sched_yield will perform."
