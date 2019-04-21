@@ -14,6 +14,12 @@ import subprocess
 import sys
 import tarfile
 
+import time
+import tkinter as tk
+from tkinter import messagebox
+root = tk.Tk()
+root.withdraw()
+
 from filelock import FileLock
 
 #To enable debug logging, copy "user_settings.sample.py" to "user_settings.py"
@@ -173,6 +179,7 @@ libdir = basedir + "/dist/lib"
 lib64dir = basedir + "/dist/lib64"
 fontsdir = basedir + "/dist/share/fonts"
 wine_path = bindir + "/wine"
+winetricks_path = basedir + "/dist/share/winetricks/winetricks_runner"
 
 #extract if needed
 dist_lock = FileLock(basedir + "/dist.lock", timeout=-1)
@@ -261,9 +268,6 @@ if "STEAM_COMPAT_CONFIG" in os.environ:
 else:
     config_opts = set()
 
-if "wined3d11" in config_opts:
-    config_opts.add("wined3d")
-
 if not check_environment("PROTON_USE_WINED3D", "wined3d"):
     check_environment("PROTON_USE_WINED3D11", "wined3d11only")
     check_environment("PROTON_USE_WINED3D9", "wined3d9only")
@@ -279,6 +283,23 @@ check_environment("PROTON_NVAPI_DISABLE", "nonvapi")
 check_environment("PROTON_WINEDBG_DISABLE", "nowinedbg")
 check_environment("PROTON_PULSE_LOWLATENCY", "pulselowlat")
 check_environment("PROTON_LOG_COMMAND_TO_PREFIX", "logcommandtoprefix")
+check_environment("PROTON_WINETRICKS", "winetricks")
+
+if "winetricks" in config_opts:
+    def run_winetricks():
+        if not len( os.popen( "ps -aef | grep -i 'winetricks' | grep -v 'grep' | awk '{ print $3 }'" ).read().strip().split( '\n' ) ) > 1:
+            if "tk" == root.title():
+                if messagebox.askyesno('Proton-tkg', 'Do you want to run winetricks? (if yes, be patient)'):
+                    root.destroy()
+                    sys.argv[1] == "run_winetricks"
+                    run_wine(winetricks_path)
+                    sys.exit(0)
+                else:
+                    root.destroy()
+    if not len( os.popen( "ps -aef | grep -i 'python3' | grep -v 'grep' | awk '{ print $3 }'" ).read().strip().split( '\n' ) ) > 1:
+        run_winetricks()
+    else:
+        sys.argv[1] == "run_winetricks_later"
 
 if not "noesync" in config_opts:
     env["WINEESYNC"] = "1"
@@ -626,7 +647,12 @@ else:
     raise Exception("Unsupported python version")
 
 #determine mode
-if sys.argv[1] == "run":
+if sys.argv[1] == "run_winetricks_later":
+    ugly_busy_wait_loop = len( os.popen( "ps -aef | grep -i 'python3' | grep -v 'grep' | awk '{ print $3 }'" ).read().strip().split( '\n' ) ) > 1
+    while ugly_busy_wait_loop is True:
+        time.sleep(5)
+    run_winetricks()
+elif sys.argv[1] == "run":
     #start target app
     run()
 elif sys.argv[1] == "waitforexitandrun":

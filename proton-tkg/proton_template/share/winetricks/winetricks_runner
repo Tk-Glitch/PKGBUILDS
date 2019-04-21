@@ -1,0 +1,7 @@
+#!/bin/bash
+
+while [[ $(awk '$12=="wineserver" {print $0}' <(top -n 1 -b)) ]]; do sleep 1; done
+
+pkill -9 -x SteamChildMonit
+
+WINEPREFIX=$WINEPREFIX winetricks

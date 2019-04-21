@@ -39,6 +39,9 @@ user_settings = {
     #Reduce Pulse Latency
      "PROTON_PULSE_LOWLATENCY": "1",
 
+    #Enable Winetricks prompt on game launch
+#     "PROTON_WINETRICKS": "1",
+
     #Use OpenGL-based wined3d for d3d9/d3d10/d3d11 instead of vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
 #     "PROTON_USE_WINED3D": "1",
 
