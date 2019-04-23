@@ -20,7 +20,7 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.418.52.05 (vulkan dev)\n  2.415.27 (short lived)\n  3.418.56 (long lived)\n  4.418.30 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.418.52.05 (vulkan dev)\n  2.415.27 (short lived)\n  3.418.56 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
@@ -30,8 +30,8 @@ if [ ! -e options ]; then
       echo '_md5sum=d1cf6dc33af48b53edbae5d6f31a6f89' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "4" ]; then
-      echo '_driver_version=418.30' > options
-      echo '_md5sum=4d1ef17b897e1f7bd6c41f075edbab71' >> options
+      echo '_driver_version=430.09' > options
+      echo '_md5sum=db4dc51501e22ef7aac60ccbe5814226' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "5" ]; then
       echo '_driver_version=custom' > options
@@ -88,7 +88,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=41
+pkgrel=42
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -273,6 +273,8 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
       elif [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [ "$_p" == "kernel-5.0.patch" ]; then
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
+      elif [[ $pkgver = 430* ]] && [ "$_p" == "kernel-4.16.patch" ]; then
+        msg2 "Skipping $_p as it doesn't apply to this driver version..."
       else
         if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
           msg2 "Applying $_p for $_kernel..."
@@ -292,8 +294,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     msg2 "Applying linux-version.diff for dkms..."
     patch -Np1 -i "$srcdir"/linux-version.diff
     if [ "$_kernel416" == "1" ]; then
-      msg2 "Applying kernel-4.16.patch for dkms..."
-      patch -Np1 -i "$srcdir"/kernel-4.16.patch
+      if [[ $pkgver = 430* ]]; then
+        msg2 "Skipping kernel-4.16.patch as it doesn't apply to this driver version..."
+      else
+        msg2 "Applying kernel-4.16.patch for dkms..."
+        patch -Np1 -i "$srcdir"/kernel-4.16.patch
+      fi
     fi
     if [ "$_kernel419" == "1" ]; then
       if [[ $pkgver = 396* ]]; then
@@ -421,7 +427,7 @@ package_nvidia-utils-tkg() {
       ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so"
     fi
 
-    if [[ $pkgver == 418* ]]; then
+    if [[ $pkgver == 418* ]] || [[ $pkgver == 430* ]]; then
       # optical flow
       install -D -m755 "libnvidia-opticalflow.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-opticalflow.so.${pkgver}"
     else
