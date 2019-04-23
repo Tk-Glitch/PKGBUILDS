@@ -2241,7 +2241,7 @@ index d478cbdcb3..6d2eb0673e 100644
 +            XMoveResizeWindow(data->display, data->whole_window, tl.x, tl.y, p.x, p.y);
 +            if(data->client_window)
 +                XMoveResizeWindow(data->display, data->client_window, 0, 0, p.x, p.y);
-+            sync_gl_drawable(hwnd, FALSE);
++            sync_gl_drawable(hwnd);
 +            update_net_wm_states( data );
 +        }
 +    }else {
@@ -2281,7 +2281,7 @@ index d478cbdcb3..6d2eb0673e 100644
 +                        data->client_rect.right - data->client_rect.left,
 +                        data->client_rect.bottom - data->client_rect.top);
 +            }
-+            sync_gl_drawable(hwnd, FALSE);
++            sync_gl_drawable(hwnd);
 +        }
      }
      release_win_data( data );
@@ -3847,7 +3847,7 @@ index 1d526bd109..3cc0604b2e 100644
      }
  
 +    if (data->fs_hack)
-+        sync_gl_drawable( hwnd, FALSE );
++        sync_gl_drawable( hwnd );
 +
      /* check if we are currently processing an event relevant to this window */
      event_type = 0;
@@ -4366,3 +4366,62 @@ index 9aa9747f8e1..eb8fb1f7727 100644
  }
  
  /* Helper function for (stretched) mono->color blitting using xrender */
+diff --git a/dlls/winex11.drv/desktop.c b/dlls/winex11.drv/desktop.c
+index 242228b1818..9b2551b8e93 100644
+--- a/dlls/winex11.drv/desktop.c
++++ b/dlls/winex11.drv/desktop.c
+@@ -247,7 +247,7 @@ static BOOL CALLBACK update_windows_on_desktop_resize( HWND hwnd, LPARAM lparam
+             XMoveResizeWindow(data->display, data->whole_window, tl.x, tl.y, p.x, p.y);
+             if(data->client_window)
+                 XMoveResizeWindow(data->display, data->client_window, 0, 0, p.x, p.y);
+-            sync_gl_drawable(hwnd);
++            sync_gl_drawable(hwnd, FALSE);
+             update_net_wm_states( data );
+         }
+     }else {
+@@ -278,7 +278,7 @@ static BOOL CALLBACK update_windows_on_desktop_resize( HWND hwnd, LPARAM lparam
+                         data->client_rect.right - data->client_rect.left,
+                         data->client_rect.bottom - data->client_rect.top);
+             }
+-            sync_gl_drawable(hwnd);
++            sync_gl_drawable(hwnd, FALSE);
+         }
+     }
+     release_win_data( data );
+diff --git a/dlls/winex11.drv/opengl.c b/dlls/winex11.drv/opengl.c
+index b57b8bbe195..9ce522743d2 100644
+--- a/dlls/winex11.drv/opengl.c
++++ b/dlls/winex11.drv/opengl.c
+@@ -1557,13 +1557,17 @@ void sync_gl_drawable( HWND hwnd )
+         release_gl_drawable( new );
+         break;
+     default:
++        break;
++    }
++
++    if (DC_GL_PIXMAP_WIN != old->type) {
+         data = get_win_data( hwnd );
+         old->fs_hack = data->fs_hack;
+         if (old->fs_hack)
+             TRACE( "Window %p has the fullscreen hack enabled\n", hwnd );
+         release_win_data( data );
+-        break;
+     }
++
+     release_gl_drawable( old );
+ }
+ 
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 09abedf08ec..1ec7c706511 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -2528,7 +2533,7 @@ void CDECL X11DRV_WindowPosChanged( HWND hwnd, HWND insert_after, UINT swp_flags
+     }
+ 
+     if (data->fs_hack)
+-        sync_gl_drawable( hwnd );
++        sync_gl_drawable( hwnd, FALSE );
+ 
+     /* check if we are currently processing an event relevant to this window */
+     event_type = 0;
+ 
