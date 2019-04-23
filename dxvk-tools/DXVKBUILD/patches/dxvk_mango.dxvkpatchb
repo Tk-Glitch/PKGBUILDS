@@ -1,8 +1,21 @@
+From 79a7331e4c5c50715c9ae5af7bad8ce84935a8c9 Mon Sep 17 00:00:00 2001
+From: Riesi <riesi@opentrash.com>
+Date: Tue, 23 Apr 2019 13:42:06 +0200
+Subject: [PATCH] [hud] flightlessmango hud
+
+---
+ src/dxvk/hud/dxvk_hud.cpp        |  16 +-
+ src/dxvk/hud/dxvk_hud_config.cpp |   7 +
+ src/dxvk/hud/dxvk_hud_config.h   |   7 +
+ src/dxvk/hud/dxvk_hud_fps.cpp    | 388 ++++++++++++++++++++++++++++++-
+ src/dxvk/hud/dxvk_hud_fps.h      |  52 ++++-
+ 5 files changed, 463 insertions(+), 7 deletions(-)
+
 diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
-index 39121e0b..0a082996 100644
+index 815823f9..85bbb8a0 100644
 --- a/src/dxvk/hud/dxvk_hud.cpp
 +++ b/src/dxvk/hud/dxvk_hud.cpp
-@@ -80,7 +80,21 @@ namespace dxvk::hud {
+@@ -79,7 +79,21 @@ namespace dxvk::hud {
  
  
    void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
@@ -16,7 +29,7 @@ index 39121e0b..0a082996 100644
 +    if (!offset_x == 0){
 +      hud_offset_x = atof(offset_x);
 +    }
-+    
++
 +    if (!offset_y == 0){
 +      hud_offset_y = atof(offset_y);
 +    }
@@ -26,13 +39,13 @@ index 39121e0b..0a082996 100644
      if (m_config.elements.test(HudElement::DxvkVersion)) {
        m_renderer.drawText(ctx, 16.0f,
 diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
-index 7da4b070..8225c184 100644
+index f9ed06a0..4b05eb70 100644
 --- a/src/dxvk/hud/dxvk_hud_config.cpp
 +++ b/src/dxvk/hud/dxvk_hud_config.cpp
-@@ -14,6 +14,13 @@ namespace dxvk::hud {
-     { "memory",       HudElement::StatMemory        },
+@@ -15,6 +15,13 @@ namespace dxvk::hud {
      { "version",      HudElement::DxvkVersion       },
      { "api",          HudElement::DxvkClientApi     },
+     { "compiler",     HudElement::CompilerActivity  },
 +    { "gpuload",      HudElement::GpuLoad           },
 +    { "cpuload",      HudElement::CpuLoad           },
 +    { "cputemp",      HudElement::CpuTemp           },
@@ -43,51 +56,26 @@ index 7da4b070..8225c184 100644
    }};
    
    
-@@ -54,4 +61,4 @@ namespace dxvk::hud {
-     }
-   }
-   
--}
-\ No newline at end of file
-+}
 diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
-index 4468422f..b5a8129d 100644
+index bd763a31..7f837291 100644
 --- a/src/dxvk/hud/dxvk_hud_config.h
 +++ b/src/dxvk/hud/dxvk_hud_config.h
-@@ -20,6 +20,13 @@ namespace dxvk::hud {
-     StatMemory        = 6,
+@@ -21,6 +21,13 @@ namespace dxvk::hud {
      DxvkVersion       = 7,
      DxvkClientApi     = 8,
-+    GpuLoad           = 9,
-+    CpuLoad           = 10,
-+    CpuTemp           = 11,
-+    CpuCoreLoad       = 12,
-+    AverageFps        = 13,
-+    OnePercentLow     = 14,
-+    PointOnePercentLow= 15,
+     CompilerActivity  = 9,
++    GpuLoad           = 10,
++    CpuLoad           = 11,
++    CpuTemp           = 12,
++    CpuCoreLoad       = 13,
++    AverageFps        = 14,
++    OnePercentLow     = 15,
++    PointOnePercentLow= 16,
    };
    
    using HudElements = Flags<HudElement>;
-@@ -44,4 +51,4 @@ namespace dxvk::hud {
-    */
-   HudConfig parseHudConfigStr(const std::string& configStr);
-   
--}
-\ No newline at end of file
-+}
-diff --git a/src/dxvk/hud/dxvk_hud_font.cpp b/src/dxvk/hud/dxvk_hud_font.cpp
-index 746019dd..42b99653 100644
---- a/src/dxvk/hud/dxvk_hud_font.cpp
-+++ b/src/dxvk/hud/dxvk_hud_font.cpp
-@@ -1868,4 +1868,4 @@ namespace dxvk::hud {
-   
-   const HudFont g_hudFont = { 32, 510, 172, 5, 24, 95, g_hudFontGlyphs, g_hudFontImage };
-   
--}
-\ No newline at end of file
-+}
 diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
-index d01a8ba4..6d286613 100644
+index d01a8ba4..87191ea5 100644
 --- a/src/dxvk/hud/dxvk_hud_fps.cpp
 +++ b/src/dxvk/hud/dxvk_hud_fps.cpp
 @@ -2,6 +2,165 @@
@@ -265,7 +253,7 @@ index d01a8ba4..6d286613 100644
 +  void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil, string m_frameTimes) {
 +    fstream f(file, f.out | f.app);
 +    f << m_fpsString << "," << "Frametime: " << m_frameTimes << "," << cpuUtil << "," << gpuUtil;
-+  }  
++  }
 +
 +  string getCpuTemp(string var){
 +    string cpuTemp;
@@ -530,15 +518,8 @@ index d01a8ba4..6d286613 100644
        
        minMs = std::min(minMs, uint32_t(us / 100.0f));
        maxMs = std::max(maxMs, uint32_t(us / 100.0f));
-@@ -130,4 +510,4 @@ namespace dxvk::hud {
-     return HudPos { position.x, position.y + 66.0f };
-   }
-   
--}
-\ No newline at end of file
-+}
 diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
-index c8c4b984..2ec20665 100644
+index c8c4b984..b2e6d22e 100644
 --- a/src/dxvk/hud/dxvk_hud_fps.h
 +++ b/src/dxvk/hud/dxvk_hud_fps.h
 @@ -36,7 +36,20 @@ namespace dxvk::hud {
@@ -547,7 +528,7 @@ index c8c4b984..2ec20665 100644
      std::string m_fpsString;
 -    
 +
-+    // Variables used for my extra Hud elements. 
++    // Variables used for my extra Hud elements.
 +    std::string cpuUtil;
 +    std::string m_gpuUtilizationString;
 +    std::string gpuUtil;
@@ -607,10 +588,3 @@ index c8c4b984..2ec20665 100644
      HudPos renderFrametimeGraph(
        const Rc<DxvkContext>&  context,
              HudRenderer&      renderer,
-@@ -56,4 +104,4 @@ namespace dxvk::hud {
-     
-   };
-   
--}
-\ No newline at end of file
-+}
