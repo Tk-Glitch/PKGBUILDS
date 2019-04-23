@@ -336,6 +336,11 @@ if [ "$_use_libfonts" == "true" ]; then
   depends=("${depends[@]}" fontforge python-fonttools)
 fi
 
+# proton winetricks integration dep
+if [ -e "$_where"/proton_tkg_token ]; then
+  depends=("${depends[@]}" tk)
+fi
+
 # wine-mono deps
 if [ "$_use_mono" == "true" ]; then
   depends=("${depends[@]}" wine-mono)
