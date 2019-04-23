@@ -5329,10 +5329,10 @@ winetricks_init()
     # wine-2.8
     _wine_version_stripped="$(echo "$WINETRICKS_WINE_VERSION" | cut -d ' ' -f1 | sed -e 's/wine-//' -e 's/-rc.*//' -e 's/tkg-//')"
 
-    # If WINE is < 3.0, warn user:
-    # 3.0 doesn't do what I thought it would
-    if w_wine_version_in 2.99, ; then
-        w_warn "Your version of wine $_wine_version_stripped is no longer supported upstream. You should upgrade to 3.x"
+    # If WINE is < 4.0, warn user:
+    # 4.0 doesn't do what I thought it would
+    if w_wine_version_in 3.99, ; then
+        w_warn "Your version of wine $_wine_version_stripped is no longer supported upstream. You should upgrade to 4.x"
     fi
 
     if [ -z "$WINETRICKS_SUPER_QUIET" ] ; then
@@ -7258,6 +7258,25 @@ load_dxvk102()
     helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
 }
 
+w_metadata dxvk103 dlls \
+    title="Vulkan-based D3D10/D3D11 implementation for Linux / Wine (1.0.3)" \
+    publisher="Philip Rebohle" \
+    year="2018" \
+    media="download" \
+    file1="dxvk-1.0.3.tar.gz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/d3d10.dll" \
+    installed_file2="$W_SYSTEM32_DLLS_WIN/d3d10_1.dll" \
+    installed_file3="$W_SYSTEM32_DLLS_WIN/d3d10core.dll" \
+    installed_file4="$W_SYSTEM32_DLLS_WIN/d3d11.dll" \
+    installed_file5="$W_SYSTEM32_DLLS_WIN/dxgi.dll"
+
+load_dxvk103()
+{
+    # https://github.com/doitsujin/dxvk
+    w_download "https://github.com/doitsujin/dxvk/releases/download/v1.0.3/dxvk-1.0.3.tar.gz" 984d28ab3a112be207d6339da19113d1117e56731ed413d0e202e6fd1391a6ae
+    helper_dxvk "$file1" "d3d10_enabled" "3.19" "1.1.88"
+}
+
 
 #----------------------------------------------------------------
 
@@ -8671,27 +8690,14 @@ load_esent()
 
 #----------------------------------------------------------------
 
-w_metadata faudio dlls \
-    title="FAudio (xaudio reimplemntation, with xna support) builds for win32" \
-    publisher="Kron4ek" \
-    year="2019" \
-    media="download" \
-    file1="faudio-git-a756af4.tar.xz" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
-
-load_faudio()
+# $1 - faudio archive name (required)
+helper_faudio()
 {
-    # FIXME: they have a LATEST file that may be useful in the future
-    # Not sure if we want to have multiple versions like dxvk
-    # Especially when some are prefixed with 'git-'!
-    # https://raw.githubusercontent.com/Kron4ek/FAudio-Builds/master/LATEST
-    faudio_version="$(basename "${file1}" .tar.xz)"
-
-    # 2018/01/26: b491e9a1eb2052f62d6639be86639203ec1c7e803101db86ef8817a07baaf0a8
-    w_download https://github.com/Kron4ek/FAudio-Builds/releases/download/git-a756af4/faudio-git-a756af4.tar.xz b491e9a1eb2052f62d6639be86639203ec1c7e803101db86ef8817a07baaf0a8
+    faudio_archive="$1"
+    faudio_version="$(basename "${faudio_archive}" .tar.xz)"
 
     w_try_cd "$W_TMP"
-    w_try tar -Jxf "${W_CACHE}/${W_PACKAGE}/${file1}"
+    w_try tar -Jxf "${W_CACHE}/${W_PACKAGE}/${faudio_archive}"
 
     # They ship an installation script, but it's bash (and we have all needed functionality already)
     # Unless they add something more complex, this should suffice:
@@ -8709,6 +8715,88 @@ load_faudio()
             w_override_dlls native "$shortdll"
         done
     fi
+}
+
+#----------------------------------------------------------------
+
+w_metadata faudio1901 dlls \
+    title="FAudio (xaudio reimplementation, with xna support) builds for win32 (19.01)" \
+    publisher="Kron4ek" \
+    year="2019" \
+    media="download" \
+    file1="faudio-19.01.tar.xz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
+
+load_faudio1901()
+{
+    w_download https://github.com/Kron4ek/FAudio-Builds/releases/download/19.01/faudio-19.01.tar.xz f3439090ba36061ee47ebda93e409ae4b2d8886c780c86a197c66ff08b9b573f
+    helper_faudio "$file1"
+}
+
+#----------------------------------------------------------------
+
+w_metadata faudio1902 dlls \
+    title="FAudio (xaudio reimplementation, with xna support) builds for win32 (19.02)" \
+    publisher="Kron4ek" \
+    year="2019" \
+    media="download" \
+    file1="faudio-19.02.tar.xz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
+
+load_faudio1902()
+{
+    w_download https://github.com/Kron4ek/FAudio-Builds/releases/download/19.02/faudio-19.02.tar.xz 849fec35482748a2b441d8dd7e9a171c7c5c2207d1037c7ffd0265e65f2a4b2b
+    helper_faudio "$file1"
+}
+
+#----------------------------------------------------------------
+
+w_metadata faudio1903 dlls \
+    title="FAudio (xaudio reimplementation, with xna support) builds for win32 (19.03)" \
+    publisher="Kron4ek" \
+    year="2019" \
+    media="download" \
+    file1="faudio-19.03.tar.xz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
+
+load_faudio1903()
+{
+    w_download https://github.com/Kron4ek/FAudio-Builds/releases/download/19.03/faudio-19.03.tar.xz d5c62437fd5b185e82f464f6a82334af5d666cb506aba218358ea7a3697fdf63
+    helper_faudio "$file1"
+}
+
+#----------------------------------------------------------------
+
+w_metadata faudio1904 dlls \
+    title="FAudio (xaudio reimplementation, with xna support) builds for win32 (19.04)" \
+    publisher="Kron4ek" \
+    year="2019" \
+    media="download" \
+    file1="faudio-19.04.tar.xz" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
+
+load_faudio1904()
+{
+    w_download https://github.com/Kron4ek/FAudio-Builds/releases/download/19.04/faudio-19.04.tar.xz c364db1a18bfb6f6c0f375c641672ca40140b8e5db69dc2c8c9b41d79d0fc56f
+    helper_faudio "$file1"
+}
+
+#----------------------------------------------------------------
+
+w_metadata faudio dlls \
+    title="FAudio (xaudio reimplementation, with xna support) builds for win32 (latest)" \
+    publisher="Kron4ek" \
+    year="2019" \
+    media="download" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/FAudio.dll"
+
+load_faudio()
+{
+    set -x
+    w_download_to "${W_TMP_EARLY}" "https://raw.githubusercontent.com/Kron4ek/FAudio-Builds/master/LATEST"
+    faudio_version="$(cat "${W_TMP_EARLY}/LATEST")"
+    w_linkcheck_ignore=1 w_download "https://github.com/Kron4ek/FAudio-Builds/releases/download/${faudio_version}/faudio-${faudio_version}.tar.xz"
+    helper_faudio "faudio-${faudio_version}.tar.xz"
 }
 
 #----------------------------------------------------------------
@@ -9932,6 +10020,28 @@ load_pdh()
     fi
 
     w_override_dlls native,builtin pdh
+}
+
+#----------------------------------------------------------------
+
+w_metadata peverify dlls \
+    title="MS peverify (from .NET 2.0 SDK)" \
+    publisher="Microsoft" \
+    year="2006" \
+    media="download" \
+    file1="../dotnet20sdk/setup.exe" \
+    installed_file1="$W_SYSTEM32_DLLS_WIN/peverify.exe"
+
+load_peverify()
+{
+    w_download_to dotnet20sdk https://download.microsoft.com/download/c/4/b/c4b15d7d-6f37-4d5a-b9c6-8f07e7d46635/setup.exe 1d7337bfbb2c65f43c82d188688ce152af403bcb67a2cc2a3cc68a580ecd8200
+
+    # Seems to require dotnet20; at least doesn't work if dotnet40 is installed instead
+    w_call dotnet20
+
+    w_try_cabextract --directory="${W_TMP}" "${W_CACHE}/dotnet20sdk/setup.exe" -F netfxsd1.cab
+    w_try_cabextract --directory="${W_TMP}" "${W_TMP}/netfxsd1.cab" -F FL_PEVerify_exe_____X86.3643236F_FC70_11D3_A536_0090278A1BB8
+    w_try mv "${W_TMP}/FL_PEVerify_exe_____X86.3643236F_FC70_11D3_A536_0090278A1BB8" "${W_SYSTEM32_DLLS}/peverify.exe"
 }
 
 #----------------------------------------------------------------
@@ -12266,7 +12376,7 @@ w_metadata ipamona fonts \
 
 load_ipamona()
 {
-    w_download "http://www.geocities.jp/ipa_mona/opfc-ModuleHP-1.1.1_withIPAMonaFonts-1.0.8.tar.gz" ab77beea3b051abf606cd8cd3badf6cb24141ef145c60f508fcfef1e3852bb9d
+    w_download "https://web.archive.org/web/20190309175311/http://www.geocities.jp/ipa_mona/opfc-ModuleHP-1.1.1_withIPAMonaFonts-1.0.8.tar.gz" ab77beea3b051abf606cd8cd3badf6cb24141ef145c60f508fcfef1e3852bb9d
 
     w_try_cd "$W_TMP"
     w_try tar -zxf "$W_CACHE/$W_PACKAGE/$file1" "${file1%.tar.gz}/fonts"
@@ -12762,18 +12872,21 @@ load_controlpad()
 #----------------------------------------------------------------
 
 w_metadata controlspy apps \
-    title="Control Spy 2.0 " \
+    title="Control Spy 6 " \
     publisher="Microsoft" \
     year="2005" \
     media="download" \
-    file1="ControlSpy.msi" \
+    file1="ControlSpyV6.exe" \
     installed_exe1="$W_PROGRAMS_X86_WIN/Microsoft/ControlSpy/ControlSpyV6.exe"
 
 load_controlspy()
 {
-    w_download https://download.microsoft.com/download/a/3/1/a315b133-03a8-4845-b428-ec585369b285/ControlSpy.msi d9127634dd47580be93c768263ddf37a3a75fd65a545e87ddb9602906a035845
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_try "$WINE" msiexec /i ControlSpy.msi ${W_UNATTENDED_SLASH_QB}
+    # Originally at https://download.microsoft.com/download/a/3/1/a315b133-03a8-4845-b428-ec585369b285/ControlSpy.msi
+    # 2019/04/11: changed to https://github.com/pywinauto/pywinauto/blob/master/apps/ControlSpy_20/ControlSpyV6.exe
+    # Unfortunately that means no V5 of ControlSpy :/
+    w_download https://github.com/pywinauto/pywinauto/blob/master/apps/ControlSpy_20/ControlSpyV6.exe
+    w_try mkdir -p "${W_PROGRAMS_X86_UNIX}/Microsoft/ControlSpy"
+    w_try cp "${W_CACHE}/${W_PACKAGE}/${file1}" "${W_PROGRAMS_X86_UNIX}/Microsoft/ControlSpy"
 }
 
 #----------------------------------------------------------------
@@ -20661,7 +20774,8 @@ w_metadata remove_mono settings \
 
 load_remove_mono()
 {
-    mono_uuid="$("${WINE_ARCH}" uninstaller --list | grep 'Wine Mono' | cut -f1 -d\|)"
+    # wine-4.6 comes with two installers, removing "Wine Mono Runtime" will also remove "Wine Mono Windows Support"
+    mono_uuid="$("${WINE_ARCH}" uninstaller --list | grep 'Wine Mono' | grep -v 'Wine Mono Windows Support' | cut -f1 -d\|)"
     if test "$mono_uuid"; then
          "${WINE_ARCH}" uninstaller --remove "$mono_uuid"
     else

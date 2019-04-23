@@ -4,7 +4,7 @@
 # Contributor: Tk-Glitch <ti3nou@gmail.com>
 
 pkgname=winetricks-tkg-git
-pkgver=20190310.r36.g5908e30
+pkgver=20190310.r44.gb5e62cf
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'
@@ -23,8 +23,7 @@ source=('git+https://github.com/Winetricks/winetricks.git'
         'xact.revert.patch'
         'dotnet471.patch'
         'dotnet48.patch'
-        'lutris-tkg.patch'
-        'vcrun2017.patch')
+        'lutris-tkg.patch')
 
 pkgver() {
 	cd winetricks
@@ -50,9 +49,6 @@ package() {
 	# fix lutris tkg builds version detection
 	patch -Np1 < ../'lutris-tkg.patch'
 
-	# fix for vcrun2017 failing to install / updated installer
-	patch -Np1 < ../'vcrun2017.patch'
-
 	make DESTDIR="$pkgdir" install
 }
 
@@ -60,5 +56,4 @@ md5sums=('SKIP'
          '89e0bdb6779861d3e043bf3e3317933e'
          '27ca3b6aee0ce7310db9da3b194f2aaf'
          '0f2a99b26bcca5c8bba56a2473441a4f'
-         'f8cea6f47347496f2215b331d9513e56'
-         '567767d10395eb5a78e13de313816fc9')
+         'f8cea6f47347496f2215b331d9513e56')
