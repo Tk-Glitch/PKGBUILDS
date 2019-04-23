@@ -2467,27 +2467,7 @@ index 1209a250b0..077c18ac10 100644
      rect = get_primary_monitor_rect();
      if (!grab_fullscreen)
      {
-@@ -592,7 +596,10 @@ static POINT map_to_root_coords(HWND hwnd, Window window, int x, int y)
-     POINT pt = { x, y };
- 
-     if (!(data = get_win_data(hwnd))) return pt;
--    if (window == data->whole_window)
-+    if(data->fs_hack)
-+        fs_hack_real_to_user(&pt);
-+
-+    if (window == data->whole_window && !data->fs_hack)
-     {
-         pt.x += data->whole_rect.left - data->client_rect.left;
-         pt.y += data->whole_rect.top - data->client_rect.top;
-@@ -624,6 +625,7 @@ static void send_mouse_input( HWND hwnd, Window window, unsigned int state, INPUT *input )
- static void send_mouse_input( HWND hwnd, Window window, unsigned int state, INPUT *input )
- {
-     struct x11drv_win_data *data;
-+    POINT pt;
- 
-     input->type = INPUT_MOUSE;
- 
-@@ -631,8 +654,18 @@ static void send_mouse_input( HWND hwnd, Window window, unsigned int state, INPU
+@@ -583,8 +606,18 @@ static void send_mouse_input( HWND hwnd, Window window, unsigned int state, INPU
              sync_window_cursor( window );
              last_cursor_change = input->u.mi.time;
          }
@@ -2508,6 +2488,21 @@ index 1209a250b0..077c18ac10 100644
          __wine_send_input( hwnd, input );
          return;
      }
+@@ -598,7 +631,13 @@ static void send_mouse_input( HWND hwnd, Window window, unsigned int state, INPU
+ 
+     if (!(data = get_win_data( hwnd ))) return;
+ 
+-    if (window == data->whole_window)
++    if(data->fs_hack)
++        fs_hack_real_to_user(&pt);
++
++    input->u.mi.dx = pt.x;
++    input->u.mi.dy = pt.y;
++
++    if (window == data->whole_window && !data->fs_hack)
+     {
+         pt.x += data->whole_rect.left - data->client_rect.left;
+         pt.y += data->whole_rect.top - data->client_rect.top;
 @@ -1432,13 +1471,19 @@ void CDECL X11DRV_SetCursor( HCURSOR handle )
  BOOL CDECL X11DRV_SetCursorPos( INT x, INT y )
  {
