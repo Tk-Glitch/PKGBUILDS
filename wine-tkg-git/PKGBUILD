@@ -393,6 +393,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'resident_evil_4_hack.patch' # Fixes broken rendering
 		'woff-hack.patch' # Hack for child window rendering support for vk - Fixes World of Final Fantasy
 		'warframe-launcher.patch' # Fix for Warframe Launcher failing to update itself
+		'ffxiv-launcher-workaround.patch' # Workaround for Final Fantasy XIV Launcher 404 error
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -760,6 +761,11 @@ prepare() {
 	  if [ "$_use_staging" == "true" ] && ! git merge-base --is-ancestor 33c35baa6761b00c8cef236c06cb1655f3f228d9 HEAD || [ "$_use_staging" != "true" ] && ! git merge-base --is-ancestor 04ccd995b1aec5eac5874454a320b37676b69c42 HEAD; then
 	    _patchname='warframe-launcher.patch' && _patchmsg="Applied Warframe Launcher fix" && nonuser_patcher
 	  fi
+	fi
+
+	# Workaround for Final Fantasy XIV Launcher 404 error - Thanks @varris1 !
+	if [ "$_ffxivlauncher_fix" == "true" ]; then
+	  _patchname='ffxiv-launcher-workaround.patch' && _patchmsg="Applied Final Fantasy XIV Launcher fix" && nonuser_patcher
 	fi
 
 	# Workaround for F4SE/SkyrimSE Script Extender
@@ -1409,6 +1415,7 @@ md5sums=('SKIP'
          'f063189ec090d9071397d455d271199d'
          '6766554ceda75c32b79e0d33c216396f'
          '5b07ab957a128801b6c45e30b31432a7'
+         'b1dea6339eba7ca8c37d3e5b8399fc5f'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
