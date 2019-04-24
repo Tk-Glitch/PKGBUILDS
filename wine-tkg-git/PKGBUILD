@@ -5,7 +5,7 @@ pkgver=4.6.r13.g4969e275
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=154
+eval pkgrel=155
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -763,11 +763,6 @@ prepare() {
 	  fi
 	fi
 
-	# Workaround for Final Fantasy XIV Launcher 404 error - Thanks @varris1 !
-	if [ "$_ffxivlauncher_fix" == "true" ]; then
-	  _patchname='ffxiv-launcher-workaround.patch' && _patchmsg="Applied Final Fantasy XIV Launcher fix" && nonuser_patcher
-	fi
-
 	# Workaround for F4SE/SkyrimSE Script Extender
 	# https://github.com/hdmap/wine-hackery/tree/master/f4se
 	if [ "$_f4skyrimse_fix" == "true" ]; then
@@ -994,6 +989,11 @@ prepare() {
 	# Fix crashes or perf issues related to high core count setups - Fixed in 4.0 - https://bugs.winehq.org/show_bug.cgi?id=45453
 	if [ "$_highcorecount_fix" == "true" ] && ! git merge-base --is-ancestor ed75a7b3443e79f9d63e97eeebcce2d2f40c507b HEAD; then
 	  _patchname='high-core-count-fix.patch' && _patchmsg="Applied high core count fix" && nonuser_patcher
+	fi
+
+	# Workaround for Final Fantasy XIV Launcher 404 error - Thanks @varris1 !
+	if [ "$_ffxivlauncher_fix" == "true" ]; then
+	  _patchname='ffxiv-launcher-workaround.patch' && _patchmsg="Applied Final Fantasy XIV Launcher fix" && nonuser_patcher
 	fi
 
 	# apply wine-pba patchset
