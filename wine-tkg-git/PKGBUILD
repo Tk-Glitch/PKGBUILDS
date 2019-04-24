@@ -747,7 +747,11 @@ prepare() {
 
 	# Disable winex11.drv-mouse-coorrds patchset on staging for proton FS hack
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  _staging_args+=(-W winex11.drv-mouse-coorrds)
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD
+	    _staging_args+=(-W winex11.drv-mouse-coorrds)
+	  fi
+	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
 	# Patch to allow Path of Exile to run with DirectX11
