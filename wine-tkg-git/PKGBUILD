@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.6.r10.g4e7071e4
+pkgver=4.6.r13.g4969e275
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -744,6 +744,11 @@ prepare() {
 	  fi
 	fi
 
+	# Disable winex11.drv-mouse-coorrds patchset on staging for proton FS hack
+	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  _staging_args+=(-W winex11.drv-mouse-coorrds)
+	fi
+
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
 	if [ "$_poe_fix" == "true" ]; then
@@ -1434,7 +1439,7 @@ md5sums=('SKIP'
          '54b38ef7e04e4f01c1d59fc34f2c6e57'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '6262b0ff26fd1e00eb6123db5e0a4160'
-         'b5956bbddfea4e1541ea94e26b44d6f5'
+         '169f9c7962f85450a3fd6972751357bf'
          '169f9c7962f85450a3fd6972751357bf'
          'fd279d642de36ab5540d839ea9cff0a7'
          '49c21067308e78ff13cbeb491086e9c2'
