@@ -472,21 +472,21 @@ user_patcher() {
 	local patches=("$_where"/*."${_userpatch_ext}patch")
 	if [ ${#patches[@]} -ge 2 ] || [ -e "${patches[1]}" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  msg2 "Found ${#patches[@]} userpatches for ${_userpatch_target}:"
-	  printf '%s\n' "${patches[@]}"
-	  read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
+	    msg2 "Found ${#patches[@]} userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${patches[@]}"
+	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "${patches[@]}"; do
-	    if [ -e "${_f}" ]; then
-	      msg2 "######################################################"
-	      msg2 ""
-	      msg2 "Applying your own ${_userpatch_target} patch ${_f}"
-	      msg2 ""
-	      msg2 "######################################################"
-	      patch -Np1 < "${_f}"
-	      echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
-	    fi
+	      if [ -e "${_f}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Applying your own ${_userpatch_target} patch ${_f}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 < "${_f}"
+	        echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
+	      fi
 	    done
 	  fi
 	fi
@@ -494,21 +494,21 @@ user_patcher() {
 	patches=("$_where"/*."${_userpatch_ext}revert")
 	if [ ${#patches[@]} -ge 2 ] || [ -e "${patches[1]}" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  msg2 "Found ${#patches[@]} 'to revert' userpatches for ${_userpatch_target}:"
-	  printf '%s\n' "${patches[@]}"
-	  read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
+	    msg2 "Found ${#patches[@]} 'to revert' userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${patches[@]}"
+	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "${patches[@]}"; do
-	    if [ -e "${_f}" ]; then
-	      msg2 "######################################################"
-	      msg2 ""
-	      msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
-	      msg2 ""
-	      msg2 "######################################################"
-	      patch -Np1 -R < "${_f}"
-	      echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
-	    fi
+	      if [ -e "${_f}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 -R < "${_f}"
+	        echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
+	      fi
 	    done
 	  fi
 	fi
