@@ -469,15 +469,15 @@ install=wine.install
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
-	local patches=("$_where"/*."${_userpatch_ext}patch")
-	if [ ${#patches[@]} -ge 2 ] || [ -e "${patches[1]}" ]; then
+	local _patches=("$_where"/*."${_userpatch_ext}patch")
+	if [ ${#_patches[@]} -ge 2 ] || [ -e "${_patches}" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	    msg2 "Found ${#patches[@]} userpatches for ${_userpatch_target}:"
-	    printf '%s\n' "${patches[@]}"
+	    msg2 "Found ${#_patches[@]} userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${_patches[@]}"
 	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
-	    for _f in "${patches[@]}"; do
+	    for _f in "${_patches[@]}"; do
 	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
@@ -491,15 +491,15 @@ user_patcher() {
 	  fi
 	fi
 
-	patches=("$_where"/*."${_userpatch_ext}revert")
-	if [ ${#patches[@]} -ge 2 ] || [ -e "${patches[1]}" ]; then
+	_patches=("$_where"/*."${_userpatch_ext}revert")
+	if [ ${#_patches[@]} -ge 2 ] || [ -e "${_patches}" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	    msg2 "Found ${#patches[@]} 'to revert' userpatches for ${_userpatch_target}:"
-	    printf '%s\n' "${patches[@]}"
+	    msg2 "Found ${#_patches[@]} 'to revert' userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${_patches[@]}"
 	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
-	    for _f in "${patches[@]}"; do
+	    for _f in "${_patches[@]}"; do
 	      if [ -e "${_f}" ]; then
 	        msg2 "######################################################"
 	        msg2 ""
