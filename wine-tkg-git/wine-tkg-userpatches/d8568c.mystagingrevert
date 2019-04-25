@@ -1,0 +1,81 @@
+From d8568c947aa346256ec3c94938b50e5e1880208a Mon Sep 17 00:00:00 2001
+From: Zebediah Figura <z.figura12@gmail.com>
+Date: Wed, 24 Apr 2019 23:23:10 -0500
+Subject: [PATCH] eventfd_synchronization: Handle directory change notification
+ objects.
+
+---
+ ...lt_fd_get_esync_fd-for-directory-cha.patch | 26 +++++++++++++++++++
+ patches/patchinstall.sh                       | 12 +++++----
+ 2 files changed, 33 insertions(+), 5 deletions(-)
+ create mode 100644 patches/eventfd_synchronization/0084-server-Use-default_fd_get_esync_fd-for-directory-cha.patch
+
+diff --git a/patches/eventfd_synchronization/0084-server-Use-default_fd_get_esync_fd-for-directory-cha.patch b/patches/eventfd_synchronization/0084-server-Use-default_fd_get_esync_fd-for-directory-cha.patch
+new file mode 100644
+index 000000000..58eb4ffaf
+--- /dev/null
++++ b/patches/eventfd_synchronization/0084-server-Use-default_fd_get_esync_fd-for-directory-cha.patch
+@@ -0,0 +1,26 @@
++From 9743c07fc7a759f1e7c893414be8bd95a095921f Mon Sep 17 00:00:00 2001
++From: Zebediah Figura <z.figura12@gmail.com>
++Date: Wed, 24 Apr 2019 23:21:25 -0500
++Subject: [PATCH] server: Use default_fd_get_esync_fd() for directory change
++ notification objects.
++
++---
++ server/change.c | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++diff --git a/server/change.c b/server/change.c
++index 2be6a8360..9f07be705 100644
++--- a/server/change.c
+++++ b/server/change.c
++@@ -115,7 +115,7 @@ static const struct object_ops dir_ops =
++     add_queue,                /* add_queue */
++     remove_queue,             /* remove_queue */
++     default_fd_signaled,      /* signaled */
++-    NULL,                     /* get_esync_fd */
+++    default_fd_get_esync_fd,  /* get_esync_fd */
++     no_satisfied,             /* satisfied */
++     no_signal,                /* signal */
++     dir_get_fd,               /* get_fd */
++-- 
++2.21.0
++
+diff --git a/patches/patchinstall.sh b/patches/patchinstall.sh
+index 8dd75a860..98847bbef 100755
+--- a/patches/patchinstall.sh
++++ b/patches/patchinstall.sh
+@@ -3784,6 +3784,7 @@ if test "$enable_eventfd_synchronization" -eq 1; then
+ 	patch_apply eventfd_synchronization/0081-ntdll-Yield-during-PulseEvent.patch
+ 	patch_apply eventfd_synchronization/0082-ntdll-server-Check-the-value-of-WINEESYNC-instead-of.patch
+ 	patch_apply eventfd_synchronization/0083-esync-Update-README.patch
++	patch_apply eventfd_synchronization/0084-server-Use-default_fd_get_esync_fd-for-directory-cha.patch
+ 	(
+ 		printf '%s\n' '+    { "Zebediah Figura", "configure: Check for sys/eventfd.h, ppoll(), and shm_open().", 1 },';
+ 		printf '%s\n' '+    { "Zebediah Figura", "server: Create server objects for eventfd-based synchronization objects.", 1 },';
+@@ -3868,6 +3869,7 @@ if test "$enable_eventfd_synchronization" -eq 1; then
+ 		printf '%s\n' '+    { "Zebediah Figura", "ntdll: Yield during PulseEvent().", 1 },';
+ 		printf '%s\n' '+    { "Zebediah Figura", "ntdll, server: Check the value of WINEESYNC instead of just the presence.", 1 },';
+ 		printf '%s\n' '+    { "Zebediah Figura", "esync: Update README.", 1 },';
++		printf '%s\n' '+    { "Zebediah Figura", "server: Use default_fd_get_esync_fd() for directory change notification objects.", 1 },';
+ 	) >> "$patchlist"
+ fi
+ 
+@@ -5474,11 +5476,11 @@ fi
+ # | Modified files:
+ # |   *	dlls/user32/tests/winstation.c, include/wine/server_protocol.h, programs/explorer/desktop.c, server/async.c,
+ # | 	server/atom.c, server/change.c, server/clipboard.c, server/completion.c, server/console.c, server/debugger.c,
+-# | 	server/device.c, server/directory.c, server/event.c, server/fd.c, server/file.c, server/handle.c, server/handle.h,
+-# | 	server/hook.c, server/mailslot.c, server/mapping.c, server/mutex.c, server/named_pipe.c, server/object.c,
+-# | 	server/object.h, server/process.c, server/queue.c, server/registry.c, server/request.c, server/semaphore.c,
+-# | 	server/serial.c, server/signal.c, server/snapshot.c, server/sock.c, server/symlink.c, server/thread.c, server/timer.c,
+-# | 	server/token.c, server/winstation.c
++# | 	server/device.c, server/directory.c, server/esync.c, server/event.c, server/fd.c, server/file.c, server/handle.c,
++# | 	server/handle.h, server/hook.c, server/mailslot.c, server/mapping.c, server/mutex.c, server/named_pipe.c,
++# | 	server/object.c, server/object.h, server/process.c, server/queue.c, server/registry.c, server/request.c,
++# | 	server/semaphore.c, server/serial.c, server/signal.c, server/snapshot.c, server/sock.c, server/symlink.c,
++# | 	server/thread.c, server/timer.c, server/token.c, server/winstation.c
+ # |
+ if test "$enable_server_Desktop_Refcount" -eq 1; then
+ 	patch_apply server-Desktop_Refcount/0001-server-Introduce-a-new-alloc_handle-object-callback..patch
