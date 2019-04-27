@@ -50,9 +50,9 @@ _basever=419
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=36
+_sub=37
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=61
+pkgrel=62
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -67,7 +67,6 @@ fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
         #"aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
-        "https://raw.githubusercontent.com/dolohow/uksm/master/v4.x/uksm-${_basekernel}.patch"
         'config.x86_64' # config
         'linux419-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -85,10 +84,10 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0006-add-acs-overrides_iommu.patch
         0007-bcachefs.patch
         0008-bfq-mq.patch
+        0009-uksm.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            '0703078d84261d098492abaab813a0bab2b408f923d96e66c980f2cdb8d326a8'
-            'ec617b1718e6cadfad02c75aca9c4b0e6b6f944bc1a93b7e4d82c847c04b5653'
+            '517d79fc64b4c95ee5845ce21e4c60efb8f9479ce7c4ca2ac3496cf670e906ff'
             'a93697a0115f8eb190cf558f4ab982cb32f61e32477a109af4f6a387f2c1585d'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -103,7 +102,8 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'd8e65a80a28c7860b229475a142c92749b431215020e0a1dd9a58b11adc9782b'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
             'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
-            '2a463e46107fc7843d3e43f3c102848ab4b77b870e53195d6da65c00bb90a217')
+            '2a463e46107fc7843d3e43f3c102848ab4b77b870e53195d6da65c00bb90a217'
+            'b58555e0a1dc18a75db0a436e446374bd0c2c45a3e39c86282a006f0862c546a')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -449,12 +449,12 @@ prepare() {
     read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
   fi
   if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
-    patch -Np1 -i ../uksm-${_basekernel}.patch
+    patch -Np1 -i ../0009-uksm.patch
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     echo "CONFIG_KSM_LEGACY=y" >> ./.config
     echo "# CONFIG_UKSM is not set" >> ./.config
   elif [ "$CONDITION6" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
-    patch -Np1 -i ../uksm-${_basekernel}.patch
+    patch -Np1 -i ../0009-uksm.patch
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
     echo "CONFIG_UKSM=y" >> ./.config
