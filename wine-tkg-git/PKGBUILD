@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.6.r19.ga9282e64
+pkgver=4.7.r0.g547e7c81
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -408,6 +408,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r3.2.patch' # Addon for 4.5+
 		'esync-compat-fixes-r3.3.patch' # Addon for 4.6+ (b3c8d5d)
 		'esync-compat-fixes-r3.4.patch' # Addon for 4.6+ (4c0e817)
+		'esync-compat-fixes-r3.5.patch' # Addon for 4.6+ (f534fbd)
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -908,6 +909,13 @@ prepare() {
 	    if git merge-base --is-ancestor 4c0e81728f6db575d9cbd8feb8a5374f1adec9bb HEAD; then # ntdll: Use static debug info before initialization is done. 
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      _patchname='esync-compat-fixes-r3.4.patch' && _patchmsg="Using esync 4.6+(4c0e817) additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    # if using a wine version that includes f534fbd, apply 4.6+ additional fixes
+	    if git merge-base --is-ancestor f534fbd3e3c83df49c7c6b8e608a99f2af65adc0 HEAD; then # server: Allow creating process kernel objects.
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.5.patch' && _patchmsg="Using esync 4.6+(f534fbd) additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
@@ -1440,6 +1448,7 @@ md5sums=('SKIP'
          'b10e6f8732dbc1e07b59730f9aeea21e'
          '2235fbda559247a0eb0d37d9fd6d87b5'
          '85140d04dfeb80619c9d6c90bc89f925'
+         '358093d65dba3fa477065fe21ce85874'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
