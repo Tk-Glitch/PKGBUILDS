@@ -1,5 +1,16 @@
 # Wine-tkg lutris builds changelog
 
+4.7
+- Sync'd with staging up to 547e7c8;
+
+- Introduce a "ffxiv" branch containing a workaround hack for Final Fantasy XIV launcher 404 error. Thanks to everyone involved, and @varris1 for the final breakthrough
+
+- Added a fix for EA Origin - https://bugs.winehq.org/show_bug.cgi?id=47027#c8
+
+- Fix Esync on 4.7 by reverting https://github.com/wine-staging/wine-staging/commit/d8568c947aa346256ec3c94938b50e5e1880208a
+
+- Rebased Proton FS hack patch
+
 4.6
 - Sync'd with staging up to 3f8edce;
 
