@@ -1,0 +1,13 @@
+diff --git a/dlls/user32/focus.c b/dlls/user32/focus.c
+index f1c883167e..eec393427c 100644
+--- a/dlls/user32/focus.c
++++ b/dlls/user32/focus.c
+@@ -319,8 +319,6 @@ HWND WINAPI SetFocus( HWND hwnd )
+  */
+ BOOL WINAPI SetForegroundWindow( HWND hwnd )
+ {
+-    TRACE( "%p\n", hwnd );
+-
+     hwnd = WIN_GetFullHandle( hwnd );
+     return set_foreground_window( hwnd, FALSE );
+ }
