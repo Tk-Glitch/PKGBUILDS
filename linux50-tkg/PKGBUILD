@@ -56,9 +56,9 @@ _basever=50
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.0
-_sub=9
+_sub=10
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=21
+pkgrel=22
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -88,16 +88,16 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-glitched-pds.patch
         0005-v5.0_pds099o.patch
         0006-add-acs-overrides_iommu.patch
-        #0007-exFAT-support.patch
-        #0008-bcachefs.patch
+        0007-exFAT-support.patch
+        0008-bcachefs.patch
         #0009-bfq-mq.patch
         0010-uksm-5.0.patch
         0011-glitched-bmq.patch
         0011-v5.0_bmq092.patch
 )
 sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
-            'db27fa7ad0da7d2079be82675daf3ffeb0907c683fe8d7bed73bf8e88e9f47f8'
-            '1bcde3e376641b4813da65dff7ebef71b8ef2521bf1e42b251aabfc31867eada'
+            'b291c978cee9a9018d29d31e8e838de93ad727da6932220388d4c3aaf3253b56'
+            'b75847334f7db2a84be4436270af376ec3ceb2bb4355cf1a3d2e7a6401880cae'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -110,7 +110,9 @@ sha256sums=('437b141a6499159f5a7282d5eb4b2be055f8e862ccce44d7464e8759c31a2e43'
             'e6bd562663fe979fb72d3b05cab6c18c5e3e4d67cb87d587a119e28e4f747926'
             '4ecc1c73a8fe59c2a38fd6ea05957c851e88276bc9536b5d625a53248c6b6263'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            '9f7a524cc28142b075ffc76291d901b8d6257f7a8b44b1883d83bab6ca3ef086'
+            'defbe3188686c05269a1dc0fda11e16a4197ed98b8dcfd4a4fc3661fcff8763d'
+            'e2cf8020c31fcb1bdecfc75e55e1f94de895e2282fc9c92bbf2a799f1474e800'
+            '12a91d2a050f6849b5c4c7a66b5576e72c1cd23cb05904a9463056416bbf8a86'
             '93952c84ae95b49c33fe4804a5ca403a21d26b75035569d428dcc6d3b84659ea'
             '5ff1b37e6fa8da3af3195978426ae21d5963330da5d9b633df20406962031c10')
 
@@ -173,7 +175,7 @@ prepare() {
   patch -Np1 -i ../0003-glitched-base.patch
 
   # exFAT
-  #patch -Np1 -i ../0007-exFAT-support.patch
+  patch -Np1 -i ../0007-exFAT-support.patch
 
   if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
@@ -480,15 +482,15 @@ prepare() {
   fi
 
   # bcachefs
-  #if [ -z "$_bcachefs" ]; then
-  #  plain ""
-  #  plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
-  #  plain "https://bcachefs.org/"
-  #  read -rp "`echo $'    > N/y : '`" CONDITION7;
-  #fi
-  #if [ "$CONDITION7" == "y" ] || [ "$_bcachefs" == "true" ]; then
-  #  patch -Np1 -i ../0008-bcachefs.patch
-  #fi
+  if [ -z "$_bcachefs" ]; then
+    plain ""
+    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
+    plain "https://bcachefs.org/"
+    read -rp "`echo $'    > N/y : '`" CONDITION7;
+  fi
+  if [ "$CONDITION7" == "y" ] || [ "$_bcachefs" == "true" ]; then
+    patch -Np1 -i ../0008-bcachefs.patch
+  fi
 
   # bfq-mq
   #if [ -z "$_bfqmq" ]; then
