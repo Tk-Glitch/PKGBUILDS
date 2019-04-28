@@ -137,8 +137,8 @@ if [ -d ../DXVKBUILD/dxvk-$DXVK_BRANCH/x32 ] && [ -d ../DXVKBUILD/dxvk-$DXVK_BRA
   echo "Your files were built in $ROOT/DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD"
   rm -f ../DXVKBUILD/$DXVK_BRANCH/last-HEAD
   echo "CURRENT_HEAD=$GIT_HEAD" >> ../DXVKBUILD/$DXVK_BRANCH/last-HEAD
-  rm -f ../D9VKBUILD/$DXVK_BRANCH/latest
-  ln -s $GIT_HEAD $ROOT/D9VKBUILD/$DXVK_BRANCH/latest
+  rm -f ../DXVKBUILD/$DXVK_BRANCH/latest
+  ln -s $GIT_HEAD $ROOT/DXVKBUILD/$DXVK_BRANCH/latest
 else
   rm -rf ../DXVKBUILD/*-$DXVK_BRANCH
 fi
