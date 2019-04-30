@@ -205,7 +205,7 @@ index fa928242567d..fa456190e315 100644
  /*
   * Change timeval to jiffies, trying to avoid the
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index f9b43c989577..23a3d91aa128 100644
+index f9b43c989577..380a1b318906 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -612,13 +612,18 @@ struct task_struct {
@@ -236,7 +236,7 @@ index f9b43c989577..23a3d91aa128 100644
  #endif
  	int				on_rq;
  
-@@ -640,13 +646,24 @@ struct task_struct {
+@@ -640,13 +646,23 @@ struct task_struct {
  	int				normal_prio;
  	unsigned int			rt_priority;
  
@@ -246,7 +246,6 @@ index f9b43c989577..23a3d91aa128 100644
 +	int				boost_prio;
 +	int				bmq_idx;
 +	struct list_head		bmq_node;
-+	int				ts_deboost;
 +	/* sched_clock time spent running */
 +	u64				sched_time;
 +#else /* !CONFIG_SCHED_BMQ */
@@ -262,7 +261,7 @@ index f9b43c989577..23a3d91aa128 100644
  
  #ifdef CONFIG_PREEMPT_NOTIFIERS
  	/* List of struct preempt_notifier: */
-@@ -1219,6 +1236,15 @@ struct task_struct {
+@@ -1219,6 +1235,15 @@ struct task_struct {
  	 */
  };
  
@@ -441,10 +440,10 @@ index c9386a365eea..1ebe9562602b 100644
  	select CGROUP_SCHED
  	select FAIR_GROUP_SCHED
 diff --git a/init/init_task.c b/init/init_task.c
-index 5aebe3be4d7c..1380df28a150 100644
+index 5aebe3be4d7c..9c2a3db178e5 100644
 --- a/init/init_task.c
 +++ b/init/init_task.c
-@@ -59,6 +59,126 @@ struct task_struct init_task
+@@ -59,6 +59,125 @@ struct task_struct init_task
  	__init_task_data
  #endif
  = {
@@ -468,7 +467,6 @@ index 5aebe3be4d7c..1380df28a150 100644
 +	.restart_block	= {
 +		.fn = do_no_restart_syscall,
 +	},
-+	.ts_deboost	= 0,
 +	.boost_prio	= 0,
 +	.bmq_idx	= 15,
 +	.bmq_node	= LIST_HEAD_INIT(init_task.bmq_node),
@@ -571,7 +569,7 @@ index 5aebe3be4d7c..1380df28a150 100644
  #ifdef CONFIG_THREAD_INFO_IN_TASK
  	.thread_info	= INIT_THREAD_INFO(init_task),
  	.stack_refcount	= ATOMIC_INIT(1),
-@@ -179,6 +299,7 @@ struct task_struct init_task
+@@ -179,6 +298,7 @@ struct task_struct init_task
  #ifdef CONFIG_SECURITY
  	.security	= NULL,
  #endif
@@ -717,10 +715,10 @@ index 21fb5a5662b5..b23231bae996 100644
  obj-$(CONFIG_MEMBARRIER) += membarrier.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..defd7350ace0
+index 000000000000..f12c6ea22e19
 --- /dev/null
 +++ b/kernel/sched/bmq.c
-@@ -0,0 +1,6117 @@
+@@ -0,0 +1,6112 @@
 +/*
 + *  kernel/sched/bmq.c
 + *
@@ -779,27 +777,16 @@ index 000000000000..defd7350ace0
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "bmq: BMQ CPU Scheduler 0.92 by Alfred Chen.\n");
++	printk(KERN_INFO "bmq: BMQ CPU Scheduler 0.93 by Alfred Chen.\n");
 +}
 +
 +/**
 + * sched_yield_type - Choose what sort of yield sched_yield will perform.
 + * 0: No yield.
 + * 1: Deboost and requeue task. (default)
++ * 2: Set rq skip task.
 + */
 +int sched_yield_type __read_mostly = 1;
-+
-+const static u64 ts_overrun_th[] = {
-+	SCHED_TIMESLICE_NS / 32,
-+	SCHED_TIMESLICE_NS / 16,
-+	SCHED_TIMESLICE_NS / 8,
-+	SCHED_TIMESLICE_NS / 4,
-+	SCHED_TIMESLICE_NS / 2,
-+	SCHED_TIMESLICE_NS * 3 / 4,
-+	SCHED_TIMESLICE_NS * 15 / 16,
-+	SCHED_TIMESLICE_NS * 63 / 64,
-+	SCHED_TIMESLICE_NS * 127 / 128
-+};
 +
 +const static u64 ts_boost_th[] = {
 +	SCHED_TIMESLICE_NS >> 10,
@@ -911,11 +898,11 @@ index 000000000000..defd7350ace0
 +		return;
 +
 +	cpu = cpu_of(rq);
-+	__cpumask_clear_cpu(cpu, &sched_rq_watermark[last_wm]);
-+	if (cpumask_empty(&sched_rq_watermark[last_wm]))
-+		__clear_bit(last_wm, sched_rq_watermark_bitmap);
-+	__cpumask_set_cpu(cpu, &sched_rq_watermark[watermark]);
-+	__set_bit(watermark, sched_rq_watermark_bitmap);
++	if (!cpumask_andnot(&sched_rq_watermark[last_wm],
++			    &sched_rq_watermark[last_wm], cpumask_of(cpu)))
++		clear_bit(last_wm, sched_rq_watermark_bitmap);
++	cpumask_set_cpu(cpu, &sched_rq_watermark[watermark]);
++	set_bit(watermark, sched_rq_watermark_bitmap);
 +	rq->watermark = watermark;
 +
 +#ifdef CONFIG_SCHED_SMT
@@ -2601,7 +2588,6 @@ index 000000000000..defd7350ace0
 +		} else if (PRIO_TO_NICE(p->static_prio) < 0)
 +			p->static_prio = NICE_TO_PRIO(0);
 +
-+		p->boost_prio = 0;
 +		p->prio = p->normal_prio = normal_prio(p);
 +
 +		/*
@@ -2611,6 +2597,7 @@ index 000000000000..defd7350ace0
 +		p->sched_reset_on_fork = 0;
 +	}
 +
++	p->boost_prio = MAX_PRIORITY_ADJ;
 +	/*
 +	 * Share the timeslice between parent and child, thus the
 +	 * total amount of pending timeslices in the system doesn't change,
@@ -3612,12 +3599,10 @@ index 000000000000..defd7350ace0
 +	if (p->time_slice < RESCHED_NS) {
 +		p->time_slice = SCHED_TIMESLICE_NS;
 +		if (SCHED_FIFO != p->policy && task_on_rq_queued(p)) {
-+			if (SCHED_RR != p->policy &&
-+			    (p->ts_deboost || TASK_ST(p, rq, >, ts_overrun_th)))
++			if (SCHED_RR != p->policy)
 +				deboost_task(p);
 +			requeue_task(p, rq);
 +		}
-+		p->ts_deboost = 0;
 +	}
 +}
 +
@@ -3873,7 +3858,6 @@ index 000000000000..defd7350ace0
 +		if (signal_pending_state(prev->state, prev)) {
 +			prev->state = TASK_RUNNING;
 +		} else {
-+			prev->ts_deboost |= TASK_ST(prev, rq, >, ts_overrun_th);
 +			boost_task(prev, rq);
 +			deactivate_task(prev, rq);
 +
@@ -5353,8 +5337,17 @@ index 000000000000..defd7350ace0
 +
 +	rq = this_rq_lock_irq(&rf);
 +
-+	rq->skip = current;
 +	schedstat_inc(rq->yld_count);
++
++	if (1 == sched_yield_type) {
++		if (!rt_task(current)) {
++			current->boost_prio = MAX_PRIORITY_ADJ;
++			requeue_task(current, rq);
++		}
++	} else if (2 == sched_yield_type) {
++		if (rq->nr_running > 1)
++			rq->skip = current;
++	}
 +
 +	/*
 +	 * Since we are going to call schedule() anyway, there's

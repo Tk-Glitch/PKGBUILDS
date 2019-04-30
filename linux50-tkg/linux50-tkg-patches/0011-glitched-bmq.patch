@@ -106,36 +106,3 @@ index 9270a4370d54..30d01e647417 100644
  /*
   * The total number of pages which are beyond the high watermark within all
   * zones.
-
-diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
-index defd7350ace03edb1f1fd8ddbaa3aaddf2cd0ff7..751113b4d734fb9f604e78032eac584f2a9d6d80 100644
---- a/kernel/sched/bmq.c
-+++ b/kernel/sched/bmq.c
-@@ -188,11 +188,11 @@ static inline void update_sched_rq_watermark(struct rq *rq)
- 		return;
- 
- 	cpu = cpu_of(rq);
--	__cpumask_clear_cpu(cpu, &sched_rq_watermark[last_wm]);
--	if (cpumask_empty(&sched_rq_watermark[last_wm]))
--		__clear_bit(last_wm, sched_rq_watermark_bitmap);
--	__cpumask_set_cpu(cpu, &sched_rq_watermark[watermark]);
--	__set_bit(watermark, sched_rq_watermark_bitmap);
-+	if (!cpumask_andnot(&sched_rq_watermark[last_wm],
-+			    &sched_rq_watermark[last_wm], cpumask_of(cpu)))
-+		clear_bit(last_wm, sched_rq_watermark_bitmap);
-+	cpumask_set_cpu(cpu, &sched_rq_watermark[watermark]);
-+	set_bit(watermark, sched_rq_watermark_bitmap);
- 	rq->watermark = watermark;
- 
- #ifdef CONFIG_SCHED_SMT
-@@ -4630,8 +4630,9 @@ static void do_sched_yield(void)
- 
- 	rq = this_rq_lock_irq(&rf);
- 
--	rq->skip = current;
- 	schedstat_inc(rq->yld_count);
-+	if (rq->nr_running > 1)
-+		rq->skip = current;
- 
- 	/*
- 	 * Since we are going to call schedule() anyway, there's
