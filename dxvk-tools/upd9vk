@@ -142,6 +142,8 @@ if [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ] && [ -d ../D9VKBUILD/d9vk-$D9VK_BRA
   echo "Your files were built in $ROOT/D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD"
   rm -f ../D9VKBUILD/$D9VK_BRANCH/last-HEAD
   echo "CURRENT_HEAD=$GIT_HEAD" >> ../D9VKBUILD/$D9VK_BRANCH/last-HEAD
+  rm -f ../D9VKBUILD/$D9VK_BRANCH/latest
+  ln -s $GIT_HEAD $ROOT/D9VKBUILD/$D9VK_BRANCH/latest
 else
   rm -rf ../D9VKBUILD/*-$D9VK_BRANCH
 fi
