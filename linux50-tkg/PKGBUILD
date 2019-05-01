@@ -734,6 +734,15 @@ function exit_cleanup {
 
   if [ $_NUKR == "true" ]; then
     rm -rf "$_where"/src/*
+    # Double tap
+    rm -rf "$srcdir"/linux-*
+    rm -rf "$srcdir"/*.xz
+    rm -rf "$srcdir"/*.patch
+    rm -rf "$srcdir"/*.hook
+    rm -rf "$srcdir"/*.install
+    rm -rf "$srcdir"/*.preset
+    rm -rf "$srcdir"/*-profile.cfg
+    rm -rf "$srcdir"/config.x86_64
   else
     # Meh
     rm -rf "$srcdir"/linux-${_basekernel}/Documentation/filesystems/aufs/*
