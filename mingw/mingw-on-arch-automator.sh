@@ -43,6 +43,15 @@ fi
 
 sudo pacman -Rscnd mingw-w64 --noconfirm
 
+trap "exit" INT TERM
+trap "kill 0" EXIT
+sudo -v || exit $?
+sleep 1
+while true; do
+  sleep 60
+  sudo -nv
+done 2>/dev/null &
+
 # cloog git - If the usual cloog package fails with mingw, you'll need -git
 if [ $_cloog_git == "true" ]; then
   sudo pacman -Rscnd cloog --noconfirm
@@ -165,4 +174,5 @@ if [ $_NUKR == "true" ]; then
   rm -rf isl
 fi
 
-echo "mingw-on-arch done"
+echo ""
+echo "mingw-on-arch done !"
