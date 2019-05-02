@@ -6146,14 +6146,14 @@ index a29043ea9..3fb219747 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
 @@ -263,7 +263,7 @@ compound_page_dtor * const compound_page_dtors[] = {
- int min_free_kbytes = 1024;
- int user_min_free_kbytes = -1;
+ #else
  int watermark_boost_factor __read_mostly = 15000;
+ #endif
 -int watermark_scale_factor = 10;
 +int watermark_scale_factor = 200;
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- static unsigned long arch_zone_lowest_possible_pfn[MAX_NR_ZONES] __initdata;
+ static unsigned long nr_kernel_pages __initdata;
+ static unsigned long nr_all_pages __initdata;
  
 diff --git a/include/linux/mm.h b/include/linux/mm.h
 index 80bb6408f..6c8b55cd1 100644
