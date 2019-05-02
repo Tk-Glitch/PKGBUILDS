@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.7.r6.g7d9b7bbd
+pkgver=4.7.r7.g57370fd9
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -120,6 +120,12 @@ if [ "$_NUKR" == "true" ]; then
   rm -rf "$srcdir"/*.patch
   rm -rf "$srcdir"/*.tgz
   rm -rf "$srcdir"/*.conf
+  # Force pushing? Force cleaning :frog:
+  rm -rf "$srcdir"/"$_d9vksrcdir"
+  rm -rf "$_where"/d9vk
+  # Josh's weebiness might leak onto Doitsujin :frog:
+  rm -rf "$srcdir"/"$_dxvksrcdir"
+  rm -rf "$_where"/dxvk
   msg2 'exit cleanup done'
 fi
 
