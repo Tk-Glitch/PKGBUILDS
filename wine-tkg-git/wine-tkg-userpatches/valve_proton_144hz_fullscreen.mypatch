@@ -1,0 +1,14 @@
+diff --git a/dlls/winex11.drv/settings.c b/dlls/winex11.drv/settings.c
+index 589c159b29..a03c3f6db8 100644
+--- a/dlls/winex11.drv/settings.c
++++ b/dlls/winex11.drv/settings.c
+@@ -378,6 +378,8 @@ void X11DRV_Settings_Init(void)
+                   fs_modes[i].h > fs_modes[0].h)))
+             continue;
+         X11DRV_Settings_AddOneMode( fs_modes[i].w, fs_modes[i].h, 0, 60);
++        X11DRV_Settings_AddOneMode( fs_modes[i].w, fs_modes[i].h, 0, 120);
++        X11DRV_Settings_AddOneMode( fs_modes[i].w, fs_modes[i].h, 0, 144);
+     }
+     X11DRV_Settings_AddDepthModes();
+ }
+
