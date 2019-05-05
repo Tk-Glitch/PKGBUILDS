@@ -833,21 +833,6 @@ index c0527d8a468a..cc8f346a5404 100644
 + 2: Expire timeslice and recalculate deadline.
 +
 +==============================================================
-diff --git a/Makefile b/Makefile
-index d5713e7b1e50..3ee4f3805466 100644
---- a/Makefile
-+++ b/Makefile
-@@ -15,6 +15,10 @@ NAME = Shy Crocodile
- PHONY := _all
- _all:
- 
-+CKVERSION = -ck1
-+CKNAME = MuQSS Powered
-+EXTRAVERSION := $(EXTRAVERSION)$(CKVERSION)
-+
- # Do not use make's built-in rules and variables
- # (this increases performance and avoids hard-to-debug behaviour)
- MAKEFLAGS += -rR
 diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
 index 584a6e114853..2d497c3710f2 100644
 --- a/arch/alpha/Kconfig
