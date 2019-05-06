@@ -14446,10 +14446,10 @@ index 000000000000..74b962a05b36
 +#endif /* _BCACHEFS_BSET_H */
 diff --git a/fs/bcachefs/btree_cache.c b/fs/bcachefs/btree_cache.c
 new file mode 100644
-index 000000000000..074ea6f16c9d
+index 000000000000..2a20bdef8fd0
 --- /dev/null
 +++ b/fs/bcachefs/btree_cache.c
-@@ -0,0 +1,939 @@
+@@ -0,0 +1,941 @@
 +
 +#include "bcachefs.h"
 +#include "btree_cache.h"
@@ -15184,6 +15184,8 @@ index 000000000000..074ea6f16c9d
 +				goto retry;
 +
 +			trans_restart();
++			trace_trans_restart_btree_node_reused(c,
++						iter->trans->ip);
 +			return ERR_PTR(-EINTR);
 +		}
 +	}
@@ -18696,10 +18698,10 @@ index 000000000000..4de1fb736ae5
 +#endif /* _BCACHEFS_BTREE_IO_H */
 diff --git a/fs/bcachefs/btree_iter.c b/fs/bcachefs/btree_iter.c
 new file mode 100644
-index 000000000000..49ddf05cc9a9
+index 000000000000..5631f98f3845
 --- /dev/null
 +++ b/fs/bcachefs/btree_iter.c
-@@ -0,0 +1,1956 @@
+@@ -0,0 +1,1962 @@
 +
 +#include "bcachefs.h"
 +#include "bkey_methods.h"
@@ -18953,12 +18955,15 @@ index 000000000000..49ddf05cc9a9
 +		}
 +	}
 +
-+	if (ret)
-+		__btree_node_lock_type(iter->trans->c, b, type);
-+	else
++	if (unlikely(!ret)) {
 +		trans_restart();
++		trace_trans_restart_would_deadlock(iter->trans->c,
++						   iter->trans->ip);
++		return false;
++	}
 +
-+	return ret;
++	__btree_node_lock_type(iter->trans->c, b, type);
++	return true;
 +}
 +
 +/* Btree iterator locking: */
@@ -20394,6 +20399,7 @@ index 000000000000..49ddf05cc9a9
 +
 +	if (trans->iters_live) {
 +		trans_restart();
++		trace_trans_restart_iters_realloced(trans->c, trans->ip);
 +		return -EINTR;
 +	}
 +
@@ -20561,6 +20567,7 @@ index 000000000000..49ddf05cc9a9
 +
 +		if (old_bytes) {
 +			trans_restart();
++			trace_trans_restart_mem_realloced(trans->c, trans->ip);
 +			return ERR_PTR(-EINTR);
 +		}
 +	}
@@ -20637,6 +20644,7 @@ index 000000000000..49ddf05cc9a9
 +	memset(trans, 0, offsetof(struct btree_trans, iters_onstack));
 +
 +	trans->c		= c;
++	trans->ip		= _RET_IP_;
 +	trans->size		= ARRAY_SIZE(trans->iters_onstack);
 +	trans->iters		= trans->iters_onstack;
 +	trans->updates		= trans->updates_onstack;
@@ -21223,10 +21231,10 @@ index 000000000000..e9686197a908
 +
 diff --git a/fs/bcachefs/btree_types.h b/fs/bcachefs/btree_types.h
 new file mode 100644
-index 000000000000..ae273ab7aa1a
+index 000000000000..57ef50142ee1
 --- /dev/null
 +++ b/fs/bcachefs/btree_types.h
-@@ -0,0 +1,524 @@
+@@ -0,0 +1,525 @@
 +#ifndef _BCACHEFS_BTREE_TYPES_H
 +#define _BCACHEFS_BTREE_TYPES_H
 +
@@ -21497,6 +21505,7 @@ index 000000000000..ae273ab7aa1a
 +
 +struct btree_trans {
 +	struct bch_fs		*c;
++	unsigned long		ip;
 +	size_t			nr_restarts;
 +	u64			commit_start;
 +
@@ -24493,10 +24502,10 @@ index 000000000000..6ae17ffa4101
 +#endif /* _BCACHEFS_BTREE_UPDATE_INTERIOR_H */
 diff --git a/fs/bcachefs/btree_update_leaf.c b/fs/bcachefs/btree_update_leaf.c
 new file mode 100644
-index 000000000000..d052ca541965
+index 000000000000..dde1fc1f97a2
 --- /dev/null
 +++ b/fs/bcachefs/btree_update_leaf.c
-@@ -0,0 +1,1067 @@
+@@ -0,0 +1,1074 @@
 +
 +#include "bcachefs.h"
 +#include "btree_update.h"
@@ -24938,6 +24947,7 @@ index 000000000000..d052ca541965
 +
 +	if (!bch2_btree_trans_relock(trans)) {
 +		trans_restart(" (iter relock after journal preres get blocked)");
++		trace_trans_restart_journal_preres_get(c, trans->ip);
 +		return -EINTR;
 +	}
 +
@@ -25074,6 +25084,7 @@ index 000000000000..d052ca541965
 +	if (race_fault()) {
 +		ret = -EINTR;
 +		trans_restart(" (race)");
++		trace_trans_restart_fault_inject(c, trans->ip);
 +		goto out;
 +	}
 +
@@ -25224,6 +25235,7 @@ index 000000000000..d052ca541965
 +		 */
 +		if (!ret || (flags & BTREE_INSERT_NOUNLOCK)) {
 +			trans_restart(" (split)");
++			trace_trans_restart_btree_node_split(c, trans->ip);
 +			ret = -EINTR;
 +		}
 +		break;
@@ -25243,6 +25255,7 @@ index 000000000000..d052ca541965
 +			return 0;
 +
 +		trans_restart(" (iter relock after marking replicas)");
++		trace_trans_restart_mark_replicas(c, trans->ip);
 +		ret = -EINTR;
 +		break;
 +	case BTREE_INSERT_NEED_JOURNAL_RES:
@@ -25256,6 +25269,7 @@ index 000000000000..d052ca541965
 +			return 0;
 +
 +		trans_restart(" (iter relock after journal res get blocked)");
++		trace_trans_restart_journal_res_get(c, trans->ip);
 +		ret = -EINTR;
 +		break;
 +	default:
@@ -25268,6 +25282,7 @@ index 000000000000..d052ca541965
 +
 +		if (ret2) {
 +			trans_restart(" (traverse)");
++			trace_trans_restart_traverse(c, trans->ip);
 +			return ret2;
 +		}
 +
@@ -25279,6 +25294,7 @@ index 000000000000..d052ca541965
 +			return 0;
 +
 +		trans_restart(" (atomic)");
++		trace_trans_restart_atomic(c, trans->ip);
 +	}
 +
 +	return ret;
@@ -27775,7 +27791,7 @@ index 000000000000..a32c25d8f298
 +#endif /* _BUCKETS_H */
 diff --git a/fs/bcachefs/buckets_types.h b/fs/bcachefs/buckets_types.h
 new file mode 100644
-index 000000000000..974daa7ef2d3
+index 000000000000..a333b9ec9302
 --- /dev/null
 +++ b/fs/bcachefs/buckets_types.h
 @@ -0,0 +1,127 @@
@@ -27878,7 +27894,7 @@ index 000000000000..974daa7ef2d3
 +struct replicas_delta {
 +	s64			delta;
 +	struct bch_replicas_entry r;
-+};
++} __packed;
 +
 +struct replicas_delta_list {
 +	struct bch_fs_usage	fs_usage;
@@ -51079,10 +51095,10 @@ index 000000000000..9e809f972844
 +}
 diff --git a/fs/bcachefs/migrate.c b/fs/bcachefs/migrate.c
 new file mode 100644
-index 000000000000..822b3fce09b4
+index 000000000000..190b545b5e45
 --- /dev/null
 +++ b/fs/bcachefs/migrate.c
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,182 @@
 +/*
 + * Code for moving data off a device.
 + */
@@ -51132,10 +51148,6 @@ index 000000000000..822b3fce09b4
 +	iter = bch2_trans_get_iter(&trans, BTREE_ID_EXTENTS,
 +				   POS_MIN, BTREE_ITER_PREFETCH);
 +
-+	mutex_lock(&c->replicas_gc_lock);
-+	bch2_replicas_gc_start(c, (1 << BCH_DATA_USER)|(1 << BCH_DATA_CACHED));
-+
-+
 +	while ((k = bch2_btree_iter_peek(iter)).k &&
 +	       !(ret = bkey_err(k))) {
 +		if (!bkey_extent_is_data(k.k) ||
@@ -51181,12 +51193,9 @@ index 000000000000..822b3fce09b4
 +			break;
 +	}
 +
++	ret = bch2_trans_exit(&trans) ?: ret;
++
 +	BUG_ON(ret == -EINTR);
-+
-+	bch2_trans_exit(&trans);
-+
-+	bch2_replicas_gc_end(c, ret);
-+	mutex_unlock(&c->replicas_gc_lock);
 +
 +	return ret;
 +}
@@ -51206,9 +51215,6 @@ index 000000000000..822b3fce09b4
 +
 +	bch2_trans_init(&trans, c);
 +	closure_init_stack(&cl);
-+
-+	mutex_lock(&c->replicas_gc_lock);
-+	bch2_replicas_gc_start(c, 1 << BCH_DATA_BTREE);
 +
 +	for (id = 0; id < BTREE_ID_NR; id++) {
 +		for_each_btree_node(&trans, iter, id, POS_MIN,
@@ -51262,10 +51268,9 @@ index 000000000000..822b3fce09b4
 +
 +	ret = 0;
 +err:
-+	bch2_trans_exit(&trans);
++	ret = bch2_trans_exit(&trans) ?: ret;
 +
-+	ret = bch2_replicas_gc_end(c, ret);
-+	mutex_unlock(&c->replicas_gc_lock);
++	BUG_ON(ret == -EINTR);
 +
 +	return ret;
 +}
@@ -51273,7 +51278,8 @@ index 000000000000..822b3fce09b4
 +int bch2_dev_data_drop(struct bch_fs *c, unsigned dev_idx, int flags)
 +{
 +	return bch2_dev_usrdata_drop(c, dev_idx, flags) ?:
-+		bch2_dev_metadata_drop(c, dev_idx, flags);
++		bch2_dev_metadata_drop(c, dev_idx, flags) ?:
++		bch2_replicas_gc2(c);
 +}
 diff --git a/fs/bcachefs/migrate.h b/fs/bcachefs/migrate.h
 new file mode 100644
@@ -51289,10 +51295,10 @@ index 000000000000..de2faab24e11
 +#endif /* _BCACHEFS_MIGRATE_H */
 diff --git a/fs/bcachefs/move.c b/fs/bcachefs/move.c
 new file mode 100644
-index 000000000000..946e616228c9
+index 000000000000..d39f5633a824
 --- /dev/null
 +++ b/fs/bcachefs/move.c
-@@ -0,0 +1,838 @@
+@@ -0,0 +1,780 @@
 +
 +#include "bcachefs.h"
 +#include "alloc_foreground.h"
@@ -51915,64 +51921,6 @@ index 000000000000..946e616228c9
 +	return ret;
 +}
 +
-+static int bch2_gc_data_replicas(struct bch_fs *c)
-+{
-+	struct btree_trans trans;
-+	struct btree_iter *iter;
-+	struct bkey_s_c k;
-+	int ret;
-+
-+	bch2_trans_init(&trans, c);
-+
-+	mutex_lock(&c->replicas_gc_lock);
-+	bch2_replicas_gc_start(c, (1 << BCH_DATA_USER)|(1 << BCH_DATA_CACHED));
-+
-+	for_each_btree_key(&trans, iter, BTREE_ID_EXTENTS, POS_MIN,
-+			   BTREE_ITER_PREFETCH, k, ret) {
-+		ret = bch2_mark_bkey_replicas(c, k);
-+		if (ret)
-+			break;
-+	}
-+	ret = bch2_trans_exit(&trans) ?: ret;
-+
-+	bch2_replicas_gc_end(c, ret);
-+	mutex_unlock(&c->replicas_gc_lock);
-+
-+	return ret;
-+}
-+
-+static int bch2_gc_btree_replicas(struct bch_fs *c)
-+{
-+	struct btree_trans trans;
-+	struct btree_iter *iter;
-+	struct btree *b;
-+	unsigned id;
-+	int ret = 0;
-+
-+	bch2_trans_init(&trans, c);
-+
-+	mutex_lock(&c->replicas_gc_lock);
-+	bch2_replicas_gc_start(c, 1 << BCH_DATA_BTREE);
-+
-+	for (id = 0; id < BTREE_ID_NR; id++) {
-+		for_each_btree_node(&trans, iter, id, POS_MIN,
-+				    BTREE_ITER_PREFETCH, b) {
-+			ret = bch2_mark_bkey_replicas(c, bkey_i_to_s_c(&b->key));
-+
-+			bch2_trans_cond_resched(&trans);
-+		}
-+
-+		ret = bch2_trans_iter_free(&trans, iter) ?: ret;
-+	}
-+
-+	bch2_trans_exit(&trans);
-+
-+	bch2_replicas_gc_end(c, ret);
-+	mutex_unlock(&c->replicas_gc_lock);
-+
-+	return ret;
-+}
-+
 +static int bch2_move_btree(struct bch_fs *c,
 +			   move_pred_fn pred,
 +			   void *arg,
@@ -52099,14 +52047,14 @@ index 000000000000..946e616228c9
 +			bch2_journal_meta(&c->journal);
 +		}
 +
-+		ret = bch2_gc_btree_replicas(c) ?: ret;
++		ret = bch2_replicas_gc2(c) ?: ret;
 +
 +		ret = bch2_move_data(c, NULL,
 +				     writepoint_hashed((unsigned long) current),
 +				     op.start,
 +				     op.end,
 +				     rereplicate_pred, c, stats) ?: ret;
-+		ret = bch2_gc_data_replicas(c) ?: ret;
++		ret = bch2_replicas_gc2(c) ?: ret;
 +		break;
 +	case BCH_DATA_OP_MIGRATE:
 +		if (op.migrate.dev >= c->sb.nr_devices)
@@ -52116,14 +52064,14 @@ index 000000000000..946e616228c9
 +		ret = bch2_journal_flush_device_pins(&c->journal, op.migrate.dev);
 +
 +		ret = bch2_move_btree(c, migrate_pred, &op, stats) ?: ret;
-+		ret = bch2_gc_btree_replicas(c) ?: ret;
++		ret = bch2_replicas_gc2(c) ?: ret;
 +
 +		ret = bch2_move_data(c, NULL,
 +				     writepoint_hashed((unsigned long) current),
 +				     op.start,
 +				     op.end,
 +				     migrate_pred, &op, stats) ?: ret;
-+		ret = bch2_gc_data_replicas(c) ?: ret;
++		ret = bch2_replicas_gc2(c) ?: ret;
 +		break;
 +	default:
 +		ret = -EINVAL;
@@ -55770,10 +55718,10 @@ index 000000000000..c61b55f5406c
 +#endif /* _BCACHEFS_RECOVERY_H */
 diff --git a/fs/bcachefs/replicas.c b/fs/bcachefs/replicas.c
 new file mode 100644
-index 000000000000..eb44119466d8
+index 000000000000..319c7dc4ef9a
 --- /dev/null
 +++ b/fs/bcachefs/replicas.c
-@@ -0,0 +1,1012 @@
+@@ -0,0 +1,1070 @@
 +
 +#include "bcachefs.h"
 +#include "buckets.h"
@@ -56343,6 +56291,64 @@ index 000000000000..eb44119466d8
 +	return 0;
 +}
 +
++int bch2_replicas_gc2(struct bch_fs *c)
++{
++	struct bch_replicas_cpu new = { 0 };
++	unsigned i, nr;
++	int ret = 0;
++
++	bch2_journal_meta(&c->journal);
++retry:
++	nr		= READ_ONCE(c->replicas.nr);
++	new.entry_size	= READ_ONCE(c->replicas.entry_size);
++	new.entries	= kcalloc(nr, new.entry_size, GFP_KERNEL);
++	if (!new.entries)
++		return -ENOMEM;
++
++	mutex_lock(&c->sb_lock);
++	percpu_down_write(&c->mark_lock);
++
++	if (nr			!= c->replicas.nr ||
++	    new.entry_size	!= c->replicas.entry_size) {
++		percpu_up_write(&c->mark_lock);
++		mutex_unlock(&c->sb_lock);
++		kfree(new.entries);
++		goto retry;
++	}
++
++	for (i = 0; i < c->replicas.nr; i++) {
++		struct bch_replicas_entry *e =
++			cpu_replicas_entry(&c->replicas, i);
++
++		if (e->data_type == BCH_DATA_JOURNAL ||
++		    c->usage_base->replicas[i] ||
++		    percpu_u64_get(&c->usage[0]->replicas[i]) ||
++		    percpu_u64_get(&c->usage[1]->replicas[i]))
++			memcpy(cpu_replicas_entry(&new, new.nr++),
++			       e, new.entry_size);
++	}
++
++	bch2_cpu_replicas_sort(&new);
++
++	if (bch2_cpu_replicas_to_sb_replicas(c, &new)) {
++		ret = -ENOSPC;
++		goto err;
++	}
++
++	ret = replicas_table_update(c, &new);
++err:
++	kfree(new.entries);
++
++	percpu_up_write(&c->mark_lock);
++
++	if (!ret)
++		bch2_write_super(c);
++
++	mutex_unlock(&c->sb_lock);
++
++	return ret;
++}
++
 +int bch2_replicas_set_usage(struct bch_fs *c,
 +			    struct bch_replicas_entry *r,
 +			    u64 sectors)
@@ -56788,10 +56794,10 @@ index 000000000000..eb44119466d8
 +}
 diff --git a/fs/bcachefs/replicas.h b/fs/bcachefs/replicas.h
 new file mode 100644
-index 000000000000..2ffafad7c631
+index 000000000000..bca82e04e28d
 --- /dev/null
 +++ b/fs/bcachefs/replicas.h
-@@ -0,0 +1,96 @@
+@@ -0,0 +1,97 @@
 +#ifndef _BCACHEFS_REPLICAS_H
 +#define _BCACHEFS_REPLICAS_H
 +
@@ -56852,6 +56858,7 @@ index 000000000000..2ffafad7c631
 +
 +int bch2_replicas_gc_end(struct bch_fs *, int);
 +int bch2_replicas_gc_start(struct bch_fs *, unsigned);
++int bch2_replicas_gc2(struct bch_fs *);
 +
 +int bch2_replicas_set_usage(struct bch_fs *,
 +			    struct bch_replicas_entry *,
@@ -58805,7 +58812,7 @@ index 000000000000..cf25b44a077e
 +#endif /* _BCACHEFS_SUPER_IO_H */
 diff --git a/fs/bcachefs/super.c b/fs/bcachefs/super.c
 new file mode 100644
-index 000000000000..748cc4fe1334
+index 000000000000..aa3adbf2babf
 --- /dev/null
 +++ b/fs/bcachefs/super.c
 @@ -0,0 +1,1995 @@
@@ -59546,9 +59553,9 @@ index 000000000000..748cc4fe1334
 +		sizeof(struct btree_node_iter_set);
 +
 +	if (!(c->wq = alloc_workqueue("bcachefs",
-+				WQ_FREEZABLE|WQ_MEM_RECLAIM|WQ_HIGHPRI, 1)) ||
++				WQ_FREEZABLE|WQ_MEM_RECLAIM|WQ_CPU_INTENSIVE, 1)) ||
 +	    !(c->copygc_wq = alloc_workqueue("bcache_copygc",
-+				WQ_FREEZABLE|WQ_MEM_RECLAIM|WQ_HIGHPRI, 1)) ||
++				WQ_FREEZABLE|WQ_MEM_RECLAIM|WQ_CPU_INTENSIVE, 1)) ||
 +	    !(c->journal_reclaim_wq = alloc_workqueue("bcache_journal",
 +				WQ_FREEZABLE|WQ_MEM_RECLAIM|WQ_HIGHPRI, 1)) ||
 +	    percpu_ref_init(&c->writes, bch2_writes_disabled,
@@ -62940,7 +62947,7 @@ index 000000000000..13f0fc24a3f7
 +#include <trace/events/bcachefs.h>
 diff --git a/fs/bcachefs/util.c b/fs/bcachefs/util.c
 new file mode 100644
-index 000000000000..fea80e248667
+index 000000000000..94dd651949ca
 --- /dev/null
 +++ b/fs/bcachefs/util.c
 @@ -0,0 +1,925 @@
@@ -63088,10 +63095,10 @@ index 000000000000..fea80e248667
 +		nr++;
 +
 +	while (flags && (bit = __ffs(flags)) < nr) {
-+		pr_buf(out, "%s", list[bit]);
 +		if (!first)
 +			pr_buf(out, ",");
 +		first = false;
++		pr_buf(out, "%s", list[bit]);
 +		flags ^= 1 << bit;
 +	}
 +}
@@ -66858,10 +66865,10 @@ index 398e9c95cd61..11788d5ba379 100644
  extern int map_kernel_range_noflush(unsigned long start, unsigned long size,
 diff --git a/include/trace/events/bcachefs.h b/include/trace/events/bcachefs.h
 new file mode 100644
-index 000000000000..6781a5b58953
+index 000000000000..5fa570a516a7
 --- /dev/null
 +++ b/include/trace/events/bcachefs.h
-@@ -0,0 +1,504 @@
+@@ -0,0 +1,576 @@
 +#undef TRACE_SYSTEM
 +#define TRACE_SYSTEM bcachefs
 +
@@ -67360,6 +67367,78 @@ index 000000000000..6781a5b58953
 +		__entry->uuid,
 +		__entry->sectors_moved, __entry->sectors_not_moved,
 +		__entry->buckets_moved, __entry->buckets_not_moved)
++);
++
++DECLARE_EVENT_CLASS(transaction_restart,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip),
++
++	TP_STRUCT__entry(
++		__array(char,			name,	16)
++		__field(unsigned long,		ip	)
++	),
++
++	TP_fast_assign(
++		memcpy(__entry->name, c->name, 16);
++		__entry->ip = ip;
++	),
++
++	TP_printk("%pf", (void *) __entry->ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_btree_node_reused,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_would_deadlock,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_iters_realloced,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_mem_realloced,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_journal_res_get,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_journal_preres_get,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_mark_replicas,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_fault_inject,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_btree_node_split,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_traverse,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
++);
++
++DEFINE_EVENT(transaction_restart,	trans_restart_atomic,
++	TP_PROTO(struct bch_fs *c, unsigned long ip),
++	TP_ARGS(c, ip)
 +);
 +
 +#endif /* _TRACE_BCACHE_H */
