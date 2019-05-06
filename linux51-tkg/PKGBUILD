@@ -54,7 +54,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
 _sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=1
+pkgrel=2
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -84,7 +84,6 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-glitched-pds.patch
         0005-v5.1_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
-        0007-exFAT-support.patch
         #0008-bcachefs.patch
         #0009-uksm-5.1.patch
         0010-glitched-bmq.patch
@@ -96,13 +95,12 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
-            '8855fe0f9d2ae64331d3c716477349d45a1c1fb628fc16dfa5fa95d41ef5fd28'
+            'cc889e5f63aa576e7037f1b4f7cbd11f23a1254d7f106a9de1f20d73073870cf'
             '477131a8178efdcb06241caf2fbeea655885c48f202706b319085bb5357796e3'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             'e6bd562663fe979fb72d3b05cab6c18c5e3e4d67cb87d587a119e28e4f747926'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            'defbe3188686c05269a1dc0fda11e16a4197ed98b8dcfd4a4fc3661fcff8763d'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '885ed0c36054afd28055ff8cad6c6da47f40f5e5e7774f609e209e0e384b5198')
 
@@ -163,9 +161,6 @@ prepare() {
   patch -Np1 -i ../0002-clear-patches.patch
 
   patch -Np1 -i ../0003-glitched-base.patch
-
-  # exFAT
-  patch -Np1 -i ../0007-exFAT-support.patch
 
   if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
