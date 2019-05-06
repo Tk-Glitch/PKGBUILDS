@@ -177,8 +177,8 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0011-v5.1_bmq094.patch
-    patch -Np1 -i ../0011-glitched-bmq.patch
+    patch -Np1 -i ../0010-v5.1_bmq094.patch
+    patch -Np1 -i ../0010-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
   fi
