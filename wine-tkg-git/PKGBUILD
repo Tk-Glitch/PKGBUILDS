@@ -5,7 +5,7 @@ pkgver=4.7.r19.g5f18c856
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=156
+eval pkgrel=157
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -454,6 +454,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'proton-sdl-joy.patch' # Proton SDL joystick support
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
+		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
+		'proton_FS_hack_refreshrate.patch' # Add custom fake refreshrate to proton_FS_hack
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -1058,6 +1060,13 @@ prepare() {
 	  _patchname='GLSL-toggle.patch' && _patchmsg="Applied GLSL toggle patch" && nonuser_patcher
 	fi
 
+	# Set a custom fake refresh rate for virtual desktop and proton FS hack
+	if [ -n "$_fake_refresh_rate" ]; then
+	  sed -i "s/999999/$_fake_refresh_rate/g" "${_where}/virtual_desktop_refreshrate.patch"
+	  sed -i "s/999999/$_fake_refresh_rate/g" "${_where}/proton_FS_hack_refreshrate.patch"
+	  _patchname='virtual_desktop_refreshrate.patch' && _patchmsg="Applied custom fake virtual desktop refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
+	fi
+
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
@@ -1080,6 +1089,9 @@ prepare() {
 	    else
 	      _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
 	    fi
+	  fi
+	  if [ -n "$_fake_refresh_rate" ]; then
+	    _patchname='proton_FS_hack_refreshrate.patch' && _patchmsg="Applied custom fake proton FS hack refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
 	  fi
 	fi
 
@@ -1495,6 +1507,8 @@ md5sums=('SKIP'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
          '52f11ca72f4ee06bd2a4bc2b0314e631'
-         'eea40375be4cd3615eaef5412802274b')
+         'eea40375be4cd3615eaef5412802274b'
+         'b415db953ef35b73c1608bc360356113'
+         'aa8d6b65936c9646972c04864eafc479')
 
 trap exit_cleanup EXIT
