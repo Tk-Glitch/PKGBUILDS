@@ -7999,7 +7999,13 @@ load_dotnet30sp1()
 
     "$WINE" "$file1" ${W_OPT_UNATTENDED:+/q}
     status=$?
-    w_info "$file1 exited with status $status"
+
+    case $status in
+        0) ;;
+        105) echo "exit status $status - normal, user selected 'restart now'" ;;
+        194) echo "exit status $status - normal, user selected 'restart later'" ;;
+        *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
+    esac
 
     # Doesn't install any ngen.exe
     # W_NGEN_CMD=""
@@ -8046,6 +8052,14 @@ load_dotnet35()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     "$WINE" "${file1}" /lang:ENU $W_UNATTENDED_SLASH_Q
+    status=$?
+
+    case $status in
+        0) ;;
+        105) echo "exit status $status - normal, user selected 'restart now'" ;;
+        194) echo "exit status $status - normal, user selected 'restart later'" ;;
+        *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
+    esac
 
     # Doesn't install any ngen.exe
     # W_NGEN_CMD=""
@@ -8089,6 +8103,14 @@ load_dotnet35sp1()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     "$WINE" dotnetfx35.exe /lang:ENU $W_UNATTENDED_SLASH_Q
+    status=$?
+
+    case $status in
+        0) ;;
+        105) echo "exit status $status - normal, user selected 'restart now'" ;;
+        194) echo "exit status $status - normal, user selected 'restart later'" ;;
+        *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
+    esac
 
     # Doesn't install any ngen.exe
     # W_NGEN_CMD=""
@@ -20806,7 +20828,9 @@ load_remove_mono()
     # wine-4.6 comes with two installers, removing "Wine Mono Runtime" will also remove "Wine Mono Windows Support"
     mono_uuid="$("${WINE_ARCH}" uninstaller --list | grep 'Wine Mono' | grep -v 'Wine Mono Windows Support' | cut -f1 -d\|)"
     if test "$mono_uuid"; then
-         "${WINE_ARCH}" uninstaller --remove "$mono_uuid"
+        for uuid in $mono_uuid;
+	    do "${WINE_ARCH}" uninstaller --remove "$uuid"
+        done
     else
         # Bail out if mono isn't installed, so we don't break .Net setups
         w_warn "Mono does not appear to be installed."

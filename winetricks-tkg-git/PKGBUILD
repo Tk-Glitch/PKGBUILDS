@@ -4,7 +4,7 @@
 # Contributor: Tk-Glitch <ti3nou@gmail.com>
 
 pkgname=winetricks-tkg-git
-pkgver=20190310.r49.gc6dc631
+pkgver=20190310.r54.g5265287
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'
