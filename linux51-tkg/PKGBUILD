@@ -54,7 +54,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
 _sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -98,11 +98,11 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '87c42cc27dfdeae2e05dd2cfb1a359ba34aa27634c5c1c1c86e1ce275f90dca4'
             'd82f7817dfe390638c4d83e9f3963f7e6d41fe499785610af3d575d681a05e1d'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
-            'e6bd562663fe979fb72d3b05cab6c18c5e3e4d67cb87d587a119e28e4f747926'
+            '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '68b79d42493fb04e40af8958bd3fd67aad9ebe86128da1eb0da38731d2ee61a3'
-            '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
+            'f49b4eabe05b77d9ef148748d443958d11f3765cf6ed49db4b39645dae819a37'
             '885ed0c36054afd28055ff8cad6c6da47f40f5e5e7774f609e209e0e384b5198')
 
 user_patcher() {
