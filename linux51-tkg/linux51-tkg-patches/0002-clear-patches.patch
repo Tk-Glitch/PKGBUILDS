@@ -1,33 +1,19 @@
-From 1dc7a20946596b24f669fe038a1ae31a28cf59a5 Mon Sep 17 00:00:00 2001
+From 2ac70785613ef4c6b16414986bb18bd7b60d2a13 Mon Sep 17 00:00:00 2001
 From: Arjan van de Ven <arjan@linux.intel.com>
 Date: Mon, 14 Mar 2016 11:10:58 -0600
-Subject: [PATCH 105/126] pci pme wakeups
+Subject: [PATCH] pci pme wakeups
 
 Reduce wakeups for PME checks, which are a workaround for miswired
 boards (sadly, too many of them) in laptops.
 ---
- drivers/misc/vmw_balloon.c | 2 +-
- drivers/pci/pci.c          | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/misc/vmw_balloon.c b/drivers/misc/vmw_balloon.c
-index 1e688bfec567..e0a4f3eb0d8e 100644
---- a/drivers/misc/vmw_balloon.c
-+++ b/drivers/misc/vmw_balloon.c
-@@ -1142,7 +1142,7 @@ static void vmballoon_work(struct work_struct *work)
- 	 * stopped while the system transitions to/from sleep/hibernation.
- 	 */
- 	queue_delayed_work(system_freezable_wq,
--			   dwork, round_jiffies_relative(HZ));
-+			   dwork, round_jiffies_relative(10*HZ));
- 
- }
- 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 6078dfc11b11..44f61288d508 100644
+index c25acace7d91..0ddebdad9f5b 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
-@@ -58,7 +58,7 @@ struct pci_pme_device {
+@@ -61,7 +61,7 @@ struct pci_pme_device {
  	struct pci_dev *dev;
  };
  
@@ -37,12 +23,12 @@ index 6078dfc11b11..44f61288d508 100644
  static void pci_dev_d3_sleep(struct pci_dev *dev)
  {
 -- 
-2.15.0
+2.20.1
 
-From a9c1cca49b1a48660a25299db805fa480e8af6c0 Mon Sep 17 00:00:00 2001
+From 7e7e36c67aa71d6a1ec5676d99d37c1fea389ceb Mon Sep 17 00:00:00 2001
 From: Arjan van de Ven <arjan@linux.intel.com>
 Date: Sat, 19 Mar 2016 21:32:19 -0400
-Subject: [PATCH 106/122] intel_idle: tweak cpuidle cstates
+Subject: [PATCH] intel_idle: tweak cpuidle cstates
 
 Increase target_residency in cpuidle cstate
 
@@ -55,7 +41,7 @@ performance while keeping power efficiency
  1 file changed, 22 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index b2ccce5fb071..6d5002992ed3 100644
+index 8b5d85c91e9d..5e2d813a048d 100644
 --- a/drivers/idle/intel_idle.c
 +++ b/drivers/idle/intel_idle.c
 @@ -466,7 +466,7 @@ static struct cpuidle_state hsw_cstates[] = {
@@ -257,12 +243,12 @@ index b2ccce5fb071..6d5002992ed3 100644
  		.enter_s2idle = intel_idle_s2idle, },
  	{
 -- 
-2.19.1
+2.20.1
 
-From 2a66d6aefe53822bbf645c0481fadf49eeab8a75 Mon Sep 17 00:00:00 2001
+From 1a8143c4a732d72060eac0f9e8ac4eee8a60207e Mon Sep 17 00:00:00 2001
 From: Arjan van de Ven <arjan@linux.intel.com>
 Date: Sun, 18 Feb 2018 23:35:41 +0000
-Subject: [PATCH 502/502] locking: rwsem: spin faster
+Subject: [PATCH] locking: rwsem: spin faster
 
 tweak rwsem owner spinning a bit
 ---
@@ -270,10 +256,10 @@ tweak rwsem owner spinning a bit
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
-index 3064c50e181e..040d9ee85ed9 100644
+index 50d9af615dc4..a1a868ea2cdd 100644
 --- a/kernel/locking/rwsem-xadd.c
 +++ b/kernel/locking/rwsem-xadd.c
-@@ -382,6 +382,7 @@ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
+@@ -400,6 +400,7 @@ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
  static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
  {
  	struct task_struct *owner = READ_ONCE(sem->owner);
@@ -281,7 +267,7 @@ index 3064c50e181e..040d9ee85ed9 100644
  
  	if (!is_rwsem_owner_spinnable(owner))
  		return false;
-@@ -404,8 +405,8 @@ static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
+@@ -422,8 +423,8 @@ static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
  			rcu_read_unlock();
  			return false;
  		}
@@ -293,23 +279,23 @@ index 3064c50e181e..040d9ee85ed9 100644
  	rcu_read_unlock();
  
 -- 
-2.19.1
+2.20.1
 
-From 407d400362e9b039c1af5969a26bda77427a4b63 Mon Sep 17 00:00:00 2001
+From b8211d4f79dd88dfc2d4bd52be46103ea0b70e3e Mon Sep 17 00:00:00 2001
 From: Arjan van de Ven <arjan@linux.intel.com>
 Date: Fri, 6 Jan 2017 15:34:09 +0000
-Subject: [PATCH 113/122] ipv4/tcp: allow the memory tuning for tcp to go a
- little bigger than default
+Subject: [PATCH] ipv4/tcp: allow the memory tuning for tcp to go a little
+ bigger than default
 
 ---
  net/ipv4/tcp.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index bbd07736fb0f..3fa85880d03c 100644
+index cf3c5095c10e..b30d51837b2d 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -3886,8 +3886,8 @@ void __init tcp_init(void)
+@@ -3897,8 +3897,8 @@ void __init tcp_init(void)
  	tcp_init_mem();
  	/* Set per-socket limits to no more than 1/128 the pressure threshold */
  	limit = nr_free_buffer_pages() << (PAGE_SHIFT - 7);
@@ -321,12 +307,12 @@ index bbd07736fb0f..3fa85880d03c 100644
  	init_net.ipv4.sysctl_tcp_wmem[0] = SK_MEM_QUANTUM;
  	init_net.ipv4.sysctl_tcp_wmem[1] = 16*1024;
 -- 
-2.19.1 
+2.20.1
 
-From 9edf98bfed6df2b06f9846b51267bec1075a8c8b Mon Sep 17 00:00:00 2001
+From 6ce17ba6e04802462425ee9d38084523fc1a7ab6 Mon Sep 17 00:00:00 2001
 From: Arjan van de Ven <arjan@linux.intel.com>
 Date: Mon, 25 Jul 2016 06:44:34 -0500
-Subject: [PATCH 111/122] reduce e1000e boot time by tightening sleep ranges
+Subject: [PATCH] reduce e1000e boot time by tightening sleep ranges
 
 The e1000e driver is a great user of the usleep_range() API,
 and has any nice ranges that in principle help power management.
@@ -552,10 +538,10 @@ index 4abd55d646c5..e531976f8a67 100644
  		if (status & E1000_STATUS_LU)
  			break;
 diff --git a/drivers/net/ethernet/intel/e1000e/netdev.c b/drivers/net/ethernet/intel/e1000e/netdev.c
-index 3ba0c90e7055..e827ace6330f 100644
+index 189f231075c2..ce4aaa9f2163 100644
 --- a/drivers/net/ethernet/intel/e1000e/netdev.c
 +++ b/drivers/net/ethernet/intel/e1000e/netdev.c
-@@ -3207,7 +3207,7 @@ static void e1000_configure_rx(struct e1000_adapter *adapter)
+@@ -3208,7 +3208,7 @@ static void e1000_configure_rx(struct e1000_adapter *adapter)
  	if (!(adapter->flags2 & FLAG2_NO_DISABLE_RX))
  		ew32(RCTL, rctl & ~E1000_RCTL_EN);
  	e1e_flush();
@@ -564,7 +550,7 @@ index 3ba0c90e7055..e827ace6330f 100644
  
  	if (adapter->flags2 & FLAG2_DMA_BURST) {
  		/* set the writeback threshold (only takes effect if the RDTR
-@@ -4272,7 +4272,7 @@ void e1000e_down(struct e1000_adapter *adapter, bool reset)
+@@ -4273,7 +4273,7 @@ void e1000e_down(struct e1000_adapter *adapter, bool reset)
  
  	/* flush both disables and wait for them to finish */
  	e1e_flush();
@@ -573,7 +559,7 @@ index 3ba0c90e7055..e827ace6330f 100644
  
  	e1000_irq_disable(adapter);
  
-@@ -4310,7 +4310,7 @@ void e1000e_reinit_locked(struct e1000_adapter *adapter)
+@@ -4311,7 +4311,7 @@ void e1000e_reinit_locked(struct e1000_adapter *adapter)
  {
  	might_sleep();
  	while (test_and_set_bit(__E1000_RESETTING, &adapter->state))
@@ -582,7 +568,7 @@ index 3ba0c90e7055..e827ace6330f 100644
  	e1000e_down(adapter, true);
  	e1000e_up(adapter);
  	clear_bit(__E1000_RESETTING, &adapter->state);
-@@ -4685,7 +4685,7 @@ int e1000e_close(struct net_device *netdev)
+@@ -4708,7 +4708,7 @@ int e1000e_close(struct net_device *netdev)
  	int count = E1000_CHECK_RESET_COUNT;
  
  	while (test_bit(__E1000_RESETTING, &adapter->state) && count--)
@@ -591,7 +577,7 @@ index 3ba0c90e7055..e827ace6330f 100644
  
  	WARN_ON(test_bit(__E1000_RESETTING, &adapter->state));
  
-@@ -6003,7 +6003,7 @@ static int e1000_change_mtu(struct net_device *netdev, int new_mtu)
+@@ -6026,7 +6026,7 @@ static int e1000_change_mtu(struct net_device *netdev, int new_mtu)
  	}
  
  	while (test_and_set_bit(__E1000_RESETTING, &adapter->state))
@@ -600,7 +586,7 @@ index 3ba0c90e7055..e827ace6330f 100644
  	/* e1000e_down -> e1000e_reset dependent on max_frame_size & mtu */
  	adapter->max_frame_size = max_frame;
  	e_info("changing MTU from %d to %d\n", netdev->mtu, new_mtu);
-@@ -6283,7 +6283,7 @@ static int e1000e_pm_freeze(struct device *dev)
+@@ -6306,7 +6306,7 @@ static int e1000e_pm_freeze(struct device *dev)
  		int count = E1000_CHECK_RESET_COUNT;
  
  		while (test_bit(__E1000_RESETTING, &adapter->state) && count--)
@@ -609,7 +595,7 @@ index 3ba0c90e7055..e827ace6330f 100644
  
  		WARN_ON(test_bit(__E1000_RESETTING, &adapter->state));
  
-@@ -6698,7 +6698,7 @@ static int e1000e_pm_runtime_suspend(struct device *dev)
+@@ -6721,7 +6721,7 @@ static int e1000e_pm_runtime_suspend(struct device *dev)
  		int count = E1000_CHECK_RESET_COUNT;
  
  		while (test_bit(__E1000_RESETTING, &adapter->state) && count--)
@@ -632,12 +618,12 @@ index 937f9af22d26..e609f4df86f4 100644
  	}
  
 -- 
-2.19.1
+2.20.1
 
-From d12c9238ca40801c53c82105227630fdfb182fc1 Mon Sep 17 00:00:00 2001
+From e9f66e2828a2d9d128047e139d36cd646b748b77 Mon Sep 17 00:00:00 2001
 From: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
 Date: Mon, 27 Mar 2017 16:01:56 -0600
-Subject: [PATCH 115/122] e1000e: increase pause and refresh time
+Subject: [PATCH] e1000e: increase pause and refresh time
 
 Suggested-by:  Tim Pepper <timothy.c.pepper@linux.intel.com>
 Signed-off-by: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
@@ -646,10 +632,10 @@ Signed-off-by: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/intel/e1000e/netdev.c b/drivers/net/ethernet/intel/e1000e/netdev.c
-index e827ace6330f..0ccd5013ce03 100644
+index ce4aaa9f2163..597d3ca19555 100644
 --- a/drivers/net/ethernet/intel/e1000e/netdev.c
 +++ b/drivers/net/ethernet/intel/e1000e/netdev.c
-@@ -4046,12 +4046,12 @@ void e1000e_reset(struct e1000_adapter *adapter)
+@@ -4047,12 +4047,12 @@ void e1000e_reset(struct e1000_adapter *adapter)
  	case e1000_pch_lpt:
  	case e1000_pch_spt:
  	case e1000_pch_cnp:
@@ -665,4 +651,4 @@ index e827ace6330f..0ccd5013ce03 100644
  		}
  
 -- 
-2.19.1
+2.20.1
