@@ -275,7 +275,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
       elif [[ $pkgver = 418.7* ]] && [ "$_p" == "kernel-5.1.patch" ]; then
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
-      elif [[ $pkgver = 430* ]] && [ "$_p" == "kernel-4.16.patch" ]; then
+      elif [[ $pkgver = 430* ]] && [ "$_p" == "kernel-4.16.patch" ] || [ "$_p" == "kernel-5.1.patch" ]; then
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
       else
         if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
