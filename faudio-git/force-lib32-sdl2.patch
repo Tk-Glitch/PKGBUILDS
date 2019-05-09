@@ -1,14 +1,14 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 01da0b3..0ce4228 100644
+index bb2b6b3..da4bee3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -135,7 +135,7 @@ if(FFMPEG)
- endif(FFMPEG)
+@@ -155,7 +155,8 @@ endif(FFMPEG)
  
  # SDL2 Dependency
--find_package(SDL2 CONFIG)
-+include(/usr/lib32/cmake/SDL2/SDL2Config.cmake)
+ if (NOT DEFINED SDL2_INCLUDE_DIRS AND NOT DEFINED SDL2_LIBRARIES)
+-	find_package(SDL2 CONFIG)
++#	find_package(SDL2 CONFIG)
++	include(/usr/lib32/cmake/SDL2/SDL2Config.cmake)
+ endif()
  if (TARGET SDL2::SDL2)
  	message(STATUS "using TARGET SDL2::SDL2")
- 	target_link_libraries(FAudio PUBLIC SDL2::SDL2)
- 

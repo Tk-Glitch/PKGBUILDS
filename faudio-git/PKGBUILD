@@ -14,7 +14,7 @@ if [ "$_lib32" == "true" ]; then
   pkgname=("${pkgname[@]}" "lib32-${_pkgname}-git")
 fi
 
-pkgver=r1120.9a86f1a
+pkgver=r1121.3dd4e04
 pkgrel=1
 pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
 arch=('i686' 'x86_64')
@@ -31,7 +31,7 @@ makedepends=('git' 'cmake')
 source=("git+https://github.com/FNA-XNA/FAudio.git#commit=${_faudio_commit}"
         'force-lib32-sdl2.patch')
 sha256sums=('SKIP'
-            '8454e8342989cdbfb571ff9769baea962576b9c961f166df4bff47c610b7f114')
+            '74a3432a09b1fa70cda254af5b0e04dbdb72f7f082dde7f625a477cacd634975')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
