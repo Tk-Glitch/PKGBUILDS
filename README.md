@@ -6,7 +6,10 @@
 
 ## How-to use that mess :
 
-### While some of the scripts might work fine on any distro, the PKGBUILDs will only work on distros using pacman and makepkg, usually found on Arch-linux and distros based on it (like Antergos or Manjaro).
+### While some of the scripts might work fine on any distro, the PKGBUILDs will only work on distros with access to pacman and makepkg.
+**If you need to access pacman and makepkg outside of Arch-linux and distros based on it (like Antergos or Manjaro), you can "hijack" your current distro with Bedrock Linux at your own risk: https://bedrocklinux.org**  
+
+**Look through the pages in "Current release" for usage, tips & tricks, what isn't supported, and workarounds if necessary.**
 
  * Clone the whole thing (that enables you to use `git pull` to get updates) :
 ```
