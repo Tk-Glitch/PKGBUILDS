@@ -5,7 +5,7 @@ pkgver=4.7.r26.g082a898a
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=159
+eval pkgrel=160
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -415,6 +415,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'esync-compat-fixes-r3.3.patch' # Addon for 4.6+ (b3c8d5d)
 		'esync-compat-fixes-r3.4.patch' # Addon for 4.6+ (4c0e817)
 		'esync-compat-fixes-r3.5.patch' # Addon for 4.6+ (f534fbd)
+		'esync-compat-fixes-r3.6.patch' # Addon for 4.8+ (29914d5)
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
@@ -924,6 +925,13 @@ prepare() {
 	    if git merge-base --is-ancestor f534fbd3e3c83df49c7c6b8e608a99f2af65adc0 HEAD; then # server: Allow creating process kernel objects.
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      _patchname='esync-compat-fixes-r3.5.patch' && _patchmsg="Using esync 4.6+(f534fbd) additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    # if using a wine version that includes 29914d5, apply 4.8+ additional fixes
+	    if git merge-base --is-ancestor 29914d583fe098521472332687b8da69fc692690 HEAD; then # server: Pass file object handle in IRP_CALL_CREATE request.
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.6.patch' && _patchmsg="Using esync 4.8+(29914d5) additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
@@ -1467,6 +1475,7 @@ md5sums=('SKIP'
          '2235fbda559247a0eb0d37d9fd6d87b5'
          '85140d04dfeb80619c9d6c90bc89f925'
          '358093d65dba3fa477065fe21ce85874'
+         'f80f0a4743b4a3e39c523b85c46e13d5'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
