@@ -145,6 +145,21 @@ fi
 makepkg -si --noconfirm
 cd $_where
 
+# mingw-w64-crt.git - Rebuild against main gcc package
+rm -rf mingw-w64-crt
+git clone https://aur.archlinux.org/mingw-w64-crt.git
+cd mingw-w64-crt
+makepkg -si --noconfirm
+cd $_where
+
+# mingw-w64-winpthreads - Rebuild against main gcc package
+rm -fr mingw-w64-winpthreads
+git clone https://aur.archlinux.org/mingw-w64-winpthreads.git
+cd mingw-w64-winpthreads
+makepkg -si --noconfirm
+libtool --finish /usr/x86_64-w64-mingw32/lib
+cd $_where
+
 if [ $_sdlandco == "true" ]; then
   # mingw-w64-pkg-config
   git clone https://aur.archlinux.org/mingw-w64-pkg-config.git
