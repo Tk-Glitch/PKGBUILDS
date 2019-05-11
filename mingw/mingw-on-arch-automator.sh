@@ -38,7 +38,7 @@ fi
 _mingwloop() {
   git clone https://aur.archlinux.org/$_AURPKGNAME.git
   cd $_AURPKGNAME
-  rm *.pkg.tar* # Delete package if exists
+  rm *.pkg.* # Delete package if exists
   if [ "$_AURPKGNAME" == "mingw-w64-gcc-base" ] && [ $_dwarf2 == "true" ]; then
     sed -i -e "s|        --enable-lto --disable-dw2-exceptions.*|        --enable-lto --disable-sjlj-exceptions --with-dwarf2 \\\|" PKGBUILD #dwarf2 exceptions
   fi
