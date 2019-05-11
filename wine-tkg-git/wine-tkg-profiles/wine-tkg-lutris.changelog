@@ -1,5 +1,11 @@
 # Wine-tkg lutris builds changelog
 
+4.8
+- Sync'd with staging up to 3134cc0;
+
+- Disable the GLSL toggle as it reportedly interacts badly with Gallium Nine standalone
+
+
 4.7
 - Sync'd with staging up to 547e7c8;
 
