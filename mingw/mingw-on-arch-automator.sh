@@ -15,15 +15,20 @@ _sdlandco=false
 # Set to true to clean sources after building - If set to false, you'll be prompted about it
 _NUKR=false
 
- echo '#################################################################'
+ echo '##################################################################'
  echo ''
- echo 'Mingw on arch automator will install mingw for you. Since the'
- echo 'automation process needs to use pacman, your password is required.'
+ echo 'Mingw on arch automator will install mingw for you. The automation'
+ echo 'process needs to use pacman, so your password will be required.'
  echo ''
- echo '###################################TkG##########was##########here'
+ echo '####################################TkG##########was##########here'
 
 if [ $_NUKR == "false" ]; then
-  read -rp "Wanna nuke temporary files/packages before & after building? Default (N) will keep sources and packages around, uncleanly. N/y: " _clean_mingw;
+  echo ''
+  echo -e "  \033[1mDo you want to delete build/src dirs before & after building?\033[0m"
+  echo -e "    \033[1m- Doing so will ensure you're running the latest version.\033[0m"
+  echo "    - Default (No) will keep sources/tarballs and packages around,"
+  echo "      without updating existing PKGBUILDs if any."
+  read -rp "  N/y: " _clean_mingw;
   if [ "$_clean_mingw" == "y" ]; then
     _NUKR=true
     # cleanup
@@ -48,7 +53,7 @@ _mingwloop() {
   if [ "$_AURPKGNAME" == "mingw-w64-gcc" ] && [ $_dwarf2 == "true" ]; then
     sed -i -e "s|        --enable-lto --disable-dw2-exceptions.*|        --enable-lto --disable-sjlj-exceptions --with-dwarf2 --enable-libgomp \\\|" PKGBUILD #dwarf2 exceptions
   fi
-  makepkg -si --noconfirm
+  makepkg -csi --noconfirm
   if [ "$_AURPKGNAME" == "mingw-w64-winpthreads" ]; then
     libtool --finish /usr/x86_64-w64-mingw32/lib
   fi
