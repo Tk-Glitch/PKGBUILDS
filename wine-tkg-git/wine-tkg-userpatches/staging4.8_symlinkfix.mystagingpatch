@@ -1,0 +1,18 @@
+diff --git a/patches/ntdll-Junction_Points/0018-ntdll-Always-report-symbolic-links-as-containing-zer.patch b/patches/ntdll-Junction_Points/0018-ntdll-Always-report-symbolic-links-as-containing-zer.patch
+index 9200db25..e2b90cde 100644
+--- a/patches/ntdll-Junction_Points/0018-ntdll-Always-report-symbolic-links-as-containing-zer.patch
++++ b/patches/ntdll-Junction_Points/0018-ntdll-Always-report-symbolic-links-as-containing-zer.patch
+@@ -13,10 +13,11 @@ diff --git a/dlls/ntdll/file.c b/dlls/ntdll/file.c
+ index 934577bfba..cf98b1cfdd 100644
+ --- a/dlls/ntdll/file.c
+ +++ b/dlls/ntdll/file.c
+-@@ -153,6 +153,8 @@ int get_file_info( const char *path, struct stat *st, ULONG *attr )
++@@ -153,6 +153,9 @@ int get_file_info( const char *path, struct stat *st, ULONG *attr )
+      {
+          BOOL is_dir;
+  
+++        stat(path, st);
+ +        /* symbolic links always report size 0 */
+ +        st->st_size = 0;
+          /* symbolic links (either junction points or NT symlinks) are "reparse points" */
+ 
