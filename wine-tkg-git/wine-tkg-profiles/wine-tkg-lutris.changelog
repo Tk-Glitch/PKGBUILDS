@@ -5,6 +5,10 @@
 
 - Disable the GLSL toggle as it reportedly interacts badly with Gallium Nine standalone
 
+- Hotfix soft links - https://bugs.winehq.org/show_bug.cgi?id=47160
+
+- Explicitely expose "Wine TkG" as the running version in logs and to "not report to winehq" :frog:
+
 
 4.7
 - Sync'd with staging up to 547e7c8;
