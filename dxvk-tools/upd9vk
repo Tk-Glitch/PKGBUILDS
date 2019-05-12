@@ -131,13 +131,12 @@ if [ -d ../D9VKBUILD/dxvk-$D9VK_BRANCH ]; then
 fi
 
 if [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ] && [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ]; then
-  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ../D9VKBUILD/d9vk-$D9VK_BRANCH/win32
-  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ../D9VKBUILD/d9vk-$D9VK_BRANCH/win64
   mkdir -p ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD
-  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/win32 ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/win32
-  cp ../D9VKBUILD/setup_d9vk32.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/win32/setup_d9vk.sh
-  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/win64 ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/win64
-  cp ../D9VKBUILD/setup_d9vk64.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/win64/setup_d9vk.sh
+  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x32
+  cp ../D9VKBUILD/setup_d9vk32.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x32/setup_symlink_d9vk.sh
+  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x64
+  cp ../D9VKBUILD/setup_d9vk64.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x64/setup_symlink_d9vk.sh
+  cp ../D9VKBUILD/d9vk-$D9VK_BRANCH/setup_dxvk.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/setup_d9vk.sh
   rm -R -f ../D9VKBUILD/d9vk-$D9VK_BRANCH
   echo "Your files were built in $ROOT/D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD"
   rm -f ../D9VKBUILD/$D9VK_BRANCH/last-HEAD
@@ -182,10 +181,10 @@ if [ -d $ROOT/D9VKBUILD ]; then
   fi
 
   if [ -d "win32" ] && [ -d "win64" ]; then
-    WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $WINEARCH/setup_d9vk.sh
+    WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $_D9VKALIAS/setup_d9vk.sh
 
     if [ $WINEARCH = "win64" ]; then
-        WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash win32/setup_d9vk.sh
+        WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash x32/setup_d9vk.sh
     fi
 
     echo "#########################################"
@@ -213,15 +212,19 @@ if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris"
     if [ "$2" == "32" ]; then
       echo "x86 prefix"
       WINEARCH="win32"
+      _D9VKALIAS="x32"
     elif [ "$2" == "64" ]; then
       echo "x64 prefix"
       WINEARCH="win64"
+      _D9VKALIAS="x64"
     elif [ -d "$1/drive_c/Program Files (x86)" ]; then
       echo "assuming x64 prefix"
       WINEARCH="win64"
+      _D9VKALIAS="x64"
     else
       echo "assuming x86 prefix"
       WINEARCH="win32"
+      _D9VKALIAS="x32"
     fi
   fi
   update
@@ -236,8 +239,10 @@ if [ "$1" == "batch" ] && [ ! -z $PREFIXES_ROOT ]; then
         WINEPREFIX="${D}"
         if [ -d "${D}/drive_c/Program Files (x86)" ]; then
           WINEARCH="win64"
+          _D9VKALIAS="x64"
         else
           WINEARCH="win32"
+          _D9VKALIAS="x32"
         fi
         update
       fi
@@ -262,8 +267,8 @@ if [ "$1" == "lutris" ]; then
       rm -rv $HOME/.local/share/lutris/runtime/dxvk/TkG/x32/d3d9.dll
       #mkdir -p $HOME/.local/share/lutris/runtime/d9vk/TkG/x64
       #mkdir -p $HOME/.local/share/lutris/runtime/d9vk/TkG/x32
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/win64/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/win32/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
+      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x64/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
+      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x32/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
 
       echo ""
       echo "###########################################################"
@@ -292,8 +297,8 @@ if [ "$1" == "proton-tkg" ]; then
       rm -rf ../proton-tkg/d9vk
       mkdir -p ../proton-tkg/d9vk/x64
       mkdir -p ../proton-tkg/d9vk/x32
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/win64/* ../proton-tkg/d9vk/x64
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/win32/* ../proton-tkg/d9vk/x32
+      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x64/* ../proton-tkg/d9vk/x64
+      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x32/* ../proton-tkg/d9vk/x32
 
       echo ""
       echo "###############################################################"
