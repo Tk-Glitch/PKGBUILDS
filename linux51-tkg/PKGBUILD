@@ -88,6 +88,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0009-uksm-5.1.patch
         0010-glitched-bmq.patch
         0010-v5.1_bmq094.patch
+        0011-ZFS-fix.patch
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             'b7ea82d8622ef2c2bbe225fc199a60b68d4a31432a8453db3a45676e61b088ac'
@@ -97,14 +98,15 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             'dd907cda65ae5d36295faa7bbea400683e46f7999806762dc330870fcb62321a'
             '87c42cc27dfdeae2e05dd2cfb1a359ba34aa27634c5c1c1c86e1ce275f90dca4'
-            'b237e8a1b15a59ee30cf953e77d774e74038b6e0d6ec371513698fd1fe618faa'
+            '9e4b33230b7c51c7fe5d37148388ec44e17399899a82b169fc241a5b5c9f4a1b'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '68b79d42493fb04e40af8958bd3fd67aad9ebe86128da1eb0da38731d2ee61a3'
             'f49b4eabe05b77d9ef148748d443958d11f3765cf6ed49db4b39645dae819a37'
-            '885ed0c36054afd28055ff8cad6c6da47f40f5e5e7774f609e209e0e384b5198')
+            '885ed0c36054afd28055ff8cad6c6da47f40f5e5e7774f609e209e0e384b5198'
+            'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -479,6 +481,17 @@ prepare() {
   #if [ "$CONDITION7" == "y" ] || [ "$_bcachefs" == "true" ]; then
   #  patch -Np1 -i ../0008-bcachefs.patch
   #fi
+
+  # ZFS fix
+  if [ -z "$_zfsfix" ]; then
+    plain ""
+    plain "Add back missing symbol for AES-NI/AVX support on ZFS"
+    plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions.patch"
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_zfsfix" == "true" ]; then
+    patch -Np1 -i ../0011-ZFS-fix.patch
+  fi
 
   # userpatches
   if [ "$_user_patches" == "true" ]; then
