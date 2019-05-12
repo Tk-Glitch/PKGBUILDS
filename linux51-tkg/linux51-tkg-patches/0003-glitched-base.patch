@@ -4988,3 +4988,59 @@ index 80bb6408f..6c8b55cd1 100644
  
  extern int sysctl_max_map_count;
  
+From: Jiong Wang <jiong.wang@netronome.com>
+Date: Tue, 7 May 2019 17:41:30 +0100
+Subject: [PATCH] nfp: bpf: fix static check error through tightening shift
+ amount adjustment
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+NFP shift instruction has something special. If shift direction is left
+then shift amount of 1 to 31 is specified as 32 minus the amount to shift.
+
+But no need to do this for indirect shift which has shift amount be 0. Even
+after we do this subtraction, shift amount 0 will be turned into 32 which
+will eventually be encoded the same as 0 because only low 5 bits are
+encoded, but shift amount be 32 will fail the FIELD_PREP check done later
+on shift mask (0x1f), due to 32 is out of mask range. Such error has been
+observed when compiling nfp/bpf/jit.c using gcc 8.3 + O3.
+
+This issue has started when indirect shift support added after which the
+incoming shift amount to __emit_shf could be 0, therefore it is at that
+time shift amount adjustment inside __emit_shf should have been tightened.
+
+Fixes: 991f5b3651f6 ("nfp: bpf: support logic indirect shifts (BPF_[L|R]SH | BPF_X)")
+Reported-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Reported-by: Pablo Cascón <pablo.cascon@netronome.com
+Reviewed-by: Quentin Monnet <quentin.monnet@netronome.com>
+Reviewed-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+Signed-off-by: Jiong Wang <jiong.wang@netronome.com>
+---
+ drivers/net/ethernet/netronome/nfp/bpf/jit.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/netronome/nfp/bpf/jit.c b/drivers/net/ethernet/netronome/nfp/bpf/jit.c
+index f272247d1708..d4bf0e694541 100644
+--- a/drivers/net/ethernet/netronome/nfp/bpf/jit.c
++++ b/drivers/net/ethernet/netronome/nfp/bpf/jit.c
+@@ -328,7 +328,18 @@ __emit_shf(struct nfp_prog *nfp_prog, u16 dst, enum alu_dst_ab dst_ab,
+ 		return;
+ 	}
+ 
+-	if (sc == SHF_SC_L_SHF)
++	/* NFP shift instruction has something special. If shift direction is
++	 * left then shift amount of 1 to 31 is specified as 32 minus the amount
++	 * to shift.
++	 *
++	 * But no need to do this for indirect shift which has shift amount be
++	 * 0. Even after we do this subtraction, shift amount 0 will be turned
++	 * into 32 which will eventually be encoded the same as 0 because only
++	 * low 5 bits are encoded, but shift amount be 32 will fail the
++	 * FIELD_PREP check done later on shift mask (0x1f), due to 32 is out of
++	 * mask range.
++	 */
++	if (sc == SHF_SC_L_SHF && shift)
+ 		shift = 32 - shift;
+ 
+ 	insn = OP_SHF_BASE |
