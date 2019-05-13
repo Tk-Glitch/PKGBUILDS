@@ -1,11 +1,11 @@
 # Wine-tkg lutris builds changelog
 
 4.8
-- Sync'd with staging up to 3134cc0;
+- Sync'd with staging up to 6e49a94 (r2) to include soft links fix (https://bugs.winehq.org/show_bug.cgi?id=47160);
 
 - Disable the GLSL toggle as it reportedly interacts badly with Gallium Nine standalone
 
-- Hotfix soft links - https://bugs.winehq.org/show_bug.cgi?id=47160
+- Hotfix gamepad regression, effectively reverting https://github.com/wine-mirror/wine/commit/5ff326f80147f4608fd64ad37510d0cff330676e
 
 - Explicitly expose "Wine TkG" as the running version in logs and to "not report to winehq" :frog:
 
