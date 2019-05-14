@@ -1,4 +1,4 @@
-# Nvidia driver 430.09 (beta), 418.52.05 (Vulkan dev), 415.27 (short lived) & 418.74 (long lived)
+# Nvidia driver 430.09 (beta), 418.52.05 (Vulkan dev), 415.27 (short lived) & 430.14 (long lived)
 # Also supports user-selected driver version (lower than 396.45 is untested)
 
 LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (you will still be asked if you want to use the regular package). Installs for all currently installed kernels.
@@ -8,7 +8,7 @@ You may need/want to add a pacman hook for nvidia depending on your setup : http
 
 418.52.05 : https://developer.nvidia.com/vulkan-driver (Vulkan dev drivers page)
 
-415.27 & 418.74 : https://www.nvidia.com/object/unix.html
+415.27 & 430.14 : https://www.nvidia.com/object/unix.html
 
 430.09 : https://www.nvidia.com/download/driverResults.aspx/146189/en-us
 
