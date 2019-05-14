@@ -232,7 +232,7 @@ run_wine([wine_path, "wineboot"])
 run_wine([bindir + "/wineserver", "-w"])
 
 if "PROTON_LOG" in env and nonzero(env["PROTON_LOG"]):
-    env["WINEDEBUG"] = "+timestamp,+pid,+tid,+seh,+debugstr,+module,+mscoree"
+    env["WINEDEBUG"] = "+timestamp,+pid,+tid,+seh,+debugstr,+loaddll,+mscoree"
     env["DXVK_LOG_LEVEL"] = "info"
     env["WINE_MONO_TRACE"] = "E:System.NotImplementedException"
 
