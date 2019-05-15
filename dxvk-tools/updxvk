@@ -126,13 +126,12 @@ echo "#################"
 ./package-release.sh $DXVK_BRANCH ../DXVKBUILD --no-package
 
 if [ -d ../DXVKBUILD/dxvk-$DXVK_BRANCH/x32 ] && [ -d ../DXVKBUILD/dxvk-$DXVK_BRANCH/x64 ]; then
-  mv -v -T ../DXVKBUILD/dxvk-$DXVK_BRANCH/x32 ../DXVKBUILD/dxvk-$DXVK_BRANCH/win32
-  mv -v -T ../DXVKBUILD/dxvk-$DXVK_BRANCH/x64 ../DXVKBUILD/dxvk-$DXVK_BRANCH/win64
   mkdir -p ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD
-  mv -v -T ../DXVKBUILD/dxvk-$DXVK_BRANCH/win32 ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/win32
-  cp ../DXVKBUILD/setup_dxvk32.sh ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/win32/setup_dxvk.sh
-  mv -v -T ../DXVKBUILD/dxvk-$DXVK_BRANCH/win64 ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/win64
-  cp ../DXVKBUILD/setup_dxvk64.sh ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/win64/setup_dxvk.sh
+  mv -v -T ../DXVKBUILD/dxvk-$DXVK_BRANCH/x32 ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/x32
+  cp ../DXVKBUILD/setup_dxvk32.sh ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/x32/setup_symlink_dxvk.sh
+  mv -v -T ../DXVKBUILD/dxvk-$DXVK_BRANCH/x64 ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/x64
+  cp ../DXVKBUILD/setup_dxvk64.sh ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/x64/setup_symlink_dxvk.sh
+  cp ../DXVKBUILD/dxvk-$DXVK_BRANCH/setup_dxvk.sh ../DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD/setup_dxvk.sh
   rm -R -f ../DXVKBUILD/dxvk-$DXVK_BRANCH
   echo "Your files were built in $ROOT/DXVKBUILD/$DXVK_BRANCH/$GIT_HEAD"
   rm -f ../DXVKBUILD/$DXVK_BRANCH/last-HEAD
@@ -177,10 +176,10 @@ if [ -d $ROOT/DXVKBUILD ]; then
   fi
 
   if [ -d "win32" ] && [ -d "win64" ]; then
-    WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $WINEARCH/setup_dxvk.sh
+    WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $_DXVKALIAS/setup_dxvk.sh
 
     if [ $WINEARCH = "win64" ]; then
-        WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash win32/setup_dxvk.sh
+        WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash x32/setup_dxvk.sh
     fi
 
     echo "#########################################"
@@ -208,15 +207,19 @@ if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris"
     if [ "$2" == "32" ]; then
       echo "x86 prefix"
       WINEARCH="win32"
+      _DXVKALIAS="x32"
     elif [ "$2" == "64" ]; then
       echo "x64 prefix"
       WINEARCH="win64"
+      _DXVKALIAS="x64"
     elif [ -d "$1/drive_c/Program Files (x86)" ]; then
       echo "assuming x64 prefix"
       WINEARCH="win64"
+      _DXVKALIAS="x64"
     else
       echo "assuming x86 prefix"
       WINEARCH="win32"
+      _DXVKALIAS="x32"
     fi
     if [ "$2" == "vulkansdk" ]; then
       WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" $WINECMD regedit /S $ROOT/DXVKBUILD/vulkansdk/vulkan.reg
@@ -242,8 +245,10 @@ if [ "$1" == "batch" ] && [ ! -z $PREFIXES_ROOT ]; then
         WINEPREFIX="${D}"
         if [ -d "${D}/drive_c/Program Files (x86)" ]; then
           WINEARCH="win64"
+          _DXVKALIAS="x64"
         else
           WINEARCH="win32"
+          _DXVKALIAS="x32"
         fi
         update
       fi
@@ -268,8 +273,8 @@ if [ "$1" == "lutris" ]; then
       rm -rv $HOME/.local/share/lutris/runtime/dxvk/TkG/x32/*
       mkdir -p $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
       mkdir -p $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
-      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/win64/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
-      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/win32/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
+      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/x64/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
+      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/x32/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
 
       echo ""
       echo "###########################################################"
@@ -298,8 +303,8 @@ if [ "$1" == "proton-tkg" ]; then
       rm -rf ../proton-tkg/dxvk
       mkdir -p ../proton-tkg/dxvk/x64
       mkdir -p ../proton-tkg/dxvk/x32
-      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/win64/* ../proton-tkg/dxvk/x64
-      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/win32/* ../proton-tkg/dxvk/x32
+      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/x64/* ../proton-tkg/dxvk/x64
+      cp -rv ./DXVKBUILD/$DXVK_BRANCH/$CURRENT_HEAD/x32/* ../proton-tkg/dxvk/x32
 
       echo ""
       echo "###############################################################"

@@ -5,7 +5,7 @@
 user_settings = {
     #Logs are saved to $HOME/steam-<STEAM_GAME_ID>.log, overwriting any previous log with that name.
 
-    #Wine debug logging - default="+timestamp,+pid,+tid,+seh,+debugstr,+module,+mscoree"
+    #Wine debug logging - default="+timestamp,+pid,+tid,+seh,+debugstr,+loaddll,+mscoree"
 #     "WINEDEBUG": "",
 
     #DXVK debug logging

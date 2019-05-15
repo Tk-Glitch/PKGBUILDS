@@ -168,9 +168,9 @@ else
     rm -f proton_template/share/fonts/*
     git clone https://github.com/liberationfonts/liberation-fonts.git || true # It'll complain the path already exists on subsequent builds
     cd liberation-fonts
-    git reset --hard HEAD
+    git reset --hard 9510ebd
     git clean -xdf
-    git pull
+    #git pull
     patch -Np1 < "$_nowhere/proton_template/LiberationMono-Regular.patch"
     make
     cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf "$_nowhere/proton_template/share/fonts"/

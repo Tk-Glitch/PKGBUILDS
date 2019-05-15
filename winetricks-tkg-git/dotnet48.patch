@@ -26,9 +26,9 @@ index 24d3657..33fdd7d 100755
 +{
 +    w_package_warn_win64
 +
-+    # Official version. See https://devblogs.microsoft.com/dotnet/announcing-net-framework-4-8-early-access-build-3745/
-+    w_download https://download.visualstudio.microsoft.com/download/pr/9854b5f2-2341-4136-ad7d-1d881ab8d603/a59983c9bf08c7ae7200f356c9a604c1/ndp48-preview-x86-x64-allos-enu.exe d1c399178bf9733bc56c223f212512879e6ecdd6c647f25a1589c86c05591281
-+    file_package="ndp48-preview-x86-x64-allos-enu.exe"
++    # Official version. See https://dotnet.microsoft.com/download/dotnet-framework/net48
++    w_download https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu.exe 95889d6de3f2070c07790ad6cf2000d33d9a1bdfc6a381725ab82ab1c314fd53
++    file_package="ndp48-x86-x64-allos-enu.exe"
 +    unattended_args="/sfxlang:1027 /q /norestart"
 +
 +    w_call remove_mono

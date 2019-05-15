@@ -1791,3 +1791,333 @@ index 2b049eb91f8..e6948a73427 100644
  HKLM,"System\CurrentControlSet\Services\Eventlog\Application",,16
  HKLM,"System\CurrentControlSet\Services\Eventlog\System","Sources",0x10000,""
  HKLM,"System\CurrentControlSet\Services\Tcpip\Parameters","DataBasePath",2,"%11%\drivers"
+
+From aef0f1638ce13db03a4d3c0fe53972f44443c854 Mon Sep 17 00:00:00 2001
+From: Patryk Obara <dreamer.tan@gmail.com>
+Date: Fri, 26 Apr 2019 20:40:31 +0200
+Subject: [PATCH] winex11: Fill WM_CLASS based on Steam appid
+
+Some desktop environments (Gnome 3, Cinnamon) decide on an application
+icon in the following order:
+
+ - If the first string in WM_CLASS property can be correlated to
+  a name or StartupWMClass key in a .desktop entry file, then
+  the associated icon will be used.
+ - If the second string in WM_CLASS property can be correlated to
+  a name or StartupWMClass key in a .desktop entry file, then
+  the associated icon will be used.
+ - If the application has indicated an icon resource through WM_HINTS
+  property, then the associated X window or pixmaps will be used.
+
+Upstream Wine usually deals with this by placing a .desktop file with
+StartupWMClass filled to match first string in WM_CLASS property
+(which is the name of exe file being run).
+
+Wine in Proton does not do it, but still puts "Wine" as second string,
+therefore desktop environment can't differentiate between Wine in
+Proton and Wine installed in OS.
+
+By replacing "Wine" with "steam_app_<appid>" we force DE to fallback
+to icon indicated by WM_HINTS (ico file embedded in exe file).
+Steam can override this behaviour by installing properly crafted
+.desktop entry file.  If SteamAppId environment variable is missing,
+then generic "steam_proton" name is used instead.
+---
+ dlls/winex11.drv/window.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 1ec7c706511..9ae3da3d4a2 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -870,10 +870,13 @@ static void set_initial_wm_hints( Display *display, Window window )
+     /* class hints */
+     if ((class_hints = XAllocClassHint()))
+     {
+-        static char wine[] = "Wine";
++        static char steam_proton[] = "steam_proton";
++        char proton_app_class[128];
++        const char *app_id = getenv("SteamAppId");
+ 
++        snprintf(proton_app_class, sizeof(proton_app_class), "steam_app_%s", app_id);
+         class_hints->res_name = process_name;
+-        class_hints->res_class = wine;
++        class_hints->res_class = app_id ? proton_app_class : steam_proton;
+         XSetClassHint( display, window, class_hints );
+         XFree( class_hints );
+     }
+
+From c89465427eb5b3a7ef9ef312517083950ea5959e Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 13 May 2019 10:23:40 -0500
+Subject: [PATCH] msvcrt: Implement fma and fmaf
+
+Signed-off-by: Andrew Eikum <aeikum@codeweavers.com>
+---
+ .../api-ms-win-crt-math-l1-1-0.spec              |  4 ++--
+ dlls/msvcr120/msvcr120.spec                      |  4 ++--
+ dlls/msvcr120_app/msvcr120_app.spec              |  4 ++--
+ dlls/msvcrt/math.c                               | 16 ++++++++++++++++
+ dlls/msvcrt/msvcrt.spec                          |  2 ++
+ dlls/ucrtbase/ucrtbase.spec                      |  4 ++--
+ 6 files changed, 26 insertions(+), 8 deletions(-)
+
+diff --git a/dlls/api-ms-win-crt-math-l1-1-0/api-ms-win-crt-math-l1-1-0.spec b/dlls/api-ms-win-crt-math-l1-1-0/api-ms-win-crt-math-l1-1-0.spec
+index 0d645e5587c..3c935ae997b 100644
+--- a/dlls/api-ms-win-crt-math-l1-1-0/api-ms-win-crt-math-l1-1-0.spec
++++ b/dlls/api-ms-win-crt-math-l1-1-0/api-ms-win-crt-math-l1-1-0.spec
+@@ -241,8 +241,8 @@
+ @ stub fdiml
+ @ cdecl floor(double) ucrtbase.floor
+ @ cdecl -arch=arm,x86_64,arm64 floorf(float) ucrtbase.floorf
+-@ stub fma
+-@ stub fmaf
++@ cdecl fma(double double double) ucrtbase.fma
++@ cdecl -arch=arm,x86_64,arm64 fmaf(float float float) ucrtbase.fmaf
+ @ stub fmal
+ @ cdecl fmax(double double) ucrtbase.fmax
+ @ cdecl fmaxf(float float) ucrtbase.fmaxf
+diff --git a/dlls/msvcr120/msvcr120.spec b/dlls/msvcr120/msvcr120.spec
+index d6cc551bb75..85a4d469c50 100644
+--- a/dlls/msvcr120/msvcr120.spec
++++ b/dlls/msvcr120/msvcr120.spec
+@@ -2164,8 +2164,8 @@
+ @ cdecl fgetws(ptr long ptr) MSVCRT_fgetws
+ @ cdecl floor(double) MSVCRT_floor
+ @ cdecl -arch=arm,x86_64,arm64 floorf(float) MSVCRT_floorf
+-@ stub fma
+-@ stub fmaf
++@ cdecl fma(double double double) MSVCRT_fma
++@ cdecl -arch=arm,x86_64,arm64 fmaf(float float float) MSVCRT_fmaf
+ @ stub fmal
+ @ cdecl fmax(double double) MSVCR120_fmax
+ @ cdecl fmaxf(float float) MSVCR120_fmaxf
+diff --git a/dlls/msvcr120_app/msvcr120_app.spec b/dlls/msvcr120_app/msvcr120_app.spec
+index d8ed0439a8c..e5786614364 100644
+--- a/dlls/msvcr120_app/msvcr120_app.spec
++++ b/dlls/msvcr120_app/msvcr120_app.spec
+@@ -1830,8 +1830,8 @@
+ @ cdecl fgetws(ptr long ptr) msvcr120.fgetws
+ @ cdecl floor(double) msvcr120.floor
+ @ cdecl -arch=arm,x86_64,arm64 floorf(float) msvcr120.floorf
+-@ stub fma
+-@ stub fmaf
++@ cdecl fma(double double double) msvcr120.fma
++@ cdecl -arch=arm,x86_64,arm64 fmaf(float float float) msvcr120.fmaf
+ @ stub fmal
+ @ cdecl fmax(double double) msvcr120.fmax
+ @ cdecl fmaxf(float float) msvcr120.fmaxf
+diff --git a/dlls/msvcrt/math.c b/dlls/msvcrt/math.c
+index d4785d35085..5f51c5f139f 100644
+--- a/dlls/msvcrt/math.c
++++ b/dlls/msvcrt/math.c
+@@ -392,6 +392,14 @@ float CDECL MSVCRT_floorf( float x )
+   return floorf(x);
+ }
+ 
++/*********************************************************************
++ *      fmaf (MSVCRT.@)
++ */
++float CDECL MSVCRT_fmaf( float x, float y, float z )
++{
++  return fmaf(x, y, z);
++}
++
+ /*********************************************************************
+  *      frexpf (MSVCRT.@)
+  */
+@@ -868,6 +876,14 @@ double CDECL MSVCRT_floor( double x )
+   return floor(x);
+ }
+ 
++/*********************************************************************
++ *      fma (MSVCRT.@)
++ */
++double CDECL MSVCRT_fma( double x, double y, double z )
++{
++  return fma(x, y, z);
++}
++
+ /*********************************************************************
+  *		fabs (MSVCRT.@)
+  */
+diff --git a/dlls/msvcrt/msvcrt.spec b/dlls/msvcrt/msvcrt.spec
+index c2c272b6376..04410091cfd 100644
+--- a/dlls/msvcrt/msvcrt.spec
++++ b/dlls/msvcrt/msvcrt.spec
+@@ -1293,6 +1293,8 @@
+ @ cdecl fgetws(ptr long ptr) MSVCRT_fgetws
+ @ cdecl floor(double) MSVCRT_floor
+ @ cdecl -arch=arm,x86_64,arm64 floorf(float) MSVCRT_floorf
++@ cdecl fma(double double double) MSVCRT_fma
++@ cdecl -arch=arm,x86_64,arm64 fmaf(float float float) MSVCRT_fmaf
+ @ cdecl fmod(double double) MSVCRT_fmod
+ @ cdecl -arch=arm,x86_64,arm64 fmodf(float float) MSVCRT_fmodf
+ @ cdecl fopen(str str) MSVCRT_fopen
+diff --git a/dlls/ucrtbase/ucrtbase.spec b/dlls/ucrtbase/ucrtbase.spec
+index 70a443d62dc..c934e7fe00e 100644
+--- a/dlls/ucrtbase/ucrtbase.spec
++++ b/dlls/ucrtbase/ucrtbase.spec
+@@ -2305,8 +2305,8 @@
+ @ cdecl fgetws(ptr long ptr) MSVCRT_fgetws
+ @ cdecl floor(double) MSVCRT_floor
+ @ cdecl -arch=arm,x86_64,arm64 floorf(float) MSVCRT_floorf
+-@ stub fma
+-@ stub fmaf
++@ cdecl fma(double double double) MSVCRT_fma
++@ cdecl -arch=arm,x86_64,arm64 fmaf(float float float) MSVCRT_fmaf
+ @ stub fmal
+ @ cdecl fmax(double double) MSVCR120_fmax
+ @ cdecl fmaxf(float float) MSVCR120_fmaxf
+
+From 012e9411ba504d2df7fad4920e71f4b38d89db52 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B3zef=20Kucia?= <jkucia@codeweavers.com>
+Date: Wed, 1 May 2019 12:20:17 +0200
+Subject: [PATCH] winevulkan: Avoid returning 0 for swapchain maxImageCount.
+
+Multiple games, Strange Brigade and No Man's Sky, didn't handle it
+correctly in the past. 32 is reasonably high value, e.g.
+DXGI_MAX_SWAP_CHAIN_BUFFERS is 16.
+
+Conflicts:
+	dlls/winevulkan/make_vulkan
+	dlls/winevulkan/vulkan_thunks.c
+	dlls/winevulkan/vulkan_thunks.h
+---
+ dlls/winevulkan/make_vulkan     |  2 +-
+ dlls/winevulkan/vulkan.c        | 46 ++++++++++++++++++---------------
+ dlls/winevulkan/vulkan_thunks.c |  5 ++++
+ dlls/winevulkan/vulkan_thunks.h |  1 +
+ 4 files changed, 32 insertions(+), 22 deletions(-)
+
+diff --git a/dlls/winevulkan/make_vulkan b/dlls/winevulkan/make_vulkan
+index d74fd82487b..579bd586abd 100755
+--- a/dlls/winevulkan/make_vulkan
++++ b/dlls/winevulkan/make_vulkan
+@@ -182,7 +182,7 @@ FUNCTION_OVERRIDES = {
+     # VK_KHR_surface
+     "vkDestroySurfaceKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+     "vkGetPhysicalDeviceSurfaceSupportKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+-    "vkGetPhysicalDeviceSurfaceCapabilitiesKHR" : {"dispatch" : True, "driver" : True, "thunk" : False},
++    "vkGetPhysicalDeviceSurfaceCapabilitiesKHR" : {"dispatch" : True, "driver" : True, "thunk" : False, "private_thunk" : True},
+     "vkGetPhysicalDeviceSurfaceFormatsKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+     "vkGetPhysicalDeviceSurfacePresentModesKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+ 
+diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
+index 767cc54da80..e50e6d64784 100644
+--- a/dlls/winevulkan/vulkan.c
++++ b/dlls/winevulkan/vulkan.c
+@@ -1249,6 +1249,31 @@ void WINAPI wine_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(VkPhysicalDev
+     properties->externalSemaphoreFeatures = 0;
+ }
+ 
++VkResult WINAPI wine_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice phys_dev,
++        VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR *capabilities)
++{
++    VkResult res;
++    VkExtent2D user_res;
++
++    TRACE("%p, 0x%s, %p\n", phys_dev, wine_dbgstr_longlong(surface), capabilities);
++
++    res = thunk_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phys_dev, surface, capabilities);
++
++    /* HACK: It happened more than once that a Windows game didn't expect that maxImageCount can be
++     * set to 0. A value of 0 means that there is no limit on the number of images. */
++    if (res == VK_SUCCESS && capabilities->minImageCount && !capabilities->maxImageCount)
++        capabilities->maxImageCount = 32;
++
++    if(vk_funcs->query_fs_hack &&
++            vk_funcs->query_fs_hack(NULL, &user_res, NULL)){
++        capabilities->currentExtent = user_res;
++        capabilities->minImageExtent = user_res;
++        capabilities->maxImageExtent = user_res;
++    }
++
++    return res;
++}
++
+ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, void *reserved)
+ {
+     TRACE("%p, %u, %p\n", hinst, reason, reserved);
+@@ -1296,27 +1321,6 @@ void *native_vkGetInstanceProcAddrWINE(VkInstance instance, const char *name)
+     return vk_funcs->p_vkGetInstanceProcAddr(instance, name);
+ }
+ 
+-VkResult WINAPI wine_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities)
+-{
+-    VkResult res;
+-    VkExtent2D user_res;
+-
+-    TRACE("%p, 0x%s, %p\n", physicalDevice, wine_dbgstr_longlong(surface), pSurfaceCapabilities);
+-
+-    res = physicalDevice->instance->funcs.p_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice->phys_dev, surface, pSurfaceCapabilities);
+-    if(res != VK_SUCCESS)
+-        return res;
+-
+-    if(vk_funcs->query_fs_hack &&
+-            vk_funcs->query_fs_hack(NULL, &user_res, NULL)){
+-        pSurfaceCapabilities->currentExtent = user_res;
+-        pSurfaceCapabilities->minImageExtent = user_res;
+-        pSurfaceCapabilities->maxImageExtent = user_res;
+-    }
+-
+-    return VK_SUCCESS;
+-}
+-
+ VkResult WINAPI wine_vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t *pImageIndex)
+ {
+     struct VkSwapchainKHR_T *object = (struct VkSwapchainKHR_T *)(UINT_PTR)swapchain;
+diff --git a/dlls/winevulkan/vulkan_thunks.c b/dlls/winevulkan/vulkan_thunks.c
+index 3853ec45eaf..2c9b3396465 100644
+--- a/dlls/winevulkan/vulkan_thunks.c
++++ b/dlls/winevulkan/vulkan_thunks.c
+@@ -3726,6 +3726,11 @@ static void WINAPI wine_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(VkPhy
+     physicalDevice->instance->funcs.p_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalDevice->phys_dev, pFormatInfo, pPropertyCount, pProperties);
+ }
+ 
++VkResult thunk_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities)
++{
++    return physicalDevice->instance->funcs.p_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice->phys_dev, surface, pSurfaceCapabilities);
++}
++
+ VkResult WINAPI wine_vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t *pSurfaceFormatCount, VkSurfaceFormatKHR *pSurfaceFormats)
+ {
+     TRACE("%p, 0x%s, %p, %p\n", physicalDevice, wine_dbgstr_longlong(surface), pSurfaceFormatCount, pSurfaceFormats);
+diff --git a/dlls/winevulkan/vulkan_thunks.h b/dlls/winevulkan/vulkan_thunks.h
+index ae6fa2678e6..85a85ca8b40 100644
+--- a/dlls/winevulkan/vulkan_thunks.h
++++ b/dlls/winevulkan/vulkan_thunks.h
+@@ -76,6 +76,7 @@ VkResult WINAPI wine_vkQueueSubmit(VkQueue queue, uint32_t submitCount, const Vk
+ /* Private thunks */
+ VkResult thunk_vkGetPhysicalDeviceImageFormatProperties2(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2 *pImageFormatInfo, VkImageFormatProperties2 *pImageFormatProperties) DECLSPEC_HIDDEN;
+ VkResult thunk_vkGetPhysicalDeviceImageFormatProperties2KHR(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2 *pImageFormatInfo, VkImageFormatProperties2 *pImageFormatProperties) DECLSPEC_HIDDEN;
++VkResult thunk_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) DECLSPEC_HIDDEN;
+ 
+ typedef struct VkAcquireNextImageInfoKHR_host
+ {
+
+From 7e91b897e69854cb3afe761f48ef7c9b496ecf95 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?J=C3=B3zef=20Kucia?= <jkucia@codeweavers.com>
+Date: Wed, 1 May 2019 12:28:12 +0200
+Subject: [PATCH] vulkan-1: Prefer built-in DLL.
+
+Games may ship with their own Vulkan loader.
+---
+ dlls/vulkan-1/vulkan.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/dlls/vulkan-1/vulkan.c b/dlls/vulkan-1/vulkan.c
+index d3b35603a17..4926cf9bf4f 100644
+--- a/dlls/vulkan-1/vulkan.c
++++ b/dlls/vulkan-1/vulkan.c
+@@ -32,10 +32,6 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, void *reserved)
+ 
+     switch (reason)
+     {
+-        case DLL_WINE_PREATTACH:
+-            /* Prefer native as it provides more functionality. */
+-            return FALSE;
+-
+         case DLL_PROCESS_ATTACH:
+             DisableThreadLibraryCalls(hinst);
+             return TRUE;

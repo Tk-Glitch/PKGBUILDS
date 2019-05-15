@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.8.r0.g3134cc0b
+pkgver=4.8.r4.g6ce73c28
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=160
+eval pkgrel=161
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -422,6 +422,8 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'PBA314+.patch' # For 3.14-3.16
 		'PBA317+.patch' # For 3.17-3.18
 		# misc
+		'wine-tkg.patch' # Do NOT report bugs at winehq when using custom build
+		'wine-tkg-staging.patch' # Do NOT report bugs at winehq when using custom build - staging
 		'steam.patch' # auto-append --no-sandbox
 		'30-win32-aliases.conf' # 32-bit font antialiasing
 		'use_clock_monotonic.patch' # Perf
@@ -1150,6 +1152,12 @@ prepare() {
 	  user_patcher
 	fi
 
+	if [ "$_use_staging" == "true" ]; then
+	  _patchname='wine-tkg-staging.patch' && _patchmsg="Please don't report bugs about it on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
+	else
+	  _patchname='wine-tkg.patch' && _patchmsg="Please don't report bugs about it on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
+	fi
+
 	# Disable tests by default, enable back with _enable_tests="true"
 	if [ "$_ENABLE_TESTS" != "true" ]; then
 	  _configure_args+=(--disable-tests)
@@ -1480,6 +1488,8 @@ md5sums=('SKIP'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
          'd27ec22ee6815a97b4d28ccdfc0420fe'
+         '620823d02d9278f44924780d28cf7221'
+         '898fe6be699c16ef95ffb24aa752c98b'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '1ff4e467f59409272088d92173a0f801'
          '517a67b31d26990e6704074ccb630f80'
@@ -1505,13 +1515,13 @@ md5sums=('SKIP'
          '8427bb8d40cc49bc1de3a53ed82254ad'
          '3034b1a397cad46feb641cb3d7dc8584'
          '1c4738e438debf72266b96d09f465b25'
-         '46a17c51c35e63e86b47a8d941cdff87'
-         'ab0aacc313cc1f53c624bad30a234021'
+         '56e7475f8d41be16b0c58662d2e95b78'
+         'adf17a4333b09afa4e09e9c027563211'
          '1723d765c6ef4e6025c45bbc383d5081'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
-         '52f11ca72f4ee06bd2a4bc2b0314e631'
+         '09699ec19868cbc7cd28edeccb8506b8'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
          'aa8d6b65936c9646972c04864eafc479')
