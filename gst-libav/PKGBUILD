@@ -4,6 +4,28 @@
 
 # Modified for extended+multilib by: Tk-Glitch <ti3nou at gmail dot com>
 
+cat <<'EOF'
+       .---.`               `.---.
+    `/syhhhyso-           -osyhhhys/`
+   .syNMdhNNhss/``.---.``/sshNNhdMNys.
+   +sdMh.`+MNsssssssssssssssNM+`.hMds+
+   :syNNdhNNhssssssssssssssshNNhdNNys:
+    /ssyhhhysssssssssssssssssyhhhyss/
+    .ossssssssssssssssssssssssssssso.
+   :sssssssssssssssssssssssssssssssss:
+  /sssssssssssssssssssssssssssssssssss/
+ :sssssssssssssoosssssssoosssssssssssss:
+ osssssssssssssoosssssssoossssssssssssso
+ osssssssssssyyyyhhhhhhhyyyyssssssssssso
+ /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/
+  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms
+   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/
+    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`
+       `-+shdNNNNNNNNNNNNNNNdhs+-`
+             `.-:///////:-.`
+
+EOF
+
 # Include lib32 ?
 _lib32="false"
 

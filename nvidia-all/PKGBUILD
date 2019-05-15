@@ -3,6 +3,28 @@
 
 # Includes DKMS support, libglvnd compat, 32-bit libs and building for all kernels currently installed
 
+cat <<'EOF'
+       .---.`               `.---.
+    `/syhhhyso-           -osyhhhys/`
+   .syNMdhNNhss/``.---.``/sshNNhdMNys.
+   +sdMh.`+MNsssssssssssssssNM+`.hMds+
+   :syNNdhNNhssssssssssssssshNNhdNNys:
+    /ssyhhhysssssssssssssssssyhhhyss/
+    .ossssssssssssssssssssssssssssso.
+   :sssssssssssssssssssssssssssssssss:
+  /sssssssssssssssssssssssssssssssssss/
+ :sssssssssssssoosssssssoosssssssssssss:
+ osssssssssssssoosssssssoossssssssssssso
+ osssssssssssyyyyhhhhhhhyyyyssssssssssso
+ /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/
+  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms
+   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/
+    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`
+       `-+shdNNNNNNNNNNNNNNNdhs+-`
+             `.-:///////:-.`
+
+EOF
+
 # If you want to ignore some packages, set them to "false". Default is all set to "true" for a complete installation.
 _lib32="true"
 _opencl="true"
