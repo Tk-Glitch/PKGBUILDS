@@ -1,27 +1,24 @@
 # Based on AUR pkgbuild from Andrew Whatson <whatson@gmail.com>
 # Modified for multilib and userpatches support by: Tk-Glitch <ti3nou at gmail dot com>
 
-cat << 'EOM'
-       .---.`               `.---.
-    `/syhhhyso-           -osyhhhys/`
-   .syNMdhNNhss/``.---.``/sshNNhdMNys.
-   +sdMh.`+MNsssssssssssssssNM+`.hMds+
-   :syNNdhNNhssssssssssssssshNNhdNNys:
-    /ssyhhhysssssssssssssssssyhhhyss/
-    .ossssssssssssssssssssssssssssso.
-   :sssssssssssssssssssssssssssssssss:
-  /sssssssssssssssssssssssssssssssssss/
- :sssssssssssssoosssssssoosssssssssssss:
- osssssssssssssoosssssssoossssssssssssso
- osssssssssssyyyyhhhhhhhyyyyssssssssssso
- /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/
-  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms
-   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/
-    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`
-       `-+shdNNNNNNNNNNNNNNNdhs+-`
-             `.-:///////:-.`
-
-EOM
+plain '       .---.`               `.---.'
+plain '    `/syhhhyso-           -osyhhhys/`'
+plain '   .syNMdhNNhss/``.---.``/sshNNhdMNys.'
+plain '   +sdMh.`+MNsssssssssssssssNM+`.hMds+'
+plain '   :syNNdhNNhssssssssssssssshNNhdNNys:'
+plain '    /ssyhhhysssssssssssssssssyhhhyss/'
+plain '    .ossssssssssssssssssssssssssssso.'
+plain '   :sssssssssssssssssssssssssssssssss:'
+plain '  /sssssssssssssssssssssssssssssssssss/'
+plain ' :sssssssssssssoosssssssoosssssssssssss:'
+plain ' osssssssssssssoosssssssoossssssssssssso'
+plain ' osssssssssssyyyyhhhhhhhyyyyssssssssssso'
+plain ' /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/'
+plain '  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms'
+plain '   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/'
+plain '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`'
+plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
+plain '             `.-:///////:-.`'
 
 _NUKR="true" # Cleanups
 _lib32="true" # Enable/Disable lib32 package building

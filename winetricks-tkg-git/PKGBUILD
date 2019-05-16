@@ -3,27 +3,24 @@
 
 # Contributor: Tk-Glitch <ti3nou@gmail.com>
 
-cat << 'EOM'
-       .---.`               `.---.
-    `/syhhhyso-           -osyhhhys/`
-   .syNMdhNNhss/``.---.``/sshNNhdMNys.
-   +sdMh.`+MNsssssssssssssssNM+`.hMds+
-   :syNNdhNNhssssssssssssssshNNhdNNys:
-    /ssyhhhysssssssssssssssssyhhhyss/
-    .ossssssssssssssssssssssssssssso.
-   :sssssssssssssssssssssssssssssssss:
-  /sssssssssssssssssssssssssssssssssss/
- :sssssssssssssoosssssssoosssssssssssss:
- osssssssssssssoosssssssoossssssssssssso
- osssssssssssyyyyhhhhhhhyyyyssssssssssso
- /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/
-  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms
-   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/
-    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`
-       `-+shdNNNNNNNNNNNNNNNdhs+-`
-             `.-:///////:-.`
-
-EOM
+plain '       .---.`               `.---.'
+plain '    `/syhhhyso-           -osyhhhys/`'
+plain '   .syNMdhNNhss/``.---.``/sshNNhdMNys.'
+plain '   +sdMh.`+MNsssssssssssssssNM+`.hMds+'
+plain '   :syNNdhNNhssssssssssssssshNNhdNNys:'
+plain '    /ssyhhhysssssssssssssssssyhhhyss/'
+plain '    .ossssssssssssssssssssssssssssso.'
+plain '   :sssssssssssssssssssssssssssssssss:'
+plain '  /sssssssssssssssssssssssssssssssssss/'
+plain ' :sssssssssssssoosssssssoosssssssssssss:'
+plain ' osssssssssssssoosssssssoossssssssssssso'
+plain ' osssssssssssyyyyhhhhhhhyyyyssssssssssso'
+plain ' /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/'
+plain '  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms'
+plain '   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/'
+plain '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`'
+plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
+plain '             `.-:///////:-.`'
 
 pkgname=winetricks-tkg-git
 pkgver=20190310.r58.gef270d9
