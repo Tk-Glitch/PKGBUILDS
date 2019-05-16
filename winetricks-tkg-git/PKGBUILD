@@ -3,7 +3,7 @@
 
 # Contributor: Tk-Glitch <ti3nou@gmail.com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -23,7 +23,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 pkgname=winetricks-tkg-git
 pkgver=20190310.r58.gef270d9

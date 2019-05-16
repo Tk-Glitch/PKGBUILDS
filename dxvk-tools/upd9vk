@@ -18,7 +18,7 @@
 
 # Putting patch files in D9VKBUILD/patches will auto-apply them if the extension is .d9vkpatch, auto-revert them if the extension is .d9vkrevert, or ignore them if any other extension (or none) is used
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -38,7 +38,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 D9VK_BRANCH=master # D9VK branch to use
 CUSTOM_COMMIT=0 # Set to 1 to enable custom commit checkout

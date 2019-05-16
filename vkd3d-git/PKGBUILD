@@ -1,6 +1,6 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -20,7 +20,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
 pkgver=1.1.r477.g6f960f2

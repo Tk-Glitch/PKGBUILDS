@@ -4,7 +4,7 @@
 
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -24,7 +24,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 

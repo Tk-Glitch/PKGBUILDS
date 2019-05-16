@@ -4,7 +4,7 @@
 
 # Modified for extended+multilib by: Tk-Glitch <ti3nou at gmail dot com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -24,7 +24,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 # Include lib32 ?
 _lib32="false"

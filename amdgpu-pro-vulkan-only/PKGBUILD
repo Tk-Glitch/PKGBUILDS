@@ -1,6 +1,6 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -20,7 +20,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 pkgname=amdgpu-pro-vulkan-only
 pkgver=19.10.785425

@@ -2,7 +2,7 @@
 
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -22,7 +22,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 export BUILDDIR= # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
 

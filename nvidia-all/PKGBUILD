@@ -3,7 +3,7 @@
 
 # Includes DKMS support, libglvnd compat, 32-bit libs and building for all kernels currently installed
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -23,7 +23,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 # If you want to ignore some packages, set them to "false". Default is all set to "true" for a complete installation.
 _lib32="true"

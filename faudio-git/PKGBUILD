@@ -1,7 +1,7 @@
 # Based on AUR pkgbuild from Andrew Whatson <whatson@gmail.com>
 # Modified for multilib and userpatches support by: Tk-Glitch <ti3nou at gmail dot com>
 
-cat <<'EOF'
+cat << 'EOM'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
    .syNMdhNNhss/``.---.``/sshNNhdMNys.
@@ -21,7 +21,7 @@ cat <<'EOF'
        `-+shdNNNNNNNNNNNNNNNdhs+-`
              `.-:///////:-.`
 
-EOF
+EOM
 
 _NUKR="true" # Cleanups
 _lib32="true" # Enable/Disable lib32 package building
