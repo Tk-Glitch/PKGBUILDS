@@ -288,6 +288,7 @@ depends=(
     'libsm'                 'lib32-libsm'
     'gcc-libs'              'lib32-gcc-libs'
     'libpcap'               'lib32-libpcap'
+    'faudio'                'lib32-faudio'
     'desktop-file-utils'
 )
 makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
@@ -330,11 +331,6 @@ if [ "$_use_vkd3d" == "true" ]; then
   if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
     makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
   fi
-fi
-
-# faudio deps
-if [ "$_use_faudio" == "true" ]; then
-  makedepends=("${makedepends[@]}" faudio lib32-faudio)
 fi
 
 # liberation fonts deps
@@ -748,7 +744,10 @@ prepare() {
 	  _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch" && nonuser_patcher
 	fi
 
-	# Use faudio for xaudio2 - https://github.com/aeikum/wine/commits/faudio-fixups
+	# Use faudio for xaudio2
+	if git merge-base --is-ancestor d5a372abbba2e174de78855bdd4a004b56cdc006 HEAD; then # include: Move inline assembly definitions to a new wine/asm.h header.
+	  _use_faudio="true"
+	fi
 	if [ "$_use_faudio" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if git merge-base --is-ancestor 9422b844b59282db04af533451f50661de56b9ca HEAD; then
 	    _staging_args+=(-W xaudio2-revert -W xaudio2_7-CreateFX-FXEcho -W xaudio2_7-WMA_support -W xaudio2_CommitChanges) # Disable xaudio2 staging patchsets for faudio
