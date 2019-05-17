@@ -1,0 +1,80 @@
+--- a/configure
++++ b/configure
+@@ -4911,7 +4911,7 @@
+   ac_save_c_werror_flag=$ac_c_werror_flag
+    ac_c_werror_flag=yes
+    ac_cv_prog_cc_g=no
+-   CFLAGS="-g"
++   CFLAGS="_DEBUG_LEVEL"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -4942,7 +4942,7 @@
+ 
+ else
+   ac_c_werror_flag=$ac_save_c_werror_flag
+-	 CFLAGS="-g"
++	 CFLAGS="_DEBUG_LEVEL"
+ 	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -4970,13 +4970,13 @@
+   CFLAGS=$ac_save_CFLAGS
+ elif test $ac_cv_prog_cc_g = yes; then
+   if test "$GCC" = yes; then
+-    CFLAGS="-g -O2"
++    CFLAGS="_DEBUG_LEVEL _O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"
+   else
+-    CFLAGS="-g"
++    CFLAGS="_DEBUG_LEVEL"
+   fi
+ else
+   if test "$GCC" = yes; then
+-    CFLAGS="-O2"
++    CFLAGS="_O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"
+   else
+     CFLAGS=
+   fi
+@@ -5317,13 +5317,13 @@
+   CXXFLAGS=$ac_save_CXXFLAGS
+ elif test $ac_cv_prog_cxx_g = yes; then
+   if test "$GXX" = yes; then
+-    CXXFLAGS="-g -O2"
++    CXXFLAGS="_DEBUG_LEVEL _O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"
+   else
+-    CXXFLAGS="-g"
++    CXXFLAGS="_DEBUG_LEVEL"
+   fi
+ else
+   if test "$GXX" = yes; then
+-    CXXFLAGS="-O2"
++    CXXFLAGS="_O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"
+   else
+     CXXFLAGS=
+   fi
+@@ -8493,13 +8493,13 @@
+   OBJCFLAGS=$ac_save_OBJCFLAGS
+ elif test $ac_cv_prog_objc_g = yes; then
+   if test "$GOBJC" = yes; then
+-    OBJCFLAGS="-g -O2"
++    OBJCFLAGS="_DEBUG_LEVEL _O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"
+   else
+-    OBJCFLAGS="-g"
++    OBJCFLAGS="_DEBUG_LEVEL"
+   fi
+ else
+   if test "$GOBJC" = yes; then
+-    OBJCFLAGS="-O2"
++    OBJCFLAGS="_O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"
+   else
+     OBJCFLAGS=
+   fi
+@@ -9753,7 +9753,7 @@
+     then
+         ac_save_CC="$CC"
+         saved_CFLAGS=$CFLAGS
+-        CROSSCFLAGS=${CROSSCFLAGS:-"-g -O2"}
++        CROSSCFLAGS=${CROSSCFLAGS:-"_DEBUG_LEVEL _O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG"}
+ 
+         EXTRACROSSCFLAGS="-DWINE_CROSS_PE -Wall"
+ 

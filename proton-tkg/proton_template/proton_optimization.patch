@@ -1,0 +1,83 @@
+--- a/build/makefile_base.mak
++++ b/build/makefile_base.mak
+@@ -56,7 +56,7 @@
+ 
+ # Selected container mode shell
+ DOCKER_SHELL_BASE = docker run --rm --init -v $(HOME):$(HOME) -w $(CURDIR) -e HOME=$(HOME) \
+-                                    -v /etc/passwd:/etc/passwd:ro -u $(shell id -u):$(shell id -g) -h $(shell hostname) \
++                                    -v /etc/passwd:/etc/passwd:ro -u $(shell id -u):$(shell id _DEBUG_LEVEL) -h $(shell hostname) \
+                                     -v /tmp:/tmp $(SELECT_DOCKER_IMAGE) /dev/init -sg -- /bin/bash
+ 
+ # If STEAMRT64_MODE/STEAMRT32_MODE is set, set the nested SELECT_DOCKER_IMAGE to the _IMAGE variable and eval
+@@ -145,7 +145,7 @@
+ WINE32_AUTOCONF :=
+ WINE64_AUTOCONF :=
+ 
+-OPTIMIZE_FLAGS := -O2 -march=nocona $(call cc-option,$(CC),-mtune=core-avx2,) -mfpmath=sse
++OPTIMIZE_FLAGS := _O_LEVEL _OPTIONAL_MARCHFLAG _OPTIONAL_MTUNEFLAG -mfpmath=sse
+ SANITY_FLAGS   := -fwrapv -fno-strict-aliasing
+ COMMON_FLAGS   := $(OPTIMIZE_FLAGS) $(SANITY_FLAGS)
+ 
+@@ -646,7 +646,7 @@
+ 
+ lsteamclient64: SHELL = $(CONTAINER_SHELL64)
+ lsteamclient64: $(LSTEAMCLIENT_CONFIGURE_FILES64) | $(WINE_BUILDTOOLS64) $(filter $(MAKECMDGOALS),wine64 wine32 wine)
+-	+env PATH="$(abspath $(TOOLS_DIR64))/bin:$(PATH)" CXXFLAGS="-Wno-attributes $(COMMON_FLAGS) -g" CFLAGS="$(COMMON_FLAGS) -g" \
++	+env PATH="$(abspath $(TOOLS_DIR64))/bin:$(PATH)" CXXFLAGS="-Wno-attributes $(COMMON_FLAGS) _DEBUG_LEVEL" CFLAGS="$(COMMON_FLAGS) _DEBUG_LEVEL" \
+ 		$(MAKE) -C $(LSTEAMCLIENT_OBJ64)
+ 	[ x"$(STRIP)" = x ] || $(STRIP) $(LSTEAMCLIENT_OBJ64)/lsteamclient.dll.so
+ 	mkdir -pv $(DST_DIR)/lib64/wine/
+@@ -654,7 +654,7 @@
+ 
+ lsteamclient32: SHELL = $(CONTAINER_SHELL32)
+ lsteamclient32: $(LSTEAMCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filter $(MAKECMDGOALS),wine64 wine32 wine)
+-	+env PATH="$(abspath $(TOOLS_DIR32))/bin:$(PATH)" LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes $(COMMON_FLAGS) -g" CFLAGS="-m32 $(COMMON_FLAGS) -g" \
++	+env PATH="$(abspath $(TOOLS_DIR32))/bin:$(PATH)" LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes $(COMMON_FLAGS) _DEBUG_LEVEL" CFLAGS="-m32 $(COMMON_FLAGS) _DEBUG_LEVEL" \
+ 		$(MAKE) -C $(LSTEAMCLIENT_OBJ32)
+ 	[ x"$(STRIP)" = x ] || $(STRIP) $(LSTEAMCLIENT_OBJ32)/lsteamclient.dll.so
+ 	mkdir -pv $(DST_DIR)/lib/wine/
+@@ -702,7 +702,7 @@
+ 
+ steam: SHELL = $(CONTAINER_SHELL32)
+ steam: $(STEAMEXE_CONFIGURE_FILES) | $(WINE_BUILDTOOLS32) $(filter $(MAKECMDGOALS),wine64 wine32 wine)
+-	+env PATH="$(abspath $(TOOLS_DIR32))/bin:$(PATH)" LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes $(COMMON_FLAGS) -g" CFLAGS="-m32 $(COMMON_FLAGS) -g" \
++	+env PATH="$(abspath $(TOOLS_DIR32))/bin:$(PATH)" LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes $(COMMON_FLAGS) _DEBUG_LEVEL" CFLAGS="-m32 $(COMMON_FLAGS) _DEBUG_LEVEL" \
+ 		$(MAKE) -C $(STEAMEXE_OBJ)
+ 	[ x"$(STRIP)" = x ] || $(STRIP) $(STEAMEXE_OBJ)/steam.exe.so
+ 	mkdir -pv $(DST_DIR)/lib/wine/
+@@ -740,7 +740,7 @@
+ $(WINE_CONFIGURE_FILES64): $(MAKEFILE_DEP) | faudio64 $(WINE_OBJ64)
+ 	cd $(dir $@) && \
+ 		STRIP=$(STRIP_QUOTED) \
+-		CFLAGS=-I$(abspath $(TOOLS_DIR64))"/include -g $(COMMON_FLAGS)" \
++		CFLAGS=-I$(abspath $(TOOLS_DIR64))"/include _DEBUG_LEVEL $(COMMON_FLAGS)" \
+ 		LDFLAGS=-L$(abspath $(TOOLS_DIR64))/lib \
+ 		PKG_CONFIG_PATH=$(abspath $(TOOLS_DIR64))/lib/pkgconfig \
+ 		CC=$(CC_QUOTED) \
+@@ -755,7 +755,7 @@
+ $(WINE_CONFIGURE_FILES32): $(MAKEFILE_DEP) | faudio32 $(WINE_OBJ32)
+ 	cd $(dir $@) && \
+ 		STRIP=$(STRIP_QUOTED) \
+-		CFLAGS=-I$(abspath $(TOOLS_DIR32))"/include -g $(COMMON_FLAGS)" \
++		CFLAGS=-I$(abspath $(TOOLS_DIR32))"/include _DEBUG_LEVEL $(COMMON_FLAGS)" \
+ 		LDFLAGS=-L$(abspath $(TOOLS_DIR32))/lib \
+ 		PKG_CONFIG_PATH=$(abspath $(TOOLS_DIR32))/lib/pkgconfig \
+ 		CC=$(CC_QUOTED) \
+@@ -882,7 +882,7 @@
+ 
+ vrclient64: SHELL = $(CONTAINER_SHELL64)
+ vrclient64: $(VRCLIENT_CONFIGURE_FILES64) | $(WINE_BUILDTOOLS64) $(filter $(MAKECMDGOALS),wine64 wine32 wine)
+-	+env CXXFLAGS="-Wno-attributes -std=c++0x $(COMMON_FLAGS) -g" CFLAGS="$(COMMON_FLAGS) -g" PATH="$(abspath $(TOOLS_DIR64))/bin:$(PATH)" \
++	+env CXXFLAGS="-Wno-attributes -std=c++0x $(COMMON_FLAGS) _DEBUG_LEVEL" CFLAGS="$(COMMON_FLAGS) _DEBUG_LEVEL" PATH="$(abspath $(TOOLS_DIR64))/bin:$(PATH)" \
+ 		$(MAKE) -C $(VRCLIENT_OBJ64)
+ 	cd $(VRCLIENT_OBJ64) && \
+ 		PATH=$(abspath $(TOOLS_DIR64))/bin:$(PATH) \
+@@ -894,7 +894,7 @@
+ 
+ vrclient32: SHELL = $(CONTAINER_SHELL32)
+ vrclient32: $(VRCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filter $(MAKECMDGOALS),wine64 wine32 wine)
+-	+env LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes -std=c++0x $(COMMON_FLAGS) -g" CFLAGS="-m32 $(COMMON_FLAGS) -g" PATH="$(abspath $(TOOLS_DIR32))/bin:$(PATH)" \
++	+env LDFLAGS="-m32" CXXFLAGS="-m32 -Wno-attributes -std=c++0x $(COMMON_FLAGS) _DEBUG_LEVEL" CFLAGS="-m32 $(COMMON_FLAGS) _DEBUG_LEVEL" PATH="$(abspath $(TOOLS_DIR32))/bin:$(PATH)" \
+ 		$(MAKE) -C $(VRCLIENT_OBJ32)
+ 	cd $(VRCLIENT_OBJ32) && \
+ 		PATH=$(abspath $(TOOLS_DIR32))/bin:$(PATH) \

@@ -176,6 +176,17 @@ else
     cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf "$_nowhere/proton_template/share/fonts"/
     cd "$_nowhere"
 
+    # Get values from proton-tkg.cfg
+    source $_nowhere/proton-tkg.cfg
+    
+    if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
+      _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
+    fi
+	
+    if [ -n "$_OPTIONAL_MTUNEFLAG" ]; then
+      _OPTIONAL_MTUNEFLAG=-mtune=$_OPTIONAL_MTUNEFLAG
+    fi
+    
     # Clone Proton tree as we need to build some tools from it
     git clone https://github.com/ValveSoftware/Proton || true # It'll complain the path already exists on subsequent builds
     cd Proton
@@ -183,7 +194,26 @@ else
     git clean -xdf
     git checkout "$_proton_branch"
     git pull
-
+    
+    # Proton optimization patching
+    if [ -n "$_O_LEVEL" ]; then
+      sed -i "s/_O_LEVEL/$_O_LEVEL/g" "${_nowhere}/proton_template/proton_optimization.patch"
+    fi
+    if [ -n "$_DEBUG_LEVEL" ]; then
+      sed -i "s/_DEBUG_LEVEL/$_DEBUG_LEVEL/g" "${_nowhere}/proton_template/proton_optimization.patch"
+    fi
+    if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
+      sed -i "s/_OPTIONAL_MARCHFLAG/$_OPTIONAL_MARCHFLAG/g" "${_nowhere}/proton_template/proton_optimization.patch"
+      else
+        sed -i "s/_OPTIONAL_MARCHFLAG//g" "${_nowhere}/proton_template/proton_optimization.patch"
+    fi
+    if [ -n "$_OPTIONAL_MTUNEFLAG" ]; then
+      sed -i "s/_OPTIONAL_MTUNEFLAG/$_OPTIONAL_MTUNEFLAG/g" "${_nowhere}/proton_template/proton_optimization.patch"
+      else
+        sed -i "s/_OPTIONAL_MTUNEFLAG//g" "${_nowhere}/proton_template/proton_optimization.patch"
+    fi
+    patch -Np1 < "$_nowhere/proton_template/proton_optimization.patch"
+    
     # Embed fake data to spoof desired fonts
     fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Regular" "Arial" "Arial" "Arial"
     fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Bold" "Arial-Bold" "Arial" "Arial Bold"
@@ -195,8 +225,8 @@ else
 
     # Build lsteamclient libs
     export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
-    export CFLAGS="-O2 -g"
-    export CXXFLAGS="-Wno-attributes -O2 -g"
+    export CFLAGS="$_O_LEVEL $_OPTIONAL_MARCHFLAG $_OPTIONAL_MTUNEFLAG $_DEBUG_LEVEL"
+    export CXXFLAGS="$CFLAGS"
     export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
 
     mkdir -p build/lsteamclient.win64
@@ -207,7 +237,7 @@ else
 
     cd build/lsteamclient.win64
     winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" .
-    make -C "$_nowhere/Proton/build/lsteamclient.win64" && strip lsteamclient.dll.so
+    make -e -C "$_nowhere/Proton/build/lsteamclient.win64" && strip lsteamclient.dll.so
     cd ../..
 
     cd build/lsteamclient.win32

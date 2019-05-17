@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.8.r5.g1b7ebd3b
+pkgver=4.8.r7.g831b1f89
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -219,6 +219,20 @@ else
   if [ "$_use_faudio" == "true" ]; then
     pkgname="${pkgname/%-git/-faudio-git}"
     msg2 "Using Faudio for xaudio2"
+  fi
+  
+  if [ -n "$_O_LEVEL" ]; then
+    pkgname="${pkgname/%-git/-olevelopt-git}"
+    msg2 "Using $_O_LEVEL optimization level"
+  fi
+  
+  if [ -n "$_DEBUG_LEVEL" ]; then
+    pkgname="${pkgname/%-git/-debuglevelopt-git}"
+    msg2 "Using $_DEBUG_LEVEL debug level"
+  fi
+  if [ -n "$_OPTIONAL_MTUNEFLAG" ]; then
+    pkgname="${pkgname/%-git/-mtuneopt-git}"
+    msg2 "Using -mtune=$_OPTIONAL_MTUNEFLAG"
   fi
 
   if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
@@ -455,6 +469,7 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
 		'proton_FS_hack_refreshrate.patch' # Add custom fake refreshrate to proton_FS_hack
+		'wine_optimization.patch' # Use wine-tkg-git user config choices instead of Wine's hardcoded values
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -669,6 +684,10 @@ prepare() {
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG && echo "Using $_OPTIONAL_MARCHFLAG" >> "$_where"/last_build_config.log
 	fi
+	
+	if [ -n "$_OPTIONAL_MTUNEFLAG" ]; then
+	  _OPTIONAL_MTUNEFLAG=-mtune=$_OPTIONAL_MTUNEFLAG && echo "Using $_OPTIONAL_MTUNEFLAG" >> "$_where"/last_build_config.log
+	fi
 
 	if [ "$_NO_MSGS_FLAGS" == "true" ]; then
 	  _GCC_FLAGS="$_GCC_FLAGS -DWINE_NO_TRACE_MSGS -DWINE_NO_DEBUG_MSGS" && echo "Disabled trace/debug messages" >> "$_where"/last_build_config.log
@@ -679,30 +698,30 @@ prepare() {
 	  export CXX="clang++"
 	  echo "Using clang compiler" >> "$_where"/last_build_config.log
 	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_CLANG_FLAGS"
+	    export COMMON_FLAGS="-std=gnu89 $_DEBUG_LEVEL $_O_LEVEL $_CLANG_FLAGS $_OPTIONAL_MTUNEFLAG $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_O_LEVEL $_DEBUG_LEVEL $_CLANG_FLAGS"
 	  fi
 	elif [ "$_COMPILEWITH" == "zapcc" ]; then
 	  export CC="zapcc"
 	  export CXX="zapcc++"
 	  echo "Using zapcc compiler" >> "$_where"/last_build_config.log
 	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_CLANG_FLAGS"
+	    export COMMON_FLAGS="-std=gnu89 $_DEBUG_LEVEL $_O_LEVEL $_CLANG_FLAGS $_OPTIONAL_MTUNEFLAG $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_O_LEVEL $_DEBUG_LEVEL $_CLANG_FLAGS"
 	  fi
 	elif [ "$_COMPILEWITH" == "gcc7" ]; then
 	  export CC="gcc-7"
 	  export CXX="g++-7"
 	  echo "Using gcc7 compiler" >> "$_where"/last_build_config.log
 	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_GCC_FLAGS"
+	    export COMMON_FLAGS="$_GCC_FLAGS $_O_LEVEL $_OPTIONAL_MTUNEFLAG $_OPTIONAL_MARCHFLAG"
+	    export LDFLAGS="$_O_LEVEL $_DEBUG_LEVEL $_GCC_FLAGS"
 	  fi
 	else
 	  echo "Using gcc compiler" >> "$_where"/last_build_config.log
 	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_GCC_FLAGS"
+	    export COMMON_FLAGS="$_GCC_FLAGS $_O_LEVEL $_OPTIONAL_MTUNEFLAG $_OPTIONAL_MARCHFLAG $_DEBUG_LEVEL"
+	    export LDFLAGS="$_O_LEVEL $_DEBUG_LEVEL $_GCC_FLAGS"
 	  fi
 	fi
 
@@ -1143,7 +1162,26 @@ prepare() {
 	    _patchname='proton-restore-unicode.patch' && _patchmsg="Restore installing wine/unicode.h to please Proton" && nonuser_patcher
 	  fi
 	fi
-
+	
+    # Wine optimization level, march, mtune, and debug level patching
+    if [ -n "$_O_LEVEL" ]; then
+      sed -i "s/_O_LEVEL/$_O_LEVEL/g" "${_where}/wine_optimization.patch"
+    fi
+    if [ -n "$_DEBUG_LEVEL" ]; then
+      sed -i "s/_DEBUG_LEVEL/$_DEBUG_LEVEL/g" "${_where}/wine_optimization.patch"
+    fi
+    if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
+      sed -i "s/_OPTIONAL_MARCHFLAG/$_OPTIONAL_MARCHFLAG/g" "${_where}/wine_optimization.patch"
+      else
+        sed -i "s/_OPTIONAL_MARCHFLAG//g" "${_where}/wine_optimization.patch"
+    fi
+    if [ -n "$_OPTIONAL_MTUNEFLAG" ]; then
+      sed -i "s/_OPTIONAL_MTUNEFLAG/$_OPTIONAL_MTUNEFLAG/g" "${_where}/wine_optimization.patch"
+      else
+        sed -i "s/_OPTIONAL_MTUNEFLAG//g" "${_where}/wine_optimization.patch"
+    fi
+    _patchname='wine_optimization.patch' && _patchmsg="Applied Wine optimization patch" && nonuser_patcher
+	
 	# wine user patches
 	if [ "$_user_patches" == "true" ]; then
 	  _userpatch_target="plain-wine"
@@ -1195,6 +1233,9 @@ prepare() {
 	fi
 	if [ "$_use_d9vk" == "true" ]; then
 	  _version_tags+=(D9vk)
+	fi
+	if [ -n "$_OPTIONAL_MTUNEFLAG" ]; then
+	  _version_tags+=("$_OPTIONAL_MTUNEFLAG")
 	fi
 	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
 	  _version_tags+=("$_OPTIONAL_MARCHFLAG")
@@ -1254,7 +1295,7 @@ build() {
 	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix='$ORIGIN' && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
+	  _prefix='$ORIGIN' && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_O_LEVEL $_DEBUG_LEVEL $_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
 	fi
 
 	# build wine 64-bit
@@ -1279,7 +1320,7 @@ build() {
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
+	  export LDFLAGS=" $_O_LEVEL $DEBUG__LEVEL $_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
@@ -1523,6 +1564,7 @@ md5sums=('SKIP'
          '09699ec19868cbc7cd28edeccb8506b8'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
-         'aa8d6b65936c9646972c04864eafc479')
+         'aa8d6b65936c9646972c04864eafc479'
+         '7c49ce8a32be786fcd8e89f32fb0db4b')
 
 trap exit_cleanup EXIT
