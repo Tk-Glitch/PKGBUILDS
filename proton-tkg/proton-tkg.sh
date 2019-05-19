@@ -176,8 +176,15 @@ else
     cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf "$_nowhere/proton_template/share/fonts"/
     cd "$_nowhere"
 
-    # Get values from proton-tkg.cfg
-    source $_nowhere/proton-tkg.cfg
+    # Get & source needed values from proton-tkg.cfg
+    if [ -e "$_nowhere"/opt.cfg ]; then
+      rm "$_nowhere/opt.cfg"
+      sed -n '41,47 p' <"$_nowhere"/proton-tkg.cfg > "$_nowhere"/opt.cfg
+      source $_nowhere/opt.cfg
+      else
+        sed -n '41,47 p' <"$_nowhere"/proton-tkg.cfg > "$_nowhere"/opt.cfg
+        source "$_nowhere"/opt.cfg
+    fi
     
     if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
       _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG
