@@ -179,10 +179,10 @@ else
     # Get & source needed values from proton-tkg.cfg
     if [ -e "$_nowhere"/opt.cfg ]; then
       rm "$_nowhere/opt.cfg"
-      sed -n '41,47 p' <"$_nowhere"/proton-tkg.cfg > "$_nowhere"/opt.cfg
+      sed '/^_O_LEVEL\|^_DEBUG_LEVEL\|^_OPTIONAL_MARCH\|^_OPTIONAL_MTUNE/!d' "$_nowhere"/proton-tkg.cfg > "$_nowhere"/opt.cfg
       source $_nowhere/opt.cfg
       else
-        sed -n '41,47 p' <"$_nowhere"/proton-tkg.cfg > "$_nowhere"/opt.cfg
+        sed '/^_O_LEVEL\|^_DEBUG_LEVEL\|^_OPTIONAL_MARCH\|^_OPTIONAL_MTUNE/!d' "$_nowhere"/proton-tkg.cfg > "$_nowhere"/opt.cfg
         source "$_nowhere"/opt.cfg
     fi
     
