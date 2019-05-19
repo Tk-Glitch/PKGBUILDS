@@ -24,6 +24,7 @@ if [ -e "$_where"/proton_tkg_token ]; then
   source "$_proton_tkg_path"/proton-tkg.cfg
 else
   source "$_where"/customization.cfg
+  _EXTERNAL_INSTALL_TYPE="opt"
 fi
 
 # Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
@@ -31,9 +32,9 @@ if [ -e "$_EXT_CONFIG_PATH" ]; then
   source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
 fi
 
-# Load preset configuration file if present and selected. All values will overwrite customization.cfg ones.
+# Load preset configuration files if present and selected. All values will overwrite customization.cfg ones.
 if [ -n "$_LOCAL_PRESET" ] && [ -e "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg ]; then
-  source "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg && msg2 "Preset configuration $_LOCAL_PRESET will be used to override customization.cfg values." && msg2 ""
+  source "$_where"/wine-tkg-profiles/wine-tkg.cfg && source "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg && msg2 "Preset configuration $_LOCAL_PRESET will be used to override customization.cfg values." && msg2 ""
 fi
 
 if [ "$_NOINITIALPROMPT" == "true" ] || [ -n "$_LOCAL_PRESET" ]; then
@@ -230,9 +231,6 @@ fi
 # External install
 if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
   pkgname="${pkgname/%-git/-$_EXTERNAL_INSTALL_TYPE-git}"
-  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
-    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
-  fi
   msg2 "Installing to $_DEFAULT_EXTERNAL_PATH/$pkgname"
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   pkgname="proton_dist"
@@ -1243,9 +1241,6 @@ build() {
 
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-	  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
-	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
-	  fi
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
 	  _prefix='$ORIGIN' && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
@@ -1336,9 +1331,6 @@ package() {
 
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-	  if [ "$_EXTERNAL_INSTALL_TYPE" == "lutris" ]; then
-	    _DEFAULT_EXTERNAL_PATH=$_LUTRIS_RUNNERS_PATH
-	  fi
 	  if [ "$_EXTERNAL_NOVER" == "true" ]; then
 	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
 	  else
@@ -1436,9 +1428,7 @@ package() {
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  msg2 "### This wine will be installed to: $_prefix"
-	  if [ "$_EXTERNAL_INSTALL_TYPE" == "opt" ]; then
-	    msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
-	  fi
+	  msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
 	fi
 }
 

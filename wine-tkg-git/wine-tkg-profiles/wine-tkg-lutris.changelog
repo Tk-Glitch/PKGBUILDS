@@ -1,5 +1,9 @@
 # Wine-tkg lutris builds changelog
 
+
+I have decided to stop providing sources to lutris. This changelog will stay for reference.
+
+
 4.8
 - Sync'd with staging up to 6e49a94 (r2) to include soft links fix (https://bugs.winehq.org/show_bug.cgi?id=47160);
 

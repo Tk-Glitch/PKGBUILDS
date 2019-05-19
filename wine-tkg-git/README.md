@@ -2,7 +2,7 @@
 
 ## DO NOT REPORT BUGS ENCOUNTERED WITH CUSTOM BUILDS AT WINEHQ, REPORT HERE INSTEAD !
 
-This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about. Lutris "tkg" (previously esync-staging-pba) builds are created using this pkgbuild - https://github.com/lutris/wine
+This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
 
 You can now turn your wine-tkg-git builds to Steamplay compatible and use them directly from Steam! - https://github.com/Tk-Glitch/PKGBUILDS/tree/master/proton-tkg
 
