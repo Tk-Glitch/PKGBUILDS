@@ -385,7 +385,6 @@ source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
 		'f4skyrimse-fix-2.patch' # Fo4 & Skyrim SE Script Extender fix 2/2
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
-		'sims_1-fix.patch' # Sims (1) fix
 		'sims_2-fix-legacy.patch' # Sims 2 fix for <4.1
 		'sims_2-fix-4.2-.patch' # Sims 2 fix for 4.2 and lower
 		'sims_2-fix.patch' # Sims 2 fix for 4.3+
@@ -802,11 +801,6 @@ prepare() {
 	# The Sims 2 fix - disable wined3d-WINED3D_RS_COLORWRITEENABLE and wined3d-Indexed_Vertex_Blending staging patchsets for 4.2+devel and lower - The actual patch is applied after staging
 	if [ "$_sims2_fix" == "true" ] && ! git merge-base --is-ancestor d88f12950761e9ff8d125a579de6e743979f4945 HEAD; then
 	  _staging_args+=(-W wined3d-WINED3D_RS_COLORWRITEENABLE -W wined3d-Indexed_Vertex_Blending)
-	fi
-
-	# The Sims (1) fix - https://bugs.winehq.org/show_bug.cgi?id=43411
-	if [ "$_sims1_fix" == "true" ]; then
-	  _patchname='sims_1-fix.patch' && _patchmsg="Applied The Sims (1) fix" && nonuser_patcher
 	fi
 
 	# The Sims 3 fix - reverts 6823abd521c0c12d20d9171fb5ae8b300009d082 to fix Sims 3 on older than 415.xx nvidia drivers - https://bugs.winehq.org/show_bug.cgi?id=45361
@@ -1457,7 +1451,6 @@ md5sums=('SKIP'
          '5e3002826a916a16130c567db763dfc5'
          'f50501943759c8731d40eb521e36e6da'
          'af6b455bdace212157b9a6652ee88d41'
-         '69c266b882e919cb8aa85f8d176dc01c'
          '6e301f262f004b930ffc3000839d837b'
          'cd52a9b26c15fd210cd5ed1da178dcb1'
          '65906da954430bde504dd47a69f23f6f'
