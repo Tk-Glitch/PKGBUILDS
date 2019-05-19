@@ -77,7 +77,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
 _sub=3
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=9
+pkgrel=10
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -108,7 +108,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-v5.1_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
         #0008-bcachefs.patch
-        0009-uksm-5.1.patch
+        #0009-uksm-5.1.patch
         0010-glitched-bmq.patch
         0010-v5.1_bmq094.patch
         0011-ZFS-fix.patch
@@ -128,7 +128,6 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            '68b79d42493fb04e40af8958bd3fd67aad9ebe86128da1eb0da38731d2ee61a3'
             'f49b4eabe05b77d9ef148748d443958d11f3765cf6ed49db4b39645dae819a37'
             '885ed0c36054afd28055ff8cad6c6da47f40f5e5e7774f609e209e0e384b5198'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
@@ -478,23 +477,23 @@ prepare() {
   fi
 
   # ksm/uksm
-  if [ -z "$_ksm_uksm" ]; then
-    plain ""
-    plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
-    plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-    read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
-  fi
-  if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
-    patch -Np1 -i ../0009-uksm-${_basekernel}.patch
-    sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
-    echo "CONFIG_KSM_LEGACY=y" >> ./.config
-    echo "# CONFIG_UKSM is not set" >> ./.config
-  elif [ "$CONDITION6" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
-    patch -Np1 -i ../0009-uksm-${_basekernel}.patch
-    sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
-    echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
-    echo "CONFIG_UKSM=y" >> ./.config
-  fi
+  #if [ -z "$_ksm_uksm" ]; then
+  #  plain ""
+  #  plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
+  #  plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
+  #  read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
+  #fi
+  #if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
+  #  patch -Np1 -i ../0009-uksm-${_basekernel}.patch
+  #  sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
+  #  echo "CONFIG_KSM_LEGACY=y" >> ./.config
+  #  echo "# CONFIG_UKSM is not set" >> ./.config
+  #elif [ "$CONDITION6" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
+  #  patch -Np1 -i ../0009-uksm-${_basekernel}.patch
+  #  sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
+  #  echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
+  #  echo "CONFIG_UKSM=y" >> ./.config
+  #fi
 
   # bcachefs
   #if [ -z "$_bcachefs" ]; then
