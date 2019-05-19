@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.8.r5.g1b7ebd3b
+pkgver=4.8.r8.g77ef8ff7
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=161
+eval pkgrel=162
 
 _winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
@@ -220,11 +220,6 @@ else
   if [ "$_use_faudio" == "true" ]; then
     pkgname="${pkgname/%-git/-faudio-git}"
     msg2 "Using Faudio for xaudio2"
-  fi
-
-  if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
-    pkgname="${pkgname/%-git/-marchopt-git}"
-    msg2 "Using -march=$_OPTIONAL_MARCHFLAG"
   fi
 fi
 
@@ -662,51 +657,14 @@ prepare() {
 
 	echo "" >> "$_where"/last_build_config.log
 
-	# apply compiler choice and optimizations
-	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
-	  _OPTIONAL_MARCHFLAG=-march=$_OPTIONAL_MARCHFLAG && echo "Using $_OPTIONAL_MARCHFLAG" >> "$_where"/last_build_config.log
-	fi
-
-	if [ "$_NO_MSGS_FLAGS" == "true" ]; then
-	  _GCC_FLAGS="$_GCC_FLAGS -DWINE_NO_TRACE_MSGS -DWINE_NO_DEBUG_MSGS" && echo "Disabled trace/debug messages" >> "$_where"/last_build_config.log
-	fi
-
-	if [ "$_COMPILEWITH" == "clang" ]; then
-	  export CC="clang"
-	  export CXX="clang++"
-	  echo "Using clang compiler" >> "$_where"/last_build_config.log
-	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_CLANG_FLAGS"
-	  fi
-	elif [ "$_COMPILEWITH" == "zapcc" ]; then
-	  export CC="zapcc"
-	  export CXX="zapcc++"
-	  echo "Using zapcc compiler" >> "$_where"/last_build_config.log
-	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
-	    export COMMON_FLAGS="-std=gnu89 -g $_CLANG_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_CLANG_FLAGS"
-	  fi
-	elif [ "$_COMPILEWITH" == "gcc7" ]; then
-	  export CC="gcc-7"
-	  export CXX="g++-7"
-	  echo "Using gcc7 compiler" >> "$_where"/last_build_config.log
-	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_GCC_FLAGS"
-	  fi
-	else
-	  echo "Using gcc compiler" >> "$_where"/last_build_config.log
-	  if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	    export COMMON_FLAGS="$_GCC_FLAGS $_OPTIONAL_MARCHFLAG"
-	    export LDFLAGS="$_GCC_FLAGS"
-	  fi
-	fi
-
+	# compiler flags
 	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	  export CFLAGS="${COMMON_FLAGS}"
-	  export CXXFLAGS="${COMMON_FLAGS}"
-	  echo "With predefined optimizations" >> "$_where"/last_build_config.log
+	  export CFLAGS="${_GCC_FLAGS}"
+	  export CXXFLAGS="${_GCC_FLAGS}"
+	  export LDFLAGS="${_LD_FLAGS}"
+	  echo "With predefined optimizations:" >> "$_where"/last_build_config.log
+	  echo "CFLAGS = ${_GCC_FLAGS}" >> "$_where"/last_build_config.log
+	  echo "LDFLAGS = ${_LD_FLAGS}" >> "$_where"/last_build_config.log
 	else
 	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
 	fi
@@ -1188,8 +1146,8 @@ prepare() {
 	if [ "$_use_d9vk" == "true" ]; then
 	  _version_tags+=(D9vk)
 	fi
-	if [ -n "$_OPTIONAL_MARCHFLAG" ]; then
-	  _version_tags+=("$_OPTIONAL_MARCHFLAG")
+	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
+	  _version_tags+=("$_GCC_FLAGS")
 	fi
 	sed -i "s/\\\1/\\\1  ( ${_version_tags[*]} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
