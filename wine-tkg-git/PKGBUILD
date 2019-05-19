@@ -1102,9 +1102,9 @@ prepare() {
 	fi
 
 	if [ "$_use_staging" == "true" ]; then
-	  _patchname='wine-tkg-staging.patch' && _patchmsg="Please don't report bugs about it on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
+	  _patchname='wine-tkg-staging.patch' && _patchmsg="Please don't report bugs about this wine build on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
 	else
-	  _patchname='wine-tkg.patch' && _patchmsg="Please don't report bugs about it on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
+	  _patchname='wine-tkg.patch' && _patchmsg="Please don't report bugs about this wine build on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
 	fi
 
 	# Disable tests by default, enable back with _enable_tests="true"
