@@ -38,7 +38,7 @@ pkgrel=1
 pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
 arch=('i686' 'x86_64')
 url='https://github.com/FNA-XNA/FAudio'
-license=('custom')
+license=('Zlib')
 depends=('sdl2' 'ffmpeg')
 
 # lib32
