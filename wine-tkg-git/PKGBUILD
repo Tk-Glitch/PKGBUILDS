@@ -1146,9 +1146,6 @@ prepare() {
 	if [ "$_use_d9vk" == "true" ]; then
 	  _version_tags+=(D9vk)
 	fi
-	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	  _version_tags+=("$_GCC_FLAGS")
-	fi
 	sed -i "s/\\\1/\\\1  ( ${_version_tags[*]} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
 	# dxvk user patches
