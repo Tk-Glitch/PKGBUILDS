@@ -196,7 +196,8 @@ else
     # Build lsteamclient libs
     export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
     export CFLAGS="-O2 -g"
-    export CXXFLAGS="-Wno-attributes -O2 -g"
+    export CXXFLAGS="${CFLAGS} -Wno-attributes"
+    export LDFLAGS="${CXXFLAGS}"
     export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
 
     mkdir -p build/lsteamclient.win64

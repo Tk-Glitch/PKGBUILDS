@@ -661,7 +661,7 @@ prepare() {
 	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	  export CFLAGS="${_GCC_FLAGS}"
 	  export CXXFLAGS="${_GCC_FLAGS}"
-	  export LDFLAGS="${_LD_FLAGS}"
+	  export LDFLAGS="${_GCC_FLAGS} ${_LD_FLAGS}"
 	  echo "With predefined optimizations:" >> "$_where"/last_build_config.log
 	  echo "CFLAGS = ${_GCC_FLAGS}" >> "$_where"/last_build_config.log
 	  echo "LDFLAGS = ${_LD_FLAGS}" >> "$_where"/last_build_config.log
@@ -1198,7 +1198,7 @@ build() {
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix='$ORIGIN' && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
+	  _prefix='$ORIGIN' && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="${_GCC_FLAGS} ${_LD_FLAGS} -Wl,-rpath='$ORIGIN'"
 	fi
 
 	# build wine 64-bit
@@ -1223,7 +1223,7 @@ build() {
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  export LDFLAGS="$_GCC_FLAGS -Wl,-rpath='$ORIGIN'"
+	  export LDFLAGS="${_GCC_FLAGS} ${_LD_FLAGS} -Wl,-rpath='$ORIGIN'"
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
