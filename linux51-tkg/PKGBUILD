@@ -75,9 +75,9 @@ _basever=51
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
-_sub=3
+_sub=4
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=10
+pkgrel=12
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -110,11 +110,11 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0008-bcachefs.patch
         #0009-uksm-5.1.patch
         0010-glitched-bmq.patch
-        0010-v5.1_bmq094.patch
+        0010-v5.1_bmq095.patch
         0011-ZFS-fix.patch
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
-            'ea04b55d4a60c3aa801487ebbbf0c9e336cd28c2c1a6ab7c34f4105eca8ab30b'
+            'ccf55cf1f6fab09419bee802dbe2029b69467ae78fbaeb669d5ce0bea631fab8'
             '82598a7c1d0a115b7273447affe5035c6a25995f784511e700f75c3d5f131aa7'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -128,8 +128,8 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            'f49b4eabe05b77d9ef148748d443958d11f3765cf6ed49db4b39645dae819a37'
-            '885ed0c36054afd28055ff8cad6c6da47f40f5e5e7774f609e209e0e384b5198'
+            '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
+            '5503df96cfa55fc56def4e88b2e5688149d6af58bcf02208ded2be75ad8c77b8'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
 
 user_patcher() {
@@ -200,7 +200,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0010-v5.1_bmq094.patch
+    patch -Np1 -i ../0010-v5.1_bmq095.patch
     patch -Np1 -i ../0010-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch

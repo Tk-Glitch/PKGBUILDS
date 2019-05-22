@@ -1,13 +1,12 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.8.r8.g77ef8ff7
+pkgver=4.8.r11.g6f185a69
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=162
+eval pkgrel=163
 
-_winesrcdir='wine-git'
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
 _dxvksrcdir='dxvk'
@@ -368,7 +367,17 @@ optdepends=(
     'faudio'                'lib32-faudio'
     'mingw-w64-gcc'
 )
-source=("$_winesrcdir"::"git://source.winehq.org/git/wine.git${_plain_commit}"
+
+# Wine source
+if [ "$_plain_mirrorsrc" == "true" ]; then
+  _winesrcdir="wine-mirror-git"
+  _winesrctarget="git+https://github.com/wine-mirror/wine.git"
+else
+  _winesrcdir="wine-git"
+  _winesrctarget="git://source.winehq.org/git/wine.git"
+fi
+
+source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
 		"$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}"
