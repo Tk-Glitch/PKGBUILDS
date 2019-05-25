@@ -17,6 +17,9 @@ wine-tkg-git/dxvk/
 wine-tkg-git/d9vk/
 winetricks-tkg-git/winetricks/
 mingw/mingw-w64-*/
+mingw/cloog/
+mingw/isl/
+mingw/osl/
 gst-libav/gst-libav/
 faudio-git/FAudio/
 spirv-tools-git/SPIRV-Headers/
