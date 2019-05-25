@@ -180,9 +180,10 @@ else
     git clone https://github.com/ValveSoftware/Proton || true # It'll complain the path already exists on subsequent builds
     cd Proton
     git checkout "$_proton_branch"
-    git reset --hard dfdd3d0
+    git reset --hard HEAD
     git clean -xdf
-    #git pull
+    git pull
+    patch -Np1 < "$_nowhere/proton_template/steamclient_144_workaround.patch"
 
     # Embed fake data to spoof desired fonts
     fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Regular" "Arial" "Arial" "Arial"
