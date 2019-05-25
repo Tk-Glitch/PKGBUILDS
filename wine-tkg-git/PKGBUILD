@@ -453,6 +453,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'proton-sdl-joy.patch' # Proton SDL joystick support
+		'proton-vk-bits-4.5.patch' # Proton vk bits for 4.5+
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
 		'proton_FS_hack_refreshrate.patch' # Add custom fake refreshrate to proton_FS_hack
@@ -1101,6 +1102,9 @@ prepare() {
 	  if git merge-base --is-ancestor 0ffb1535517301d28c7c004eac639a9a0cc26c00 HEAD; then
 	    _patchname='proton-restore-unicode.patch' && _patchmsg="Restore installing wine/unicode.h to please Proton" && nonuser_patcher
 	  fi
+	  if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD; then
+	    _patchname='proton-vk-bits-4.5.patch' && _patchmsg="Enable Proton vulkan bits for 4.5+" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches
@@ -1461,13 +1465,14 @@ md5sums=('SKIP'
          '8427bb8d40cc49bc1de3a53ed82254ad'
          '3034b1a397cad46feb641cb3d7dc8584'
          '1c4738e438debf72266b96d09f465b25'
-         'dc12b87032205ec7144b6056f015663b'
-         'a07d93980e528962f90bde5f49ff9545'
+         'cb0723972fdc89740b295a4c4edaf0aa'
+         '6a4e917c96ec5457eff224dfbc1eeeb6'
          '6bfa054b51e49de7c91dda1b385ee907'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
          '09699ec19868cbc7cd28edeccb8506b8'
+         '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
          'aa8d6b65936c9646972c04864eafc479')
