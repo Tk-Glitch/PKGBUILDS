@@ -179,10 +179,10 @@ else
     # Clone Proton tree as we need to build some tools from it
     git clone https://github.com/ValveSoftware/Proton || true # It'll complain the path already exists on subsequent builds
     cd Proton
-    git reset --hard HEAD
-    git clean -xdf
     git checkout "$_proton_branch"
-    git pull
+    git reset --hard dfdd3d0
+    git clean -xdf
+    #git pull
 
     # Embed fake data to spoof desired fonts
     fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Regular" "Arial" "Arial" "Arial"
