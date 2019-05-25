@@ -75,9 +75,9 @@ _basever=51
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
-_sub=4
+_sub=5
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=12
+pkgrel=13
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,7 +114,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0011-ZFS-fix.patch
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
-            'ccf55cf1f6fab09419bee802dbe2029b69467ae78fbaeb669d5ce0bea631fab8'
+            'def1a382c555454daf28fb768ed2c3e6f339c4bfcd36faa99982e4d31c04efa6'
             '82598a7c1d0a115b7273447affe5035c6a25995f784511e700f75c3d5f131aa7'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
