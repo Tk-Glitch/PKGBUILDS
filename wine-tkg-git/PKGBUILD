@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.8.r12.g52f92a42
+pkgver=4.8.r17.g5e5b163e
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=163
+eval pkgrel=164
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -453,6 +453,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'proton-sdl-joy.patch' # Proton SDL joystick support
+		'proton-gamepad-additions.patch' # Proton 4.2-5 xinput hacks and other gamepad additions
 		'proton-vk-bits-4.5.patch' # Proton vk bits for 4.5+
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
@@ -1098,6 +1099,10 @@ prepare() {
 	  # SDL Joystick support - from Proton
 	  if [ "$_sdl_joy_support" == "true" ]; then
 	    _patchname='proton-sdl-joy.patch' && _patchmsg="Enable SDL Joystick support (from Proton)" && nonuser_patcher
+	    # Gamepad additions - from Proton 4.2-5
+	    if [ "$_gamepad_additions" == "true" ] && git merge-base --is-ancestor 6a610a325809d47f48bc72f3a757e1a62b193ea8 HEAD; then
+	      _patchname='proton-gamepad-additions.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+        fi
 	  fi
 	  if git merge-base --is-ancestor 0ffb1535517301d28c7c004eac639a9a0cc26c00 HEAD; then
 	    _patchname='proton-restore-unicode.patch' && _patchmsg="Restore installing wine/unicode.h to please Proton" && nonuser_patcher
@@ -1472,6 +1477,7 @@ md5sums=('SKIP'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
          '09699ec19868cbc7cd28edeccb8506b8'
+         '2cf363e936aa87450c79bd131eea1f9f'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
