@@ -618,10 +618,10 @@ index 21fb5a5662b5..b23231bae996 100644
  obj-$(CONFIG_MEMBARRIER) += membarrier.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..1d584e69718f
+index 000000000000..119ddc130c3e
 --- /dev/null
 +++ b/kernel/sched/bmq.c
-@@ -0,0 +1,6124 @@
+@@ -0,0 +1,6125 @@
 +/*
 + *  kernel/sched/bmq.c
 + *
@@ -791,11 +791,12 @@ index 000000000000..1d584e69718f
 +
 +	cpu = cpu_of(rq);
 +#ifdef CONFIG_X86
-+	__cpumask_clear_cpu(cpu, &sched_rq_watermark[last_wm]);
++	if (!cpumask_andnot(&sched_rq_watermark[last_wm],
++			    &sched_rq_watermark[last_wm], cpumask_of(cpu)))
 +#else
 +	cpumask_clear_cpu(cpu, &sched_rq_watermark[last_wm]);
-+#endif
 +	if (cpumask_empty(&sched_rq_watermark[last_wm]))
++#endif
 +		clear_bit(last_wm, sched_rq_watermark_bitmap);
 +	cpumask_set_cpu(cpu, &sched_rq_watermark[watermark]);
 +	set_bit(watermark, sched_rq_watermark_bitmap);
@@ -1224,7 +1225,7 @@ index 000000000000..1d584e69718f
 +
 +	list_del(&p->bmq_node);
 +	if (list_empty(&rq->queue.heads[p->bmq_idx])) {
-+		__clear_bit(p->bmq_idx, rq->queue.bitmap);
++		clear_bit(p->bmq_idx, rq->queue.bitmap);
 +		update_sched_rq_watermark(rq);
 +	}
 +	--rq->nr_running;
@@ -1253,7 +1254,7 @@ index 000000000000..1d584e69718f
 +
 +	p->bmq_idx = task_sched_prio(p);
 +	bmq_add_task(p, &rq->queue, p->bmq_idx);
-+	__set_bit(p->bmq_idx, rq->queue.bitmap);
++	set_bit(p->bmq_idx, rq->queue.bitmap);
 +	update_sched_rq_watermark(rq);
 +	++rq->nr_running;
 +#ifdef CONFIG_SMP
@@ -1287,9 +1288,9 @@ index 000000000000..1d584e69718f
 +	bmq_add_task(p, &rq->queue, idx);
 +	if (idx != p->bmq_idx) {
 +		if (list_empty(&rq->queue.heads[p->bmq_idx]))
-+			__clear_bit(p->bmq_idx, rq->queue.bitmap);
++			clear_bit(p->bmq_idx, rq->queue.bitmap);
 +		p->bmq_idx = idx;
-+		__set_bit(p->bmq_idx, rq->queue.bitmap);
++		set_bit(p->bmq_idx, rq->queue.bitmap);
 +		update_sched_rq_watermark(rq);
 +	}
 +}
@@ -1308,9 +1309,9 @@ index 000000000000..1d584e69718f
 +	list_del(&p->bmq_node);
 +	bmq_add_task(p, &rq->queue, idx);
 +	if (list_empty(&rq->queue.heads[p->bmq_idx]))
-+		__clear_bit(p->bmq_idx, rq->queue.bitmap);
++		clear_bit(p->bmq_idx, rq->queue.bitmap);
 +	p->bmq_idx = idx;
-+	__set_bit(p->bmq_idx, rq->queue.bitmap);
++	set_bit(p->bmq_idx, rq->queue.bitmap);
 +	update_sched_rq_watermark(rq);
 +
 +	return 1;
