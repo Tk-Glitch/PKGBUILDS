@@ -107,7 +107,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=46
+pkgrel=47
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -262,10 +262,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
     fi
 
-    if (( $(vercmp "$_kernel" "5.1") >= 0 )); then
-      # Temporary place til we get a driver that supports 5.1 OOTB
+    if (( $(vercmp "$_kernel" "5.1") >= 0 )) && [[ $pkgver != 430* ]]; then
       sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
-      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver == 415* ]] || [[ $pkgver == 418.3* ]] || [[ $pkgver == 418.4* ]]; then
+      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.3* ]] || [[ $pkgver = 418.4* ]]; then
         _low418="1"
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
         msg2 "Applying list_is_first.diff for $_kernel..."
@@ -344,7 +343,6 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       else
         msg2 "Applying kernel-5.1.patch for dkms..."
         patch -Np1 -i "$srcdir"/kernel-5.1.patch
-        # Temporary place til we get a driver that supports 5.1 OOTB
         sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
       fi
       if [ "$_low418" == "1" ]; then
