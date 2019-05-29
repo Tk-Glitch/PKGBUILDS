@@ -1,5 +1,5 @@
 A custom Linux kernel 5.2 rc with added tweaks for a nice interactivity/performance balance.
-Due to rc state, various tweaks and options are missing compared to stable-based releases of wine-tkg, and nvidia-all compatibility is not guaranteed.
+Due to rc state, various tweaks and options are missing compared to stable-based releases of wine-tkg. If you're using nvidia proprietary drivers, 430.14 is required.
 
 Various personnalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
 
