@@ -271,6 +271,7 @@ if not check_environment("PROTON_USE_WINED3D", "wined3d"):
 check_environment("PROTON_NO_D3D11", "nod3d11")
 check_environment("PROTON_NO_D3D10", "nod3d10")
 check_environment("PROTON_NO_D3D9", "nod3d9")
+check_environment("PROTON_USE_CUSTOMD3D9", "custom9")
 check_environment("PROTON_NO_ESYNC", "noesync")
 check_environment("PROTON_FORCE_LARGE_ADDRESS_AWARE", "forcelgadd")
 check_environment("PROTON_OLD_GL_STRING", "oldglstr")
@@ -486,7 +487,7 @@ with prefix_lock:
         for f in dxvkfiles:
             dlloverrides[f] = "n"
 
-    if not ("wined3d9only" or "wined3d") in config_opts:
+    if not ("wined3d9only" or "wined3d" or "custom9") in config_opts:
         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
             #use vulkan-based d9vk for d3d9 32
             make_d9vk_links(basedir + "/dist/lib/wine/d9vk/",
@@ -497,7 +498,9 @@ with prefix_lock:
                 prefix + "drive_c/windows/system32")
             make_d9vk_links(basedir + "/dist/lib/wine/d9vk/",
                 prefix + "drive_c/windows/syswow64")
-            dlloverrides["d3d9"] = "n"
+        dlloverrides["d3d9"] = "n"
+    elif not ("wined3d9only" or "wined3d") and "custom9" in config_opts:
+        dlloverrides["d3d9"] = "n"
 
 if "nod3d11" in config_opts:
     dlloverrides["d3d11"] = ""

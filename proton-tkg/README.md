@@ -66,6 +66,7 @@ Proton-tkg builds are coming with special additional features you can enable/dis
 - `PROTON_WINEDBG_DISABLE` - Enabled by default, it'll set winedbg.exe to disabled. It's a known fix for GTA V online.
 - `PROTON_PULSE_LOWLATENCY` - Enabled by default, it'll set Pulseaudio latency to 60ms. This usually helps with audio crackling issues on some setups.
 - `PROTON_DXVK_ASYNC` - Disabled by default, it'll enable DXVK's async pipecompiler on a compatible DXVK build (official/default DXVK build doesn't support it). Known as the "poe hack", that option *could* be unsafe for anticheats, so beware.
+- `PROTON_USE_CUSTOMD3D9` - Disabled by default, it'll enable you to use a custom d3d9 lib that's not already available in proton-tkg (namely d9vk and wined3d), like Gallium9 for example.
 
 You can also change their default values before building in your `proton-tkg.cfg` file.
 
