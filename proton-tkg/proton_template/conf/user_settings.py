@@ -56,6 +56,9 @@ user_settings = {
     #!!! D9VK winelib replaces wined3d d3d9 and needs this option enabled !!!
      "PROTON_USE_WINED3D9": "1",
 
+    #Use wine DXGI instead of DXVK's. This is needed to make use of VKD3D when DXVK is enabled. It will prevent the use of DXVK's DXGI functions.
+#     "PROTON_USE_WINE_DXGI": "1",
+
     #Disable d3d11 entirely !!!
 #     "PROTON_NO_D3D11": "1",
 

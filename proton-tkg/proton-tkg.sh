@@ -242,10 +242,6 @@ else
       if [ -d ./dxvk ]; then
         mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
         mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
-        if [ "$_dxvk_dxgi" != "true" ]; then
-          rm proton_dist_tmp/lib64/wine/dxvk/dxgi.dll
-          rm proton_dist_tmp/lib/wine/dxvk/dxgi.dll
-        fi
       else
         echo "##################################################################################"
         echo ""
@@ -324,6 +320,9 @@ else
     fi
     if [ -n "$_proton_dxvk_hud" ]; then
       sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
+    fi
+    if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
+      sed -i 's/.*PROTON_USE_WINE_DXGI.*/     "PROTON_USE_WINE_DXGI": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
 
     # Use the corresponding DXVK/D9VK combo options - Default is DXVK prebuilt +no d9vk or d9vk winelib, so let's create rules for the other combinations only
