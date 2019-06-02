@@ -474,7 +474,7 @@ with prefix_lock:
             make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
                 prefix + "drive_c/windows/syswow64")
 
-    if not ("wined3d11only" or "wined3d") in config_opts:
+    if not ("wined3d11only" in config_opts or "wined3d" in config_opts):
         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
             #use vulkan-based dxvk for d3d11 and d3d10 32
             make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
@@ -488,7 +488,7 @@ with prefix_lock:
         for f in dxvkfiles:
             dlloverrides[f] = "n"
 
-    if not ("wined3d9only" or "wined3d" or "custom9") in config_opts:
+    if not ("wined3d9only" in config_opts or "wined3d" in config_opts or "custom9" in config_opts):
         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
             #use vulkan-based d9vk for d3d9 32
             make_d9vk_links(basedir + "/dist/lib/wine/d9vk/",
@@ -500,7 +500,7 @@ with prefix_lock:
             make_d9vk_links(basedir + "/dist/lib/wine/d9vk/",
                 prefix + "drive_c/windows/syswow64")
         dlloverrides["d3d9"] = "n"
-    elif not ("wined3d9only" or "wined3d") and "custom9" in config_opts:
+    elif not ("wined3d9only" in config_opts or "wined3d" in config_opts) and "custom9" in config_opts:
         dlloverrides["d3d9"] = "n"
 
 if "winedxgi" in config_opts:
