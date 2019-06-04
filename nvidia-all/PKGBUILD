@@ -107,14 +107,14 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=47
+pkgrel=48
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
 optdepends=('linux-headers' 'linux-lts-headers: Build the module for LTS Arch kernel')
 options=('!strip')
 
-cp "$where"/patches/* "$where" && cp "$where"/system/* "$where"
+cp "$where"/patches/* "$where" && cp -r "$where"/system/* "$where"
 
 # Installer name
 _pkg="NVIDIA-Linux-x86_64-$pkgver"
@@ -398,22 +398,32 @@ package_opencl-nvidia-tkg() {
 }
 
 package_nvidia-egl-wayland-tkg() {
-  pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.1.1.0) for 'nvidia-utils-tkg'"
+  if [[ $pkgver == 396* ]]; then
+    _eglwver="1.0.3"
+  elif [[ $pkgver == 410* ]] || [[ $pkgver == 415* ]]; then
+    _eglwver="1.1.0"
+  else
+    _eglwver="1.1.2"
+  fi
+  pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.$_eglwver) for 'nvidia-utils-tkg'"
   depends=('nvidia-utils-tkg')
-  provides=('egl-wayland')
+  provides=("egl-wayland")
   conflicts=('egl-wayland')
   cd $_pkg
 
-  if [[ $pkgver == 396* ]]; then
-    install -Dm755 libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.0.3
-    ln -s libnvidia-egl-wayland.so.1.0.3 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
-  elif [[ $pkgver == 410* ]] || [[ $pkgver == 415* ]]; then
-    install -Dm755 libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.0
-    ln -s libnvidia-egl-wayland.so.1.1.0 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
-  else
-    install -Dm755 libnvidia-egl-wayland.so.1.1.2 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1.1.2
-    ln -s libnvidia-egl-wayland.so.1.1.2 "$pkgdir"/usr/lib/libnvidia-egl-wayland.so.1
-  fi
+    install -Dm755 libnvidia-egl-wayland.so."${_eglwver}" "${pkgdir}"/usr/lib/libnvidia-egl-wayland.so."${_eglwver}"
+    ln -s libnvidia-egl-wayland.so."${_eglwver}" "${pkgdir}"/usr/lib/libnvidia-egl-wayland.so.1
+    ln -s libnvidia-egl-wayland.so.1 "${pkgdir}"/usr/lib/libnvidia-egl-wayland.so
+
+    install -Dm755 10_nvidia_wayland.json "${pkgdir}"/usr/share/egl/egl_external_platform.d/10_nvidia_wayland.json
+    install -Dm755 "$where"/egl-wayland/licenses/egl-wayland/COPYING "${pkgdir}"/usr/share/licenses/egl-wayland/COPYING
+    install -Dm755 "$where"/egl-wayland/pkgconfig/wayland-eglstream-protocols.pc "${pkgdir}"/usr/share/pkgconfig/wayland-eglstream-protocols.pc
+    install -Dm755 "$where"/egl-wayland/pkgconfig/wayland-eglstream.pc "${pkgdir}"/usr/share/pkgconfig/wayland-eglstream.pc
+    install -Dm755 "$where"/egl-wayland/wayland-eglstream/wayland-eglstream-controller.xml "${pkgdir}"/usr/share/wayland-eglstream/wayland-eglstream-controller.xml
+    install -Dm755 "$where"/egl-wayland/wayland-eglstream/wayland-eglstream.xml "${pkgdir}"/usr/share/wayland-eglstream/wayland-eglstream.xml
+
+    sed -i "s/Version:.*/Version: $_eglwver/g" "${pkgdir}"/usr/share/pkgconfig/wayland-eglstream-protocols.pc
+    sed -i "s/Version:.*/Version: $_eglwver/g" "${pkgdir}"/usr/share/pkgconfig/wayland-eglstream.pc
 }
 
 package_nvidia-utils-tkg() {
@@ -423,7 +433,7 @@ package_nvidia-utils-tkg() {
               'gtk3: nvidia-settings (GTK+ v3)'
               'opencl-nvidia-tkg: OpenCL support'
               'xorg-server-devel: nvidia-xconfig'
-              'egl-wayland-git: for alternative, more advanced Wayland library (libnvidia-egl-wayland.so.1.1.0)')
+              'egl-wayland-git: for alternative, more advanced Wayland library (libnvidia-egl-wayland.so)')
   provides=("nvidia-utils=$pkgver" "nvidia-settings=$pkgver" 'vulkan-driver' 'opengl-driver' 'nvidia-libgl')
   conflicts=('nvidia-utils' 'nvidia-settings' 'nvidia-libgl')
   backup=('etc/X11/xorg.conf.d/20-nvidia.conf')
@@ -721,6 +731,7 @@ function exit_cleanup {
   rm -f "${where}"/*.patch
   rm -f "${where}"/*.diff
   rm -f "${where}"/nvidia-utils-tkg.sysusers
+  rm -rf "${where}"/egl-wayland
   rm -rf "${where}"/src/*
 
   remove_deps
