@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.9.r7.g197e08b4
+pkgver=4.9.r9.g3287f0fc
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -397,6 +397,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'woff-hack.patch' # Hack for child window rendering support for vk - Fixes World of Final Fantasy
 		'warframe-launcher.patch' # Fix for Warframe Launcher failing to update itself
 		'ffxiv-launcher-workaround.patch' # Workaround for Final Fantasy XIV Launcher 404 error
+		'leagueoflolfix.patch' # LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -993,6 +994,11 @@ prepare() {
 	  _patchname='ffxiv-launcher-workaround.patch' && _patchmsg="Applied Final Fantasy XIV Launcher fix" && nonuser_patcher
 	fi
 
+	# Fix for LoL 9.10+ crashing - https://bugs.winehq.org/show_bug.cgi?id=47198
+	if [ "$_lol910_fix" == "true" ]; then
+	  _patchname='leagueoflolfix.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
+	fi
+
 	# apply wine-pba patchset
 	if [ "$_use_pba" == "true" ]; then
 	  if [ "$_pba_version" == "none" ]; then
@@ -1428,6 +1434,7 @@ md5sums=('SKIP'
          '6766554ceda75c32b79e0d33c216396f'
          '5b07ab957a128801b6c45e30b31432a7'
          'b1dea6339eba7ca8c37d3e5b8399fc5f'
+         'a38deffe982282b3dea92e7bd48dc725'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
