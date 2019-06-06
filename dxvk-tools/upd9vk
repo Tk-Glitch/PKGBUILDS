@@ -48,7 +48,7 @@ D9VK_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
 PATCHIN=1 # Enables auto-application of all patches present in ./D9VKBUILD/patches - It WILL make your tree dirty if any patch is applied
 DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Always clear source dir and redownload from git - 2: Always ignore source dir removal even if dirty
 
-PREFIXES_ROOT=$HOME/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
+PREFIXES_ROOT="$HOME"/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
 
 ROOT=$PWD
 
@@ -58,13 +58,13 @@ mkdir -p D9VKBUILD/patches
 
 if [ "$DIRTYIN" != "2" ]; then
   if [ -e "d9vk-$D9VK_BRANCH.d9vkdirty" ] || [ "$DIRTYIN" == "1" ]; then
-  rm -R -f d9vk-$D9VK_BRANCH
+  rm -R -f d9vk-"$D9VK_BRANCH"
   echo "#################"
   echo ""
   echo "YOUR TREE WAS CONSIDERED DIRTY AND HAS BEEN CLEARED"
   echo ""
   echo "#################"
-  rm $D9VK_BRANCH.d9vkdirty
+  rm "$D9VK_BRANCH".d9vkdirty
   fi
 else
   echo "#################"
@@ -74,22 +74,22 @@ else
   echo "#################"
 fi
 
-mkdir d9vk-$D9VK_BRANCH
+mkdir d9vk-"$D9VK_BRANCH"
 
-cd d9vk-$D9VK_BRANCH
+cd d9vk-"$D9VK_BRANCH"
 
 if [ ! -e package-release.sh ]; then
   git init .
   git remote add -t \* -f origin https://github.com/Joshua-Ashton/d9vk.git
-  git checkout $D9VK_BRANCH
+  git checkout "$D9VK_BRANCH"
 fi
 
 if [ "$D9VK_AUTOUPDATE" == "1" ]; then
   git pull
 fi
 
-if [ -n $D9VK_COMMIT ] && [ "$CUSTOM_COMMIT" == "1" ]; then
-  git checkout $D9VK_COMMIT
+if [ -n "$D9VK_COMMIT" ] && [ "$CUSTOM_COMMIT" == "1" ]; then
+  git checkout "$D9VK_COMMIT"
 fi
 
 GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`
@@ -102,7 +102,7 @@ if [ "$PATCHIN" == "1" ]; then
       echo "REVERTING PATCH ${F}"
       echo ""
       echo "#################"
-      patch -Np1 -R < ${F} && echo "This means that branch $D9VK_BRANCH was altered by patching and will be cleared next time you build" >> ../$D9VK_BRANCH.d9vkdirty
+      patch -Np1 -R < ${F} && echo "This means that branch $D9VK_BRANCH was altered by patching and will be cleared next time you build" >> ../"$D9VK_BRANCH".d9vkdirty
     else
       echo "#################"
       echo ""
@@ -118,7 +118,7 @@ if [ "$PATCHIN" == "1" ]; then
       echo "APPLYING PATCH ${F}"
       echo ""
       echo "#################"
-      patch -Np1 < ${F} && echo "This means that branch $D9VK_BRANCH was altered by patching and will be cleared next time you build" >> ../$D9VK_BRANCH.d9vkdirty
+      patch -Np1 < ${F} && echo "This means that branch $D9VK_BRANCH was altered by patching and will be cleared next time you build" >> ../"$D9VK_BRANCH".d9vkdirty
     else
       echo "#################"
       echo ""
@@ -145,28 +145,28 @@ echo ""
 echo "BUILDING"
 echo ""
 echo "#################"
-./package-release.sh $D9VK_BRANCH ../D9VKBUILD --no-package
+./package-release.sh "$D9VK_BRANCH" ../D9VKBUILD --no-package
 
 # Workarounds dxvk dirs
-if [ -d ../D9VKBUILD/dxvk-$D9VK_BRANCH ]; then
-  mv ../D9VKBUILD/dxvk-$D9VK_BRANCH ../D9VKBUILD/d9vk-$D9VK_BRANCH
+if [ -d ../D9VKBUILD/dxvk-"$D9VK_BRANCH" ]; then
+  mv ../D9VKBUILD/dxvk-"$D9VK_BRANCH" ../D9VKBUILD/d9vk-"$D9VK_BRANCH"
 fi
 
-if [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ] && [ -d ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ]; then
-  mkdir -p ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD
-  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x32 ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x32
-  cp ../D9VKBUILD/setup_d9vk32.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x32/setup_symlink_d9vk.sh
-  mv -v -T ../D9VKBUILD/d9vk-$D9VK_BRANCH/x64 ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x64
-  cp ../D9VKBUILD/setup_d9vk64.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/x64/setup_symlink_d9vk.sh
-  cp ../D9VKBUILD/d9vk-$D9VK_BRANCH/setup_dxvk.sh ../D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD/setup_d9vk.sh
-  rm -R -f ../D9VKBUILD/d9vk-$D9VK_BRANCH
+if [ -d ../D9VKBUILD/d9vk-"$D9VK_BRANCH"/x32 ] && [ -d ../D9VKBUILD/d9vk-"$D9VK_BRANCH"/x64 ]; then
+  mkdir -p ../D9VKBUILD/"$D9VK_BRANCH"/"$GIT_HEAD"
+  mv -v -T ../D9VKBUILD/d9vk-"$D9VK_BRANCH"/x32 ../D9VKBUILD/"$D9VK_BRANCH"/"$GIT_HEAD"/x32
+  cp ../D9VKBUILD/setup_d9vk32.sh ../D9VKBUILD/"$D9VK_BRANCH"/"$GIT_HEAD"/x32/setup_symlink_d9vk.sh
+  mv -v -T ../D9VKBUILD/d9vk-"$D9VK_BRANCH"/x64 ../D9VKBUILD/"$D9VK_BRANCH"/"$GIT_HEAD"/x64
+  cp ../D9VKBUILD/setup_d9vk64.sh ../D9VKBUILD/"$D9VK_BRANCH"/"$GIT_HEAD"/x64/setup_symlink_d9vk.sh
+  cp ../D9VKBUILD/d9vk-"$D9VK_BRANCH"/setup_dxvk.sh ../D9VKBUILD/"$D9VK_BRANCH"/"$GIT_HEAD"/setup_d9vk.sh
+  rm -R -f ../D9VKBUILD/d9vk-"$D9VK_BRANCH"
   echo "Your files were built in $ROOT/D9VKBUILD/$D9VK_BRANCH/$GIT_HEAD"
-  rm -f ../D9VKBUILD/$D9VK_BRANCH/last-HEAD
-  echo "CURRENT_HEAD=$GIT_HEAD" >> ../D9VKBUILD/$D9VK_BRANCH/last-HEAD
-  rm -f ../D9VKBUILD/$D9VK_BRANCH/latest
-  ln -s $GIT_HEAD $ROOT/D9VKBUILD/$D9VK_BRANCH/latest
+  rm -f ../D9VKBUILD/"$D9VK_BRANCH"/last-HEAD
+  echo "CURRENT_HEAD=$GIT_HEAD" >> ../D9VKBUILD/"$D9VK_BRANCH"/last-HEAD
+  rm -f ../D9VKBUILD/"$D9VK_BRANCH"/latest
+  ln -s "$GIT_HEAD" "$ROOT"/D9VKBUILD/"$D9VK_BRANCH"/latest
 else
-  rm -rf ../D9VKBUILD/*-$D9VK_BRANCH
+  rm -rf ../D9VKBUILD/*-"$D9VK_BRANCH"
 fi
 
 }
@@ -175,7 +175,7 @@ update() {
 
 if [ -d $ROOT/D9VKBUILD ]; then
 
-  . $ROOT/D9VKBUILD/$D9VK_BRANCH/last-HEAD
+  source "$ROOT/D9VKBUILD/$D9VK_BRANCH/last-HEAD"
 
   # kill wineserver before installation to make sure correct wine version is used
   wineserver -k
@@ -191,9 +191,9 @@ if [ -d $ROOT/D9VKBUILD ]; then
   fi
 
   if [ -z $2 ]; then
-    cd $ROOT/D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD
-  elif [ -d $ROOT/D9VKBUILD/$2 ];then
-    cd $ROOT/D9VKBUILD/$2
+    cd "$ROOT/D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD"
+  elif [ -d "$ROOT/D9VKBUILD/$2" ];then
+    cd "$ROOT/D9VKBUILD/$2"
   else
     echo "#################################"
     echo ""
@@ -202,11 +202,11 @@ if [ -d $ROOT/D9VKBUILD ]; then
     echo "#################################"
   fi
 
-  if [ -d "win32" ] && [ -d "win64" ]; then
-    WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash $_D9VKALIAS/setup_d9vk.sh
+  if [ -d "x32" ] && [ -d "x64" ]; then
+    WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" bash "$_D9VKALIAS"/setup_symlink_d9vk.sh
 
     if [ $WINEARCH = "win64" ]; then
-        WINEARCH=$WINEARCH WINEPREFIX="$WINEPREFIX" bash x32/setup_d9vk.sh
+        WINEARCH="$WINEARCH" WINEPREFIX="$WINEPREFIX" bash x32/setup_symlink_d9vk.sh
     fi
 
     echo "#########################################"
@@ -228,8 +228,8 @@ fi
 }
 
 # External / Dynamic
-if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ] && [ "$1" != "proton-tkg" ]; then
-  if [ -d $1 ]; then
+if [ -n "$1" ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ] && [ "$1" != "proton-tkg" ]; then
+  if [ -d "$1" ]; then
     WINEPREFIX="$1"
     if [ "$2" == "32" ]; then
       echo "x86 prefix"
@@ -253,8 +253,8 @@ if [ -n $1 ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris"
 fi
 
 # Batch
-if [ "$1" == "batch" ] && [ ! -z $PREFIXES_ROOT ]; then
-  for D in $PREFIXES_ROOT/*; do
+if [ "$1" == "batch" ] && [ ! -z "$PREFIXES_ROOT" ]; then
+  for D in "$PREFIXES_ROOT"/*; do
     if [ -d "${D}" ]; then
       echo "${D}"
       if [ -d "${D}/drive_c" ]; then
@@ -277,20 +277,20 @@ if [ "$1" == "lutris" ]; then
 
   wineserver -k
 
-    if [ ! -f ./D9VKBUILD/$D9VK_BRANCH/last-HEAD ]; then
+    if [ ! -f ./D9VKBUILD/"$D9VK_BRANCH"/last-HEAD ]; then
 
       echo "You need to build before you can update ! Run upd9vk build first"
 
     else
 
-      . ./D9VKBUILD/$D9VK_BRANCH/last-HEAD
+      source "$ROOT/D9VKBUILD/$D9VK_BRANCH/last-HEAD"
 
-      rm -rv $HOME/.local/share/lutris/runtime/dxvk/TkG/x64/d3d9.dll
-      rm -rv $HOME/.local/share/lutris/runtime/dxvk/TkG/x32/d3d9.dll
-      #mkdir -p $HOME/.local/share/lutris/runtime/d9vk/TkG/x64
-      #mkdir -p $HOME/.local/share/lutris/runtime/d9vk/TkG/x32
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x64/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x64
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x32/* $HOME/.local/share/lutris/runtime/dxvk/TkG/x32
+      rm -rv "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x64/d3d9.dll
+      rm -rv "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x32/d3d9.dll
+      #mkdir -p "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x64
+      #mkdir -p "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x32
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x64/* "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x64
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x32/* "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x32
 
       echo ""
       echo "###########################################################"
@@ -308,19 +308,19 @@ if [ "$1" == "proton-tkg" ]; then
 
   wineserver -k
 
-    if [ ! -f ./D9VKBUILD/$D9VK_BRANCH/last-HEAD ]; then
+    if [ ! -f ./D9VKBUILD/"$D9VK_BRANCH"/last-HEAD ]; then
 
       echo "You need to build before you can update ! Run upd9vk build first"
 
     else
 
-      . ./D9VKBUILD/$D9VK_BRANCH/last-HEAD
+      source "$ROOT/D9VKBUILD/$D9VK_BRANCH/last-HEAD"
 
       rm -rf ../proton-tkg/d9vk
       mkdir -p ../proton-tkg/d9vk/x64
       mkdir -p ../proton-tkg/d9vk/x32
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x64/* ../proton-tkg/d9vk/x64
-      cp -rv ./D9VKBUILD/$D9VK_BRANCH/$CURRENT_HEAD/x32/* ../proton-tkg/d9vk/x32
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x64/* ../proton-tkg/d9vk/x64
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x32/* ../proton-tkg/d9vk/x32
 
       echo ""
       echo "###############################################################"
