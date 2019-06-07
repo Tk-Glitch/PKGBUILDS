@@ -183,7 +183,6 @@ else
     git reset --hard HEAD
     git clean -xdf
     git pull
-    patch -Np1 < "$_nowhere/proton_template/steamclient_144_workaround.patch"
 
     # Embed fake data to spoof desired fonts
     fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Regular" "Arial" "Arial" "Arial"
