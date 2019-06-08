@@ -67,13 +67,55 @@ _mingwloop() {
   cd $_AURPKGNAME
   rm *.pkg.* # Delete package if exists
   if [ "$_AURPKGNAME" == "mingw-w64-gcc-base" ] && [ $_dwarf2 == "true" ]; then
-    sed -i -e "s|        --enable-lto --disable-dw2-exceptions.*|        --enable-lto --disable-sjlj-exceptions --with-dwarf2 \\\|" PKGBUILD #dwarf2 exceptions
+    #dwarf2 exceptions
+    patch PKGBUILD << 'EOM'
+@@ -44,7 +44,7 @@
+         --enable-languages=c,lto \
+         --enable-static \
+         --with-system-zlib \
+-        --enable-lto --disable-dw2-exceptions \
++        --enable-lto --disable-sjlj-exceptions --with-dwarf2 \
+         --disable-nls --enable-version-specific-runtime-libs \
+         --disable-multilib --enable-checking=release
+     make all-gcc
+EOM
   fi
   if [ "$_AURPKGNAME" == "mingw-w64-gcc" ] && [ $_fortran == "false" ]; then
-    sed -i -e "s|        --enable-languages=c,lto,c++,objc,obj-c++,fortran,ada.*|        --enable-languages=c,lto,c++,objc,obj-c++,ada \\\|" PKGBUILD #no fortran
+    #no fortran
+    patch PKGBUILD << 'EOM'
+@@ -45,7 +45,7 @@
+ 
+     "$srcdir"/gcc/configure --prefix=/usr --libexecdir=/usr/lib \
+         --target=${_target} \
+-        --enable-languages=c,lto,c++,objc,obj-c++,fortran,ada \
++        --enable-languages=c,lto,c++,objc,obj-c++,ada \
+         --enable-shared --enable-static \
+         --enable-threads=posix --enable-fully-dynamic-string \
+         --enable-libstdcxx-time=yes --enable-libstdcxx-filesystem-ts=yes \
+@@ -62,7 +62,7 @@
+     make DESTDIR="$pkgdir" install
+     ${_target}-strip "$pkgdir"/usr/${_target}/lib/*.dll
+     strip "$pkgdir"/usr/bin/${_target}-*
+-    strip "$pkgdir"/usr/lib/gcc/${_target}/${pkgver:0:5}/{cc1*,collect2,gnat1,f951,lto*}
++    strip "$pkgdir"/usr/lib/gcc/${_target}/${pkgver:0:5}/{cc1*,collect2,gnat1,lto*}
+     ln -s ${_target}-gcc "$pkgdir"/usr/bin/${_target}-cc
+     # mv dlls
+     mkdir -p "$pkgdir"/usr/${_target}/bin/
+EOM
   fi
   if [ "$_AURPKGNAME" == "mingw-w64-gcc" ] && [ $_dwarf2 == "true" ]; then
-    sed -i -e "s|        --enable-lto --disable-dw2-exceptions.*|        --enable-lto --disable-sjlj-exceptions --with-dwarf2 --enable-libgomp \\\|" PKGBUILD #dwarf2 exceptions
+    #dwarf2 exceptions
+    patch PKGBUILD << 'EOM'
+@@ -50,7 +50,7 @@
+         --enable-threads=posix --enable-fully-dynamic-string \
+         --enable-libstdcxx-time=yes --enable-libstdcxx-filesystem-ts=yes \
+         --with-system-zlib --enable-cloog-backend=isl \
+-        --enable-lto --disable-dw2-exceptions --enable-libgomp \
++        --enable-lto --disable-sjlj-exceptions --with-dwarf2 --enable-libgomp \
+         --disable-multilib --enable-checking=release
+     make
+   done
+EOM
   fi
   makepkg -csi --noconfirm
   if [ "$_AURPKGNAME" == "mingw-w64-winpthreads" ]; then
