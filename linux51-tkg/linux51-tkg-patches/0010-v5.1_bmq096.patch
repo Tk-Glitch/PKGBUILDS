@@ -618,10 +618,10 @@ index 21fb5a5662b5..b23231bae996 100644
  obj-$(CONFIG_MEMBARRIER) += membarrier.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..119ddc130c3e
+index 000000000000..13d1192e6074
 --- /dev/null
 +++ b/kernel/sched/bmq.c
-@@ -0,0 +1,6125 @@
+@@ -0,0 +1,6135 @@
 +/*
 + *  kernel/sched/bmq.c
 + *
@@ -680,7 +680,7 @@ index 000000000000..119ddc130c3e
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "bmq: BMQ CPU Scheduler 0.95 by Alfred Chen.\n");
++	printk(KERN_INFO "bmq: BMQ CPU Scheduler 0.96 by Alfred Chen.\n");
 +}
 +
 +/**
@@ -779,9 +779,17 @@ index 000000000000..119ddc130c3e
 +#define SCHED_PRIO2WATERMARK(prio) (IDLE_TASK_SCHED_PRIO - (prio) + 1)
 +#define TASK_SCHED_WATERMARK(p) (SCHED_PRIO2WATERMARK((p)->bmq_idx))
 +
++#if (bmq_BITS <= BITS_PER_LONG) && (WM_BITS <= BITS_PER_LONG)
++#define bmq_find_first_bit(bm, size)		__ffs((bm[0]))
++#define bmq_find_next_bit(bm, size, start)	__ffs((bm[0] & BITMAP_FIRST_WORD_MASK(start)))
++#else
++#define bmq_find_first_bit(bm, size)		find_first_bit((bm), (size))
++#define bmq_find_next_bit(bm, size, start)	find_next_bit(bm, size, start)
++#endif
++
 +static inline void update_sched_rq_watermark(struct rq *rq)
 +{
-+	unsigned long watermark = find_first_bit(rq->queue.bitmap, bmq_BITS);
++	unsigned long watermark = bmq_find_first_bit(rq->queue.bitmap, bmq_BITS);
 +	unsigned long last_wm = rq->watermark;
 +	int cpu;
 +
@@ -870,30 +878,29 @@ index 000000000000..119ddc130c3e
 +/*
 + * This routine used in bmq scheduler only which assume the idle task in the bmq
 + */
-+static inline struct task_struct *
-+__rq_next_bmq_task(const struct rq *rq, unsigned long offset)
++static inline struct task_struct *rq_first_bmq_task(struct rq *rq)
 +{
-+	unsigned long idx = find_next_bit(rq->queue.bitmap, bmq_BITS, offset);
++	unsigned long idx = bmq_find_first_bit(rq->queue.bitmap, bmq_BITS);
 +	const struct list_head *head = &rq->queue.heads[idx];
 +
 +	BUG_ON(list_empty(head));
 +	return list_first_entry(head, struct task_struct, bmq_node);
 +}
 +
-+static inline struct task_struct *rq_first_bmq_task(struct rq *rq)
-+{
-+	return __rq_next_bmq_task(rq, 0UL);
-+}
-+
 +static inline struct task_struct *
 +rq_next_bmq_task(struct task_struct *p, struct rq *rq)
 +{
 +	unsigned long idx = p->bmq_idx;
-+	const struct list_head *head = &rq->queue.heads[idx];
++	struct list_head *head = &rq->queue.heads[idx];
 +
 +	BUG_ON(list_empty(head));
-+	if (list_is_last(&p->bmq_node, head))
-+		return __rq_next_bmq_task(rq, idx + 1);
++	if (list_is_last(&p->bmq_node, head)) {
++		idx = bmq_find_next_bit(rq->queue.bitmap, bmq_BITS, idx + 1);
++		head = &rq->queue.heads[idx];
++
++		BUG_ON(list_empty(head));
++		return list_first_entry(head, struct task_struct, bmq_node);
++	}
 +
 +	return list_next_entry(p, bmq_node);
 +
@@ -1027,11 +1034,12 @@ index 000000000000..119ddc130c3e
 +		 *					[L] ->on_rq
 +		 *	RELEASE (rq->lock)
 +		 *
-+		 * If we observe the old CPU in task_rq_lock, the acquire of
++		 * If we observe the old CPU in task_rq_lock(), the acquire of
 +		 * the old rq->lock will fully serialize against the stores.
 +		 *
-+		 * If we observe the new CPU in task_rq_lock, the acquire will
-+		 * pair with the WMB to ensure we must then also see migrating.
++		 * If we observe the new CPU in task_rq_lock(), the address
++		 * dependency headed by '[L] rq = task_rq()' and the acquire
++		 * will pair with the WMB to ensure we then also see migrating.
 +		 */
 +		if (likely(rq == task_rq(p) && !task_on_rq_migrating(p))) {
 +			return rq;
@@ -1570,9 +1578,9 @@ index 000000000000..119ddc130c3e
 +	smp_wmb();
 +
 +#ifdef CONFIG_THREAD_INFO_IN_TASK
-+	p->cpu = cpu;
++	WRITE_ONCE(p->cpu, cpu);
 +#else
-+	task_thread_info(p)->cpu = cpu;
++	WRITE_ONCE(task_thread_info(p)->cpu, cpu);
 +#endif
 +#endif
 +}
@@ -1656,7 +1664,7 @@ index 000000000000..119ddc130c3e
 +{
 +	lockdep_assert_held(&rq->lock);
 +
-+	p->on_rq = TASK_ON_RQ_MIGRATING;
++	WRITE_ONCE(p->on_rq, TASK_ON_RQ_MIGRATING);
 +	dequeue_task(p, rq, 0);
 +	set_task_cpu(p, new_cpu);
 +	raw_spin_unlock(&rq->lock);
@@ -2011,13 +2019,13 @@ index 000000000000..119ddc130c3e
 +		return select_fallback_rq(task_cpu(p), p);
 +
 +	preempt_level = SCHED_PRIO2WATERMARK(task_sched_prio(p));
-+	level = find_first_bit(sched_rq_watermark_bitmap, WM_BITS);
++	level = bmq_find_first_bit(sched_rq_watermark_bitmap, WM_BITS);
 +	while (level < preempt_level) {
 +		if (cpumask_and(&tmp, &chk_mask, &sched_rq_watermark[level]))
 +			return best_mask_cpu(task_cpu(p), &tmp);
 +
-+		level = find_next_bit(sched_rq_watermark_bitmap, WM_BITS,
-+				      level + 1);
++		level = bmq_find_next_bit(sched_rq_watermark_bitmap, WM_BITS,
++					  level + 1);
 +	}
 +
 +	return best_mask_cpu(task_cpu(p), &chk_mask);
@@ -3524,23 +3532,25 @@ index 000000000000..119ddc130c3e
 +
 +static inline int take_other_rq_tasks(struct rq *rq, int cpu)
 +{
-+	struct cpumask *affinity_mask;
-+	struct cpumask chk, tmp;
-+	int i, tried;
++	int i, tried = 0;
++	struct cpumask *affinity_mask, *end_mask;
 +
-+	if (!cpumask_and(&chk, &sched_rq_pending_mask, cpu_online_mask))
++	if (cpumask_empty(&sched_rq_pending_mask))
 +		return 0;
 +
-+	tried = 0;
 +	affinity_mask = per_cpu(sched_cpu_llc_start_mask, cpu);
-+	while (cpumask_and(&tmp, &chk, affinity_mask++))
-+		for_each_cpu_wrap(i, &tmp, cpu) {
++	end_mask = per_cpu(sched_cpu_affinity_chk_end_masks, cpu);
++
++	do {
++		for_each_cpu_and(i, &sched_rq_pending_mask, affinity_mask) {
 +			if (lock_and_migrate_pending_tasks(cpu_rq(i), rq))
 +				return 1;
 +			if (tried)
 +				return 0;
 +			tried++;
 +		}
++	} while (++affinity_mask < end_mask);
++
 +	return 0;
 +}
 +#endif
@@ -6749,10 +6759,10 @@ index 000000000000..119ddc130c3e
 +#undef CREATE_TRACE_POINTS
 diff --git a/kernel/sched/bmq_sched.h b/kernel/sched/bmq_sched.h
 new file mode 100644
-index 000000000000..bf9df484f926
+index 000000000000..d4a26dd10f0e
 --- /dev/null
 +++ b/kernel/sched/bmq_sched.h
-@@ -0,0 +1,431 @@
+@@ -0,0 +1,428 @@
 +#ifndef BMQ_SCHED_H
 +#define BMQ_SCHED_H
 +
@@ -6811,16 +6821,13 @@ index 000000000000..bf9df484f926
 +
 +static inline int task_on_rq_migrating(struct task_struct *p)
 +{
-+	return p->on_rq == TASK_ON_RQ_MIGRATING;
++	return READ_ONCE(p->on_rq) == TASK_ON_RQ_MIGRATING;
 +}
 +
-+enum {
-+	/* bits:
-+	 * RT, Low prio adj range, nice width, high prio adj range, cpu idle task */
-+	bmq_BITS = (NICE_WIDTH + 2 * MAX_PRIORITY_ADJ + 2)
-+};
-+
-+#define IDLE_TASK_SCHED_PRIO (bmq_BITS - 1)
++/* bits:
++ * RT, Low prio adj range, nice width, high prio adj range, cpu idle task */
++#define bmq_BITS		(NICE_WIDTH + 2 * MAX_PRIORITY_ADJ + 2)
++#define IDLE_TASK_SCHED_PRIO	(bmq_BITS - 1)
 +
 +struct bmq {
 +	DECLARE_BITMAP(bitmap, bmq_BITS);

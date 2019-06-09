@@ -110,7 +110,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0008-bcachefs.patch
         #0009-uksm-5.1.patch
         0010-glitched-bmq.patch
-        0010-v5.1_bmq095.patch
+        0010-v5.1_bmq096.patch
         0011-ZFS-fix.patch
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
@@ -128,8 +128,8 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
-            '0d66538886e3888b1bd0e7b6b4281d240b74b929cbe7242400b4c056adcde6bb'
+            '5ead892c8398eda1968bdd16a1795431bd7bd3f6c4ad9ba3d5e1a4bae0301346'
+            '48be5e7f27d4a0570bd31f37ed1ad35241ff7f427dae5513cab875c7b44aeb08'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
 
 user_patcher() {
@@ -200,7 +200,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0010-v5.1_bmq095.patch
+    patch -Np1 -i ../0010-v5.1_bmq096.patch
     patch -Np1 -i ../0010-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
