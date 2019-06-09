@@ -366,6 +366,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 }
 
 build() {
+  if [ "$_dkms" != "true" ]; then
   # Build for all kernels
   for _kernel in $(cat /usr/lib/modules/extramodules-*/version); do
     cd "$srcdir"/$_pkg/kernel-$_kernel
@@ -374,6 +375,7 @@ build() {
     msg2 "Building Nvidia module for $_kernel..."
     make SYSSRC=/usr/lib/modules/$_kernel/build modules
   done
+  fi
 }
 
 package_opencl-nvidia-tkg() {
