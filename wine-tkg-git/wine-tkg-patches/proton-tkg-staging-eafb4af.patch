@@ -41,10 +41,11 @@ index 5767b29887c..75d5f4a7216 100644
  
  [DefaultInstall.Services]
  AddService=BITS,0,BITSService
-@@ -3750,6 +3750,16 @@ HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-Solitaire-EnableGame",0x
+@@ -3518,3 +3521,13 @@ HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-Shanghai-EnableGame",0x1
+ HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-Solitaire-EnableGame",0x10001,0x00000001
  HKLM,Software\Wine\LicenseInformation,"Shell-InBoxGames-SpiderSolitaire-EnableGame",0x10001,0x00000001
  HKLM,Software\Wine\LicenseInformation,"Shell-PremiumInBoxGames-Chess-EnableGame",0x10001,0x00000001
- 
++
 +[SteamClient]
 +HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
 +HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16422%\Steam\steamclient.dll"
@@ -54,10 +55,6 @@ index 5767b29887c..75d5f4a7216 100644
 +HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
 +HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
 +HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
-+
- [DestinationDirs]
- l_intl_section = 11
- inf_section = 17
 
 From bc614834ee153ce33449c06e697b4a30748e9257 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
@@ -403,14 +400,12 @@ diff --git a/loader/wine.inf.in b/loader/wine.inf.in
 index 75d5f4a7216..7fe2f49dcd9 100644
 --- a/loader/wine.inf.in
 +++ b/loader/wine.inf.in
-@@ -3758,6 +3758,7 @@ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16422%\Steam"
+@@ -3530,4 +3530,5 @@ HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16422%\Steam"
  [SteamClient.ntamd64]
  HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
  HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
 +HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll64",,"%16426%\Steam\steamclient64.dll"
  HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
- 
- [DestinationDirs]
 
 From bf02d103fde2c2e54a074b03021f47e4672d4b01 Mon Sep 17 00:00:00 2001
 From: Nikolay Sivov <nsivov@codeweavers.com>
@@ -426,14 +421,11 @@ diff --git a/loader/wine.inf.in b/loader/wine.inf.in
 index 5610c701d..3d71722ac 100644
 --- a/loader/wine.inf.in
 +++ b/loader/wine.inf.in
-@@ -3760,6 +3760,7 @@ HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
+@@ -3784,3 +3784,4 @@ HKCU,Software\Valve\Steam\ActiveProcess,"PID",0x10001,0x0000fffe
  HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll",,"%16426%\Steam\steamclient.dll"
  HKCU,Software\Valve\Steam\ActiveProcess,"SteamClientDll64",,"%16426%\Steam\steamclient64.dll"
  HKCU,Software\Valve\Steam\ActiveProcess,"SteamPath",,"%16426%\Steam"
 +HKLM,Software\Wow6432Node\Valve\Steam,"InstallPath",,"%16422%\Steam"
- 
- [DestinationDirs]
- l_intl_section = 11
 
 From bac899cd4531229baa7633d67578b74a2a98468f Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
@@ -914,9 +906,9 @@ index b69d2eb371f..2be405e7ae7 100644
 --- a/dlls/kernel32/tests/thread.c
 +++ b/dlls/kernel32/tests/thread.c
 @@ -102,6 +102,8 @@ static NTSTATUS (WINAPI *pNtQueryInformationThread)(HANDLE,THREADINFOCLASS,PVOID
- static BOOL (WINAPI *pGetThreadGroupAffinity)(HANDLE,GROUP_AFFINITY*);
  static BOOL (WINAPI *pSetThreadGroupAffinity)(HANDLE,const GROUP_AFFINITY*,GROUP_AFFINITY*);
  static NTSTATUS (WINAPI *pNtSetInformationThread)(HANDLE,THREADINFOCLASS,LPCVOID,ULONG);
+ static NTSTATUS (WINAPI *pNtSetLdtEntries)(ULONG,ULONG,ULONG,ULONG,ULONG,ULONG);
 +static HRESULT (WINAPI *pSetThreadDescription)(HANDLE,const WCHAR *);
 +static HRESULT (WINAPI *pGetThreadDescription)(HANDLE,WCHAR **);
  
@@ -1478,9 +1470,9 @@ index f1c883167ed..50b3323ae9f 100644
 --- a/dlls/user32/focus.c
 +++ b/dlls/user32/focus.c
 @@ -156,6 +156,8 @@ static BOOL set_active_window( HWND hwnd, HWND *prev, BOOL mouse, BOOL focus )
-                       (LPARAM)previous );
-         if (GetAncestor( hwnd, GA_PARENT ) == GetDesktopWindow())
-             PostMessageW( GetDesktopWindow(), WM_PARENTNOTIFY, WM_NCACTIVATE, (LPARAM)hwnd );
+ 
+         if (hwnd == GetForegroundWindow() && !IsIconic( hwnd ))
+             USER_Driver->pSetActiveWindow( hwnd );
 +
 +        imm_activate_window( hwnd );
      }

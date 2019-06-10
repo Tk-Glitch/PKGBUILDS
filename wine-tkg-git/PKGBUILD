@@ -5,7 +5,7 @@ pkgver=4.9.r15.g5681cd54
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=164
+eval pkgrel=165
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -447,7 +447,9 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
 		'LAA-staging.patch' # Same as above, for staging
 		'winevulkan-1.1.103.patch' # Update winevulkan
+		'proton-tkg-eafb4af.patch' # Proton-tkg
 		'proton-tkg.patch' # Proton-tkg
+		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'dxvk-async.patch' # DXVK async patch
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
@@ -1095,10 +1097,18 @@ prepare() {
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  if [ "$_use_staging" == "true" ]; then
-	    _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging)" && nonuser_patcher
+	  if git merge-base --is-ancestor eafb4aff5a2c322f4f156fdfada5743834996be4 HEAD; then
+	    if [ "$_use_staging" == "true" ]; then
+	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging)" && nonuser_patcher
+	    else
+	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches" && nonuser_patcher
+	    fi
 	  else
-	    _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches" && nonuser_patcher
+	    if [ "$_use_staging" == "true" ]; then
+	      _patchname='proton-tkg-staging-eafb4af.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging-eafb4af)" && nonuser_patcher
+	    else
+	      _patchname='proton-tkg-eafb4af.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (eafb4af)" && nonuser_patcher
+	    fi
 	  fi
 	  # Enforce mscvrt Dlls to native then builtin - from Proton
 	  if [ "$_msvcrt_nativebuiltin" == "true" ]; then
@@ -1486,7 +1496,9 @@ md5sums=('SKIP'
          '3034b1a397cad46feb641cb3d7dc8584'
          '1c4738e438debf72266b96d09f465b25'
          'cd0cb1517cdde6fa60296ea452816ee9'
+         '7ef6961b9a54d93ba970a2af827bb969'
          'ce0332f66626399574d79d10642896d2'
+         '09274cf0d0b8775afa040f2cdc2a03e0'
          '6bfa054b51e49de7c91dda1b385ee907'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
