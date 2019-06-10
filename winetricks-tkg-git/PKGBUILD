@@ -23,7 +23,7 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=winetricks-tkg-git
-pkgver=20190310.r82.g15aa33a
+pkgver=20190310.r90.gd5659ff
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'
@@ -39,8 +39,6 @@ optdepends=('zenity: For the GTK3 GUI.'
 conflicts=('winetricks' 'bin32-winetricks')
 provides=('winetricks')
 source=('git+https://github.com/Winetricks/winetricks.git'
-        'xact.revert.patch'
-        'dotnet471.patch'
         'dotnet48.patch'
         'lutris-tkg.patch')
 
@@ -56,12 +54,6 @@ package() {
 
 	cd winetricks
 
-	# If Faudio isn't used, xact 64 bit is required for various games to not have broken audio (i.e. UT, hellblade etc.), so revert this commit https://github.com/Winetricks/winetricks/commit/f2b3d268d941120d13b4c3c3960b78a879d37761
-	patch -Np1 -R < ../'xact.revert.patch'
-
-	# dotnet471 support, 64-bit mostly working
-	patch -Np1 < ../'dotnet471.patch'
-
 	# dotnet48 support
 	patch -Np1 < ../'dotnet48.patch'
 
@@ -72,7 +64,5 @@ package() {
 }
 
 md5sums=('SKIP'
-         '89e0bdb6779861d3e043bf3e3317933e'
-         '27ca3b6aee0ce7310db9da3b194f2aaf'
          '932dd74d30cde1f769152b620320d670'
          'f8cea6f47347496f2215b331d9513e56')

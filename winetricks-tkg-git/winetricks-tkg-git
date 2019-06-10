@@ -28,24 +28,27 @@ WINETRICKS_VERSION=20190310-next
 # - wine is used to execute Win32 apps except on Cygwin.
 # - ar, cabextract, unrar, unzip, and 7z are needed by some verbs.
 # - aria2c, wget, curl, or fetch is needed for downloading.
+# - fuseiso, archivemount (Linux), or hdiutil (macOS) is used to mount .iso images.
+# - perl is used to munge steam config files.
+# - pkexec, sudo, or kdesu (gksu/gksudo/kdesudo are deprecated upstream but also still supported)
+#   are used to mount .iso images if the user cached them with -k option.
 # - sha256sum, sha256, or shasum (OSX 10.5 does not support these, 10.6+ is required):
 #   note: some legacy verbs may still use sha1sum, sha1, or shasum, but this is
 #   deprecated and will be removed in a future release.
-# - zenity is needed by the GUI, though it can limp along somewhat with kdialog/xmessage.
+# - torify is used with option "--torify" if sites are blocked in single countries.
 # - xdg-open (if present) or open (for OS X) is used to open download pages
 #   for the user when downloads cannot be fully automated.
-# - pkexec, sudo, or kdesu (gksu/gksudo/kdesudo are deprecated upstream but also still supported)
-#   are used to mount .iso images if the user cached them with -k option.
-# - fuseiso, archivemount (Linux), or hdiutil (macOS) is used to mount .iso images.
-# - perl is used to munge steam config files.
-# - torify is used with option "--torify" if sites are blocked in single countries.
+# - xz is used by some verbs to decompress tar archives.
+# - zenity is needed by the GUI, though it can limp along somewhat with kdialog/xmessage.
+#
 # On Ubuntu, the following lines can be used to install all the prerequisites:
 #    sudo add-apt-repository ppa:ubuntu-wine/ppa
 #    sudo apt-get update
-#    sudo apt-get install binutils cabextract p7zip-full unrar unzip wget wine zenity
+#    sudo apt-get install binutils cabextract fuseiso p7zip-full policykit tor unrar unzip wget wine xdg-utils xz-utils zenity
+#
 # On Fedora, these commands can be used (RPM Fusion is used to install unrar):
 #    sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-#    sudo dnf install binutils cabextract p7zip-plugins unrar unzip wget wine zenity
+#    sudo dnf install binutils cabextract fuseiso p7zip-plugins polkit tor unrar unzip wget wine xdg-utils xz zenity
 #
 # See https://github.com/Winetricks/winetricks for documentation and tutorials,
 # including how to contribute changes to winetricks.
@@ -8390,8 +8393,8 @@ load_dotnet40()
         *) w_warn "dotnet40 does not yet fully work or install on wine.  Caveat emptor." ;;
     esac
 
-    if [ "$W_ARCH" = "win64" ] && w_workaround_wine_bug 42701; then
-        w_warn "On 64-bit, you'll run into https://bugs.winehq.org/show_bug.cgi?id=42701 (missing api-ms-win-core-winrt-roparameterizediid-l1-1-0.dll.RoGetParameterizedTypeInstanceIID"
+    if [ "$W_ARCH" = "win64" ]; then
+        w_workaround_wine_bug 42701 "On 64-bit, you'll run into https://bugs.winehq.org/show_bug.cgi?id=42701 (missing api-ms-win-core-winrt-roparameterizediid-l1-1-0.dll.RoGetParameterizedTypeInstanceIID", 2.22
     fi
 
     # https://www.microsoft.com/en-us/download/details.aspx?id=17718
@@ -8403,14 +8406,14 @@ load_dotnet40()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
-    WINEDLLOVERRIDES=fusion=b "$WINE" dotNetFx40_Full_x86_x64.exe ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"} && wineserver -k
+    WINEDLLOVERRIDES=fusion=b "$WINE" dotNetFx40_Full_x86_x64.exe ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"} || true
 
     w_override_dlls native mscoree
 
-    #"$WINE" reg add "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full" /v Install /t REG_DWORD /d 0001 /f
-    #"$WINE" reg add "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full" /v Version /t REG_SZ /d "4.0.30319" /f
+    "$WINE" reg add "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full" /v Install /t REG_DWORD /d 0001 /f
+    "$WINE" reg add "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full" /v Version /t REG_SZ /d "4.0.30319" /f
 
-    #W_NGEN_CMD="$WINE $WINEPREFIX/drive_c/windows/Microsoft.NET/Framework/v4.0.30319/ngen.exe executequeueditems"
+    W_NGEN_CMD="$WINE $WINEPREFIX/drive_c/windows/Microsoft.NET/Framework/v4.0.30319/ngen.exe executequeueditems"
 
     w_unset_winver
 }
@@ -8677,6 +8680,55 @@ verify_dotnet462()
     w_dotnet_verify dotnet462
 }
 
+#----------------------------------------------------------------
+
+w_metadata dotnet471 dlls \
+    title="MS .NET 4.7.1" \
+    publisher="Microsoft" \
+    year="2017" \
+    media="download" \
+    file1="NDP471-KB4033342-x86-x64-AllOS-ENU.exe" \
+    conflicts="dotnet20sdk dotnet30sp1 vjrun20" \
+    installed_file1="c:/windows/dotnet471.installed.workaround"
+
+load_dotnet471()
+{
+    w_package_warn_win64
+
+    # https://www.microsoft.com/en-US/download/details.aspx?id=56116
+    w_download http://download.microsoft.com/download/9/E/6/9E63300C-0941-4B45-A0EC-0008F96DD480/NDP471-KB4033342-x86-x64-AllOS-ENU.exe 63dc850df091f3f137b5d4392f47917f847f8926dc8af1da9bfba6422e495805
+    unattended_args="/sfxlang:1027 /q /norestart"
+
+    w_call remove_mono
+
+    w_call dotnet462
+    w_set_winver win7
+
+    w_try_cd "$W_CACHE/$W_PACKAGE"
+
+    WINEDLLOVERRIDES=fusion=b "$WINE" "$file1" ${W_OPT_UNATTENDED:+$unattended_args}
+    status=$?
+
+    echo "exit status: $status"
+
+    case $status in
+        0) ;;
+        5) w_die "exit status $status - user selected 'Cancel'" ;;
+        105) echo "exit status $status - normal, user selected 'restart now'" ;;
+        194) echo "exit status $status - normal, user selected 'restart later'" ;;
+        *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
+    esac
+
+    w_override_dlls native mscoree
+
+    # Do not rely on temporary files. As a workaround, touch a file instead so that we know it's been installed for list-installed
+    w_try touch "${W_WINDIR_UNIX}/dotnet471.installed.workaround"
+}
+
+verify_dotnet471()
+{
+    w_dotnet_verify dotnet471
+}
 
 #----------------------------------------------------------------
 
@@ -8692,7 +8744,7 @@ load_dotnet472()
 {
     w_package_warn_win64
 
-    if w_workaround_wine_bug 42170 "Running un-official repacked .NET 4.7.2 setup until the official version is fixed."; then
+    if w_workaround_wine_bug 42170 "Running un-official repacked .NET 4.7.2 setup until the official version is fixed.", 3.1; then
         # Un-official slim version. See https://repacks.net/forum/viewtopic.php?t=7
         file_package="dotNetFx472_Full_x86_x64_Slim.exe"
         w_download "https://drive.google.com/uc?export=download&id=1aLBCH0Yt2-6ROpWRBxZ01kqGMyhc_8hM&confirm" a36da041b8f46079f8e16647312d642953cde520f4a600ad5b3f4f90a23495a7 $file_package
@@ -8735,52 +8787,6 @@ verify_dotnet472()
     w_dotnet_verify dotnet472
 }
 
-#----------------------------------------------------------------
-
-w_metadata dotnet471 dlls \
-    title="MS .NET 4.7.1" \
-    publisher="Microsoft" \
-    year="2017" \
-    media="download" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet46 dotnet461 dotnet462 vjrun20" \
-    installed_file1="c:/windows/dotnet471.installed.workaround"
-
-load_dotnet471()
-{
-    # Official version. See https://www.microsoft.com/en-US/download/details.aspx?id=56116
-    w_download http://download.microsoft.com/download/9/E/6/9E63300C-0941-4B45-A0EC-0008F96DD480/NDP471-KB4033342-x86-x64-AllOS-ENU.exe 63dc850df091f3f137b5d4392f47917f847f8926dc8af1da9bfba6422e495805
-    file_package="NDP471-KB4033342-x86-x64-AllOS-ENU.exe"
-    unattended_args="/q"
-
-    # note : we can't conflict with dotnet40 as the workaround requires to kill wineserver
-    w_call dotnet40
-
-    # double native mscoree enforcing
-    w_override_dlls native mscoree
-
-    w_set_winver win7
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-
-    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" ${W_OPT_UNATTENDED:+$unattended_args} && wineserver -k
-    status=$?
-
-    echo "exit status: $status"
-
-    case $status in
-        0) ;;
-        5) w_die "exit status $status - user selected 'Cancel'" ;;
-        *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
-    esac
-
-    # The only unique files are temporary ones. As a workaround, touch a file instead so that we know it's been installed for list-installed
-    w_try touch "${W_WINDIR_UNIX}/dotnet471.installed.workaround"
-}
-
-verify_dotnet471()
-{
-    w_dotnet_verify dotnet471
-}
 #----------------------------------------------------------------
 
 w_metadata dotnet48 dlls \
@@ -9515,26 +9521,11 @@ load_icodecs()
     # 2014/04/11: http://www.cucusoft.com/codecdownload/codinstl.exe (linked from http://www.cucusoft.com/codec.asp)
     w_download "http://www.cucusoft.com/codecdownload/codinstl.exe" 0979d43568111cadf0b3bf43cd8d746ac3de505759c14f381592b4f8439f6c95
 
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run codinstl.exe
-        winwait, Welcome
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            controlclick, Button1  ; Next
-            winwait, Software License Agreement
-            sleep 1000
-            controlclick, Button2  ; Yes
-        }
-        winwait, Setup Complete
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            controlclick, Button4  ; Finish
-        }
-        winwaitclose
-    "
+    # Extract the installer so that we can use the included Install Shield
+    # response file for unattended installations
+    w_try_cabextract -d "$W_TMP/codinstl/" "$W_CACHE/$W_PACKAGE/codinstl.exe"
+    w_try_cd "$W_TMP/codinstl/"
+    w_try "$WINE" "setup.exe" ${W_OPT_UNATTENDED:+/s}
 
     # Work around bug in codec's installer?
     # https://support.britannica.com/other/touchthesky/win/issues/TSTUw_150.htm
@@ -9545,60 +9536,83 @@ load_icodecs()
     # Download at https://www.moviecodec.com/download-codec-packs/indeo-codecs-legacy-package-31/
     w_download https://s3.amazonaws.com/moviecodec/files/iv5setup.exe 51bec25488b5b94eb3ce49b0a117618c9526161fd0753817a7a724ce25ff0cad
 
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run iv5setup.exe
-        winwait, InstallShield Wizard
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            controlclick, Button2  ; Next
-            winwait, Welcome
-            controlclick, Button1  ; Next
-            winwait, Software License Agreement
-            sleep 1000
-            controlclick, Button2  ; Yes
-            winwait, Choose Destination
-            sleep 1000
-            controlclick, Button1  ; Next
-            winwait, Setup Type
-            sleep 1000
-            controlclick, ListBox1  ; Next
-            sleep 1000
-            Send C ; Custom
-            sleep 1000
-            controlclick, Button2  ; Next
-            winwait, Select Components
-            controlclick, ISAVIEWCMPTCLASS1 ; Component Selection
-            Send {Home}
-            Send {Down}  ;
-            Send {Down}  ; IV5 Directshow plugin (gives error about missing Ivfsrc.ax)
-            Send {Space} ; Disable it (directshow plugin)
-            Send {End}   ; Web browser (Netscape) plugin
-            sleep 1000
-            Send {Space} ; Disable it (web plugin)
-            sleep 1000
-            controlclick, Button3  ; Next
-            winwait, Question
-            sleep 1000
-            controlclick, Button2  ; No
-            winwait, Start Copying Files
-            sleep 1000
-            controlclick, Button1  ; No
-        }
-        winwait, Setup Complete
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            controlclick, Button4  ; Finish
-        }
-        winwaitclose
-    "
-        # Note, this leaves a dangling explorer window. The window name changed at some point
-        # because of a fixed wine bug that I'm too lazy to find. Since AHK doesn't make command line
-        # arguments easily accessible, we'd have to just kill all explorer.exe processes.
-        #
-        # So instead, use system kill
-        inode_pid="$(pgrep -f "explorer.exe.*Indeo")"
-        kill -HUP "$inode_pid"
+    # Extract the installer so that we can create and use a pre-recorded
+    # Install Shield response file for unattended installations
+    w_try_cabextract -d "$W_TMP/iv5setup/" "$W_CACHE/$W_PACKAGE/iv5setup.exe"
+
+    # Create the response file with the following excluded components
+    # - IV5 Directshow plugin (gives error about missing Ivfsrc.ax)
+    # - Web browser (Netscape) plugin
+    # http://www.silentinstall.org/InstallShield
+    cat > "$W_TMP/iv5setup/setup.iss" <<_EOF_
+[InstallShield Silent]
+Version=v5.00.000
+File=Response File
+[File Transfer]
+OverwriteReadOnly=NoToAll
+[DlgOrder]
+Dlg0=SdWelcome-0
+Count=8
+Dlg1=SdLicense-0
+Dlg2=SdAskDestPath-0
+Dlg3=SdSetupTypeEx-0
+Dlg4=SdComponentDialog2-0
+Dlg5=AskYesNo-0
+Dlg6=SdStartCopy-0
+Dlg7=SdFinish-0
+[SdWelcome-0]
+Result=1
+[SdLicense-0]
+Result=1
+[SdAskDestPath-0]
+szDir=C:\Program Files\Ligos\Indeo
+Result=1
+[SdSetupTypeEx-0]
+Result=Custom
+[SdComponentDialog2-0]
+Indeo Audio Codec-type=string
+Indeo Audio Codec-count=1
+Indeo Audio Codec-0=Indeo Audio Codec\Indeo Audio Encoder
+Component-type=string
+Component-count=12
+Component-0=Indeo Video 5 Quick Compressors
+Component-1=Indeo® Video 5 Codec
+Component-2=Indeo Video 4 Codec
+Component-3=Indeo Video 3.2 Codec
+Component-4=Indeo Audio Codec
+Component-5=Indeo Video Raw (YVU9) Codec
+Component-6=Indeo Video 4 Quick Compressors
+Component-7=Indeo Video 5 Compressor Help Files
+Component-8=Indeo Video 4 Compressor Help Files
+Component-9=Indeo Software Release Notes
+Component-10=Indeo Software Installation Source Code
+Component-11=Indeo Software Uninstallation
+Result=1
+[AskYesNo-0]
+Result=0
+[SdStartCopy-0]
+Result=1
+[Application]
+Name=Indeo® Software
+Version=1.00.000
+Company=Ligos
+Lang=0009
+[SdFinish-0]
+Result=1
+bOpt1=0
+bOpt2=0
+_EOF_
+
+    w_try_cd "$W_TMP/iv5setup/"
+    w_try "$WINE" "setup.exe" ${W_OPT_UNATTENDED:+/s}
+
+    # Note, this leaves a dangling explorer window.
+    # Wait for it to appear and kill it
+    while ! inode_pid=$(pgrep -f "explorer.exe.*Indeo")
+    do
+        sleep 1
+    done
+    kill -HUP "$inode_pid"
 }
 
 #----------------------------------------------------------------
@@ -11864,17 +11878,12 @@ load_xact()
         w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F 'xapofx*.dll' "$x"
     done
 
-    if test "$W_ARCH" = "win64" ; then
-        w_try_cabextract -d "$W_TMP" -L -F '*_xact_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
-        w_try_cabextract -d "$W_TMP" -L -F '*_x3daudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
-        w_try_cabextract -d "$W_TMP" -L -F '*_xaudio_*x64*' "$W_CACHE/directx9/$DIRECTX_NAME"
-        for x in "$W_TMP"/*x64.cab ; do
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xactengine*.dll' "$x"
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xaudio*.dll' "$x"
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'x3daudio*.dll' "$x"
-            w_try_cabextract -d "$W_SYSTEM64_DLLS" -L -F 'xapofx*.dll' "$x"
-        done
-    fi
+    # Don't install 64-bit xact DLLs by default. They are broken in Wine, see:
+    # https://bugs.winehq.org/show_bug.cgi?id=41618#c5
+
+    w_override_dlls native,builtin xaudio2_0 xaudio2_1 xaudio2_2 xaudio2_3 xaudio2_4 xaudio2_5 xaudio2_6 xaudio2_7
+    w_override_dlls native,builtin x3daudio1_0 x3daudio1_1 x3daudio1_2 x3daudio1_3 x3daudio1_4 x3daudio1_5 x3daudio1_6 x3daudio1_7
+    w_override_dlls native,builtin xapofx1_1 xapofx1_2 xapofx1_3 xapofx1_4 xapofx1_5
 
     # Register xactengine?_?.dll
     for x in "$W_SYSTEM32_DLLS"/xactengine* ; do
@@ -15892,56 +15901,6 @@ load_acreedbro()
             send {Enter}
         }
         WinWaitClose
-    "
-}
-
-#----------------------------------------------------------------
-
-w_metadata atmosphir games \
-    title="Atmosphir" \
-    publisher="Minor Studios" \
-    year="2011" \
-    media="manual_download" \
-    file1="Atmosphir Installer v1.0.0 fixed.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/Minor Studios/Atmosphir/Atmosphir.exe" \
-    homepage="http://www.atmosphir.com"
-
-load_atmosphir()
-{
-    w_download_manual https://download.cnet.com/Atmosphir/3000-7492_4-75335647.html atmosphir-installer-v1.0.2.exe a6b2c82a98d750014874f8ab445b38ebb127450e5a7a9350832cf3a8d3a
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
-        run Atmosphir Installer v1.0.0 fixed.exe
-        winwait, Atmosphir Setup, Welcome
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            ControlClick Button2
-            winwait, Atmosphir Setup, License Agreement
-            sleep 1000
-            ControlClick Button2
-            winwait, Atmosphir Setup, Choose Install Location
-            sleep 1000
-            ControlClick Button2
-            winwait, Atmosphir Setup, Choose Start Menu Folder
-            sleep 1000
-            ControlClick Button2
-        }
-        winwait, Atmosphir Setup, Installation complete
-        if ( w_opt_unattended > 0 ) {
-            sleep 1000
-            send {Space}  ; ControlClick Button4    # start
-            sleep 1000
-            ControlClick Button2
-            ; Let the launcher do the initial full download
-            winwait, Atmosphir Launcher
-            winwaitclose
-            ; then kill the game when it starts
-            winwait, Atmosphir
-            ;winkill          ; doesn't work, game traps it
-            winclose
-        }
-        winwaitclose
     "
 }
 
