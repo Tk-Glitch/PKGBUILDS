@@ -749,7 +749,7 @@ function exit_cleanup {
   rm -rf "$_where"/*.install
   rm -rf "$_where"/*.preset
   rm -rf "$_where"/*-profile.cfg
-  rm -rf "$_where"/config.x86_64
+  rm -f "$_where"/config.x86_64
 
   if [ $_NUKR == "true" ]; then
     rm -rf "$_where"/src/*
@@ -761,7 +761,8 @@ function exit_cleanup {
     rm -rf "$srcdir"/*.install
     rm -rf "$srcdir"/*.preset
     rm -rf "$srcdir"/*-profile.cfg
-    rm -rf "$srcdir"/config.x86_64
+    rm -f "$srcdir"/config.x86_64
+    rm -f "$srcdir"/customization.cfg
   else
     # Meh
     rm -rf "$srcdir"/linux-${_basekernel}/Documentation/filesystems/aufs/*
