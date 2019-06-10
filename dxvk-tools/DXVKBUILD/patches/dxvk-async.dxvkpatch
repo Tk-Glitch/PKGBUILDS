@@ -1,5 +1,5 @@
 diff --git a/meson.build b/meson.build
-index d2d1b6cd..aff9446c 100644
+index 1e3c8ccd..b93ae1d7 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -90,7 +90,7 @@ else
@@ -12,10 +12,10 @@ index d2d1b6cd..aff9446c 100644
    output: 'version.h')
  
 diff --git a/src/dxvk/dxvk_context.cpp b/src/dxvk/dxvk_context.cpp
-index 9f9a4c25..b9e34316 100644
+index f96ef293..d2551494 100644
 --- a/src/dxvk/dxvk_context.cpp
 +++ b/src/dxvk/dxvk_context.cpp
-@@ -590,7 +590,7 @@ namespace dxvk {
+@@ -598,7 +598,7 @@ namespace dxvk {
      const Rc<DxvkImageView>&    imageView,
            VkImageAspectFlags    clearAspects,
            VkClearValue          clearValue) {
@@ -24,16 +24,16 @@ index 9f9a4c25..b9e34316 100644
  
      // Prepare attachment ops
      DxvkColorAttachmentOps colorOp;
-@@ -2237,7 +2237,7 @@ namespace dxvk {
-           VkOffset3D            offset,
+@@ -2258,7 +2258,7 @@ namespace dxvk {
            VkExtent3D            extent,
+           VkImageAspectFlags    aspect,
            VkClearValue          value) {
 -    this->updateFramebuffer();
 +    this->updateFramebuffer(false);
  
      // Find out if the render target view is currently bound,
      // so that we can avoid spilling the render pass if it is.
-@@ -3354,7 +3354,7 @@ namespace dxvk {
+@@ -3379,7 +3379,7 @@ namespace dxvk {
        // Retrieve and bind actual Vulkan pipeline handle
        m_gpActivePipeline = m_state.gp.pipeline != nullptr && m_state.om.framebuffer != nullptr
          ? m_state.gp.pipeline->getPipelineHandle(m_state.gp.state,
@@ -42,7 +42,7 @@ index 9f9a4c25..b9e34316 100644
          : VK_NULL_HANDLE;
        
        if (m_gpActivePipeline != VK_NULL_HANDLE) {
-@@ -3623,7 +3623,7 @@ namespace dxvk {
+@@ -3648,7 +3648,7 @@ namespace dxvk {
    }
    
    
@@ -51,7 +51,7 @@ index 9f9a4c25..b9e34316 100644
      if (m_flags.test(DxvkContextFlag::GpDirtyFramebuffer)) {
        m_flags.clr(DxvkContextFlag::GpDirtyFramebuffer);
        
-@@ -3642,6 +3642,11 @@ namespace dxvk {
+@@ -3667,6 +3667,11 @@ namespace dxvk {
            : VkComponentMapping();
        }
  
@@ -63,7 +63,7 @@ index 9f9a4c25..b9e34316 100644
        m_flags.set(DxvkContextFlag::GpDirtyPipelineState);
      }
    }
-@@ -3876,7 +3881,7 @@ namespace dxvk {
+@@ -3901,7 +3906,7 @@ namespace dxvk {
    
    void DxvkContext::commitGraphicsState(bool indexed) {
      if (m_flags.test(DxvkContextFlag::GpDirtyFramebuffer))
@@ -72,10 +72,12 @@ index 9f9a4c25..b9e34316 100644
  
      if (!m_flags.test(DxvkContextFlag::GpRenderPassBound))
        this->startRenderPass();
-@@ -4124,4 +4129,13 @@ namespace dxvk {
+@@ -4149,4 +4154,13 @@ namespace dxvk {
      }
    }
    
+-}
+\ No newline at end of file
 +
 +  bool DxvkContext::checkAsyncCompilationCompat() {
 +    bool fbCompat = true;
@@ -85,13 +87,12 @@ index 9f9a4c25..b9e34316 100644
 +    }
 +    return fbCompat;
 +  }
- }
-\ No newline at end of file
++}
 diff --git a/src/dxvk/dxvk_context.h b/src/dxvk/dxvk_context.h
-index 68aa5542..b264f6ee 100644
+index 9daf2b4c..9fad59ef 100644
 --- a/src/dxvk/dxvk_context.h
 +++ b/src/dxvk/dxvk_context.h
-@@ -1076,7 +1076,7 @@ namespace dxvk {
+@@ -1079,7 +1079,7 @@ namespace dxvk {
              VkDescriptorSet         set,
        const DxvkPipelineLayout*     layout);
  
@@ -100,7 +101,7 @@ index 68aa5542..b264f6ee 100644
      
      void updateIndexBufferBinding();
      void updateVertexBufferBindings();
-@@ -1102,6 +1102,8 @@ namespace dxvk {
+@@ -1105,6 +1105,8 @@ namespace dxvk {
      
      void commitGraphicsPostBarriers();
  
@@ -132,7 +133,7 @@ index 49133845..ff80297b 100644
 \ No newline at end of file
 +}
 diff --git a/src/dxvk/dxvk_graphics.cpp b/src/dxvk/dxvk_graphics.cpp
-index d50fb209..3e2132c0 100644
+index 49d2c168..286e859d 100644
 --- a/src/dxvk/dxvk_graphics.cpp
 +++ b/src/dxvk/dxvk_graphics.cpp
 @@ -4,6 +4,7 @@
@@ -352,10 +353,10 @@ index e5686950..8811f10c 100644
 \ No newline at end of file
 +}
 diff --git a/src/dxvk/dxvk_image.h b/src/dxvk/dxvk_image.h
-index f55ae42d..1bd638f0 100644
+index df06930e..a06df9a7 100644
 --- a/src/dxvk/dxvk_image.h
 +++ b/src/dxvk/dxvk_image.h
-@@ -435,6 +435,37 @@ namespace dxvk {
+@@ -431,6 +431,37 @@ namespace dxvk {
        return result;
      }
  
@@ -393,7 +394,7 @@ index f55ae42d..1bd638f0 100644
    private:
      
      Rc<vk::DeviceFn>  m_vkd;
-@@ -443,6 +474,9 @@ namespace dxvk {
+@@ -439,6 +470,9 @@ namespace dxvk {
      DxvkImageViewCreateInfo m_info;
      VkImageView             m_views[ViewCount];
  
