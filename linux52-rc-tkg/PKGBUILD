@@ -4,6 +4,25 @@
 
 # Contributor: Tk-Glitch <ti3nou at gmail dot com>
 
+plain '       .---.`               `.---.'
+plain '    `/syhhhyso-           -osyhhhys/`'
+plain '   .syNMdhNNhss/``.---.``/sshNNhdMNys.'
+plain '   +sdMh.`+MNsssssssssssssssNM+`.hMds+'
+plain '   :syNNdhNNhssssssssssssssshNNhdNNys:'
+plain '    /ssyhhhysssssssssssssssssyhhhyss/'
+plain '    .ossssssssssssssssssssssssssssso.'
+plain '   :sssssssssssssssssssssssssssssssss:'
+plain '  /sssssssssssssssssssssssssssssssssss/'
+plain ' :sssssssssssssoosssssssoosssssssssssss:'
+plain ' osssssssssssssoosssssssoossssssssssssso'
+plain ' osssssssssssyyyyhhhhhhhyyyyssssssssssso'
+plain ' /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/'
+plain '  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms'
+plain '   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/'
+plain '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`'
+plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
+plain '             `.-:///////:-.`'
+
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
 cp "$_where"/linux52-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
@@ -206,6 +225,7 @@ prepare() {
       plain "For BMQ (experimental) - No recommended value yet, so try for yourself x) :"
       plain "0: No yield."
       plain "1: Deboost and requeue task. (default)"
+      plain "2: Set rq skip task."
       read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended) - Using this option on BMQ will fallback to "1"\n  [0-2?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
@@ -702,10 +722,20 @@ function exit_cleanup {
   rm -rf "$_where"/*.install
   rm -rf "$_where"/*.preset
   rm -rf "$_where"/*-profile.cfg
-  rm -rf "$_where"/config.x86_64
+  rm -f "$_where"/config.x86_64
 
   if [ $_NUKR == "true" ]; then
     rm -rf "$_where"/src/*
+    # Double tap
+    rm -rf "$srcdir"/linux-*
+    rm -rf "$srcdir"/*.xz
+    rm -rf "$srcdir"/*.patch
+    rm -rf "$srcdir"/*.hook
+    rm -rf "$srcdir"/*.install
+    rm -rf "$srcdir"/*.preset
+    rm -rf "$srcdir"/*-profile.cfg
+    rm -f "$srcdir"/config.x86_64
+    rm -f "$srcdir"/customization.cfg
   else
     # Meh
     rm -rf "$srcdir"/linux-${_basekernel}/Documentation/filesystems/aufs/*
