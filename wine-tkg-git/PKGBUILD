@@ -62,8 +62,6 @@ else
       msg2 'to override some or all of its values.'
     fi
     msg2 ''
-    msg2 'Set _LOCAL_OPTIMIZED to "false" if you want to share the package !'
-    msg2 ''
     msg2 "Current path is '$_where'"
     msg2 ''
     msg2 'If you are rebuilding using the same configuration, you may want'
