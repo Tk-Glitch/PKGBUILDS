@@ -161,7 +161,11 @@ else
     mkdir -p proton_template/share/fonts
 
     # Extract our custom package
-    tar -xvf proton_dist*.tar* -C ./proton_dist_tmp >/dev/null 2>&1
+    if [ -e "$_proton_pkgdest"/proton_dist*.tar.lrz ]; then
+      lrzuntar -O ./proton_dist_tmp proton_dist*.tar.lrz
+    else
+      tar -xvf proton_dist*.tar* -C ./proton_dist_tmp >/dev/null 2>&1
+    fi
     rm proton_dist*.tar*
 
     # Liberation Fonts
