@@ -1235,10 +1235,16 @@ build() {
 	local _lib64name="lib"
 
 	# External install
-	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-	  _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
-	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix="\$ORIGIN" && _lib32name="lib" && _lib64name="lib64" && _configure_args+=(--without-curses) && export LDFLAGS="${_LD_FLAGS} -Wl,-rpath,\$ORIGIN"
+	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	  if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
+	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+	  elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	    _prefix="$_where"
+	    _configure_args+=(--without-curses)
+	  fi
+	else
+	  _configure_args64+=(--libdir="$_prefix/$_lib64name")
+	  _configure_args32+=(--libdir="$_prefix/$_lib32name")
 	fi
 
 	# build wine 64-bit
@@ -1247,11 +1253,11 @@ build() {
 	cd  "${srcdir}"/"${pkgname}"-64-build
 	../${_winesrcdir}/configure \
 		--prefix="$_prefix" \
-		--libdir="$_prefix/$_lib64name" \
 		--with-x \
 		--with-gstreamer \
 		--enable-win64 \
 		--with-xattr \
+		"${_configure_args64[@]}" \
 		"${_configure_args[@]}"
 
 	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
@@ -1262,10 +1268,6 @@ build() {
 	  schedtool -B -n 1 -e ionice -n 1 make
 	fi
 
-	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  export LDFLAGS="${_LD_FLAGS} -Wl,-rpath,\$ORIGIN"
-	fi
-
 	if [ "$_NOLIB32" != "true" ]; then
 	  # build wine 32-bit
 	  export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
@@ -1273,10 +1275,10 @@ build() {
 	  cd "${srcdir}/${pkgname}"-32-build
 	  ../${_winesrcdir}/configure \
 		  --prefix="$_prefix" \
-		  --libdir="$_prefix/$_lib32name" \
 		  --with-x \
 		  --with-gstreamer \
 		  --with-xattr \
+		  "${_configure_args32[@]}" \
 		  "${_configure_args[@]}" \
 		  --with-wine64="${srcdir}/${pkgname}"-64-build
 	fi
