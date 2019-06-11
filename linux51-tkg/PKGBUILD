@@ -75,9 +75,9 @@ _basever=51
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
-_sub=8
+_sub=9
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=17
+pkgrel=18
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,7 +114,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0011-ZFS-fix.patch
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
-            'e82279c196ab10b29a349b91c14d9135c288dae1b435c54d7f35f77f81052e1a'
+            '34aee04c1af73dbf2f57f953df8032c581a1210952c231c2f1d80d0165ab0e71'
             '82598a7c1d0a115b7273447affe5035c6a25995f784511e700f75c3d5f131aa7'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -250,7 +250,7 @@ prepare() {
       plain "0: No yield."
       plain "1: Deboost and requeue task. (default)"
       plain "2: Set rq skip task."
-      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended) - Using this option on BMQ will fallback to "1"\n  [0-2?]: '`" CONDITION0;
+      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended unless you have issues with 0 or 1)\n  [0-2?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
       msg2 "Using default CPU sched yield type (1)"
