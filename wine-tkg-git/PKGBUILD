@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.10.r0.ged9681d9
+pkgver=4.10.r1.ge2fa6bd9
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=166
+eval pkgrel=167
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -456,7 +456,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-sdl-joy.patch' # Proton SDL joystick support
 		'proton-gamepad-additions-50b9456.patch' # Proton 4.2-5 xinput hacks and other gamepad additions (<50b9456)
 		'proton-gamepad-additions-3d011fc.patch' # Proton 4.2-5 xinput hacks and other gamepad additions (<3d011fc)
-		'proton-gamepad-additions.patch' # Proton 4.2-6 xinput hacks and other gamepad additions
+		'proton-gamepad-additions-f8a04c7.patch' # Proton 4.2-6 xinput hacks and other gamepad additions (<f8a04c7)
+		'proton-gamepad-additions.patch' # Proton 4.2-7 xinput hacks and other gamepad additions
 		'proton-vk-bits-4.5.patch' # Proton vk bits for 4.5+
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
@@ -1117,8 +1118,10 @@ prepare() {
 	    _patchname='proton-sdl-joy.patch' && _patchmsg="Enable SDL Joystick support (from Proton)" && nonuser_patcher
 	    # Gamepad additions - from Proton 4.2-5
 	    if [ "$_gamepad_additions" == "true" ]; then
-	      if git merge-base --is-ancestor 3d011fcdffe39ae856cbb0915938fe158b60742a HEAD; then
+	      if git merge-base --is-ancestor f8a04c7f2e2c77eef663c5bb2109e3dbd51b22e0 HEAD; then
 	      _patchname='proton-gamepad-additions.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	      elif git merge-base --is-ancestor 3d011fcdffe39ae856cbb0915938fe158b60742a HEAD; then
+	      _patchname='proton-gamepad-additions-f8a04c7.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
 	      elif git merge-base --is-ancestor 50b9456e878f57d8c850282d77e74534c57a181e HEAD; then
 	      _patchname='proton-gamepad-additions-3d011fc.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
 	      elif git merge-base --is-ancestor 6a610a325809d47f48bc72f3a757e1a62b193ea8 HEAD; then
@@ -1507,6 +1510,7 @@ md5sums=('SKIP'
          '2cf363e936aa87450c79bd131eea1f9f'
          'ef9d49400425109ed6e7c39060a0e27e'
          'fee4328b205727568bbe73e0170eb259'
+         'd104f44859c50920a7986585ea937e42'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
