@@ -5,7 +5,7 @@ pkgver=4.10.r1.ge2fa6bd9
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=167
+eval pkgrel=168
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -700,7 +700,7 @@ prepare() {
 	fi
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
-	if [ "$_clock_monotonic" == "true" ]; then
+	if [ "$_clock_monotonic" == "true" ] && ! git merge-base --is-ancestor 5c8ea25014f4d40e68c20698bed5a54d4e9c75bd HEAD; then
 	  _patchname='use_clock_monotonic.patch' && _patchmsg="Applied clock_monotonic patch" && nonuser_patcher
 	fi
 
