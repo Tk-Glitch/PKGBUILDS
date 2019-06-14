@@ -5,7 +5,7 @@ pkgver=4.10.r3.ge07b0fa0
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=169
+eval pkgrel=170
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -424,6 +424,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'steam.patch' # auto-append --no-sandbox
 		'30-win32-aliases.conf' # 32-bit font antialiasing
 		'use_clock_monotonic.patch' # Perf
+		'use_clock_monotonic-2.patch' # Addon for the patch above, needed on 13e11d3+
 		'lowlatency_audio.patch' # wine osu! lowlat patch
 		'wine-binfmt.conf' # Enables launching windows executables directly
 		'CSMT-toggle.patch' # Corrected CSMT switch logic
@@ -711,8 +712,11 @@ prepare() {
 	fi
 
 	# use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW in ntdll/server - lowers overhead
-	if [ "$_clock_monotonic" == "true" ] && ! git merge-base --is-ancestor 5c8ea25014f4d40e68c20698bed5a54d4e9c75bd HEAD; then
+	if [ "$_clock_monotonic" == "true" ]; then
 	  _patchname='use_clock_monotonic.patch' && _patchmsg="Applied clock_monotonic patch" && nonuser_patcher
+	  if git merge-base --is-ancestor 13e11d3fcbcf8790e031c4bc52f5f550b1377b3b HEAD; then
+	    _patchname='use_clock_monotonic-2.patch' && _patchmsg="Applied clock_monotonic addon patch for 13e11d3" && nonuser_patcher
+	  fi
 	fi
 
 	# Fixes (partially) systray on plasma 5 - https://bugs.winehq.org/show_bug.cgi?id=38409
@@ -1497,6 +1501,7 @@ md5sums=('SKIP'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '1ff4e467f59409272088d92173a0f801'
          '517a67b31d26990e6704074ccb630f80'
+         'd2e54ed8d69b808c26065e643b2244bb'
          'ed6060dc030ebd5865f1fcc40d8863be'
          'cff441678d798466a13a0d03b01e23d7'
          '830a78ea35e124536cdbc8291102ffaa'
