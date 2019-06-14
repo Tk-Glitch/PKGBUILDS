@@ -539,6 +539,10 @@ _describe_wine() {
   git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
 }
 
+_describe_other() {
+  git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//'
+}
+
 pkgver() {
 	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}/${_stgsrcdir}"
@@ -660,14 +664,20 @@ prepare() {
 	fi
 
 	if [ "$_use_dxvk" == "true" ]; then
-	  echo "Using DXVK winelib for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
+	  cd "${srcdir}"/"${_dxvksrcdir}"
+	  _dxvkversion=$(_describe_other)
+	  cd "${srcdir}"/"${_winesrcdir}"
+	  echo "Using DXVK winelib for d3d10 and d3d11 translation (version $_dxvkversion)" >> "$_where"/last_build_config.log
 	  if [ "$_dxvk_dxgi" == "true" ]; then
 	    echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
 	if [ "$_use_d9vk" == "true" ]; then
-	  echo "Using D9VK winelib for d3d9 translation" >> "$_where"/last_build_config.log
+	  cd "${srcdir}"/"${_d9vksrcdir}"
+	  _d9vkversion=$(_describe_other)
+	  cd "${srcdir}"/"${_winesrcdir}"
+	  echo "Using D9VK winelib for d3d9 translation (version $_d9vkversion)" >> "$_where"/last_build_config.log
 	fi
 
 	echo "" >> "$_where"/last_build_config.log
