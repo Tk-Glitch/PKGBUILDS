@@ -1247,6 +1247,11 @@ build() {
 	local _lib32name="lib32"
 	local _lib64name="lib"
 
+	# configure args
+	if [ -n "$_configure_userargs" ]; then
+	  _configure_args+=($_configure_userargs)
+	fi
+
 	# External install
 	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
 	  if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
