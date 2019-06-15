@@ -23,7 +23,7 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=winetricks-tkg-git
-pkgver=20190310.r92.g9f84891
+pkgver=20190615.r6.g87d63cc
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'
@@ -39,7 +39,6 @@ optdepends=('zenity: For the GTK3 GUI.'
 conflicts=('winetricks' 'bin32-winetricks')
 provides=('winetricks')
 source=('git+https://github.com/Winetricks/winetricks.git'
-        'dotnet48.patch'
         'lutris-tkg.patch')
 
 pkgver() {
@@ -54,9 +53,6 @@ package() {
 
 	cd winetricks
 
-	# dotnet48 support
-	patch -Np1 < ../'dotnet48.patch'
-
 	# fix lutris tkg builds version detection
 	patch -Np1 < ../'lutris-tkg.patch'
 
@@ -64,5 +60,4 @@ package() {
 }
 
 md5sums=('SKIP'
-         '932dd74d30cde1f769152b620320d670'
          'f8cea6f47347496f2215b331d9513e56')

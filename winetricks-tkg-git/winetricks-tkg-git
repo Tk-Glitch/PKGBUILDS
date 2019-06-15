@@ -6,7 +6,7 @@
 
 # Name of this version of winetricks (YYYYMMDD)
 # (This doesn't change often, use the sha256sum of the file when reporting problems)
-WINETRICKS_VERSION=20190310-next
+WINETRICKS_VERSION=20190615-next
 
 # This is a UTF-8 file
 # You should see an o with two dots over it here [ö]
@@ -32,9 +32,7 @@ WINETRICKS_VERSION=20190310-next
 # - perl is used to munge steam config files.
 # - pkexec, sudo, or kdesu (gksu/gksudo/kdesudo are deprecated upstream but also still supported)
 #   are used to mount .iso images if the user cached them with -k option.
-# - sha256sum, sha256, or shasum (OSX 10.5 does not support these, 10.6+ is required):
-#   note: some legacy verbs may still use sha1sum, sha1, or shasum, but this is
-#   deprecated and will be removed in a future release.
+# - sha256sum, sha256, or shasum (OSX 10.5 does not support these, 10.6+ is required)
 # - torify is used with option "--torify" if sites are blocked in single countries.
 # - xdg-open (if present) or open (for OS X) is used to open download pages
 #   for the user when downloads cannot be fully automated.
@@ -741,26 +739,6 @@ w_get_github_latest_release()
     echo "$latest_version"
 }
 
-# get sha1sum string and set $_W_gotsha1um to it
-w_get_sha1sum()
-{
-    _W_sha1_file="$1"
-
-    # See https://github.com/Winetricks/winetricks/issues/645
-    # User is running winetricks from /dev/stdin
-    if [ -f "$_W_sha1_file" ] || [ -h "$_W_sha1_file" ] ; then
-        _W_gotsha1sum=$($WINETRICKS_SHA1SUM < "$_W_sha1_file" | sed 's/(stdin)= //;s/ .*//')
-        w_get_sha256sum "$_W_sha1_file"
-    else
-        w_warn "$_W_sha1_file is not a regular file, not checking sha1sum"
-        return
-    fi
-
-    w_warn "sha1sum is considered deprecated and should no longer be used. This package (${W_PACKAGE}) still uses it. This is a bug."
-    w_warn "See https://github.com/Winetricks/winetricks/issues/737 and https://shattered.io/"
-    w_warn "Please report the following to https://github.com/Winetricks/winetricks/: file:${_W_sha1_file} sha1: ${_W_gotsha1sum} sha256:${_W_gotsha256sum}"
-}
-
 # get sha256sum string and set $_W_gotsha256sum to it
 w_get_sha256sum()
 {
@@ -784,29 +762,10 @@ w_get_shatype() {
     _W_sum_length="$(echo "$_W_sum" | tr -d "\\n" | wc -c | tr -d " ")"
     case "$_W_sum_length" in
         0) _W_shatype="none" ;;
-        40) _W_shatype="sha1" ;;
         64) _W_shatype="sha256" ;;
         # 128) sha512..
         *) w_die "unsupported shasum..bug" ;;
     esac
-}
-
-# FIXME: remove 2018/04/01 (or 03/31 or 4/2, to avoid April Fools comments), along with any remaining unfixed verbs
-# verify a sha1sum
-w_verify_sha1sum()
-{
-    _W_vs_wantsum=$1
-    _W_vs_file=$2
-
-    w_get_sha1sum "$_W_vs_file"
-    if [ "$_W_gotsha1sum"x != "$_W_vs_wantsum"x ] ; then
-        case $LANG in
-            pl*) w_die "Niezgodność sumy sha1sum! Zmień nazwę $_W_vs_file i spróbuj ponownie." ;;
-            ru*) w_die "Контрольная сумма sha1sum не совпадает! Переименуйте файл $_W_vs_file и попробуйте еще раз." ;;
-            *) w_die "sha1sum mismatch! Rename $_W_vs_file and try again." ;;
-        esac
-    fi
-    unset _W_vs_wantsum _W_vs_file _W_gotsha1sum
 }
 
 # verify a sha256sum
@@ -836,7 +795,6 @@ w_verify_shasum()
 
     case "$_W_shatype" in
         none) w_warn "No checksum provided, not verifying" ;;
-        sha1) w_verify_sha1sum "$_W_sum" "$_W_vs_file" ;;
         sha256) w_verify_sha256sum "$_W_sum" "$_W_vs_file" ;;
         # 128) sha512..
         *) w_die "unsupported shasum..bug" ;;
@@ -1111,13 +1069,6 @@ w_download_to()
                 case "$_W_shatype" in
                     none)
                         w_warn "No checksum provided, not verifying"
-                        ;;
-                    sha1)
-                        w_get_sha1sum "$_W_cache/$_W_file"
-                        if [ "$_W_gotsha1sum"x = "$_W_sum"x ] ; then
-                            checksum_ok=1
-                            break
-                        fi
                         ;;
                     sha256)
                         w_get_sha256sum "$_W_cache/$_W_file"
@@ -1403,7 +1354,7 @@ w_download_manual_to()
         w_verify_shasum "$_W_shasum" "$W_CACHE/$_W_packagename/$_W_file"
     fi
 
-    unset _W_dlmsg _W_file _W_sha1sum _W_sha256sum _W_url
+    unset _W_dlmsg _W_file _W_sha256sum _W_url
 }
 
 w_download_manual()
@@ -1677,127 +1628,6 @@ fi
     fi
 
     unset _W_steamid _W_steamtitle
-}
-
-#----------------------------------------------------------------
-
-# Generic GOG.com installer
-# Usage: game_id game_title [other_files,size [reader_control [run_command [download_id [install_dir [installer_size_and_sha1]]]]]]
-# game_id
-#     Used for main installer name and download url.
-# game_title
-#     Used for AutoHotKey and installation path in bat script.
-# other_files
-#     Extra installer files, in one string, space-separated.
-# reader_control
-#     If set, the control id of the configuration panel checkbox controlling
-#     Adobe Reader installation.
-#     Some games don't have it, some games do with different ids.
-# run_command
-#     Used for bat script, relative to installation path.
-# download_id
-#     For games which download url doesn't match their game_id
-# install_dir
-#     If different from game_title
-# installer_size_and_sha1
-#     exe file SHA1.
-winetricks_load_gog()
-{
-    game_id="$1"
-    game_title="$2"
-    other_files="$3"
-    reader_control="$4"
-    # FIXME: actually unused, but not sure how it should be used
-    # shellcheck disable=SC2034
-    run_command="$5"
-    download_id="$6"
-    install_dir="$7"
-    installer_size_and_sha1="$8"
-
-    if [ "$download_id"x = ""x ]; then
-        download_id="$game_id"
-    fi
-    if [ "$install_dir"x = ""x ]; then
-        install_dir="$game_title"
-    fi
-
-    installer_path="$W_CACHE/$W_PACKAGE"
-    mkdir -p "$installer_path"
-    installer="setup_$game_id.exe"
-
-    if test "$installer_size_and_sha1"x = ""x; then
-        files="$installer $other_files"
-    else
-        files="$installer,$installer_size_and_sha1 $other_files"
-    fi
-
-    file_id=0
-    for file_and_size_and_sha1 in $files
-    do
-        case "$file_and_size_and_sha1" in
-            *,*,*)
-                sha1sum=$(echo "$file_and_size_and_sha1" | sed "s/.*,//")
-                minsize=$(echo "$file_and_size_and_sha1" | sed 's/[^,]*,\([^,]*\),.*/\1/')
-                file=$(echo "$file_and_size_and_sha1" | sed 's/,.*//')
-                ;;
-            *,*)
-                sha1sum=""
-                minsize=$(echo "$file_and_size_and_sha1" | sed 's/.*,//')
-                file=$(echo "$file_and_size_and_sha1" | sed 's/,.*//')
-                ;;
-            *)
-                sha1sum=""
-                minsize=1
-                file=$file_and_size_and_sha1
-                ;;
-        esac
-        file_path="$installer_path/$file"
-        # shellcheck disable=SC2046
-        if ! test -s "$file_path" || test $(stat -Lc%s "$file_path") -lt $minsize; then
-            # FIXME: bring back automated download
-            w_info "You have to be logged in to GOG, and you have to own the game, for the following URL to work.  Otherwise it gets a 404."
-            w_download_manual "https://www.gog.com/en/download/game/$download_id/$file_id" "$file"
-            check_sha1=1
-            filesize=$(stat -Lc%s "$file_path")
-            if test $minsize -gt 1 && test "$filesize" -ne $minsize; then
-                check_sha1=""
-                w_warn "Expected file size $minsize, please report new size $filesize."
-            fi
-            if test "$check_sha1" != "" && test "$sha1sum"x != ""x; then
-                w_verify_sha1sum "$sha1sum" "$file_path"
-            fi
-        fi
-        file_id=$((file_id + 1))
-    done
-
-    w_try_cd "$installer_path"
-    w_ahk_do "
-        run $installer
-        WinWait, Setup - $game_title, Start installation
-        ControlGet, checkbox_state, Checked,, TCheckBox1 ; EULA
-        if (checkbox_state != 1) {
-            ControlClick, TCheckBox1
-        }
-        if (\"$reader_control\") {
-            ControlClick, TMCoPShadowButton1 ; Options
-            Loop, 10
-            {
-                ControlGet, visible, Visible,, $reader_control
-                if (visible)
-                {
-                    break
-                }
-                Sleep, 1000
-            }
-            ControlGet, checkbox_state, Checked,, $reader_control ; Unckeck Adobe/Foxit Reader
-            if (checkbox_state != 0) {
-                ControlClick, $reader_control
-            }
-        }
-        ControlClick, TMCoPShadowButton2 ; Start Installation
-        WinWait, Setup - $game_title, Exit Installer
-        ControlClick, TMCoPShadowButton1 ; Exit Installer
-        "
 }
 
 #----------------------------------------------------------------
@@ -3178,24 +3008,6 @@ winetricks_dl_warning() {
         "RU") w_warn "$_W_countrymsg" ;;
         *) : ;;
     esac
-}
-
-winetricks_get_sha1sum_prog() {
-    # Linux/Solaris:
-    if [ -x "$(command -v sha1sum 2>/dev/null)" ] ; then
-        WINETRICKS_SHA1SUM="sha1sum"
-    # FreeBSD/NetBSD:
-    elif [ -x "$(command -v sha1 2>/dev/null)" ] ; then
-        WINETRICKS_SHA1SUM="sha1"
-    # OSX 10.6+:
-    elif [ -x "$(command -v shasum 2>/dev/null)" ] ; then
-        WINETRICKS_SHA1SUM="shasum -a 1"
-    # OSX 10.5:
-    elif [ -x "$(command -v openssl 2>/dev/null)" ] ; then
-        WINETRICKS_SHA1SUM="openssl dgst -sha1"
-    else
-        w_die "No sha1sum utility available."
-    fi
 }
 
 winetricks_get_sha256sum_prog() {
@@ -5211,7 +5023,6 @@ winetricks_init()
 
     WINETRICKS_SOURCEFORGE=https://downloads.sourceforge.net
 
-    winetricks_get_sha1sum_prog
     winetricks_get_sha256sum_prog
 
     winetricks_get_platform
@@ -6750,54 +6561,16 @@ load_directplay()
 #----------------------------------------------------------------
 
 w_metadata directx9 dlls \
-    title="MS DirectX 9 (Usually overkill.  Try d3dx9_36 first)" \
+    title="MS DirectX 9 (Deprecated, no-op)" \
     publisher="Microsoft" \
     year="2010" \
-    media="download" \
-    file1="directx_feb2010_redist.exe" \
-    installed_file1="$W_SYSTEM32_DLLS_WIN/d3dx10_33.dll"
+    media="download"
 
 load_directx9()
 {
-    helper_directx_dl
-
-    w_warn "You probably shouldn't be using this.  d3dx9 or, better, d3dx9_36 usually suffice."
-
-    # Stefan suggested that, when installing, one should override as follows:
-    # 1) use built-in wintrust (we don't run native properly somehow?)
-    # 2) disable mscoree (else if it's present some module misbehaves?)
-    # 3) override native any DirectX DLL whose Wine version doesn't register itself well yet
-    # For #3, I have no idea which DLLs don't register themselves well yet,
-    # so I'm just listing a few of the basic ones.  Let's whittle that
-    # list down as soon as we can.
-
-    # Setting Windows version to win2k apparently crashes the installer on OS X.
-    # FIXME: seems this didn't get migrated to Github?
-    # See https://code.google.com/p/winezeug/issues/detail?id=71
-    w_set_winver winxp
-
-    w_try_cd "$W_CACHE/$W_PACKAGE"
-    WINEDLLOVERRIDES="wintrust=b,mscoree=,ddraw,d3d8,d3d9,dsound,dinput=n" \
-        w_try "$WINE" $DIRECTX_NAME /t:"$W_TMP_WIN" $W_UNATTENDED_SLASH_Q
-
-    # How many of these do we really need?
-    # We should probably remove most of these...?
-    w_call devenum
-    w_call directshow
-
-    w_try_cabextract -d "$W_TMP" -L -F dxnt.cab "$W_CACHE"/directx9/$DIRECTX_NAME
-    w_try_cabextract -d "$W_SYSTEM32_DLLS" -L -F "msdmo.dll" "$W_TMP/dxnt.cab"
-
-    w_override_dlls native d3dim d3drm d3dx8 d3dx9_24 d3dx9_25 d3dx9_26 d3dx9_27 d3dx9_28 d3dx9_29
-    w_override_dlls native d3dx9_30 d3dx9_31 d3dx9_32 d3dx9_33 d3dx9_34 d3dx9_35 d3dx9_36 d3dx9_37
-    w_override_dlls native d3dx9_38 d3dx9_39 d3dx9_40 d3dx9_41 d3dx9_42 d3dx9_43 d3dxof
-    w_override_dlls native dciman32 ddrawex dmband dmcompos dmime dmloader dmscript dmstyle
-    w_override_dlls native dmsynth dmusic dmusic32 dplay dplayx dpnaddr dpnet dpnhpast dpnlobby
-    w_override_dlls native dswave dxdiagn msdmo streamci
-    w_override_dlls native dxdiag.exe
-    w_override_dlls builtin d3d8 d3d9 dinput dinput8 dsound
-
-    w_try "$WINE" "$W_TMP_WIN"\\DXSETUP.exe $W_UNATTENDED_SLASH_SILENT
+    # There are 54 as of 2019/04/23, so listing them all (especially in GUI) would be hard.
+    # Besides, that would probably encourage people to install more native stuff than necessary.
+    w_warn "directx9 is deprecated. Please install individual directx components (e.g., \`$0 d3dx9\`) instead."
 }
 
 #----------------------------------------------------------------
@@ -7780,7 +7553,7 @@ w_metadata dotnet11 dlls \
     publisher="Microsoft" \
     year="2003" \
     media="download" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet30 dotnet30sp1 dotnet35 dotnet35sp1 vjrun20" \
+    conflicts="dotnet20sdk" \
     file1="dotnetfx.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v1.1.4322/ndpsetup.ico"
 
@@ -7893,7 +7666,7 @@ w_metadata dotnet20 dlls \
     publisher="Microsoft" \
     year="2006" \
     media="download" \
-    conflicts="dotnet11" \
+    conflicts="dotnet20sp1 dotnet20sp2 dotnet30sp1 dotnet35" \
     file1="dotnetfx.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v2.0.50727/MSBuild.exe"
 
@@ -7909,9 +7682,36 @@ load_dotnet20()
         # Needed for https://bugs.winehq.org/show_bug.cgi?id=12401
         w_set_winver win2k
 
-        w_try_cd "$W_CACHE"/"$W_PACKAGE"
-        "$WINE" dotnetfx.exe ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"}
-        status=$?
+        # if dotnet11 if installed there is a warning dialog, but it still verifies
+        # dotnet11 doesn't work on 64-bit, so no need to run there
+        w_try_cd "$W_CACHE/$W_PACKAGE"
+        if [ -n "${W_OPT_UNATTENDED}" ]; then
+            w_ahk_do "
+                SetTitleMatchMode, 2
+                ; FIXME: this isn't silent?
+                run, dotnetfx.exe /q /c:\"install.exe /q\"
+
+                Loop
+                {
+                    sleep 1000
+                    ifwinexist, .NET Framework Initialization Error
+                    {
+                        WinClose, .NET Framework Initialization Error
+                        continue
+                    }
+
+                    Process, exist, dotnetfx.exe
+                    dotnet_pid = %ErrorLevel%
+                    if dotnet_pid = 0
+                    {
+                        break
+                    }
+                }
+            "
+        else
+            "$WINE" dotnetfx.exe ${W_OPT_UNATTENDED:+/q /c:"install.exe /q"}
+            status=$?
+        fi
 
         case $status in
             0) ;;
@@ -8019,13 +7819,13 @@ load_dotnet20sdk()
 #----------------------------------------------------------------
 
 w_metadata dotnet20sp1 dlls \
-    title="MS .NET 2.0 SP1 (experimental)" \
+    title="MS .NET 2.0 SP1" \
     publisher="Microsoft" \
     year="2008" \
     media="download" \
-    conflicts="dotnet11 dotnet20sp2 dotnet35sp1" \
+    conflicts="dotnet20sp2" \
     file1="NetFx20SP1_x86.exe" \
-    installed_file1="c:/windows/winsxs/manifests/x86_Microsoft.VC80.CRT_1fc8b3b9a1e18e3b_8.0.50727.1433_x-ww_5cf844d2.cat"
+    installed_file1="c:/windows/dotnet20sp1.installed.workaround"
 
 load_dotnet20sp1()
 {
@@ -8075,6 +7875,9 @@ load_dotnet20sp1()
     w_unset_winver
 
     W_NGEN_CMD="w_try $WINE $W_DRIVE_C/windows/Microsoft.NET/Framework/v2.0.50727/ngen.exe executequeueditems"
+
+    # Installs the same file(name)s as dotnet35sp1, let users install dotnet35sp1 after dotnet20sp1
+    w_try touch "${W_WINDIR_UNIX}/dotnet20sp1.installed.workaround"
 }
 
 verify_dotnet20sp1()
@@ -8085,7 +7888,7 @@ verify_dotnet20sp1()
 #----------------------------------------------------------------
 
 w_metadata dotnet20sp2 dlls \
-    title="MS .NET 2.0 SP2 (experimental)" \
+    title="MS .NET 2.0 SP2" \
     publisher="Microsoft" \
     year="2009" \
     media="download" \
@@ -8151,7 +7954,7 @@ w_metadata dotnet30 dlls \
     publisher="Microsoft" \
     year="2006" \
     media="download" \
-    conflicts="dotnet11 dotnet20sp1 dotnet20sp2 dotnet30sp1 dotnet35 dotnet35sp1 dotnet45 dotnet452" \
+    conflicts="dotnet11 dotnet30sp1 dotnet35 dotnet35sp1" \
     file1="dotnetfx3.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v3.0/Microsoft .NET Framework 3.0/logo.bmp"
 
@@ -8222,7 +8025,7 @@ w_metadata dotnet30sp1 dlls \
     publisher="Microsoft" \
     year="2007" \
     media="download" \
-    conflicts="dotnet11 dotnet20sdk dotnet20sp1 dotnet20sp2" \
+    conflicts="dotnet11 dotnet20sdk" \
     file1="NetFx30SP1_x86.exe" \
     installed_file1="c:/windows/system32/XpsFilt.dll"    # we're cheating a bit here
 
@@ -8276,7 +8079,7 @@ w_metadata dotnet35 dlls \
     publisher="Microsoft" \
     year="2007" \
     media="download" \
-    conflicts="dotnet11 dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2" \
+    conflicts="dotnet11 dotnet20sdk dotnet20sp2 dotnet30" \
     file1="dotnetfx35.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v3.5/MSBuild.exe"
 
@@ -8330,7 +8133,7 @@ w_metadata dotnet35sp1 dlls \
     publisher="Microsoft" \
     year="2008" \
     media="download" \
-    conflicts="dotnet11 dotnet20sp1 dotnet20sp2" \
+    conflicts="dotnet11 dotnet20sp1" \
     file1="dotnetfx35.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v3.5/msbuild.exe.config"
 
@@ -8431,7 +8234,7 @@ w_metadata dotnet45 dlls \
     publisher="Microsoft" \
     year="2012" \
     media="download" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 vjrun20" \
+    conflicts="dotnet20sdk" \
     file1="dotnetfx45_full_x86_x64.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v4.0.30319/Microsoft.Windows.ApplicationServer.Applications.45.man"
 
@@ -8483,7 +8286,7 @@ w_metadata dotnet452 dlls \
     publisher="Microsoft" \
     year="2012" \
     media="download" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet40 dotnet45 vjrun20" \
+    conflicts="dotnet20sdk dotnet46 dotnet462" \
     file1="dotnetfx45_full_x86_x64.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/v4.0.30319/Microsoft.Windows.ApplicationServer.Applications.45.man"
 
@@ -8536,7 +8339,7 @@ w_metadata dotnet46 dlls \
     year="2015" \
     media="download" \
     file1="NDP46-KB3045557-x86-x64-AllOS-ENU.exe" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 vjrun20" \
+    conflicts="dotnet20sdk" \
     installed_file1="c:/windows/Migration/WTR/netfx45_upgradecleanup.inf"
 
 load_dotnet46()
@@ -8590,7 +8393,7 @@ w_metadata dotnet461 dlls \
     year="2015" \
     media="download" \
     file1="NDP461-KB3102436-x86-x64-AllOS-ENU.exe" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet46 vjrun20" \
+    conflicts="dotnet20sdk" \
     installed_file1="c:/windows/dotnet461.installed.workaround"
 
 load_dotnet461()
@@ -8637,7 +8440,7 @@ w_metadata dotnet462 dlls \
     publisher="Microsoft" \
     year="2016" \
     media="download" \
-    conflicts="dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet46 dotnet461 vjrun20" \
+    conflicts="dotnet20sdk" \
     installed_file1="c:/windows/dotnet462.installed.workaround"
 
 load_dotnet462()
@@ -8689,7 +8492,7 @@ w_metadata dotnet471 dlls \
     year="2017" \
     media="download" \
     file1="NDP471-KB4033342-x86-x64-AllOS-ENU.exe" \
-    conflicts="dotnet20sdk dotnet30sp1 vjrun20" \
+    conflicts="dotnet20sdk dotnet30sp1" \
     installed_file1="c:/windows/dotnet471.installed.workaround"
 
 load_dotnet471()
@@ -8738,7 +8541,7 @@ w_metadata dotnet472 dlls \
     publisher="Microsoft" \
     year="2018" \
     media="download" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet40 dotnet46 dotnet461 dotnet462 vjrun20" \
+    conflicts="dotnet20sdk" \
     installed_file1="c:/windows/dotnet472.installed.workaround"
 
 load_dotnet472()
@@ -8795,7 +8598,8 @@ w_metadata dotnet48 dlls \
     publisher="Microsoft" \
     year="2019" \
     media="download" \
-    conflicts="dotnet20 dotnet20sdk dotnet20sp1 dotnet20sp2 dotnet35sp1 dotnet40 dotnet46 dotnet461 dotnet462 dotnet472 vjrun20" \
+    file1="ndp48-x86-x64-allos-enu.exe" \
+    conflicts="dotnet20sdk" \
     installed_file1="c:/windows/dotnet48.installed.workaround"
 
 load_dotnet48()
@@ -8804,7 +8608,6 @@ load_dotnet48()
 
     # Official version. See https://dotnet.microsoft.com/download/dotnet-framework/net48
     w_download https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/abd170b4b0ec15ad0222a809b761a036/ndp48-x86-x64-allos-enu.exe 95889d6de3f2070c07790ad6cf2000d33d9a1bdfc6a381725ab82ab1c314fd53
-    file_package="ndp48-x86-x64-allos-enu.exe"
     unattended_args="/sfxlang:1027 /q /norestart"
 
     w_call remove_mono
@@ -8814,16 +8617,16 @@ load_dotnet48()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
 
-    WINEDLLOVERRIDES=fusion=b "$WINE" "$file_package" ${W_OPT_UNATTENDED:+$unattended_args}
+    WINEDLLOVERRIDES=fusion=b "$WINE" "$file1" ${W_OPT_UNATTENDED:+$unattended_args}
     status=$?
 
     echo "exit status: $status"
 
     case $status in
         0) ;;
+        5) w_die "exit status $status - user selected 'Cancel'" ;;
         105) echo "exit status $status - normal, user selected 'restart now'" ;;
         194) echo "exit status $status - normal, user selected 'restart later'" ;;
-        5) w_die "exit status $status - user selected 'Cancel'" ;;
         *) w_die "exit status $status - $W_PACKAGE installation failed" ;;
     esac
 
@@ -10472,6 +10275,41 @@ load_python26()
 
 #----------------------------------------------------------------
 
+w_metadata python27 dlls \
+    title="Python interpreter 2.7.16" \
+    publisher="Python Software Foundaton" \
+    year="2019" \
+    media="download" \
+    file1="python-2.7.16.msi" \
+    installed_exe1="c:/Python27/python.exe"
+
+load_python27()
+{
+    w_download https://www.python.org/ftp/python/2.7.16/python-2.7.16.msi d57dc3e1ba490aee856c28b4915d09e3f49442461e46e481bc6b2d18207831d7
+    w_download https://github.com/mhammond/pywin32/releases/download/b224/pywin32-224.win32-py2.7.exe 03bb02aff0ec604d1d5fefc699581ab599fff618eaddc8a721f2fa22e5572dd4
+
+    w_try_cd "$W_CACHE/$W_PACKAGE"
+    w_try "$WINE" msiexec /i python-2.7.16.msi ALLUSERS=1 $W_UNATTENDED_SLASH_Q
+
+    w_ahk_do "
+        SetTitleMatchMode, 2
+        run pywin32-224.win32-py2.7.exe
+        WinWait, Setup, Wizard will install pywin32
+        if ( w_opt_unattended > 0 ) {
+             ControlClick Button2   ; next
+             WinWait, Setup, Python 2.7 is required
+             ControlClick Button3   ; next
+             WinWait, Setup, Click Next to begin
+             ControlClick Button3   ; next
+             WinWait, Setup, finished
+             ControlClick Button4   ; Finish
+        }
+        WinWaitClose
+        "
+}
+
+#----------------------------------------------------------------
+
 w_metadata qasf dlls \
     title="qasf.dll" \
     publisher="Microsoft" \
@@ -11555,7 +11393,6 @@ w_metadata vjrun20 dlls \
     publisher="Microsoft" \
     year="2007" \
     media="download" \
-    conflicts="dotnet11 dotnet20sp1 dotnet20sp2" \
     file1="vjredist.exe" \
     installed_file1="c:/windows/Microsoft.NET/Framework/VJSharp/VJSharpSxS10.dll"
 
@@ -13306,7 +13143,9 @@ w_metadata emu8086 apps \
 
 load_emu8086()
 {
-    w_download http://www.emu8086.com/files/emu8086v408r11.zip d56d6e42fe170c52df5abd6002b1e8fef0b840eb8d8807d77819fe1fc2e17afd
+    # 2018/11/15: emu8086.com is down
+    # w_download http://www.emu8086.com/files/emu8086v408r11.zip d56d6e42fe170c52df5abd6002b1e8fef0b840eb8d8807d77819fe1fc2e17afd
+    w_download https://web.archive.org/web/20160206003914if_/http://emu8086.com/files/emu8086v408r11.zip d56d6e42fe170c52df5abd6002b1e8fef0b840eb8d8807d77819fe1fc2e17afd
     w_try_unzip "$W_TMP" "$W_CACHE/$W_PACKAGE/$file1"
     w_try "$WINE" "$W_TMP/Setup.exe" $W_UNATTENDED_SLASH_SILENT
 }
@@ -13381,8 +13220,9 @@ w_metadata fontxplorer apps \
 
 load_fontxplorer()
 {
-    w_download http://www.moonsoftware.com/files/legacy/Font_Xplorer_122_Free.exe e3a53841c133e2ecfeb75c7ea277e23011317bb031f8caf423b7e9b7f92d85e0
-
+    # 2011/05/15: http://www.moonsoftware.com/files/legacy/Font_Xplorer_122_Free.exe e3a53841c133e2ecfeb75c7ea277e23011317bb031f8caf423b7e9b7f92d85e0
+    # 2019/06/14: http://www.moonsoftware.com/files/legacy/Font_Xplorer_122_Free.exe is dead
+    w_download https://web.archive.org/web/20190217101943/http://www.moonsoftware.com/files/legacy/Font_Xplorer_122_Free.exe e3a53841c133e2ecfeb75c7ea277e23011317bb031f8caf423b7e9b7f92d85e0
     w_try_cd "$W_CACHE/fontxplorer"
     w_try "$WINE" Font_Xplorer_122_Free.exe $W_UNATTENDED_SLASH_S
     w_killall "explorer.exe"
@@ -14454,21 +14294,22 @@ w_metadata openwatcom apps \
 load_openwatcom()
 {
     # 2016/03/11: upstream http://www.openwatcom.org appears to be dead (404)
-    w_download ftp://ftp.openwatcom.org/install/open-watcom-c-win32-1.9.exe 040c910aba304fdb5f39b8fe508cd3c772b1da1f91a58179fa0895e0b2bf190b
+    # 2019/06/14: now at https://sourceforge.net/projects/openwatcom/files/open-watcom-1.9/open-watcom-c-win32-1.9.exe/download
+    w_download https://sourceforge.net/projects/openwatcom/files/open-watcom-1.9/open-watcom-c-win32-1.9.exe 040c910aba304fdb5f39b8fe508cd3c772b1da1f91a58179fa0895e0b2bf190b
 
     if [ -n "$W_UNATTENDED_SLASH_Q" ]; then
         # Options documented at http://bugzilla.openwatcom.org/show_bug.cgi?id=898
         # But they don't seem to work on Wine, so jam them into setup.inf
         # Pick smallest installation that supports 16-bit C and C++
         w_try_cd "$W_TMP"
-        cp "$W_CACHE"/openwatcom/open-watcom-c-win32-1.9.exe .
-        w_try_unzip . open-watcom-c-win32-1.9.exe setup.inf
+        cp "$W_CACHE/${W_PACKAGE}/${file1}" .
+        w_try_unzip . "${file1}" setup.inf
         sed -i 's/tools16=.*/tools16=true/' setup.inf
-        w_try zip -f open-watcom-c-win32-1.9.exe
-        w_try "$WINE" open-watcom-c-win32-1.9.exe -s
+        w_try zip -f "${file1}"
+        w_try "$WINE" "${file1}" -s
     else
         w_try_cd "$W_CACHE/$W_PACKAGE"
-        w_try "$WINE" open-watcom-c-win32-1.9.exe
+        w_try "$WINE" "${file1}"
     fi
 
     if test ! -f "$W_DRIVE_C"/WATCOM/binnt/wcc.exe; then
@@ -14883,7 +14724,7 @@ w_metadata utorrent apps \
 load_utorrent()
 {
     # BitTorrent client supported on Windows, OS X, Linux through Wine
-    # 2012/03/07: sha1sum ec2c086ff784b06e4ff05243164ddb768b81ee32096afed6d5e574ff350b619e
+    # 2012/03/07: sha256sum ec2c086ff784b06e4ff05243164ddb768b81ee32096afed6d5e574ff350b619e
     w_download_manual "https://www.oldapps.com/utorrent.php?old_utorrent=38" utorrent_2.2.1.exe ec2c086ff784b06e4ff05243164ddb768b81ee32096afed6d5e574ff350b619e
 
     w_try cp -f "$W_CACHE/utorrent/$file1" "$W_WINDIR_UNIX"/utorrent.exe
@@ -18117,12 +17958,12 @@ load_lhp_demo()
             ;;
     esac
 
-    w_download_manual "https://www.fileplanet.com/213663/210000/fileinfo/LEGO-Harry-Potter:-Years-1-4-Demo" 01d8e88511d71f5dd1492034ea4b00eacdbbf891ef23cffa31413d232eee3647
+    w_download_manual "https://www.fileplanet.com/213663/210000/fileinfo/LEGO-Harry-Potter:-Years-1-4-Demo" "$file1" 01d8e88511d71f5dd1492034ea4b00eacdbbf891ef23cffa31413d232eee3647
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
         SetTitleMatchMode, 2
-        run, LEGOHarryPotterDEMO.exe
+        run, $file1
         winwait, LEGO, language
         if ( w_opt_unattended > 0 ) {
             controlclick, Button1
@@ -18517,78 +18358,6 @@ load_menofwar()
             ControlClick, TNewButton1, Setup - Men of War, Setup has finished
         }
     "
-}
-
-#----------------------------------------------------------------
-
-w_metadata mise games \
-    title="Monkey Island: Special Edition" \
-    publisher="LucasArts" \
-    year="2009" \
-    media="dvd" \
-    file1="SecretOfMonkeyIslandSE_ddsetup.zip" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/LucasArts/The Secret of Monkey Island Special Edition/MISE.exe"
-
-load_mise()
-{
-    w_download_manual "https://www.direct2drive.com/8241/product/Buy-The-Secret-of-Monkey-Island(R):-Special-Edition-Download" SecretOfMonkeyIslandSE_ddsetup.zip 2e32458698c9ec7ebce94ae5c57531a3fe1dbb9e
-
-    mkdir -p "$W_TMP/$W_PACKAGE"
-    w_try_cd "$W_TMP/$W_PACKAGE"
-
-    # Don't extract DirectX/dotnet35 installers, they just take up extra time and aren't needed. Luckily, MISE copes well and just skips them if they are missing:
-    w_try unzip "$W_CACHE/$W_PACKAGE"/SecretOfMonkeyIslandSE_ddsetup.zip -x DirectX* dotnet*
-
-    w_ahk_do "
-        SetTitleMatchMode, 2
-        run, setup.exe
-        WinWait, The Secret of Monkey Island, This wizard will guide you
-        sleep 1000
-        ControlClick, Button2
-        WinWait, The Secret of Monkey Island, License Agreement
-        sleep 1000
-        ControlSend, RichEdit20A1, {CTRL}{END}
-        sleep 1000
-        ControlClick, Button4
-        sleep 1000
-        ControlClick, Button2
-        WinWait, The Secret of Monkey Island, Setup Type
-        sleep 1000
-        ControlClick, Button2
-        WinWait, The Secret of Monkey Island, Click Finish
-        sleep 1000
-        ControlClick, Button2
-        "
-
-    # FIXME: This app has two different keys - you can use either one.  How do we handle that with w_read_key?
-    if test -f "$W_CACHE/$W_PACKAGE/activationcode.txt"; then
-        MISE_KEY=$(cat "$W_CACHE/$W_PACKAGE/activationcode.txt")
-        w_ahk_do "
-            SetTitleMatchMode, 2
-            run, $W_PROGRAMS_X86_WIN\\LucasArts\\The Secret of Monkey Island Special Edition\\MISE.exe
-            winwait, Product Activation
-            ControlClick, Edit1 ; Activation Code
-            send $MISE_KEY
-            ControlClick Button4 ; Activate Online
-            winwait, Product Activation, SUCCESSFUL
-            winClose
-            sleep 1000
-            Process, Close, MISE.exe
-        "
-    elif test -f "$W_CACHE/$W_PACKAGE/unlockcode.txt"; then
-        MISE_KEY=$(cat "$W_CACHE/$W_PACKAGE/unlockcode.txt")
-        w_ahk_do "
-            SetTitleMatchMode, 2
-            run, $W_PROGRAMS_X86_WIN\\LucasArts\\The Secret of Monkey Island Special Edition\\MISE.exe
-            winwait, Product Activation
-            ControlClick, Edit3 ; Unlock Code
-            send $MISE_KEY
-            ControlClick Button6 ; Activate manual
-            winClose
-            sleep 1000
-            Process, Close, MISE.exe
-        "
-    fi
 }
 
 #----------------------------------------------------------------
@@ -20051,76 +19820,6 @@ load_wog()
 }
 
 #----------------------------------------------------------------
-# Gog.com games
-#----------------------------------------------------------------
-
-w_metadata beneath_a_steel_sky_gog games \
-    title="Beneath a Steel Sky (GOG.com, free)" \
-    publisher="Virgin Interactive" \
-    year="1994" \
-    file1="setup_beneath_a_steel_sky.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/GOG.com/Beneath a Steel Sky/ScummVM/scummvm.exe"
-
-load_beneath_a_steel_sky_gog()
-{
-    winetricks_load_gog "beneath_a_steel_sky" "Beneath a Steel Sky" "" "TsCheckBox4" "ScummVM\\scummvm.exe -c \"C:\\Program Files\\GOG.com\\Beneath a Steel Sky\\beneath.ini\" beneath" "" "" "75176395,1f99e12643529baa91fecfb206139a8921d9589c"
-}
-
-w_metadata sacrifice_gog games \
-    title="Sacrifice (GOG.com)" \
-    publisher="Interplay" \
-    year="2000" \
-    media="manual_download" \
-    file1="setup_sacrifice.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/GOG.com/Sacrifice/Sacrifice.exe"
-
-load_sacrifice_gog()
-{
-    winetricks_load_gog "sacrifice" "Sacrifice" "" "TsCheckBox2" "sacrifice" "" "" "591161642,63e77685599ce20c08b004a9fa3324e466ce1679"
-}
-
-w_metadata the_witcher_2_gog games \
-    title="The Witcher 2: Assassins of Kings" \
-    publisher="Atari" \
-    year="2011" \
-    media="manual_download" \
-    file1="setup_the_witcher_2_ee_3.0.1.17.exe" \
-    installed_exe1="$W_PROGRAMS_X86_WIN/GOG.com/The Witcher 2/bin/witcher2.exe"
-
-load_the_witcher_2_gog()
-{
-    winetricks_load_gog "the_witcher_2" \
-        "The Witcher 2 - Assassins of Kings" \
-        "setup_the_witcher_2-1.bin,2048477,b826cd7b096fd98eab78517752522b2a3ca8af5e\
-        setup_the_witcher_2-2.bin,2050788,a419926e4d02de81d79d586bf893150d3231833c \
-        setup_the_witcher_2-3.bin,2050788,6974cadc29fb8a8795aa245c5f8bb24e5e0cff5e \
-        setup_the_witcher_2-4.bin,2050788,ed79c1e9456801addf6fd6e687528fa01354b0d8 \
-        setup_the_witcher_2-5.bin,1631852,354cb73ae3e73cb88dedc53dd472803862a654cf \
-        setup_the_witcher_2.bin,129136,d3aa93bf147e155c5035ae15444916feabfd47b4" \
-        "" "bin/witcher2.exe" "" "The Witcher 2" \
-        "2308,9ca06383301f242143f69fe08974f9d4d713ac6b"
-}
-
-# Brief HOWTO for adding a GOG game:
-# - "beneath_a_steel_sky" is the installer exe name, minus "setup_" and ".exe"
-# - "Beneath a Steel Sky" is installer window title, minus "Setup - "
-# - There are no other files for this game, so this parameter is empty.
-#   Otherwise it should be of the following form:
-#   file_name[,length[,sha1sum]] [...]
-# - "TsCheckBox4" is the control name for the checkbox deciding whether it will
-#   install some reader (Foxit in this case, could be Acrobat Reader). That
-#   installation is enabled by default, and would just bloat the generic
-#   AutoHotKey script, so it gets disabled.
-# - "ScummVM\\[...]" is the command line to run the game, as fetched from the
-#   shortcut/launcher installer/wine creates, which will be used in BAT scripts
-#   created by wisotool
-# - The part in the URL which is specific to this game is identical to its "id"
-#   (first parameter), so this parameter is left out.
-# - The install directory is the same as installer window title (second
-#   parameter), so this parameter is left out.
-# - Main installer size and sha1sum, separated by a comma.
-
-#----------------------------------------------------------------
 # Steam Games
 #----------------------------------------------------------------
 
@@ -20435,6 +20134,42 @@ w_metadata windowmanagerdecorated=n settings \
     title_uk="Не дозволяти менеджеру вікон декорувати вікна" \
     title="Prevent the window manager from decorating windows"
 
+#----------------------------------------------------------------
+
+w_metadata usetakefocus=enabled settings \
+    title_cz="Aktivovat UseTakeFocus" \
+    title_uk="Увімкнути фокусування на вікні" \
+    title_sk="Aktivovať UseTakeFocus" \
+    title_tlh="Qorwagh buSchoH \'e\' chu\'" \
+    title="Enable UseTakeFocus"
+w_metadata usetakefocus=disabled settings \
+    title_cz="Deaktivovat UseTakeFocus (výchozí)" \
+    title_uk="Вимкнути фокусування на вікні (за замовчуванням)" \
+    title_sk="Deaktivovať UseTakeFocus (výchozí)" \
+    title_tlh="Qorwagh buSchoH \'e\' chu\'Ha\' (DuH choHlu\'pu\'be\'bogh)" \
+    title="Disable UseTakeFocus (default)"
+
+load_usetakefocus()
+{
+    case "$1" in
+        enabled) arg="Y";;
+        disabled) arg="N";;
+        *) w_die "illegal value $1 for UseTakeFocus";;
+    esac
+
+    echo "Setting UseTakeFocus to $arg"
+    cat > "$W_TMP"/set-gfs.reg <<_EOF_
+REGEDIT4
+
+[HKEY_CURRENT_USER\\Software\\Wine\\X11 Driver]
+"UseTakeFocus"="$arg"
+
+_EOF_
+    w_try_regedit "$W_TMP"/set-gfs.reg
+}
+
+#----------------------------------------------------------------
+
 load_windowmanagerdecorated()
 {
     case "$1" in
@@ -20459,6 +20194,8 @@ w_metadata windowmanagermanaged=y settings \
 w_metadata windowmanagermanaged=n settings \
     title_uk="Не дозволяти менеджеру вікон керування вікнами" \
     title="Prevent the window manager from controlling windows"
+
+#----------------------------------------------------------------
 
 load_windowmanagermanaged()
 {
