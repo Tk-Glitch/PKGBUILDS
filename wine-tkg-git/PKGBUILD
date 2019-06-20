@@ -713,6 +713,7 @@ prepare() {
 	  if [ "$_use_staging" == "true" ]; then
 	    read -rp "Do you want to patch the current wine source with staging patches (respecting your .cfg settings)? Do it only once or patches will fail!"$'\n> N/y : ' _DEBUGANSW2;
 	  fi
+	  read -rp "Do you want to run configure? You need to run it at least once to populate your build dirs!"$'\n> N/y : ' _DEBUGANSW3;
 	fi
 
 	# Update winevulkan
@@ -1245,8 +1246,10 @@ prepare() {
 	# fix path of opencl headers
 	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
 
-	# delete old build dirs (from previous builds)
-	rm	-rf "${srcdir}"/wine-tkg-*-{32,64}-build
+	if [ "$_NUKR" != "debug" ]; then
+	  # delete old build dirs (from previous builds)
+	  rm -rf "${srcdir}"/wine-tkg-*-{32,64}-build
+	fi
 
 	# no compilation
 	if [ "$_NOCOMPILE" == "true" ]; then
@@ -1292,14 +1295,16 @@ build() {
 	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	msg2 'Building Wine-64...'
 	cd  "${srcdir}"/"${pkgname}"-64-build
-	../${_winesrcdir}/configure \
-		--prefix="$_prefix" \
-		--with-x \
-		--with-gstreamer \
-		--enable-win64 \
-		--with-xattr \
-		"${_configure_args64[@]}" \
-		"${_configure_args[@]}"
+	if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
+	  ../${_winesrcdir}/configure \
+		  --prefix="$_prefix" \
+		  --with-x \
+		  --with-gstreamer \
+		  --enable-win64 \
+		  --with-xattr \
+		  "${_configure_args64[@]}" \
+		  "${_configure_args[@]}"
+	fi
 
 	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	  # make using all available threads
@@ -1314,14 +1319,16 @@ build() {
 	  export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
 	  msg2 'Building Wine-32...'
 	  cd "${srcdir}/${pkgname}"-32-build
-	  ../${_winesrcdir}/configure \
-		  --prefix="$_prefix" \
-		  --with-x \
-		  --with-gstreamer \
-		  --with-xattr \
-		  "${_configure_args32[@]}" \
-		  "${_configure_args[@]}" \
-		  --with-wine64="${srcdir}/${pkgname}"-64-build
+	  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
+	    ../${_winesrcdir}/configure \
+		    --prefix="$_prefix" \
+		    --with-x \
+		    --with-gstreamer \
+		    --with-xattr \
+		    "${_configure_args32[@]}" \
+		    "${_configure_args[@]}" \
+		    --with-wine64="${srcdir}/${pkgname}"-64-build
+	  fi
 	fi
 
 	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
