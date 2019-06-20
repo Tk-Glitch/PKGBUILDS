@@ -533,7 +533,7 @@ user_patcher() {
 }
 
 nonuser_patcher() {
-  if [ "$_NUKR" != "debug" ]; then
+  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW1" == "y" ]; then
     msg2 "Applying ${_patchname}" && patch -Np1 < ../"$_patchname" && echo "${_patchmsg}" >> "$_where"/last_build_config.log
   fi
 }
@@ -707,6 +707,14 @@ prepare() {
 	  export LDFLAGS="${LDFLAGS/,-z,now/}"
 	fi
 
+	if [ "$_NUKR" == "debug" ]; then
+	  msg2 "You are currently in debug/dev mode. By default, patches aren't applied in this mode as the source won't be cleaned up/reset between compilations. You can however choose to patch your tree to get your initial source as you desire:"
+	  read -rp "Do you want to patch the current wine source with the builtin patches (respecting your .cfg settings)? Do it only once or patches will fail!"$'\n> N/y : ' _DEBUGANSW1;
+	  if [ "$_use_staging" == "true" ]; then
+	    read -rp "Do you want to patch the current wine source with staging patches (respecting your .cfg settings)? Do it only once or patches will fail!"$'\n> N/y : ' _DEBUGANSW2;
+	  fi
+	fi
+
 	# Update winevulkan
 	if [ "$_update_winevulkan" == "true" ] && ! git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && git merge-base --is-ancestor eb39d3dbcac7a8d9c17211ab358cda4b7e07708a HEAD; then
 	  _patchname='winevulkan-1.1.103.patch' && _patchmsg="Applied winevulkan 1.1.103 patch" && nonuser_patcher
@@ -857,7 +865,7 @@ prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
-	if [ "$_use_staging" == "true" ] && [ "$_NUKR" != "debug" ]; then
+	if [ "$_use_staging" == "true" ] && [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW2" == "y" ]; then
 	  msg2 "Applying wine-staging patches..." && echo "Staging overrides, if any: ${_staging_args[@]}" >> "$_where"/last_build_config.log
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all "${_staging_args[@]}"
 
