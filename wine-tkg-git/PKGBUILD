@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.10.r3.ge07b0fa0
+pkgver=4.10.r7.ged630b81
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -397,6 +397,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'warframe-launcher.patch' # Fix for Warframe Launcher failing to update itself
 		'ffxiv-launcher-workaround.patch' # Workaround for Final Fantasy XIV Launcher 404 error
 		'leagueoflolfix.patch' # LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)
+		'overwatch-mfstub.patch' # Overwatch mf crash workaround
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -1089,6 +1090,11 @@ prepare() {
 	  fi
 	fi
 
+	# Overwatch mf crash fix from Guy1524 - https://bugs.winehq.org/show_bug.cgi?id=47385
+	if [ "$_OW_fix" == "true" ]; then
+	   _patchname='overwatch-mfstub.patch' && _patchmsg="Applied Overwatch mf crash fix" && nonuser_patcher
+	fi
+
 	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
 	if [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
 	  if [ "$_use_staging" == "true" ]; then
@@ -1477,6 +1483,7 @@ md5sums=('SKIP'
          '5b07ab957a128801b6c45e30b31432a7'
          'b1dea6339eba7ca8c37d3e5b8399fc5f'
          'a38deffe982282b3dea92e7bd48dc725'
+         'cf308e18ad3724e4872280ec35e25338'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
