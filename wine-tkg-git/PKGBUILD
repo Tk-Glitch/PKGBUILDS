@@ -1249,6 +1249,9 @@ prepare() {
 	if [ "$_NUKR" != "debug" ]; then
 	  # delete old build dirs (from previous builds)
 	  rm -rf "${srcdir}"/wine-tkg-*-{32,64}-build
+	elif [ $(git log -1 --pretty=%B | grep -c "wine-tkg patches") = 0 ]; then
+	  git add .
+	  git commit -m "wine-tkg patches"
 	fi
 
 	# no compilation
