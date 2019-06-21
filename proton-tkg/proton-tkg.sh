@@ -93,7 +93,6 @@ function proton_tkg_uninstaller {
         echo "###########################################################################################################################"
         echo ""
         echo "Proton-tkg $build was uninstalled and games previously depending on it will now use Proton-tkg ${_newest_build[@]} instead."
-        echo "You will need to restart Steam for changes to take effect !"
         echo ""
         echo "###########################################################################################################################"
       fi
@@ -117,7 +116,6 @@ if [ "$1" == "clean" ]; then
   proton_tkg_uninstaller
 else
   rm -rf "$_nowhere"/proton_dist_tmp
-  rm -f "$_nowhere"/proton_dist*.tar*
 
   if [ ! -d ./dxvk ]; then
     echo "##########################################################################################"
@@ -143,30 +141,22 @@ else
 
   # Now let's build
   cd "$_wine_tkg_git_path"
-  makepkg -s
+  makepkg -s || true
 
   # Wine-tkg-git has injected versioning and settings in the token for us, so get the values back
   source "$_nowhere/proton_tkg_token"
 
   # Copy the resulting package in here to begin our work
-  if [ -e "$_proton_pkgdest"/proton_dist*.tar* ]; then
-    mv "$_proton_pkgdest"/proton_dist*.tar* "$_nowhere"/
+  if [ -e "$_proton_pkgdest"/../HL3_confirmed ]; then
 
     cd $_nowhere
 
     # Create required dirs and clean
     mkdir -p "$HOME/.steam/root/compatibilitytools.d"
-    mkdir -p proton_dist_tmp
     rm -rf "proton_tkg_$_protontkg_version" && mkdir "proton_tkg_$_protontkg_version"
     mkdir -p proton_template/share/fonts
 
-    # Extract our custom package
-    if [ -e "$_proton_pkgdest"/proton_dist*.tar.lrz ]; then
-      lrzuntar -O ./proton_dist_tmp proton_dist*.tar.lrz
-    else
-      tar -xvf proton_dist*.tar* -C ./proton_dist_tmp >/dev/null 2>&1
-    fi
-    rm proton_dist*.tar*
+    mv "$_proton_pkgdest" proton_dist_tmp
 
     # Liberation Fonts
     rm -f proton_template/share/fonts/*
@@ -364,7 +354,7 @@ else
     fi
   else
     rm $_nowhere/proton_tkg_token
-    echo "The required proton_dist package is missing! Wine-tkg-git compilation may have failed."
+    echo "The required initial proton_dist build is missing! Wine-tkg-git compilation may have failed."
   fi
 
 fi
