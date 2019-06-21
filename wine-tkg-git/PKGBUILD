@@ -106,7 +106,7 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   echo "_dxvk_dxgi=${_dxvk_dxgi}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_use_dxvk=${_use_dxvk}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_use_d9vk=${_use_d9vk}" >> "$_proton_tkg_path"/proton_tkg_token
-  echo "_proton_pkgdest='${PKGDEST}'" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_proton_pkgdest='${pkgdir}'" >> "$_proton_tkg_path"/proton_tkg_token
 fi
 
 rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
@@ -1479,6 +1479,10 @@ package() {
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
 	  msg2 "### This wine will be installed to: $_prefix"
 	  msg2 "### Remember to use $_prefix/bin/wine instead of just wine (same for winecfg etc.)"
+	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  touch "${pkgdir}"/../HL3_confirmed
+	  msg2 'Use Gandalf to prevent packaging we do not need for proton'
+	  YOU_SHALL_NOT_PASS
 	fi
 }
 
