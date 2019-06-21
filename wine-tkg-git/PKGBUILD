@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.10.r7.ged630b81
+pkgver=4.10.r8.gbe5814e4
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -685,28 +685,6 @@ prepare() {
 
 	echo "" >> "$_where"/last_build_config.log
 
-	# compiler flags
-	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
-	  export CFLAGS="${_GCC_FLAGS}"
-	  export CXXFLAGS="${_GCC_FLAGS}"
-	  export LDFLAGS="${_LD_FLAGS}"
-	  echo "With predefined optimizations:" >> "$_where"/last_build_config.log
-	  echo "CFLAGS = ${_GCC_FLAGS}" >> "$_where"/last_build_config.log
-	  echo "LDFLAGS = ${_LD_FLAGS}" >> "$_where"/last_build_config.log
-	else
-	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
-	fi
-
-	echo "" >> "$_where"/last_build_config.log
-
-	# workaround for FS#55128
-	# https://bugs.archlinux.org/task/55128
-	# https://bugs.winehq.org/show_bug.cgi?id=43530
-	if [ -z "$_proton_tkg_path" ]; then
-	  export CFLAGS="${CFLAGS/-fno-plt/}"
-	  export LDFLAGS="${LDFLAGS/,-z,now/}"
-	fi
-
 	if [ "$_NUKR" == "debug" ]; then
 	  msg2 "You are currently in debug/dev mode. By default, patches aren't applied in this mode as the source won't be cleaned up/reset between compilations. You can however choose to patch your tree to get your initial source as you desire:"
 	  read -rp "Do you want to patch the current wine source with the builtin patches (respecting your .cfg settings)? Do it only once or patches will fail!"$'\n> N/y : ' _DEBUGANSW1;
@@ -1178,6 +1156,8 @@ prepare() {
 	  user_patcher
 	fi
 
+	echo "" >> "$_where"/last_build_config.log
+
 	if [ "$_use_staging" == "true" ] && [ "$_LOCAL_PRESET" != "staging" ]; then
 	  _patchname='wine-tkg-staging.patch' && _patchmsg="Please don't report bugs about this wine build on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
 	elif [ "$_use_staging" != "true" ] && [ "$_LOCAL_PRESET" != "mainline" ]; then
@@ -1271,6 +1251,28 @@ prepare() {
 build() {
 
 	cd "${srcdir}"
+
+	echo "" >> "$_where"/last_build_config.log
+
+	# compiler flags
+	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
+	  export CFLAGS="${_GCC_FLAGS}"
+	  export CXXFLAGS="${_GCC_FLAGS}"
+	  export LDFLAGS="${_LD_FLAGS}"
+	  echo "With predefined optimizations:" >> "$_where"/last_build_config.log
+	  echo "CFLAGS = ${_GCC_FLAGS}" >> "$_where"/last_build_config.log
+	  echo "LDFLAGS = ${_LD_FLAGS}" >> "$_where"/last_build_config.log
+	else
+	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
+	fi
+
+	# workaround for FS#55128
+	# https://bugs.archlinux.org/task/55128
+	# https://bugs.winehq.org/show_bug.cgi?id=43530
+	if [ -z "$_proton_tkg_path" ]; then
+	  export CFLAGS="${CFLAGS/-fno-plt/}"
+	  export LDFLAGS="${LDFLAGS/,-z,now/}"
+	fi
 
 	local _prefix=/usr
 	local _lib32name="lib32"
