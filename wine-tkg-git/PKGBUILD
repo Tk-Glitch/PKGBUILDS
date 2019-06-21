@@ -13,7 +13,7 @@ _dxvksrcdir='dxvk'
 _d9vksrcdir='d9vk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _configure_args=() # additional args to ./configure will be added during prepare()
-_makepkg_options=() # additional args to ./configure will be added during prepare()
+_makepkg_options=()
 
 find "$_where"/wine-tkg-patches -type f -exec cp -n {} "$_where" \; # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
 cp "$_where"/wine-tkg-userpatches/*.my* "$_where" # copy userpatches inside the PKGBUILD's dir
