@@ -5,7 +5,7 @@ pkgver=4.10.r9.g3bba6934
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=170
+eval pkgrel=171
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -473,6 +473,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
 		'proton_FS_hack_refreshrate.patch' # Add custom fake refreshrate to proton_FS_hack
+		'raw-input.patch' # Raw input fix by Guy1524
+		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
 )
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -752,6 +754,27 @@ prepare() {
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
+
+	# raw input fix by Guy1524 - part one
+	if [ "$_rawinput_fix" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  if [ "$_proton_fs_hack" != "true" ]; then
+	    _staging_args+=(-W winex11.drv-mouse-coorrds)
+	  fi
+	  _staging_args+=(-W winex11-mouse-movements)
+	  for _f in "$_where"/valve_proton_fullscreen_hack-staging*.patch ; do
+	    patch  ${_f} << 'EOM'
+@@ -2577,7 +2577,7 @@ index 1209a250b0..077c18ac10 100644
+ +    input.u.mi.dx = pt.x;
+ +    input.u.mi.dy = pt.y;
+ +
+-     TRACE( "pos %d,%d (event %f,%f, accum %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy, x_rel->accum, y_rel->accum );
++     TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
+  
+      input.type = INPUT_MOUSE;
+ diff --git a/dlls/winex11.drv/opengl.c b/dlls/winex11.drv/opengl.c
+EOM
+      done
+    fi
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
@@ -1082,6 +1105,15 @@ prepare() {
 	  fi
 	  if [ -n "$_fake_refresh_rate" ]; then
 	    _patchname='proton_FS_hack_refreshrate.patch' && _patchmsg="Applied custom fake proton FS hack refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
+	  fi
+	fi
+
+	# raw input fix by Guy1524 - part two
+	if [ "$_rawinput_fix" == "true" ]; then
+	  if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	    _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
+	  else
+	    _patchname='raw-input.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
 	  fi
 	fi
 
@@ -1581,6 +1613,8 @@ md5sums=('SKIP'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
-         'aa8d6b65936c9646972c04864eafc479')
+         'aa8d6b65936c9646972c04864eafc479'
+         '5f87dd24931793a95e989f1738e1ba4a'
+         'ca484719c394e9010f781da9060ac5fd')
 
 trap exit_cleanup EXIT
