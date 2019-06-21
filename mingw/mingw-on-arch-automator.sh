@@ -28,7 +28,7 @@ export BUILDDIR= # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
 
 _where=$PWD
 _dwarf2=true
-_fortran=true
+_fortran=false
 _cloog_git=false
 _pgp_auto=true
 
