@@ -602,7 +602,7 @@ prepare() {
 	fi
 
 	# output config to logfile
-	echo "# Last $pkgname configuration :" > "$_where"/last_build_config.log
+	echo "# Last $pkgname configuration - $(date) :" > "$_where"/last_build_config.log
 	echo "" >> "$_where"/last_build_config.log
 
 	_realwineversion=$(_describe_wine)
