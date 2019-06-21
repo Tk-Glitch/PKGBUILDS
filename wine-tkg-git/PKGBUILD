@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.10.r8.gbe5814e4
+pkgver=4.10.r9.g3bba6934
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -13,6 +13,7 @@ _dxvksrcdir='dxvk'
 _d9vksrcdir='d9vk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _configure_args=() # additional args to ./configure will be added during prepare()
+_makepkg_options=() # additional args to ./configure will be added during prepare()
 
 find "$_where"/wine-tkg-patches -type f -exec cp -n {} "$_where" \; # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
 cp "$_where"/wine-tkg-userpatches/*.my* "$_where" # copy userpatches inside the PKGBUILD's dir
@@ -254,13 +255,20 @@ pkgdesc='This "Wine to rule them all" package is the result of some random pkgbu
 url='https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git'
 arch=('x86_64')
 
+# Only pass the staticlibs option to system-wide installs
+if [ "$_EXTERNAL_INSTALL" != "true" ]; then
+  _makepkg_options+=('staticlibs')
+fi
+
+# Use ccache if available
 if pacman -Qq ccache &> /dev/null; then
   msg2 'ccache was found and will be used'
-  options=('staticlibs' 'ccache')
+  _makepkg_options+=('ccache')
 else
   msg2 'ccache was not found and will not be used'
-  options=('staticlibs')
 fi
+
+options=(${_makepkg_options[@]})
 
 license=('LGPL')
 depends=(
