@@ -1172,6 +1172,8 @@ prepare() {
 	  _patchname='wine-tkg.patch' && _patchmsg="Please don't report bugs about this wine build on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
 	fi
 
+	tools/make_requests
+
 	# Disable tests by default, enable back with _enable_tests="true"
 	if [ "$_ENABLE_TESTS" != "true" ]; then
 	  _configure_args+=(--disable-tests)
