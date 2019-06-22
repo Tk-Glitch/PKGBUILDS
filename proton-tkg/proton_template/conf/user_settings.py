@@ -40,11 +40,11 @@ user_settings = {
     #Enable Winetricks prompt on game launch
 #    "PROTON_WINETRICKS": "1",
 
-    #Use OpenGL-based wined3d for d3d9/d3d10/d3d11 instead of vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
+    #Use OpenGL-based wined3d for d3d11/d3d10/d3d9 instead of vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
 #    "PROTON_USE_WINED3D": "1",
 
-    #Use OpenGL-based wined3d for d3d10/11 only (keeping D9VK enabled). Comment out to use vulkan-based DXVK instead.
-    #!!! DXVK winelib replaces wined3d d3d10/d3d11 and needs this option enabled !!!
+    #Use OpenGL-based wined3d for d3d11/10 only (keeping D9VK enabled). Comment out to use vulkan-based DXVK instead.
+    #!!! DXVK winelib replaces wined3d d3d11/d3d10 and needs this option enabled !!!
 #    "PROTON_USE_WINED3D11": "1",
 
     #Enable custom d3d9 dll usage. This is the option you want to enable to use Gallium 9. Builtin D9VK won't be used with this option enabled.
