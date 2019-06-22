@@ -40,7 +40,7 @@ user_settings = {
     #Enable Winetricks prompt on game launch
 #    "PROTON_WINETRICKS": "1",
 
-    #Use OpenGL-based wined3d for d3d11/d3d10/d3d9 instead of vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
+    #Use OpenGL-based wined3d for d3d11/d3d10/d3d9 instead of Vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
 #    "PROTON_USE_WINED3D": "1",
 
     #Use OpenGL-based wined3d for d3d11/10 only (keeping D9VK enabled). Comment out to use vulkan-based DXVK instead.
