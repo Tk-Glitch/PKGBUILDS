@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.10.r9.g3bba6934
+pkgver=4.11.r0.ge6f1cafd
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=171
+eval pkgrel=172
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -391,6 +391,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
 		'f4skyrimse-fix-1.patch' # Fo4 & Skyrim SE Script Extender fix 1/2 (merged with 12be24a)
 		'f4skyrimse-fix-2-00451d5.patch' # Fo4 & Skyrim SE Script Extender fix 2/2 (for lower than 00451d5)
+		'f4skyrimse-fix-2-be48a56.patch' # Fo4 & Skyrim SE Script Extender fix 2/2 (for lower than be48a56)
+		'f4skyrimse-fix-2-4c750a3.patch' # Fo4 & Skyrim SE Script Extender fix 2/2 (for lower than 4c750a3)
 		'f4skyrimse-fix-2.patch' # Fo4 & Skyrim SE Script Extender fix 2/2
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
@@ -795,8 +797,12 @@ EOM
 	  if ! git merge-base --is-ancestor 12be24af8cab0e5f78795b164ec8847bafc30852 HEAD; then
 	    _patchname='f4skyrimse-fix-1.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (1)" && nonuser_patcher
 	  fi
-	  if git merge-base --is-ancestor 00451d5edf9a13fd8f414a0d06869e38cf66b754 HEAD; then
+	  if git merge-base --is-ancestor 4c750a35c3c087d1fa9b0882fb0bdd6804296473 HEAD; then
 	    _patchname='f4skyrimse-fix-2.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (2)" && nonuser_patcher
+	  elif git merge-base --is-ancestor be48a56e700d47f2221d983a37ef70228508c11b HEAD; then
+	    _patchname='f4skyrimse-fix-2-4c750a3.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (2)" && nonuser_patcher
+	  elif git merge-base --is-ancestor 00451d5edf9a13fd8f414a0d06869e38cf66b754 HEAD; then
+	    _patchname='f4skyrimse-fix-2-be48a56.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (2)" && nonuser_patcher
 	  else
 	    _patchname='f4skyrimse-fix-2-00451d5.patch' && _patchmsg="Applied F4/SkyrimSE Script Extender fix (2)" && nonuser_patcher
 	  fi
@@ -1536,6 +1542,8 @@ md5sums=('SKIP'
          '16acd00eb3ccc65687850002b818859c'
          '5e3002826a916a16130c567db763dfc5'
          'af2d42c450cb45049224faf825e7fc3b'
+         '134937095639e80fe7fb5aac12177686'
+         '496204bf74c34db41dfc3f4075375145'
          'f50501943759c8731d40eb521e36e6da'
          'af6b455bdace212157b9a6652ee88d41'
          '6e301f262f004b930ffc3000839d837b'

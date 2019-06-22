@@ -13,11 +13,11 @@ https://github.com/hdmap/wine-hackery
      server_enter_uninterrupted_section( &csVirtual, &sigset );
  
      if (base >= (char *)address_space_start)  /* make sure the DOS area remains free */
--        status = map_view( &view, base, total_size, 0, FALSE, SEC_IMAGE | SEC_FILE |
-+        status = map_view( &view, base, total_size, 0, TRUE, SEC_IMAGE | SEC_FILE |
+-        status = map_view( &view, base, total_size, get_mask( 0 ), FALSE, SEC_IMAGE | SEC_FILE |
++        status = map_view( &view, base, total_size, get_mask( 0 ), TRUE, SEC_IMAGE | SEC_FILE |
                             VPROT_COMMITTED | VPROT_READ | VPROT_EXEC | VPROT_WRITECOPY, zero_bits );
  
      if (status != STATUS_SUCCESS)
--        status = map_view( &view, NULL, total_size, 0, FALSE, SEC_IMAGE | SEC_FILE |
-+        status = map_view( &view, NULL, total_size, 0, TRUE, SEC_IMAGE | SEC_FILE |
+-        status = map_view( &view, NULL, total_size, get_mask( 0 ), FALSE, SEC_IMAGE | SEC_FILE |
++        status = map_view( &view, NULL, total_size, get_mask( 0 ), TRUE, SEC_IMAGE | SEC_FILE |
                             VPROT_COMMITTED | VPROT_READ | VPROT_EXEC | VPROT_WRITECOPY, zero_bits );
