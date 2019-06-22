@@ -1,18 +1,16 @@
-#to enable these settings, name this file "user_settings.py"
-
 #Settings here will take effect for all games run in this Proton version.
 
 user_settings = {
     #Logs are saved to $HOME/steam-<STEAM_GAME_ID>.log, overwriting any previous log with that name.
 
-    #Wine debug logging - default="+timestamp,+pid,+tid,+seh,+debugstr,+loaddll,+mscoree"
-#     "WINEDEBUG": "",
+    #Wine debug logging
+#     "WINEDEBUG": "+timestamp,+pid,+tid,+seh,+debugstr,+loaddll,+mscoree",
 
     #DXVK debug logging
 #     "DXVK_LOG_LEVEL": "info",
 
     #wine-mono debug logging (Wine's .NET replacement)
-     "WINE_MONO_TRACE": "E:System.NotImplementedException",
+#     "WINE_MONO_TRACE": "E:System.NotImplementedException",
 #     "MONO_LOG_LEVEL": "info",
 
     #Set DXVK custom config path
@@ -45,14 +43,14 @@ user_settings = {
     #Use OpenGL-based wined3d for d3d9/d3d10/d3d11 instead of vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
 #     "PROTON_USE_WINED3D": "1",
 
-    #Use gl-based wined3d for d3d10/11 only (keeping D9VK enabled). Comment out to use vulkan-based DXVK instead.
+    #Use OpenGL-based wined3d for d3d10/11 only (keeping D9VK enabled). Comment out to use vulkan-based DXVK instead.
     #!!! DXVK winelib replaces wined3d d3d10/d3d11 and needs this option enabled !!!
 #     "PROTON_USE_WINED3D11": "1",
 
     #Enable custom d3d9 dll usage. This is the option you want to enable to use Gallium 9. Builtin D9VK won't be used with this option enabled.
 #     "PROTON_USE_CUSTOMD3D9": "1",
 
-    #Use gl-based wined3d for d3d9 only (keeping DXVK enabled). Comment out to use vulkan-based D9VK or custom d3d9 dll instead.
+    #Use OpenGL-based wined3d for d3d9 only (keeping DXVK enabled). Comment out to use vulkan-based D9VK or custom d3d9 dll instead.
     #!!! D9VK winelib replaces wined3d d3d9 and needs this option enabled !!!
      "PROTON_USE_WINED3D9": "1",
 
