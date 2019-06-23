@@ -54,7 +54,7 @@ _basever=52
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
-_sub=rc5
+_sub=rc6
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -93,8 +93,8 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         #0010-v5.1_bmq095.patch
         0011-ZFS-fix.patch
 )
-sha256sums=('4079ef5b775869271d93876ecfbf103f70ae3cd5efe7bfce8d5b68a0b89b652b'
-            '58b609d71a4e755708fce42a3f0c198a86c8407b56a5e28cbb31a90925a1a4bf'
+sha256sums=('60a3a2450ce669e6117852f9bdad4ea356e6684cf4c26a18e2ba6c934af29c96'
+            'd2863079595f48badf9470c72ded29935c6464df519f37b597946c47fa3e4f3a'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
