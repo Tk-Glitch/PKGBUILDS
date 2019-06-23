@@ -189,8 +189,8 @@ else
 
     # Build lsteamclient libs
     export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
-    export CFLAGS="-O2 -g"
-    export CXXFLAGS="-Wno-attributes -O2 -g"
+    export CFLAGS="-fpermissive -O2 -g"
+    export CXXFLAGS="-fpermissive -Wno-attributes -O2 -g"
     export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
 
     mkdir -p build/lsteamclient.win64
@@ -222,7 +222,7 @@ else
       export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
 
       winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
-      make -e CC="winegcc -m32 -fpermissive" CXX="wineg++ -m32 -fpermissive" -C "$_nowhere/Proton/build/steam.win32" && strip steam.exe.so
+      make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" && strip steam.exe.so
       cd $_nowhere
 
       # Inject steam helper winelib and libsteam_api lib in our wine-tkg-git build
