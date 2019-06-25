@@ -189,7 +189,7 @@ else
 
     # Build lsteamclient libs
     export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
-    export CFLAGS="-fpermissive -O2 -g"
+    export CFLAGS="-O2 -g"
     export CXXFLAGS="-fpermissive -Wno-attributes -O2 -g"
     export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
 
