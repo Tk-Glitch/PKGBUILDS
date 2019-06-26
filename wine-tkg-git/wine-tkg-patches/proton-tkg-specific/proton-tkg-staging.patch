@@ -1904,3 +1904,31 @@ index e22559912c3..41ec809b727 100644
          *mode = DWRITE_RENDERING_MODE_OUTLINE;
          return S_OK;
      }
+From ad18e4fa937f917a49f3ef53493c5205df0f4036 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Bernon?= <rbernon@codeweavers.com>
+Date: Tue, 11 Jun 2019 14:52:43 +0200
+Subject: [PATCH] winex11.drv: Fix GetCursorPos not returning anything
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Rémi Bernon <rbernon@codeweavers.com>
+---
+ dlls/winex11.drv/mouse.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
+index 17c1e1ef0c0..dce71284e23 100644
+--- a/dlls/winex11.drv/mouse.c
++++ b/dlls/winex11.drv/mouse.c
+@@ -1502,8 +1502,8 @@ BOOL CDECL X11DRV_GetCursorPos(LPPOINT pos)
+     if (ret)
+     {
+         POINT old = *pos;
+-        POINT p = root_to_virtual_screen( winX, winY );
+-        fs_hack_real_to_user(&p);
++        *pos = root_to_virtual_screen( winX, winY );
++        fs_hack_real_to_user(pos);
+         TRACE( "pointer at %s server pos %s\n", wine_dbgstr_point(pos), wine_dbgstr_point(&old) );
+     }
+     return ret;
