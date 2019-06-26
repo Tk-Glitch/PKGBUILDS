@@ -5,7 +5,7 @@ pkgver=4.11.r2.gfad0c725
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=172
+eval pkgrel=173
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -129,6 +129,8 @@ if [ "$_NUKR" == "true" ]; then
 fi
 
   # Remove temporarily copied patches
+  rm -f "$_where"/wine-tkg
+  rm -f "$_where"/wine-tkg-interactive
   rm -rf "$_where"/*.patch
   rm -rf "$_where"/*.my*
   rm -rf "$_where"/*.conf
@@ -1626,7 +1628,7 @@ md5sums=('SKIP'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
          'aa8d6b65936c9646972c04864eafc479'
-         '5f87dd24931793a95e989f1738e1ba4a'
-         'ca484719c394e9010f781da9060ac5fd')
+         'f5b19d76cbb1901541c54c1dde8f8837'
+         '9444bcb26f7453bf9004462d074ccdb9')
 
 trap exit_cleanup EXIT

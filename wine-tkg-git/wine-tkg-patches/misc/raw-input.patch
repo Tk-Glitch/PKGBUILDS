@@ -1,5 +1,5 @@
 diff --git a/dlls/user32/input.c b/dlls/user32/input.c
-index 8b2ae805aa..0d5bddd0af 100644
+index 8b2ae805aa..f7ef1c3be2 100644
 --- a/dlls/user32/input.c
 +++ b/dlls/user32/input.c
 @@ -33,6 +33,7 @@
@@ -10,7 +10,7 @@ index 8b2ae805aa..0d5bddd0af 100644
  
  #include "ntstatus.h"
  #define WIN32_NO_STATUS
-@@ -129,6 +130,30 @@ BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input )
+@@ -129,6 +130,34 @@ BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input )
      return !status;
  }
  
@@ -24,9 +24,12 @@ index 8b2ae805aa..0d5bddd0af 100644
 +        switch (raw_input->header.dwType)
 +        {
 +        case RIM_TYPEMOUSE:
++            if (raw_input->data.mouse.usFlags || raw_input->data.mouse.ulRawButtons
++                 || raw_input->data.mouse.ulExtraInformation)
++                WARN("Unhandled parameters");
++
 +            req->input.mouse.x = raw_input->data.mouse.lLastX;
 +            req->input.mouse.y = raw_input->data.mouse.lLastY;
-+            req->input.mouse.info = raw_input->data.mouse.ulExtraInformation;
 +            req->input.mouse.button_flags = raw_input->data.mouse.u.s.usButtonFlags;
 +            req->input.mouse.button_data = raw_input->data.mouse.u.s.usButtonData;
 +            break;
@@ -35,7 +38,8 @@ index 8b2ae805aa..0d5bddd0af 100644
 +    }
 +    SERVER_END_REQ;
 +
-+    return status;
++    if (status) SetLastError( RtlNtStatusToDosError(status) );
++    return !status;
 +}
 +
  
@@ -126,23 +130,70 @@ index d5b8597d8e..7103b86055 100644
  @ cdecl __wine_send_input(long ptr)
 +@ cdecl __wine_send_raw_input(ptr)
  @ cdecl __wine_set_pixel_format(long long)
+diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
+index 6054f645c4..30988be028 100644
+--- a/dlls/winex11.drv/event.c
++++ b/dlls/winex11.drv/event.c
+@@ -762,7 +762,11 @@ static BOOL X11DRV_FocusIn( HWND hwnd, XEvent *xev )
+     TRACE( "win %p xwin %lx detail=%s\n", hwnd, event->window, focus_details[event->detail] );
+ 
+     if (event->detail == NotifyPointer) return FALSE;
+-    if (hwnd == GetDesktopWindow()) return FALSE;
++    if (hwnd == GetDesktopWindow())
++    {
++        X11DRV_XInput2_Enable();
++        return FALSE;
++    }
+ 
+     if ((xic = X11DRV_get_ic( hwnd ))) XSetICFocus( xic );
+     if (use_take_focus)
+@@ -800,7 +804,11 @@ static void focus_out( Display *display , HWND hwnd )
+ 
+     if (root_window != DefaultRootWindow(display))
+     {
+-        if (hwnd == GetDesktopWindow()) reset_clipping_window();
++        if (hwnd == GetDesktopWindow())
++        {
++            reset_clipping_window();
++            X11DRV_XInput2_Disable();
++        }
+         return;
+     }
+     if (hwnd != GetForegroundWindow()) return;
 diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
-index f737a306a5..06cfbd9e0d 100644
+index f737a306a5..e091efff46 100644
 --- a/dlls/winex11.drv/mouse.c
 +++ b/dlls/winex11.drv/mouse.c
-@@ -286,9 +286,9 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
+@@ -284,11 +284,26 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
+ }
+ #endif
  
++/***********************************************************************
++ *              inform_wineserver
++ */
++static void inform_wineserver(void)
++{
++    static int once = 0;
++    if (!once)
++    {
++        RAWINPUT raw_input;
++        raw_input.header.dwType = RIM_ENABLE_NATIVE_MOUSE_MOVE;
++        __wine_send_raw_input(&raw_input);
++        once = 1;
++    }
++}
++
  
  /***********************************************************************
 - *              enable_xinput2
-+ *              X11DRV_SetupXInput2
++ *              X11DRV_XInput2_Enable
   */
 -static void enable_xinput2(void)
-+void X11DRV_SetupXInput2(void)
++void X11DRV_XInput2_Enable(void)
  {
  #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
      struct x11drv_thread_data *data = x11drv_thread_data();
-@@ -318,7 +318,6 @@ static void enable_xinput2(void)
+@@ -318,7 +333,6 @@ static void enable_xinput2(void)
      memset( mask_bits, 0, sizeof(mask_bits) );
      XISetMask( mask_bits, XI_DeviceChanged );
      XISetMask( mask_bits, XI_RawMotion );
@@ -150,7 +201,23 @@ index f737a306a5..06cfbd9e0d 100644
  
      pXISelectEvents( data->display, DefaultRootWindow( data->display ), &mask, 1 );
  
-@@ -349,7 +348,7 @@ static void disable_xinput2(void)
+@@ -337,19 +351,21 @@ static void enable_xinput2(void)
+     data->xi2_current_slave = 0;
+ 
+     data->xi2_state = xi_enabled;
++
++    inform_wineserver();
+ #endif
+ }
+ 
+ /***********************************************************************
+- *              disable_xinput2
++ *              X11DRV_XInput2_Disable
+  */
+-static void disable_xinput2(void)
++void X11DRV_XInput2_Disable(void)
+ {
+ #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
      struct x11drv_thread_data *data = x11drv_thread_data();
      XIEventMask mask;
  
@@ -159,7 +226,7 @@ index f737a306a5..06cfbd9e0d 100644
  
      TRACE( "disabling\n" );
      data->xi2_state = xi_disabled;
-@@ -368,6 +367,21 @@ static void disable_xinput2(void)
+@@ -368,6 +384,21 @@ static void disable_xinput2(void)
  #endif
  }
  
@@ -181,7 +248,7 @@ index f737a306a5..06cfbd9e0d 100644
  
  /***********************************************************************
   *		grab_clipping_window
-@@ -393,9 +407,9 @@ static BOOL grab_clipping_window( const RECT *clip )
+@@ -393,9 +424,9 @@ static BOOL grab_clipping_window( const RECT *clip )
          return TRUE;
  
      /* enable XInput2 unless we are already clipping */
@@ -193,7 +260,7 @@ index f737a306a5..06cfbd9e0d 100644
      {
          WARN( "XInput2 not supported, refusing to clip to %s\n", wine_dbgstr_rect(clip) );
          DestroyWindow( msg_hwnd );
-@@ -423,7 +437,7 @@ static BOOL grab_clipping_window( const RECT *clip )
+@@ -423,7 +454,7 @@ static BOOL grab_clipping_window( const RECT *clip )
  
      if (!clipping_cursor)
      {
@@ -202,7 +269,7 @@ index f737a306a5..06cfbd9e0d 100644
          DestroyWindow( msg_hwnd );
          return FALSE;
      }
-@@ -489,7 +503,7 @@ LRESULT clip_cursor_notify( HWND hwnd, HWND new_clip_hwnd )
+@@ -489,7 +520,7 @@ LRESULT clip_cursor_notify( HWND hwnd, HWND new_clip_hwnd )
          TRACE( "clip hwnd reset from %p\n", hwnd );
          data->clip_hwnd = 0;
          data->clip_reset = GetTickCount();
@@ -211,7 +278,7 @@ index f737a306a5..06cfbd9e0d 100644
          DestroyWindow( hwnd );
      }
      else if (hwnd == GetForegroundWindow())  /* request to clip */
-@@ -1724,16 +1738,18 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1724,16 +1755,18 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  {
      XIRawEvent *event = xev->data;
      const double *values = event->valuators.values;
@@ -232,7 +299,7 @@ index f737a306a5..06cfbd9e0d 100644
  
      /* If there is no slave currently detected, no previous motion nor device
       * change events were received. Look it up now on the device list in this
-@@ -1758,25 +1774,21 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1758,25 +1791,21 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      x_rel = &thread_data->x_rel_valuator;
      y_rel = &thread_data->y_rel_valuator;
  
@@ -261,7 +328,7 @@ index f737a306a5..06cfbd9e0d 100644
          }
          if (i == y_rel->number)
          {
-@@ -1784,6 +1796,8 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1784,6 +1813,8 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
              if (y_rel->min < y_rel->max)
                  input.u.mi.dy = val * (virtual_rect.bottom - virtual_rect.top)
                                      / (y_rel->max - y_rel->min);
@@ -270,7 +337,7 @@ index f737a306a5..06cfbd9e0d 100644
          }
      }
  
-@@ -1793,10 +1807,30 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1793,10 +1824,30 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
          return FALSE;
      }
  
@@ -293,8 +360,8 @@ index f737a306a5..06cfbd9e0d 100644
 +        input.u.mi.time        = EVENT_x11_time_to_win32_time( event->time );
 +        input.u.mi.dwExtraInfo = 0;
 +
-+        TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );        
-+        
++        TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
++
 +        input.type = INPUT_MOUSE;
 +        __wine_send_input( 0, &input );
 +    }
@@ -305,18 +372,19 @@ index f737a306a5..06cfbd9e0d 100644
  }
  
 diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
-index a0308b0675..7c9fe7b90b 100644
+index a0308b0675..a9138eef2a 100644
 --- a/dlls/winex11.drv/x11drv.h
 +++ b/dlls/winex11.drv/x11drv.h
-@@ -194,6 +194,7 @@ extern BOOL X11DRV_UnrealizePalette( HPALETTE hpal ) DECLSPEC_HIDDEN;
+@@ -194,6 +194,8 @@ extern BOOL X11DRV_UnrealizePalette( HPALETTE hpal ) DECLSPEC_HIDDEN;
  
  extern void X11DRV_Xcursor_Init(void) DECLSPEC_HIDDEN;
  extern void X11DRV_XInput2_Init(void) DECLSPEC_HIDDEN;
-+extern void X11DRV_SetupXInput2(void) DECLSPEC_HIDDEN;
++extern void X11DRV_XInput2_Enable(void) DECLSPEC_HIDDEN;
++extern void X11DRV_XInput2_Disable(void) DECLSPEC_HIDDEN;
  
  extern DWORD copy_image_bits( BITMAPINFO *info, BOOL is_r8g8b8, XImage *image,
                                const struct gdi_image_bits *src_bits, struct gdi_image_bits *dst_bits,
-@@ -335,7 +336,7 @@ struct x11drv_thread_data
+@@ -335,7 +337,7 @@ struct x11drv_thread_data
      HWND     clip_hwnd;            /* message window stored in desktop while clipping is active */
      DWORD    clip_reset;           /* time when clipping was last reset */
      HKL      kbd_layout;           /* active keyboard layout */
@@ -326,14 +394,14 @@ index a0308b0675..7c9fe7b90b 100644
      int      xi2_device_count;
      struct x11drv_valuator_data x_rel_valuator;
 diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
-index e67a3c05a9..66f6d1dcfc 100644
+index e67a3c05a9..25f9a061b4 100644
 --- a/dlls/winex11.drv/x11drv_main.c
 +++ b/dlls/winex11.drv/x11drv_main.c
 @@ -679,6 +679,7 @@ struct x11drv_thread_data *x11drv_init_thread_data(void)
      TlsSetValue( thread_data_tls_index, data );
  
      if (use_xim) X11DRV_SetupXIM();
-+    X11DRV_SetupXInput2();
++    X11DRV_XInput2_Enable();
  
      return data;
  }
@@ -350,46 +418,58 @@ index 3cffaa19ac..5d8774b6e6 100644
  
  #ifdef __cplusplus
 diff --git a/server/protocol.def b/server/protocol.def
-index 5adc83db8b..0f641ecf01 100644
+index 5adc83db8b..9703b49154 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
-@@ -307,7 +307,8 @@ struct hardware_msg_data
-             int            type;    /* RIM_TYPEMOUSE */
-             int            x;       /* x coordinate */
-             int            y;       /* y coordinate */
+@@ -304,10 +304,11 @@ struct hardware_msg_data
+         } kbd;
+         struct
+         {
+-            int            type;    /* RIM_TYPEMOUSE */
+-            int            x;       /* x coordinate */
+-            int            y;       /* y coordinate */
 -            unsigned int   data;    /* mouse data */
-+            unsigned short button_flags;    /* mouse data */
-+            unsigned short button_data;
++            int            type;            /* RIM_TYPEMOUSE */
++            int            x;               /* x coordinate */
++            int            y;               /* y coordinate */
++            unsigned short button_flags;    /* mouse button */
++            unsigned short button_data;     /* event details */
          } mouse;
      } rawinput;
  };
-@@ -357,6 +358,25 @@ typedef union
+@@ -357,6 +358,31 @@ typedef union
      } hw;
  } hw_input_t;
  
++#define RIM_ENABLE_NATIVE_MOUSE_MOVE   0x0800
++#define RIM_ENABLE_NATIVE_MOUSE_PRESS  0x1000
 +typedef union
 +{
 +    int type;
 +    struct
 +    {
-+        int type; /* RIM_TYPEMOUSE */
-+        int x;
-+        int y;
-+        unsigned short button_flags;
-+        unsigned short button_data;
-+        lparam_t info;
++        int type;                     /* RIM_TYPEMOUSE */
++        int x;                        /* relative x movement */
++        int y;                        /* relative y movement */
++        unsigned short button_flags;  /* mouse button */
++        unsigned short button_data;   /* event details */
 +    } mouse;
 +    struct
 +    {
 +        int type; /* RIM_TYPEKEYBOARD */
 +        /* TODO: fill this in if/when necessary */
 +    } kbd;
++    struct
++    {
++        int type; /* RIM_TYPEHID */
++        /* TODO: fill this in if/when necessary */
++    } hid;
 +} hw_rawinput_t;
 +
  typedef union
  {
      unsigned char            bytes[1];   /* raw data for sent messages */
-@@ -2293,6 +2313,11 @@ enum message_type
+@@ -2293,6 +2319,11 @@ enum message_type
  #define SEND_HWMSG_INJECTED    0x01
  
  
@@ -402,10 +482,20 @@ index 5adc83db8b..0f641ecf01 100644
  @REQ(get_message)
      unsigned int    flags;     /* PM_* flags */
 diff --git a/server/queue.c b/server/queue.c
-index 24239916af..2891caa8e8 100644
+index 24239916af..1fc5a23f06 100644
 --- a/server/queue.c
 +++ b/server/queue.c
-@@ -1624,11 +1624,78 @@ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, cons
+@@ -1596,6 +1596,9 @@ static int send_hook_ll_message( struct desktop *desktop, struct message *hardwa
+     return 1;
+ }
+ 
++int emulate_raw_mouse_move = 1;
++int emulate_raw_mouse_press = 1;
++
+ /* queue a hardware message for a mouse event */
+ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, const hw_input_t *input,
+                                 unsigned int origin, struct msg_queue *sender )
+@@ -1624,6 +1627,16 @@ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, cons
          WM_MOUSEHWHEEL   /* 0x1000 = MOUSEEVENTF_HWHEEL */
      };
  
@@ -422,11 +512,13 @@ index 24239916af..2891caa8e8 100644
      desktop->cursor.last_change = get_tick_count();
      flags = input->mouse.flags;
      time  = input->mouse.time;
-     if (!time) time = desktop->cursor.last_change;
+@@ -1653,21 +1666,62 @@ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, cons
  
-+    if ((device = current->process->rawinput_mouse))
-+    {
-+        if (flags & ~MOUSEEVENTF_MOVE)
+     if ((device = current->process->rawinput_mouse))
+     {
+-        if (!(msg = alloc_hardware_message( input->mouse.info, source, time ))) return 0;
+-        msg_data = msg->data;
++        if ( (emulate_raw_mouse_press && flags & ~MOUSEEVENTF_MOVE) || (emulate_raw_mouse_move && flags & MOUSEEVENTF_MOVE) )
 +        {
 +            if (!(msg = alloc_hardware_message( input->mouse.info, source, time ))) return 0;
 +            msg_data = msg->data;
@@ -438,79 +530,74 @@ index 24239916af..2891caa8e8 100644
 +
 +            msg_data->flags               = 0;
 +            msg_data->rawinput.type       = RIM_TYPEMOUSE;
-+            msg_data->rawinput.mouse.x    = 0;
-+            msg_data->rawinput.mouse.y    = 0;
++            msg_data->rawinput.mouse.x    = emulate_raw_mouse_move ? x - desktop->cursor.x : 0;
++            msg_data->rawinput.mouse.y    = emulate_raw_mouse_move ? y - desktop->cursor.y : 0;
 +            msg_data->rawinput.mouse.button_flags = 0;
 +            msg_data->rawinput.mouse.button_data = 0;
 +
-+            for (i = 1; i < ARRAY_SIZE(raw_button_flags); ++i)
++            if (emulate_raw_mouse_press)
 +            {
-+                if (flags & (1 << i))
-+                    msg_data->rawinput.mouse.button_flags |= raw_button_flags[i];
-+            }
-+
-+            if (flags & MOUSEEVENTF_WHEEL)
-+            {
-+                msg_data->rawinput.mouse.button_flags |= RI_MOUSE_WHEEL;
-+                msg_data->rawinput.mouse.button_data   = input->mouse.data;
-+            }
-+            if (flags & MOUSEEVENTF_HWHEEL)
-+            {
-+                msg_data->rawinput.mouse.button_flags |= RI_MOUSE_HORIZONTAL_WHEEL;
-+                msg_data->rawinput.mouse.button_data   = input->mouse.data;
-+            }
-+            if (flags & MOUSEEVENTF_XDOWN)
-+            {
-+                if (input->mouse.data == XBUTTON1)
-+                    msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_4_DOWN;
-+                else if (input->mouse.data == XBUTTON2)
-+                    msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_5_DOWN;
-+            }
-+            if (flags & MOUSEEVENTF_XUP)
-+            {
-+                if (input->mouse.data == XBUTTON1)
-+                    msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_4_UP;
-+                else if (input->mouse.data == XBUTTON2)
-+                    msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_5_UP;
-+            }
-+
-+            queue_hardware_message( desktop, msg, 0 );
-+        }
-+        
-+        if (device->flags & RIDEV_NOLEGACY)
-+            return FALSE;
-+    }
-+
-     if (flags & MOUSEEVENTF_MOVE)
-     {
-         if (flags & MOUSEEVENTF_ABSOLUTE)
-@@ -1651,25 +1718,6 @@ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, cons
-         y = desktop->cursor.y;
-     }
++                for (i = 1; i < ARRAY_SIZE(raw_button_flags); ++i)
++                {
++                    if (flags & (1 << i))
++                        msg_data->rawinput.mouse.button_flags |= raw_button_flags[i];
++                }
  
--    if ((device = current->process->rawinput_mouse))
--    {
--        if (!(msg = alloc_hardware_message( input->mouse.info, source, time ))) return 0;
--        msg_data = msg->data;
--
 -        msg->win       = device->target;
 -        msg->msg       = WM_INPUT;
 -        msg->wparam    = RIM_INPUT;
 -        msg->lparam    = 0;
--
++                if (flags & MOUSEEVENTF_WHEEL)
++                {
++                    msg_data->rawinput.mouse.button_flags |= RI_MOUSE_WHEEL;
++                    msg_data->rawinput.mouse.button_data   = input->mouse.data;
++                }
++                if (flags & MOUSEEVENTF_HWHEEL)
++                {
++                    msg_data->rawinput.mouse.button_flags |= RI_MOUSE_HORIZONTAL_WHEEL;
++                    msg_data->rawinput.mouse.button_data   = input->mouse.data;
++                }
++                if (flags & MOUSEEVENTF_XDOWN)
++                {
++                    if (input->mouse.data == XBUTTON1)
++                        msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_4_DOWN;
++                    else if (input->mouse.data == XBUTTON2)
++                        msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_5_DOWN;
++                }
++                if (flags & MOUSEEVENTF_XUP)
++                {
++                    if (input->mouse.data == XBUTTON1)
++                        msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_4_UP;
++                    else if (input->mouse.data == XBUTTON2)
++                        msg_data->rawinput.mouse.button_flags |= RI_MOUSE_BUTTON_5_UP;
++                }
++            }
+ 
 -        msg_data->flags               = flags;
 -        msg_data->rawinput.type       = RIM_TYPEMOUSE;
 -        msg_data->rawinput.mouse.x    = x - desktop->cursor.x;
 -        msg_data->rawinput.mouse.y    = y - desktop->cursor.y;
 -        msg_data->rawinput.mouse.data = input->mouse.data;
--
++            queue_hardware_message( desktop, msg, 0 );
++        }
+ 
 -        queue_hardware_message( desktop, msg, 0 );
--    }
--
++        if (device->flags & RIDEV_NOLEGACY)
++            return FALSE;
+     }
+ 
      for (i = 0; i < ARRAY_SIZE( messages ); i++)
-     {
-         if (!messages[i]) continue;
-@@ -2370,6 +2418,47 @@ DECL_HANDLER(send_hardware_message)
+@@ -1793,6 +1847,9 @@ static int queue_keyboard_message( struct desktop *desktop, user_handle_t win, c
+         msg_data->rawinput.kbd.scan    = input->kbd.scan;
+ 
+         queue_hardware_message( desktop, msg, 0 );
++
++        if (device->flags & RIDEV_NOLEGACY)
++            return FALSE;
+     }
+ 
+     if (!(msg = alloc_hardware_message( input->kbd.info, source, time ))) return 0;
+@@ -2370,6 +2427,53 @@ DECL_HANDLER(send_hardware_message)
      release_object( desktop );
  }
  
@@ -530,7 +617,7 @@ index 24239916af..2891caa8e8 100644
 +    case RIM_TYPEMOUSE:
 +        if ((device = current->process->rawinput_mouse))
 +        {
-+            if (!(msg = alloc_hardware_message( req->input.mouse.info, source, 0 ))) return;
++            if (!(msg = alloc_hardware_message( 0, source, 0 ))) return;
 +            msg_data = msg->data;
 +
 +            msg->win       = device->target;
@@ -548,6 +635,12 @@ index 24239916af..2891caa8e8 100644
 +            queue_hardware_message( desktop, msg, 0 );
 +        }
 +        break;
++    case RIM_ENABLE_NATIVE_MOUSE_MOVE:
++        emulate_raw_mouse_move = 0;
++        break;
++    case RIM_ENABLE_NATIVE_MOUSE_PRESS:
++        emulate_raw_mouse_press = 0;
++        break;
 +    default:
 +        set_error( STATUS_INVALID_PARAMETER );
 +    }
@@ -559,10 +652,10 @@ index 24239916af..2891caa8e8 100644
  DECL_HANDLER(post_quit_message)
  {
 diff --git a/server/trace.c b/server/trace.c
-index 3562823659..97585f4507 100644
+index 3562823659..bccab449cf 100644
 --- a/server/trace.c
 +++ b/server/trace.c
-@@ -390,6 +390,30 @@ static void dump_hw_input( const char *prefix, const hw_input_t *input )
+@@ -390,6 +390,27 @@ static void dump_hw_input( const char *prefix, const hw_input_t *input )
      }
  }
  
@@ -571,11 +664,9 @@ index 3562823659..97585f4507 100644
 +    switch (rawinput->type)
 +    {
 +    case RIM_TYPEMOUSE:
-+        fprintf( stderr, "%s{type=MOUSE,x=%d,y=%d,button_flags=%04hx,button_data=%04hx",
++        fprintf( stderr, "%s{type=MOUSE,x=%d,y=%d,button_flags=%04hx,button_data=%04hx}",
 +                 prefix, rawinput->mouse.x, rawinput->mouse.y, rawinput->mouse.button_flags,
 +                 rawinput->mouse.button_data);
-+        dump_uint64( ",info=", &rawinput->mouse.info );
-+        fputc( '}', stderr );
 +        break;
 +    case RIM_TYPEKEYBOARD:
 +        fprintf( stderr, "%s{type=KEYBOARD}\n", prefix);
@@ -589,19 +680,18 @@ index 3562823659..97585f4507 100644
 +    }
 +}
 +
-+
  static void dump_luid( const char *prefix, const luid_t *luid )
  {
      fprintf( stderr, "%s%d.%u", prefix, luid->high_part, luid->low_part );
 diff --git a/tools/make_requests b/tools/make_requests
-index 367f245653..b293ff13a6 100755
+index 367f245653..cf631923a7 100755
 --- a/tools/make_requests
 +++ b/tools/make_requests
 @@ -53,6 +53,7 @@ my %formats =
      "ioctl_code_t"  => [  4,   4,  "&dump_ioctl_code" ],
      "cpu_type_t"    => [  4,   4,  "&dump_cpu_type" ],
      "hw_input_t"    => [  32,  8,  "&dump_hw_input" ],
-+    "hw_rawinput_t" => [  24,  8,  "&dump_hw_rawinput" ]
++    "hw_rawinput_t" => [  16,  8,  "&dump_hw_rawinput" ]
  );
  
  my @requests = ();
