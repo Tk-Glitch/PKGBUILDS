@@ -129,8 +129,6 @@ if [ "$_NUKR" == "true" ]; then
 fi
 
   # Remove temporarily copied patches
-  rm -f "$_where"/wine-tkg
-  rm -f "$_where"/wine-tkg-interactive
   rm -rf "$_where"/*.patch
   rm -rf "$_where"/*.my*
   rm -rf "$_where"/*.conf
