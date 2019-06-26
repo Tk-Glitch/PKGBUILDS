@@ -1485,6 +1485,10 @@ package() {
 	  fi
 	fi
 
+	# wine-tkg path scripts - Might be useful for external builds when using weird env vars - Also workarounds wrong paths issues on non-Arch distros
+	cp "$_where"/wine-tkg-patches/wine-tkg "${pkgdir}$_prefix"/bin/wine-tkg
+	cp "$_where"/wine-tkg-patches/wine-tkg-interactive "${pkgdir}$_prefix"/bin/wine-tkg-interactive
+
 	# dxvk
 	if [ "$_use_dxvk" == "true" ]; then
 	  if [ "$_NOLIB32" != "true" ]; then
