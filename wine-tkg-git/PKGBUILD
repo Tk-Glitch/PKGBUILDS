@@ -469,6 +469,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'proton-sdl-joy.patch' # Proton SDL joystick support
+		'proton-sdl-joy-2.patch' # Proton SDL joystick support additions for newer trees
 		'proton-gamepad-additions-50b9456.patch' # Proton 4.2-5 xinput hacks and other gamepad additions (<50b9456)
 		'proton-gamepad-additions-3d011fc.patch' # Proton 4.2-5 xinput hacks and other gamepad additions (<3d011fc)
 		'proton-gamepad-additions-f8a04c7.patch' # Proton 4.2-6 xinput hacks and other gamepad additions (<f8a04c7)
@@ -1176,6 +1177,9 @@ EOM
 	  # SDL Joystick support - from Proton
 	  if [ "$_sdl_joy_support" == "true" ]; then
 	    _patchname='proton-sdl-joy.patch' && _patchmsg="Enable SDL Joystick support (from Proton)" && nonuser_patcher
+	    if git merge-base --is-ancestor 1daeef73325e9d35073231baf874600050126c7f HEAD; then
+	      _patchname='proton-sdl-joy-2.patch' && _patchmsg="Enable SDL Joystick support additions (from Proton)" && nonuser_patcher
+	    fi
 	    # Gamepad additions - from Proton 4.2-5
 	    if [ "$_gamepad_additions" == "true" ]; then
 	      if git merge-base --is-ancestor f8a04c7f2e2c77eef663c5bb2109e3dbd51b22e0 HEAD; then
@@ -1619,7 +1623,8 @@ md5sums=('SKIP'
          'd047619c11d95c4c9bbefae564876950'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
-         '09699ec19868cbc7cd28edeccb8506b8'
+         '52f11ca72f4ee06bd2a4bc2b0314e631'
+         '6d3b224e1e6dc858af0480fecaaa8876'
          '2cf363e936aa87450c79bd131eea1f9f'
          'ef9d49400425109ed6e7c39060a0e27e'
          'fee4328b205727568bbe73e0170eb259'
