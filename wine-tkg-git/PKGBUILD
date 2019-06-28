@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.11.r2.gfad0c725
+pkgver=4.11.r6.gfbb8eac8
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -1352,6 +1352,9 @@ build() {
 
 	# build wine 64-bit
 	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
+	if pacman -Qq ccache &> /dev/null; then
+	  export CROSSCC="ccache x86_64-w64-mingw32-gcc"
+	fi
 	msg2 'Building Wine-64...'
 	cd  "${srcdir}"/"${pkgname}"-64-build
 	if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
@@ -1374,6 +1377,9 @@ build() {
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
+	  if pacman -Qq ccache &> /dev/null; then
+	    export CROSSCC="ccache i686-w64-mingw32-gcc"
+	  fi
 	  # build wine 32-bit
 	  export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
 	  msg2 'Building Wine-32...'
