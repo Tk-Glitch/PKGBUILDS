@@ -614,9 +614,9 @@ index e1da8a48..9d6b4ee9 100644
 --- a/src/dxvk/dxvk_options.cpp
 +++ b/src/dxvk/dxvk_options.cpp
 @@ -4,6 +4,7 @@ namespace dxvk {
- 
    DxvkOptions::DxvkOptions(const Config& config) {
      enableStateCache      = config.getOption<bool>    ("dxvk.enableStateCache",       true);
+     enableTransferQueue   = config.getOption<bool>    ("dxvk.enableTransferQueue",    true);
 +    useAsync              = config.getOption<bool>    ("dxvk.useAsync",               false);
      numCompilerThreads    = config.getOption<int32_t> ("dxvk.numCompilerThreads",     0);
      useRawSsbo            = config.getOption<Tristate>("dxvk.useRawSsbo",             Tristate::Auto);
