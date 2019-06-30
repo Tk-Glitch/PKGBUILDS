@@ -1639,7 +1639,7 @@ md5sums=('SKIP'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
          'aa8d6b65936c9646972c04864eafc479'
-         'f5b19d76cbb1901541c54c1dde8f8837'
-         '9444bcb26f7453bf9004462d074ccdb9')
+         'abc1ff6dce915f64f889f5b5dd92328d'
+         '3bb69a051691f4d187c9c0e388070ed7')
 
 trap exit_cleanup EXIT
