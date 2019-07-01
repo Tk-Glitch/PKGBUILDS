@@ -23,7 +23,7 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=winetricks-tkg-git
-pkgver=20190615.r6.g87d63cc
+pkgver=20190615.r21.gb7d8a47
 pkgrel=1
 pkgdesc='Script to install various redistributable runtime libraries in Wine.'
 url='http://wiki.winehq.org/winetricks'

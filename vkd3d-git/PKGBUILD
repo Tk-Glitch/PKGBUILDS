@@ -20,7 +20,7 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.1.r553.ga8c0fba
+pkgver=1.1.r585.g5243b8c
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 
