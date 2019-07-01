@@ -5,7 +5,7 @@ pkgver=4.11.r11.g53dad92c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=173
+eval pkgrel=174
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -1461,21 +1461,24 @@ package() {
 	local _lib64name="lib"
 
 	# External install
-	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-	  if [ "$_EXTERNAL_NOVER" == "true" ]; then
-	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
-	  else
-	    # $_realwineversion doesn't carry over into the fakeroot environment
-	    if [ "$_use_staging" == "true" ]; then
-	      cd "$srcdir/$_stgsrcdir"
+	if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+	  _lib32name="lib" && _lib64name="lib64"
+	  if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
+	    if [ "$_EXTERNAL_NOVER" == "true" ]; then
+	      _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
 	    else
-	      cd "$srcdir/$_winesrcdir"
+	      # $_realwineversion doesn't carry over into the fakeroot environment
+	      if [ "$_use_staging" == "true" ]; then
+	        cd "$srcdir/$_stgsrcdir"
+	      else
+	        cd "$srcdir/$_winesrcdir"
+	      fi
+	      _realwineversion=$(_describe_wine)
+	      _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
 	    fi
-	    _realwineversion=$(_describe_wine)
-	    _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+	  elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	    _prefix=""
 	  fi
-	elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  _prefix="" && _lib32name="lib" && _lib64name="lib64"
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
