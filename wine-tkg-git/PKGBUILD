@@ -1400,7 +1400,7 @@ build() {
 		      --with-gstreamer \
 		      --with-xattr \
 		      "${_configure_args32[@]}" \
-		      "${_configure_args[@]}" \
+		      "${_configure_args[@]}"
 		  else
 	        ../${_winesrcdir}/configure \
 		      --prefix="$_prefix" \
