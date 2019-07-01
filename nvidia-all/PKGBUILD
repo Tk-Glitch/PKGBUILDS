@@ -39,7 +39,7 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.418.52.10 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.26 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.418.52.14 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.26 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
@@ -65,8 +65,8 @@ if [ ! -e options ]; then
       echo "_md5sum='SKIP'" >> options
       echo "_driver_version=$_driver_version" >> options
     else
-      echo '_driver_version=418.52.10' > options
-      echo '_md5sum=9b0844e335e4e50d87da9ae4bff35118' >> options
+      echo '_driver_version=418.52.14' > options
+      echo '_md5sum=955408814e1ec2481667f71268543b11' >> options
       echo '_driver_branch=vulkandev' >> options
     fi
 # Package type selector
@@ -107,7 +107,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=49
+pkgrel=50
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -291,7 +291,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
       elif [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [ "$_p" == "kernel-5.0.patch" ]; then
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
-      elif [[ $pkgver = 418.7* ]] && [ "$_p" == "kernel-5.1.patch" ]; then
+      elif [ "$_p" == "kernel-5.1.patch" ] && [[ $pkgver = 418.7* ]] || [[ $pkgver = 418.52.14 ]]; then
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
       elif [ "$_p" == "kernel-4.16.patch" ] || [ "$_p" == "kernel-5.1.patch" ] && [[ $pkgver = 430* ]]; then
         msg2 "Skipping $_p as it doesn't apply to this driver version..."
@@ -338,7 +338,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
     fi
     if [ "$_kernel51" == "1" ]; then
-      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [[ $pkgver != 418.3* ]] && [[ $pkgver != 418.4* ]] && [[ $pkgver != 418.5* ]]; then
+      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [[ $pkgver != 418.3* ]] && [[ $pkgver != 418.4* ]] && [[ $pkgver != 418.5* ]] || [[ $pkgver = 418.52.14 ]]; then
         msg2 "Skipping kernel-5.1.patch as it doesn't apply to this driver version..."
       else
         msg2 "Applying kernel-5.1.patch for dkms..."
