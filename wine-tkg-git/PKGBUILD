@@ -410,6 +410,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'ffxiv-launcher-workaround.patch' # Workaround for Final Fantasy XIV Launcher 404 error
 		'leagueoflolfix.patch' # LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)
 		'overwatch-mfstub.patch' # Overwatch mf crash workaround
+		'assettocorsa_hud_perf.patch' # Fix for Assetto Corsa performance drop when HUD elements are displayed
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -1049,6 +1050,11 @@ EOM
 	  _patchname='leagueoflolfix.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
 	fi
 
+	# Fix for Assetto Corsa performance drop when HUD elements are displayed - https://bugs.winehq.org/show_bug.cgi?id=46955
+	if [ "$_assettocorsa_hudperf_fix" == "true" ] && git merge-base --is-ancestor d19e34d8f072514cb903bda89767996ba078bae4 HEAD; then
+	   _patchname='assettocorsa_hud_perf.patch' && _patchmsg="Applied Assetto Corsa HUD performance fix" && nonuser_patcher
+	fi
+
 	# apply wine-pba patchset
 	if [ "$_use_pba" == "true" ]; then
 	  if [ "$_pba_version" == "none" ]; then
@@ -1574,6 +1580,7 @@ md5sums=('SKIP'
          'b1dea6339eba7ca8c37d3e5b8399fc5f'
          'a38deffe982282b3dea92e7bd48dc725'
          'cf308e18ad3724e4872280ec35e25338'
+         '8a6d9ad92d3becae6bd9dbb05d7d6f48'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
