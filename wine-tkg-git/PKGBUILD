@@ -145,6 +145,7 @@ if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; th
   _EXTERNAL_INSTALL_TYPE="proton"
   _EXTERNAL_NOVER="false"
   _NOLIB32="false"
+  _NOLIB64="false"
   _NUKR="true"
   _esync_version=""
   _use_faudio="true"
@@ -1356,30 +1357,31 @@ build() {
 	  _configure_args32+=(--libdir="$_prefix/$_lib32name")
 	fi
 
-	# build wine 64-bit
-	# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
-	if pacman -Qq ccache &> /dev/null; then
+	if [ "$_NOLIB64" != "true" ]; then
+		# build wine 64-bit
+		# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
+	  if pacman -Qq ccache &> /dev/null; then
 	  export CROSSCC="ccache x86_64-w64-mingw32-gcc"
-	fi
-	msg2 'Building Wine-64...'
-	cd  "${srcdir}"/"${pkgname}"-64-build
-	if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
-	  ../${_winesrcdir}/configure \
-		  --prefix="$_prefix" \
-		  --with-x \
-		  --with-gstreamer \
-		  --enable-win64 \
-		  --with-xattr \
-		  "${_configure_args64[@]}" \
-		  "${_configure_args[@]}"
-	fi
-
-	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
-	  # make using all available threads
-	  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
-	else
-	  # make using makepkg settings
-	  schedtool -B -n 1 -e ionice -n 1 make
+	  fi
+	  msg2 'Building Wine-64...'
+	  cd  "${srcdir}"/"${pkgname}"-64-build
+	  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
+	    ../${_winesrcdir}/configure \
+		    --prefix="$_prefix" \
+			--with-x \
+			--with-gstreamer \
+			--enable-win64 \
+			--with-xattr \
+			"${_configure_args64[@]}" \
+			"${_configure_args[@]}"
+	  fi
+	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
+	    # make using all available threads
+	    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	  else
+	    # make using makepkg settings
+	    schedtool -B -n 1 -e ionice -n 1 make
+	  fi
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
@@ -1391,23 +1393,32 @@ build() {
 	  msg2 'Building Wine-32...'
 	  cd "${srcdir}/${pkgname}"-32-build
 	  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
-	    ../${_winesrcdir}/configure \
-		    --prefix="$_prefix" \
-		    --with-x \
-		    --with-gstreamer \
-		    --with-xattr \
-		    "${_configure_args32[@]}" \
-		    "${_configure_args[@]}" \
-		    --with-wine64="${srcdir}/${pkgname}"-64-build
+		 if [ "$_NOLIB64" == "true" ]; then
+	       ../${_winesrcdir}/configure \
+		      --prefix="$_prefix" \
+		      --with-x \
+		      --with-gstreamer \
+		      --with-xattr \
+		      "${_configure_args32[@]}" \
+		      "${_configure_args[@]}" \
+		  else
+	        ../${_winesrcdir}/configure \
+		      --prefix="$_prefix" \
+		      --with-x \
+		      --with-gstreamer \
+		      --with-xattr \
+		      "${_configure_args32[@]}" \
+		      "${_configure_args[@]}" \
+		      --with-wine64="${srcdir}/${pkgname}"-64-build
+		 fi
 	  fi
-	fi
-
-	if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
-	  # make using all available threads
-	  schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
-	else
-	  # make using makepkg settings
-	  schedtool -B -n 1 -e ionice -n 1 make
+	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
+	    # make using all available threads
+	    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	  else
+	    # make using makepkg settings
+	    schedtool -B -n 1 -e ionice -n 1 make
+	  fi
 	fi
 
 	# Build DXVK winelib
@@ -1423,6 +1434,8 @@ build() {
 	  fi
 	  if [ "$_NOLIB32" == "true" ]; then
 	    sed -i "/build_arch 32/d" package-release-wine.sh
+	  elif [ "$_NOLIB64" == "true" ]; then
+	    sed -i "/build_arch 64/d" package-release-wine.sh
 	  fi
 	  ./package-release-wine.sh master build --no-package
 	fi
@@ -1434,6 +1447,8 @@ build() {
 	  _patchname='d9vk-winelib.patch' && _patchmsg="Using d9vk-winelib patch" && nonuser_patcher
 	  if [ "$_NOLIB32" == "true" ]; then
 	    sed -i "/build_arch 32/d" package-release-wine.sh
+	  elif [ "$_NOLIB64" == "true" ]; then
+	    sed -i "/build_arch 64/d" package-release-wine.sh
 	  fi
 	  ./package-release-wine.sh master build --no-package
 	fi
@@ -1473,12 +1488,14 @@ package() {
 			  dlldir="${pkgdir}$_prefix/$_lib32name/wine" install
 	fi
 
-	# package wine 64-bit
-	msg2 'Packaging Wine-64...'
-	cd "${srcdir}/${pkgname}"-64-build
-	make 	prefix="${pkgdir}$_prefix" \
-			libdir="${pkgdir}$_prefix/$_lib64name" \
-			dlldir="${pkgdir}$_prefix/$_lib64name/wine" install
+	if [ "$_NOLIB64" != "true" ]; then
+	  # package wine 64-bit
+	  msg2 'Packaging Wine-64...'
+	  cd "${srcdir}/${pkgname}"-64-build
+	  make 	  prefix="${pkgdir}$_prefix" \
+			  libdir="${pkgdir}$_prefix/$_lib64name" \
+			  dlldir="${pkgdir}$_prefix/$_lib64name/wine" install
+	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ] || [ "$_EXTERNAL_INSTALL" != "true" ]; then
 	  # freetype font smoothing for win32 applications
@@ -1511,16 +1528,18 @@ package() {
 	if [ "$_use_dxvk" == "true" ]; then
 	  if [ "$_NOLIB32" != "true" ]; then
 	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/"$_lib32name"/wine
+	  elif [ "$_NOLIB64" != "true" ]; then
+	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
 	  fi
-	  cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
 	fi
 
 	# d9vk
 	if [ "$_use_d9vk" == "true" ]; then
 	  if [ "$_NOLIB32" != "true" ]; then
 	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x32/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib32name"/wine
+	  elif [ "$_NOLIB64" != "true" ]; then
+	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x64/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib64name"/wine
 	  fi
-	  cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x64/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib64name"/wine
 	fi
 
 	cp "$_where"/last_build_config.log "${pkgdir}$_prefix"/share/wine/wine-tkg-config.txt
