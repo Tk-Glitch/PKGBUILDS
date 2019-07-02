@@ -1314,7 +1314,11 @@ EOM
 	  YOU_SHALL_NOT_PASS
 	fi
 
-	# create new build dirs
+	# Nuke if present then create new build dirs
+	if [ "$_NUKR" == "true" ]; then
+	  rm -rf "${srcdir}"/"${pkgname}"-64-build
+	  rm -rf "${srcdir}"/"${pkgname}"-32-build
+	fi
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p "${srcdir}"/"${pkgname}"-32-build
 
