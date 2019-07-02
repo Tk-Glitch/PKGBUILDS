@@ -92,6 +92,9 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   else
     echo "_protontkg_version=${pkgver}" >> "$_proton_tkg_path"/proton_tkg_token
   fi
+  if [[ $pkgver = 3.* ]]; then
+    echo '_proton_branch="proton_3.16"' >> "$_proton_tkg_path"/proton_tkg_token
+  fi
   if [ -n "$_proton_dxvk_configfile" ]; then
     echo "_proton_dxvk_configfile=${_proton_dxvk_configfile}" >> "$_proton_tkg_path"/proton_tkg_token
   fi
