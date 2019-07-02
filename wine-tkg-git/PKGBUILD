@@ -585,7 +585,8 @@ prepare() {
 	  else
 	    error 'mingw-w64-gcc was not found and will be installed before you can build wine!'
 	    read -rp "When you are ready, press enter to launch the installation process."
-	    cd "$_where"/../mingw && sh mingw-on-arch-automator.sh
+	    cd "$_where"/../mingw && ./mingw-on-arch-automator.sh
+	    kill $(pgrep mingw-on-arch)
 	  fi
 	fi
 
