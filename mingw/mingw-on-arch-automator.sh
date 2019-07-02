@@ -133,8 +133,11 @@ fi
 
 sudo pacman -Rscnd mingw-w64 --noconfirm
 
-trap "exit" INT TERM
-trap "kill 0" EXIT
+if [ ! -e ../wine-tkg-git/BIG_UGLY_FROGMINER ]; then
+  trap "exit" INT TERM
+  trap "kill 0" EXIT
+fi
+
 sudo -v || exit $?
 sleep 1
 while true; do
@@ -195,4 +198,4 @@ if [ $_NUKR == "true" ]; then
 fi
 
 echo ""
-echo "mingw-on-arch done !"
+echo "mingw-on-arch done !" && exit 0

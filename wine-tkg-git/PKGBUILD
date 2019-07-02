@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.11.r11.g53dad92c
+pkgver=4.11.r12.gc08046e1
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=174
+eval pkgrel=175
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -577,6 +577,17 @@ pkgver() {
 prepare() {
 	# state tracker start - FEAR THE MIGHTY FROG MINER
 	touch "${_where}"/BIG_UGLY_FROGMINER
+
+	# Check for mingw-w64-gcc
+	if [ "$_IGNORE_MINGWCHECK" != "true" ]; then
+	  if pacman -Qq mingw-w64-gcc &> /dev/null; then
+	    msg2 'mingw-w64-gcc was found and will be used'
+	  else
+	    error 'mingw-w64-gcc was not found and will be installed before you can build wine!'
+	    read -rp "When you are ready, press enter to launch the installation process."
+	    cd "$_where"/../mingw && sh mingw-on-arch-automator.sh
+	  fi
+	fi
 
 	if [ "$_NUKR" != "debug" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
