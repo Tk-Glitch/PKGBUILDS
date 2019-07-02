@@ -1373,7 +1373,7 @@ build() {
 		# build wine 64-bit
 		# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	  if pacman -Qq ccache &> /dev/null; then
-	  export CROSSCC="ccache x86_64-w64-mingw32-gcc"
+	    export CROSSCC="ccache x86_64-w64-mingw32-gcc"
 	  fi
 	  msg2 'Building Wine-64...'
 	  cd  "${srcdir}"/"${pkgname}"-64-build
