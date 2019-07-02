@@ -5,7 +5,7 @@ pkgver=4.11.r12.gc08046e1
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=175
+eval pkgrel=176
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -465,6 +465,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
 		'LAA-staging.patch' # Same as above, for staging
 		'winevulkan-1.1.103.patch' # Update winevulkan
+		'winevulkan-1.1.113.patch' # Update winevulkan
+		'winevulkan-1.1.113-proton.patch' # Update winevulkan - Proton edition
 		'proton-tkg-eafb4af.patch' # Proton-tkg
 		'proton-tkg.patch' # Proton-tkg
 		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging
@@ -1139,6 +1141,15 @@ EOM
 	  fi
 	fi
 
+	# Update winevulkan
+	if [ "$_update_winevulkan" == "true" ] && git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD; then
+	  if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	    _patchname='winevulkan-1.1.113-proton.patch' && _patchmsg="Applied winevulkan 1.1.113 patch (proton edition)" && nonuser_patcher
+	  else
+	    _patchname='winevulkan-1.1.113.patch' && _patchmsg="Applied winevulkan 1.1.113 patch" && nonuser_patcher
+	  fi
+	fi
+
 	# raw input fix by Guy1524 - part two
 	if [ "$_rawinput_fix" == "true" ] && git merge-base --is-ancestor 4da1c4370be6515bf64c185e6b55a305247c754b HEAD; then
 	  if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
@@ -1669,6 +1680,8 @@ md5sums=('SKIP'
          '8427bb8d40cc49bc1de3a53ed82254ad'
          '3034b1a397cad46feb641cb3d7dc8584'
          '1c4738e438debf72266b96d09f465b25'
+         '9cabed407e00dc03ec4cd9e023285d76'
+         '15995e43af57b18bf7b45cc2d5af4f2d'
          '5c5b9f2ec35e4232abc2b54cad0593cd'
          'c6381b7fcd734ea179c3a4548883e21d'
          'e20c93e882b8209ca3eb2b2f7e02b8b8'
