@@ -1330,11 +1330,14 @@ build() {
 	# compiler flags
 	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	  export CFLAGS="${_GCC_FLAGS}"
-	  export CXXFLAGS="${_GCC_FLAGS}"
 	  export LDFLAGS="${_LD_FLAGS}"
+	  export CROSSCFLAGS="${_CROSS_FLAGS}"
+	  export CROSSLDFLAGS="${_CROSS_LD_FLAGS}"
 	  echo "With predefined optimizations:" >> "$_where"/last_build_config.log
-	  echo "CFLAGS = ${_GCC_FLAGS}" >> "$_where"/last_build_config.log
-	  echo "LDFLAGS = ${_LD_FLAGS}" >> "$_where"/last_build_config.log
+	  echo "CFLAGS = ${CFLAGS}" >> "$_where"/last_build_config.log
+	  echo "LDFLAGS = ${LDFLAGS}" >> "$_where"/last_build_config.log
+	  echo "CROSSCFLAGS = ${CROSSCFLAGS}" >> "$_where"/last_build_config.log
+	  echo "CROSSLDFLAGS = ${CROSSLDFLAGS}" >> "$_where"/last_build_config.log
 	else
 	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
 	fi
@@ -1345,6 +1348,8 @@ build() {
 	if [ -z "$_proton_tkg_path" ]; then
 	  export CFLAGS="${CFLAGS/-fno-plt/}"
 	  export LDFLAGS="${LDFLAGS/,-z,now/}"
+	  export CROSSCFLAGS="${CROSSCFLAGS/-fno-plt/}"
+	  export CROSSLDFLAGS="${CROSSLDFLAGS/,-z,now/}"
 	fi
 
 	local _prefix=/usr
