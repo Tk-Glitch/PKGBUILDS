@@ -524,6 +524,9 @@ if "nonvapi" in config_opts:
 if "nowinedbg" in config_opts:
     dlloverrides["winedbg.exe"] = "d"
 
+# Disable openvr lib as we don't support it
+dlloverrides["openvr_api_dxvk"] = "d"
+
 s = ""
 for dll in dlloverrides:
     setting = dlloverrides[dll]
