@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.11.r13.gca8ae3e9
+pkgver=4.11.r14.ge1bfd97e
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -107,6 +107,7 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   echo "_proton_force_LAA=${_proton_force_LAA}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_winetricks=${_proton_winetricks}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_proton_dxvk_async=${_proton_dxvk_async}" >> "$_proton_tkg_path"/proton_tkg_token
+  echo "_proton_use_steamhelper=${_proton_use_steamhelper}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_dxvk_dxgi=${_dxvk_dxgi}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_use_dxvk=${_use_dxvk}" >> "$_proton_tkg_path"/proton_tkg_token
   echo "_use_d9vk=${_use_d9vk}" >> "$_proton_tkg_path"/proton_tkg_token
@@ -776,6 +777,14 @@ prepare() {
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
 	    _staging_args+=(-W winex11.drv-mouse-coorrds)
+	  fi
+	  cd "${srcdir}"/"${_winesrcdir}"
+	fi
+
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_use_staging" == "true" ] && [ "$_proton_use_steamhelper" == "true" ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if git merge-base --is-ancestor 4e7071e4f14f6ce85b0eb4b88accfb0267d6545b HEAD; then
+	    _staging_args+=(-W server-Desktop_Refcount -W ws2_32-TransmitFile)
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi

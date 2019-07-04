@@ -277,6 +277,13 @@ else
     # Grab conf template and inject version
     echo "1552061114 proton-tkg-$_protontkg_version" > "proton_tkg_$_protontkg_version/version" && cp "proton_template/conf"/* "proton_tkg_$_protontkg_version"/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" "proton_tkg_$_protontkg_version/compatibilitytool.vdf"
 
+    # Patch our proton script to make use of the steam helper on 4.0+
+    if [[ $_proton_branch == proton_4.* ]] && [ "$_proton_use_steamhelper" == "true" ]; then
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
+      patch -Np1 < "$_nowhere/proton_template/steam.exe.patch" && rm -f proton.orig
+      cd "$_nowhere"
+    fi
+
     # Set Proton-tkg user_settings.py defaults
     if [ "$_proton_nvapi_disable" == "true" ]; then
       sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
