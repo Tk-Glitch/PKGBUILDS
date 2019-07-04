@@ -321,9 +321,6 @@ if "forcelgadd" in config_opts:
 if "dxvkasync" in config_opts:
     env["DXVK_ASYNC"] = "1"
 
-if "nvapidisable" in config_opts:
-    os.environ["WINEDLLOVERRIDES"] = "nvapi,nvapi64=d"
-
 if "pulselowlat" in config_opts:
     env["PULSE_LATENCY_MSEC"] = "60"
 
