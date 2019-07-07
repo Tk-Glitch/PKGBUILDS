@@ -5,7 +5,7 @@ pkgver=4.12.1.r0.gf0718137
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=177
+eval pkgrel=178
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -773,6 +773,15 @@ prepare() {
 	      _configure_args+=(--with-faudio)
 	    fi
 	  fi
+	fi
+
+	# Disable loader-KeyboardLayouts staging patchset that reportedly impacts performance negatively
+	if [ "$_use_staging" == "true" ] && [ "$_disable_stagingklayouts" == "true" ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if git merge-base --is-ancestor 53dad92c83bfcef731cf55afe553dead7f9f08c1 HEAD; then
+	    _staging_args+=(-W loader-KeyboardLayouts)
+	  fi
+	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
 	# Disable winex11.drv-mouse-coorrds patchset on staging for proton FS hack
