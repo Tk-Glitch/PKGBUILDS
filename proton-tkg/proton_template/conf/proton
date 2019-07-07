@@ -412,7 +412,7 @@ with prefix_lock:
                 os.remove(dstfile)
             try_copy(steamdir + "/legacycompat/" + f, dstfile)
 
-    dxvkfiles = ("d3d11", "d3d10", "d3d10core", "d3d10_1", "dxgi")
+    dxvkfiles = ("d3d11", "d3d10", "d3d10core", "d3d10_1")
     def make_dxvk_links(dll_dir, link_dir):
         for f in dxvkfiles:
             dst = link_dir + "/" + f + ".dll"
@@ -426,6 +426,12 @@ with prefix_lock:
             if os.path.lexists(dst):
                 os.remove(dst)
             os.symlink(src, dst)
+    def make_dxgi_links(dll_dir, link_dir):
+            dst = link_dir + "/" + "dxgi" + ".dll"
+            src = dll_dir + "/" + "dxgi" + ".dll"
+            if os.path.lexists(dst):
+                os.remove(dst)
+            os.symlink(src, dst)
 
     if "wined3d" in config_opts:
         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
@@ -433,12 +439,16 @@ with prefix_lock:
                 #use gl-based wined3d for d3d11 and d3d10 32
                 make_dxvk_links(basedir + "/dist/lib/wine/",
                     prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/",
+                    prefix + "drive_c/windows/system32")
                 #use gl-based wined3d for d3d9 32
                 make_d9vk_links(basedir + "/dist/lib/wine/",
                     prefix + "drive_c/windows/system32")
             else:
                 #use gl-based wined3d for d3d11 and d3d10 32
                 make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                    prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/fakedlls/",
                     prefix + "drive_c/windows/system32")
                 #use gl-based wined3d for d3d9 32
                 make_d9vk_links(basedir + "/dist/lib/wine/fakedlls/",
@@ -450,6 +460,10 @@ with prefix_lock:
                     prefix + "drive_c/windows/system32")
                 make_dxvk_links(basedir + "/dist/lib/wine/",
                     prefix + "drive_c/windows/syswow64")
+                make_dxgi_links(basedir + "/dist/lib64/wine/fakedlls/",
+                    prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/fakedlls/",
+                    prefix + "drive_c/windows/syswow64")
                 #use gl-based wined3d for d39 32+64
                 make_d9vk_links(basedir + "/dist/lib64/wine/",
                     prefix + "drive_c/windows/system32")
@@ -460,6 +474,10 @@ with prefix_lock:
                 make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
                     prefix + "drive_c/windows/system32")
                 make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                    prefix + "drive_c/windows/syswow64")
+                make_dxgi_links(basedir + "/dist/lib64/wine/fakedlls/",
+                    prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/fakedlls/",
                     prefix + "drive_c/windows/syswow64")
                 #use gl-based wined3d for d39 32+64
                 make_d9vk_links(basedir + "/dist/lib64/wine/fakedlls/",
@@ -497,9 +515,13 @@ with prefix_lock:
                 #use gl-based wined3d for d3d11 and d3d10 32
                 make_dxvk_links(basedir + "/dist/lib/wine/",
                     prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/",
+                    prefix + "drive_c/windows/system32")
             else:
                 #use gl-based wined3d for d3d11 and d3d10 32
                 make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                    prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/fakedlls/",
                     prefix + "drive_c/windows/system32")
         else:
             if not os.path.exists(basedir + "/dist/lib64/wine/fakedlls/d3d11"):
@@ -508,11 +530,19 @@ with prefix_lock:
                     prefix + "drive_c/windows/system32")
                 make_dxvk_links(basedir + "/dist/lib/wine/",
                     prefix + "drive_c/windows/syswow64")
+                make_dxgi_links(basedir + "/dist/lib64/wine/",
+                    prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/",
+                    prefix + "drive_c/windows/syswow64")
             else:
                 #use gl-based wined3d for d3d11 and d3d10 32+64
                 make_dxvk_links(basedir + "/dist/lib64/wine/fakedlls/",
                     prefix + "drive_c/windows/system32")
                 make_dxvk_links(basedir + "/dist/lib/wine/fakedlls/",
+                    prefix + "drive_c/windows/syswow64")
+                make_dxgi_links(basedir + "/dist/lib64/wine/fakedlls/",
+                    prefix + "drive_c/windows/system32")
+                make_dxgi_links(basedir + "/dist/lib/wine/fakedlls/",
                     prefix + "drive_c/windows/syswow64")
 
     if not ("wined3d11only" in config_opts or "wined3d" in config_opts):
