@@ -132,12 +132,14 @@ if [ "$_NUKR" == "true" ]; then
   msg2 'exit cleanup done'
 fi
 
-  # Remove temporarily copied patches
+  # Remove temporarily copied patches & other potential fluff
   rm -f "$_where"/wine-tkg
   rm -f "$_where"/wine-tkg-interactive
   rm -rf "$_where"/*.patch
   rm -rf "$_where"/*.my*
   rm -rf "$_where"/*.conf
+  rm -rf "$_where"/*.orig
+  rm -rf "$_where"/*.rej
 
   remove_deps
 }
