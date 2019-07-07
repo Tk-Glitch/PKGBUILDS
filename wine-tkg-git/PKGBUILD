@@ -799,7 +799,7 @@ prepare() {
 	  fi
 	  _staging_args+=(-W winex11-mouse-movements)
 	  for _f in "$_where"/valve_proton_fullscreen_hack-staging*.patch ; do
-	    patch  ${_f} << 'EOM'
+	    patch ${_f} << 'EOM'
 @@ -2577,7 +2577,7 @@ index 1209a250b0..077c18ac10 100644
  +    input.u.mi.dx = pt.x;
  +    input.u.mi.dy = pt.y;
