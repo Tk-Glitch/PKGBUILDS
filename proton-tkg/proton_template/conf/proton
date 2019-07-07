@@ -538,14 +538,21 @@ with prefix_lock:
             #use vulkan-based dxvk for d3d11 and d3d10 32
             make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
                 prefix + "drive_c/windows/system32")
+            make_dxgi_links(basedir + "/dist/lib/wine/dxvk/",
+                prefix + "drive_c/windows/system32")
         else:
             #use vulkan-based dxvk for d3d11 and d3d10 32+64
             make_dxvk_links(basedir + "/dist/lib64/wine/dxvk/",
                 prefix + "drive_c/windows/system32")
             make_dxvk_links(basedir + "/dist/lib/wine/dxvk/",
                 prefix + "drive_c/windows/syswow64")
+            make_dxgi_links(basedir + "/dist/lib64/wine/dxvk/",
+                prefix + "drive_c/windows/system32")
+            make_dxgi_links(basedir + "/dist/lib/wine/dxvk/",
+                prefix + "drive_c/windows/syswow64")
         for f in dxvkfiles:
             dlloverrides[f] = "n"
+        dlloverrides["dxgi"] = "n"
 
     if not ("wined3d9only" in config_opts or "wined3d" in config_opts or "custom9" in config_opts):
         if not os.path.exists(prefix + "drive_c/windows/syswow64"):
