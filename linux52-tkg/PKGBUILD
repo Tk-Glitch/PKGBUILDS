@@ -46,7 +46,24 @@ elif [ "$_OPTIPROFILE" == "3" ]; then
   source "$_where"/generic-desktop-profile.cfg && msg2 "Generic Desktop (Performance) profile will be used." && msg2 ""
 fi
 
-echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+# CPU SCHED selector
+if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
+  plain "What CPU sched variant do you want to build/install?"
+  read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.BMQ\nchoice[1-3?]: '`" CONDITION;
+  if [ "$CONDITION" == "2" ]; then
+    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "3" ]; then
+    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+  else
+    echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+  fi
+elif [ "$_cpusched" == "cfs" ]; then
+  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "pds" ]; then
+  echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "bmq" ]; then
+  echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+fi
 
 source "$_where"/cpuschedset
 
@@ -54,7 +71,7 @@ _basever=52
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
-_sub=rc7
+#_sub=rc7
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -68,7 +85,7 @@ else
   msg2 'ccache was not found and will not be used'
   options=('!strip')
 fi
-source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
+source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}.tar.gz"
         #"https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         #"https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-${_basekernel}.patch"
@@ -83,18 +100,18 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0003-glitched-base.patch
         0003-glitched-cfs.patch
         #0004-glitched-muqss.patch
-        #0004-5.1-ck1.patch
-        #0005-glitched-pds.patch
-        #0005-v5.1_undead-pds099o.patch
+        #0004-5.2-ck1.patch
+        0005-glitched-pds.patch
+        0005-v5.2_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
         #0008-bcachefs.patch
-        #0009-uksm-5.1.patch
-        #0010-glitched-bmq.patch
-        #0010-v5.1_bmq095.patch
+        #0009-uksm-5.2.patch
+        0010-glitched-bmq.patch
+        0010-v5.2_bmq097.patch
         0011-ZFS-fix.patch
 )
-sha256sums=('c422f34c11518f55cc01c27241c5ca7bd6c2c6659e04b3592c2a3ee2c3924884'
-            '7c79e2074c1a119d5426a6f24a1260c66b7a869fb7dd99c2965f7de6c15398ab'
+sha256sums=('16a2a056c16b91c3e4eaf40d2a5a096cfb604f40e2bf925f607cfa095f9e05b4'
+            '18565da399a077c3941e03e1828850b70014915bc9944aee35246eddda625d49'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -102,7 +119,11 @@ sha256sums=('c422f34c11518f55cc01c27241c5ca7bd6c2c6659e04b3592c2a3ee2c3924884'
             '87c42cc27dfdeae2e05dd2cfb1a359ba34aa27634c5c1c1c86e1ce275f90dca4'
             'd82f7817dfe390638c4d83e9f3963f7e6d41fe499785610af3d575d681a05e1d'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
+            '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
+            '050fe4f17f320ce99c9525c2c95e6d3d81cd6e3087422a6d0bef5b3d87c14314'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
+            '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
+            '4ea19a28cb6664417554c7ba4add8b0fb84116dd22109a1dd6295ac66bc54e58'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
 
 user_patcher() {
@@ -150,7 +171,7 @@ prepare() {
 
   ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # add upstream patch
   #patch -p1 -i ../patch-"${pkgver}"
@@ -163,20 +184,17 @@ prepare() {
 
   patch -Np1 -i ../0003-glitched-base.patch
 
-  # exFAT
-  #patch -Np1 -i ../0007-exFAT-support.patch
-
   if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
-    patch -Np1 -i ../0004-5.1-ck1.patch
+    patch -Np1 -i ../0004-5.2-ck1.patch
     patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
-    patch -Np1 -i ../0005-v5.1_undead-pds099o.patch
+    patch -Np1 -i ../0005-v5.2_undead-pds099o.patch
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0010-v5.1_bmq095.patch
+    patch -Np1 -i ../0010-v5.2_bmq097.patch
     patch -Np1 -i ../0010-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
@@ -185,7 +203,7 @@ prepare() {
   cat "${srcdir}/config.x86_64" > ./.config
 
   # LOCALVERSION
-  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-${_sub}-tkg-${_cpusched}\"|g" ./.config
+  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-tkg-${_cpusched}\"|g" ./.config
   sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
 
   # set extraversion to pkgrel
@@ -226,7 +244,7 @@ prepare() {
       plain "0: No yield."
       plain "1: Deboost and requeue task. (default)"
       plain "2: Set rq skip task."
-      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended) - Using this option on BMQ will fallback to "1"\n  [0-2?]: '`" CONDITION0;
+      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended unless you have issues with 0 or 1)\n  [0-2?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
       msg2 "Using default CPU sched yield type (1)"
@@ -457,7 +475,7 @@ prepare() {
   #  plain ""
   #  plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
   #  plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-  #  read -p "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
+  #  read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
   #fi
   #if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
   #  patch -Np1 -i ../0010-uksm-${_basekernel}.patch
@@ -536,7 +554,7 @@ prepare() {
 }
 
 build() {
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   if [ "$_force_all_threads" == "true" ]; then
     _force_all_threads=-j$(nproc)
@@ -561,8 +579,7 @@ hackbase() {
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
   install=linux${_basever}-tkg.install
 
-  #cd "${srcdir}/linux-${_basekernel}"
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # get kernel version
   _kernver="$(make LOCALVERSION= kernelrelease)"
@@ -614,8 +631,7 @@ hackheaders() {
   pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
   provides=("linux-headers=${pkgver}" "${pkgbase}-headers=${pkgver}")
 
-  #cd "${srcdir}/linux-${_basekernel}"
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
   local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
 
   install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
