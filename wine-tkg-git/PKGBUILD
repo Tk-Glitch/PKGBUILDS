@@ -593,13 +593,13 @@ fi
 
 # DXVK source
 if [ "$_use_dxvk" == "true" ]; then
-  source=("$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}")
+  source+=("$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}")
   md5sums+=('SKIP')
 fi
 
 # D9VK source
 if [ "$_use_d9vk" == "true" ]; then
-  source=("$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}")
+  source+=("$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}")
   md5sums+=('SKIP')
 fi
 
