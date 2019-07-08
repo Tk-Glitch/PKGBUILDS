@@ -1583,12 +1583,16 @@ package() {
 	  sed -e "s|/usr/bin/wine|$_prefix/bin/wine|g" < "${srcdir}/wine-binfmt.conf" > "${pkgdir}/usr/lib/binfmt.d/$pkgname.conf"
 	  if [ "$_MIME_NOPE" == "true" ]; then
 	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}$_prefix"/share/wine/wine.inf -i
+	  elif [ "$_FOAS_NOPE" == "true" ]; then
+	    sed 's|    LicenseInformation|    LicenseInformation,\\\n    FileOpenAssociations|g;$a \\n[FileOpenAssociations]\nHKCU,Software\\Wine\\FileOpenAssociations,"Enable",,"N"' "${pkgdir}$_prefix"/share/wine/wine.inf -i
 	  fi
 	elif [ "$_EXTERNAL_INSTALL" != "true" ]; then
 	  install -Dm 644 "${srcdir}/wine-binfmt.conf" "${pkgdir}/usr/lib/binfmt.d/wine.conf"
 	  # disable mime-types registering
 	  if [ "$_MIME_NOPE" == "true" ]; then
 	    sed 's/winemenubuilder.exe -a -r/winemenubuilder.exe -r/g' "${pkgdir}"/usr/share/wine/wine.inf -i
+	  elif [ "$_FOAS_NOPE" == "true" ]; then
+	    sed 's|    LicenseInformation|    LicenseInformation,\\\n    FileOpenAssociations|g;$a \\n[FileOpenAssociations]\nHKCU,Software\\Wine\\FileOpenAssociations,"Enable",,"N"' "${pkgdir}$_prefix"/share/wine/wine.inf -i
 	  fi
 	fi
 
