@@ -85,8 +85,7 @@ else
   msg2 'ccache was not found and will not be used'
   options=('!strip')
 fi
-source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}.tar.gz"
-        #"https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
+source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         #"https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-${_basekernel}.patch"
         'config.x86_64' # config
@@ -110,7 +109,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}.tar.gz"
         0010-v5.2_bmq097.patch
         0011-ZFS-fix.patch
 )
-sha256sums=('16a2a056c16b91c3e4eaf40d2a5a096cfb604f40e2bf925f607cfa095f9e05b4'
+sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '18565da399a077c3941e03e1828850b70014915bc9944aee35246eddda625d49'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
