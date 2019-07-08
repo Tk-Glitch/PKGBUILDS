@@ -5,7 +5,7 @@ pkgver=4.12.1.r0.gf0718137
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=179
+eval pkgrel=180
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -393,9 +393,6 @@ else
 fi
 
 source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
-		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
-		"$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}"
-		"$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
 		'f4skyrimse-fix-1.patch' # Fo4 & Skyrim SE Script Extender fix 1/2 (merged with 12be24a)
@@ -493,6 +490,118 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'raw-input.patch' # Raw input fix by Guy1524
 		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
 )
+
+md5sums=('SKIP'
+         'a49bc2bb374d5ea5045ada5401cd91a3'
+         '16acd00eb3ccc65687850002b818859c'
+         '5e3002826a916a16130c567db763dfc5'
+         'af2d42c450cb45049224faf825e7fc3b'
+         '134937095639e80fe7fb5aac12177686'
+         '496204bf74c34db41dfc3f4075375145'
+         'f50501943759c8731d40eb521e36e6da'
+         'af6b455bdace212157b9a6652ee88d41'
+         '6e301f262f004b930ffc3000839d837b'
+         'cd52a9b26c15fd210cd5ed1da178dcb1'
+         '65906da954430bde504dd47a69f23f6f'
+         '342a6e02f73c06120ce01cc887489d9c'
+         'd34ec9e86cbbf48b485a8c6f99d24921'
+         'a527081e5f6eca3aec0b390d96d8587b'
+         'f063189ec090d9071397d455d271199d'
+         '6766554ceda75c32b79e0d33c216396f'
+         '5b07ab957a128801b6c45e30b31432a7'
+         'b1dea6339eba7ca8c37d3e5b8399fc5f'
+         'a38deffe982282b3dea92e7bd48dc725'
+         'cf308e18ad3724e4872280ec35e25338'
+         '8a6d9ad92d3becae6bd9dbb05d7d6f48'
+         'dd993e03188c86631e6c2cbdf14113aa'
+         'b997bf4bae2d08f7e84870c8c91fb08b'
+         '374ffc1d29488dd3fdac7d01f55964d4'
+         '46f612602ee7698b840a4e757194cfa7'
+         '3a263a0f6211287af53ea7db79b1f34f'
+         '4e1b9cc09a01749c07230c7241526371'
+         'c4b104892b0501781789aadc5a95b261'
+         'e32c770f6aa964e6093fe734c7dd6c0a'
+         'd86e0feaeb690efe521ac3cc852fac12'
+         'f3c95dcaeab28d8b97e80a5e9d9a1c01'
+         'b10e6f8732dbc1e07b59730f9aeea21e'
+         '2235fbda559247a0eb0d37d9fd6d87b5'
+         '85140d04dfeb80619c9d6c90bc89f925'
+         '358093d65dba3fa477065fe21ce85874'
+         'f80f0a4743b4a3e39c523b85c46e13d5'
+         '83696ccf73ee8f6d1b68f0023716bdf4'
+         '0a8e5406472ae39c0687bc017edfb352'
+         'c77e94d56f57d27dd26e9f99cbcd5bc3'
+         'd27ec22ee6815a97b4d28ccdfc0420fe'
+         '620823d02d9278f44924780d28cf7221'
+         '898fe6be699c16ef95ffb24aa752c98b'
+         'f58a4e17b33bd96ce0d6e8325cad7f76'
+         '1ff4e467f59409272088d92173a0f801'
+         '517a67b31d26990e6704074ccb630f80'
+         'd2e54ed8d69b808c26065e643b2244bb'
+         'ed6060dc030ebd5865f1fcc40d8863be'
+         'cff441678d798466a13a0d03b01e23d7'
+         '830a78ea35e124536cdbc8291102ffaa'
+         '65d47ea14d7c666d6308fc65a5ccd729'
+         '3aafb27f35d4817942085d87904dcfc8'
+         '927f39348cd29ce9876871e4edb15a09'
+         'b2638b27a99b9f3a2f270a85a422d430'
+         '54b38ef7e04e4f01c1d59fc34f2c6e57'
+         '5ca4ee142eafe2c8873d59b2feb51a7d'
+         '6262b0ff26fd1e00eb6123db5e0a4160'
+         '89e55abb8bbfb8a077eb7f2fb5d197e3'
+         '89e55abb8bbfb8a077eb7f2fb5d197e3'
+         'd0a632b9fcab1a06baee8ad6ec515473'
+         'c7eb87afb00130d687b8e5496b859da6'
+         '1f9b4f02e9e8f1ec9261568e13a1fdf3'
+         '962fa3a5a4c5fd57b9f4715ed587fbe6'
+         '07b48859d0b274c9b35be4de3016ae27'
+         '3cb83a83c7ed9335eddbef665f4d89f9'
+         '25e20e66ee3b2896f2979ba4e16ff767'
+         '8427bb8d40cc49bc1de3a53ed82254ad'
+         '3034b1a397cad46feb641cb3d7dc8584'
+         '1c4738e438debf72266b96d09f465b25'
+         '9cabed407e00dc03ec4cd9e023285d76'
+         '15995e43af57b18bf7b45cc2d5af4f2d'
+         'cd0cb1517cdde6fa60296ea452816ee9'
+         '7ef6961b9a54d93ba970a2af827bb969'
+         'ce0332f66626399574d79d10642896d2'
+         '09274cf0d0b8775afa040f2cdc2a03e0'
+         '239651ec4613ecf09f89b398b4cf668d'
+         'd047619c11d95c4c9bbefae564876950'
+         '017e316df9b4a6aada912f3a83e16b08'
+         '22d3b0b1ff7f2104312b5eb29959cb2e'
+         'bcf6dd7c16f37f20cca6ec4edfab5b34'
+         '52f11ca72f4ee06bd2a4bc2b0314e631'
+         '6d3b224e1e6dc858af0480fecaaa8876'
+         '2cf363e936aa87450c79bd131eea1f9f'
+         'ef9d49400425109ed6e7c39060a0e27e'
+         'fee4328b205727568bbe73e0170eb259'
+         'd104f44859c50920a7986585ea937e42'
+         'ce78256889b5c364d18e8bdb7ab4230e'
+         '3a4e77d80bc2d645266bed6979dc0da9'
+         'eea40375be4cd3615eaef5412802274b'
+         'b415db953ef35b73c1608bc360356113'
+         'aa8d6b65936c9646972c04864eafc479'
+         '5953ce54c359aaa50dc1c2a2387db148'
+         '346b7e7627b99a95d233578a71312d70')
+
+# Wine staging source
+if [ "$_use_staging" == "true" ]; then
+  source+=("$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}")
+  md5sums+=('SKIP')
+fi
+
+# DXVK source
+if [ "$_use_dxvk" == "true" ]; then
+  source=("$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}")
+  md5sums+=('SKIP')
+fi
+
+# D9VK source
+if [ "$_use_d9vk" == "true" ]; then
+  source=("$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}")
+  md5sums+=('SKIP')
+fi
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
@@ -607,25 +716,31 @@ prepare() {
 	fi
 
 	if [ "$_NUKR" != "debug" ]; then
-	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if [ "$_use_staging" == "true" ]; then
+	    cd "${srcdir}"/"${_stgsrcdir}"
 
-	  # restore the targetted trees to their git origin state
-	  # for the patches not fail on subsequent aborted builds
-	  msg2 'Cleaning wine-staging source code tree...'
-	  git reset --hard HEAD 	# restore tracked files
-	  git clean -xdf 			# delete untracked files
+	    # restore the targetted trees to their git origin state
+	    # for the patches not fail on subsequent aborted builds
+	    msg2 'Cleaning wine-staging source code tree...'
+	    git reset --hard HEAD 	# restore tracked files
+	    git clean -xdf 			# delete untracked files
+	  fi
 
-	  cd "${srcdir}"/"${_dxvksrcdir}"
+	  if [ "$_use_dxvk" == "true" ]; then
+	    cd "${srcdir}"/"${_dxvksrcdir}"
 
-	  msg2 'Cleaning dxvk source code tree...'
-	  git reset --hard HEAD 	# restore tracked files
-	  git clean -xdf 			# delete untracked files
+	    msg2 'Cleaning dxvk source code tree...'
+	    git reset --hard HEAD 	# restore tracked files
+	    git clean -xdf 			# delete untracked files
+	  fi
 
-	  cd "${srcdir}"/"${_d9vksrcdir}"
+	  if [ "$_use_d9vk" == "true" ]; then
+	    cd "${srcdir}"/"${_d9vksrcdir}"
 
-	  msg2 'Cleaning d9vk source code tree...'
-	  git reset --hard HEAD 	# restore tracked files
-	  git clean -xdf 			# delete untracked files
+	    msg2 'Cleaning d9vk source code tree...'
+	    git reset --hard HEAD 	# restore tracked files
+	    git clean -xdf 			# delete untracked files
+	  fi
 
 	  cd "${srcdir}"/"${_winesrcdir}"
 
@@ -1646,102 +1761,5 @@ package() {
 	  YOU_SHALL_NOT_PASS
 	fi
 }
-
-md5sums=('SKIP'
-         'SKIP'
-         'SKIP'
-         'SKIP'
-         'a49bc2bb374d5ea5045ada5401cd91a3'
-         '16acd00eb3ccc65687850002b818859c'
-         '5e3002826a916a16130c567db763dfc5'
-         'af2d42c450cb45049224faf825e7fc3b'
-         '134937095639e80fe7fb5aac12177686'
-         '496204bf74c34db41dfc3f4075375145'
-         'f50501943759c8731d40eb521e36e6da'
-         'af6b455bdace212157b9a6652ee88d41'
-         '6e301f262f004b930ffc3000839d837b'
-         'cd52a9b26c15fd210cd5ed1da178dcb1'
-         '65906da954430bde504dd47a69f23f6f'
-         '342a6e02f73c06120ce01cc887489d9c'
-         'd34ec9e86cbbf48b485a8c6f99d24921'
-         'a527081e5f6eca3aec0b390d96d8587b'
-         'f063189ec090d9071397d455d271199d'
-         '6766554ceda75c32b79e0d33c216396f'
-         '5b07ab957a128801b6c45e30b31432a7'
-         'b1dea6339eba7ca8c37d3e5b8399fc5f'
-         'a38deffe982282b3dea92e7bd48dc725'
-         'cf308e18ad3724e4872280ec35e25338'
-         '8a6d9ad92d3becae6bd9dbb05d7d6f48'
-         'dd993e03188c86631e6c2cbdf14113aa'
-         'b997bf4bae2d08f7e84870c8c91fb08b'
-         '374ffc1d29488dd3fdac7d01f55964d4'
-         '46f612602ee7698b840a4e757194cfa7'
-         '3a263a0f6211287af53ea7db79b1f34f'
-         '4e1b9cc09a01749c07230c7241526371'
-         'c4b104892b0501781789aadc5a95b261'
-         'e32c770f6aa964e6093fe734c7dd6c0a'
-         'd86e0feaeb690efe521ac3cc852fac12'
-         'f3c95dcaeab28d8b97e80a5e9d9a1c01'
-         'b10e6f8732dbc1e07b59730f9aeea21e'
-         '2235fbda559247a0eb0d37d9fd6d87b5'
-         '85140d04dfeb80619c9d6c90bc89f925'
-         '358093d65dba3fa477065fe21ce85874'
-         'f80f0a4743b4a3e39c523b85c46e13d5'
-         '83696ccf73ee8f6d1b68f0023716bdf4'
-         '0a8e5406472ae39c0687bc017edfb352'
-         'c77e94d56f57d27dd26e9f99cbcd5bc3'
-         'd27ec22ee6815a97b4d28ccdfc0420fe'
-         '620823d02d9278f44924780d28cf7221'
-         '898fe6be699c16ef95ffb24aa752c98b'
-         'f58a4e17b33bd96ce0d6e8325cad7f76'
-         '1ff4e467f59409272088d92173a0f801'
-         '517a67b31d26990e6704074ccb630f80'
-         'd2e54ed8d69b808c26065e643b2244bb'
-         'ed6060dc030ebd5865f1fcc40d8863be'
-         'cff441678d798466a13a0d03b01e23d7'
-         '830a78ea35e124536cdbc8291102ffaa'
-         '65d47ea14d7c666d6308fc65a5ccd729'
-         '3aafb27f35d4817942085d87904dcfc8'
-         '927f39348cd29ce9876871e4edb15a09'
-         'b2638b27a99b9f3a2f270a85a422d430'
-         '54b38ef7e04e4f01c1d59fc34f2c6e57'
-         '5ca4ee142eafe2c8873d59b2feb51a7d'
-         '6262b0ff26fd1e00eb6123db5e0a4160'
-         '89e55abb8bbfb8a077eb7f2fb5d197e3'
-         '89e55abb8bbfb8a077eb7f2fb5d197e3'
-         'd0a632b9fcab1a06baee8ad6ec515473'
-         'c7eb87afb00130d687b8e5496b859da6'
-         '1f9b4f02e9e8f1ec9261568e13a1fdf3'
-         '962fa3a5a4c5fd57b9f4715ed587fbe6'
-         '07b48859d0b274c9b35be4de3016ae27'
-         '3cb83a83c7ed9335eddbef665f4d89f9'
-         '25e20e66ee3b2896f2979ba4e16ff767'
-         '8427bb8d40cc49bc1de3a53ed82254ad'
-         '3034b1a397cad46feb641cb3d7dc8584'
-         '1c4738e438debf72266b96d09f465b25'
-         '9cabed407e00dc03ec4cd9e023285d76'
-         '15995e43af57b18bf7b45cc2d5af4f2d'
-         'cd0cb1517cdde6fa60296ea452816ee9'
-         '7ef6961b9a54d93ba970a2af827bb969'
-         'ce0332f66626399574d79d10642896d2'
-         '09274cf0d0b8775afa040f2cdc2a03e0'
-         '239651ec4613ecf09f89b398b4cf668d'
-         'd047619c11d95c4c9bbefae564876950'
-         '017e316df9b4a6aada912f3a83e16b08'
-         '22d3b0b1ff7f2104312b5eb29959cb2e'
-         'bcf6dd7c16f37f20cca6ec4edfab5b34'
-         '52f11ca72f4ee06bd2a4bc2b0314e631'
-         '6d3b224e1e6dc858af0480fecaaa8876'
-         '2cf363e936aa87450c79bd131eea1f9f'
-         'ef9d49400425109ed6e7c39060a0e27e'
-         'fee4328b205727568bbe73e0170eb259'
-         'd104f44859c50920a7986585ea937e42'
-         'ce78256889b5c364d18e8bdb7ab4230e'
-         '3a4e77d80bc2d645266bed6979dc0da9'
-         'eea40375be4cd3615eaef5412802274b'
-         'b415db953ef35b73c1608bc360356113'
-         'aa8d6b65936c9646972c04864eafc479'
-         '5953ce54c359aaa50dc1c2a2387db148'
-         '346b7e7627b99a95d233578a71312d70')
 
 trap exit_cleanup EXIT
