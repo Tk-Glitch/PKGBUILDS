@@ -10,7 +10,7 @@
 
 # LUTRIS UPDATE WITH : ./updxvk lutris - (Put 'TkG' as DXVK version in lutris afterwards to use your fresh build)
 
-# PROTON-TKG READY WITH : ./updxvk proton-tkg - (You'll need to set _use_dxvk_winelib to "false" in your proton-tkg.cfg for your next proton-tkg build to use these DXVK dlls)
+# PROTON-TKG READY WITH : ./updxvk proton-tkg
 
 # FOR BOTH UPDATE AND BATCH UPDATE : optional - build number of the build you want to install
 # ex for UPDATE: ./updxvk /home/user/WinePrefixes/DEBUG f4a92a685f8b2f135dc6fe493ea9ce726aa79a52-2018-05-05-16:14:00
