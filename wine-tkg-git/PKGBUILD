@@ -776,13 +776,15 @@ prepare() {
 	fi
 
 	# Disable local Esync on 553986f
-	cd "${srcdir}"/"${_stgsrcdir}"
-	if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 553986fdfb111914f793ff1487d53af022e4be19 HEAD; then # eventfd_synchronization: Add patch set. 
-	  _use_esync="false"
-	  _staging_esync="true"
-	   echo "Disabled the local Esync patchset to use Staging impl instead." >> "$_where"/last_build_config.log
+	if [ "$_use_staging" == "true" ]; then
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if git merge-base --is-ancestor 553986fdfb111914f793ff1487d53af022e4be19 HEAD; then # eventfd_synchronization: Add patch set. 
+	    _use_esync="false"
+	    _staging_esync="true"
+	     echo "Disabled the local Esync patchset to use Staging impl instead." >> "$_where"/last_build_config.log
+	  fi
+	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
-	cd "${srcdir}"/"${_winesrcdir}"
 
 	if [ "$_use_esync" == "true" ]; then
 	  if [ -z "$_esync_version" ]; then
