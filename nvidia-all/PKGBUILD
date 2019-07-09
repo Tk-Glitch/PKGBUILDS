@@ -39,14 +39,14 @@ fi
 
 # Package type selector
 if [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.418.52.16 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.26 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.418.52.16 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.34 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "3" ]; then
-      echo '_driver_version=430.26' > options
-      echo '_md5sum=fa214e656ec41df62cead46766f00102' >> options
+      echo '_driver_version=430.34' > options
+      echo '_md5sum=6dfb9f5bb35e725e00444e6289d14d74' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "4" ]; then
       echo '_driver_version=430.09' > options
@@ -107,7 +107,7 @@ pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_ut
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
-pkgrel=52
+pkgrel=53
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
