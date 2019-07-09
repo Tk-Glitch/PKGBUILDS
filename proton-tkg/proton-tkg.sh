@@ -134,7 +134,7 @@ else
     | wget -qi -
     #mkdir dxvk
     tar -xvf dxvk-*.tar.gz >/dev/null 2>&1
-    rm dxvk-*.tar.gz
+    rm -f dxvk-*.tar.*
     mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
   fi
 
