@@ -248,8 +248,9 @@ else
       fi
     fi
 
-    # If user asked for DXVK release, clean for next time
+    # If user asked for DXVK release, define prebuilt and clean for next time
     if [ "$_use_dxvk" == "release" ]; then
+      _use_dxvk="prebuilt"
       rm -rf "$_nowhere"/dxvk
     fi
 
