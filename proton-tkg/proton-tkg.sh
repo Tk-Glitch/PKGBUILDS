@@ -255,7 +255,7 @@ else
 
     # If the token gave us prebuilt d9vk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
     if [ "$_use_d9vk" == "prebuilt" ]; then
-      if [ -d ./d9vk ]; then
+      if [ -d "$_nowhere"/d9vk ]; then
         mkdir -p proton_dist_tmp/lib64/wine/d9vk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/d9vk/
         mkdir -p proton_dist_tmp/lib/wine/d9vk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/d9vk/
       else
