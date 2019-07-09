@@ -117,6 +117,8 @@ if [ "$1" == "clean" ]; then
 else
   rm -rf "$_nowhere"/proton_dist_tmp
 
+  cd "$_nowhere"
+
   if [ ! -d "$_nowhere"/dxvk ]; then
     echo "##########################################################################################"
     echo ""
