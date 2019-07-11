@@ -27,6 +27,9 @@ _lib32="true"
 _opencl="true"
 _eglwayland="true"
 
+# Coolbits value - Enables fan control & overclocking from nvidia-settings - A value of 31 enables all features
+_coolbits="31"
+
 # Auto-add kernel userpatches to source
 _autoaddpatch="false"
 
@@ -582,6 +585,11 @@ package_nvidia-utils-tkg() {
     sed -e 's:__UTILS_PATH__:/usr/bin:' \
         -e 's:__PIXMAP_PATH__:/usr/share/pixmaps:' \
         -i "$pkgdir"/usr/share/applications/nvidia-settings.desktop
+
+    # Coolbits
+    if [ -n "$_coolbits" ]; then
+      sed -i "/.*\"NoLogo\" \"True\".*/a \        Option          \"Coolbits\" \"$_coolbits\"" "$srcdir"/20-nvidia.conf
+    fi
 
     # Disable logo splash
     install -Dm644 "$srcdir"/20-nvidia.conf "$pkgdir"/etc/X11/xorg.conf.d/20-nvidia.conf
