@@ -1,6 +1,6 @@
 # Proton-tkg
 
-## DO NOT REPORT BUGS ENCOUNTERED WITH THIS AT WINEHQ OR VALVESOFTWARE, REPORT HERE INSTEAD !
+## PLEASE DO NOT REPORT BUGS ENCOUNTERED WITH THIS AT WINEHQ OR VALVESOFTWARE, REPORT HERE INSTEAD !
 
 This is an addon script for [wine-tkg-git](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/wine-tkg-git).
 
@@ -35,9 +35,7 @@ You can find all your usual options in the proton-tkg.cfg file. If you create a 
 
 ## The prebuilt DXVK/D9VK "problem"
 
-By default, proton-tkg will download latest official DXVK release from github. You have nothing to do, it's all good. **However, if you want to build/use a development or modified version of DXVK, beware :**
-
-- DXVK winelib currently has limitations and might prevent some games to see your GPU. **Making a non-winelib build is recommended for compatibility sakes.** Installing a mingw built DXVK (using winetricks for example) to an affected game's prefix can also be used as a workaround. **You can build DXVK and D9VK and put them where needed for proton-tkg using [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
+By default, proton-tkg will download latest official DXVK release from github. You have nothing to do, it's all good. **However, if you want to build/use a development or modified version of DXVK, it's recommended to use [dxvk-tools](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/dxvk-tools)**
 
 ### If you're not using dxvk-tools/can't build DXVK/D9VK :
 

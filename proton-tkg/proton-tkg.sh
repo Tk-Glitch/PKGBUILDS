@@ -123,7 +123,6 @@ else
     echo "##########################################################################################"
     echo ""
     echo " DXVK is missing in your proton-tkg dir. Downloading latest release from github for you..."
-    echo " If you have asked for a winelib build, don't worry, you'll get a winelib build."
     echo ""
     echo "##########################################################################################"
     echo ""
@@ -132,10 +131,22 @@ else
     | cut -d : -f 2,3 \
     | tr -d \" \
     | wget -qi -
-    #mkdir dxvk
     tar -xvf dxvk-*.tar.gz >/dev/null 2>&1
     rm -f dxvk-*.tar.*
     mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
+  fi
+
+  if [ ! -d "$_nowhere"/d9vk ]; then
+    echo "########################################################################################"
+    echo ""
+    echo " D9VK is missing in your proton-tkg dir. Downloading some release from github for you..."
+    echo ""
+    echo "########################################################################################"
+    echo ""
+    wget https://github.com/Joshua-Ashton/d9vk/releases/download/0.13/d9vk-0.13.tar.gz
+    tar -xvf d9vk-*.tar.gz >/dev/null 2>&1
+    rm -f d9vk-*.tar.*
+    mv "$_nowhere"/d9vk-* "$_nowhere"/d9vk
   fi
 
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
@@ -253,6 +264,11 @@ else
       _use_dxvk="prebuilt"
       rm -rf "$_nowhere"/dxvk
     fi
+    # If user asked for D9VK release, define prebuilt and clean for next time
+    if [ "$_use_d9vk" == "release" ]; then
+      _use_d9vk="prebuilt"
+      rm -rf "$_nowhere"/d9vk
+    fi
 
     # If the token gave us prebuilt d9vk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
     if [ "$_use_d9vk" == "prebuilt" ]; then
@@ -324,21 +340,20 @@ else
     if [ -n "$_proton_dxvk_hud" ]; then
       sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
     fi
-    if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ]; then
+    if [ "$_use_dxvk" != "false" ] && [ "$_dxvk_dxgi" != "true" ]; then
       sed -i 's/.*PROTON_USE_WINE_DXGI.*/     "PROTON_USE_WINE_DXGI": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
 
-    # Use the corresponding DXVK/D9VK combo options - Default is DXVK prebuilt +no d9vk or d9vk winelib, so let's create rules for the other combinations only
-    # ("true" = "winelib")
-    if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "true" ]; then
-      sed -i 's/.*PROTON_USE_WINED3D9.*/     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
-      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
-    elif [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "prebuilt" ]; then
-      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
-      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
-    elif [ "$_use_dxvk" == "prebuilt" ] && [ "$_use_d9vk" == "prebuilt" ]; then
-      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+    # Use the corresponding DXVK/D9VK combo options
+    if [ "$_use_dxvk" != "false" ]; then
       sed -i 's/.*PROTON_USE_WINED3D11.*/#     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+    else
+      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+    fi
+    if [ "$_use_d9vk" != "false" ]; then
+      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
+    else
+      sed -i 's/.*PROTON_USE_WINED3D9.*/     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"    
     fi
 
     cd $_nowhere

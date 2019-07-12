@@ -9,8 +9,6 @@ eval pkgrel=182
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
-_dxvksrcdir='dxvk'
-_d9vksrcdir='d9vk'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 _configure_args=() # additional args to ./configure will be added during prepare()
 _makepkg_options=()
@@ -124,11 +122,7 @@ if [ "$_NUKR" == "true" ]; then
   rm -rf "$srcdir"/*.patch
   rm -rf "$srcdir"/*.tgz
   rm -rf "$srcdir"/*.conf
-  # Force pushing? Force cleaning :frog:
-  rm -rf "$srcdir"/"$_d9vksrcdir"
   rm -rf "$_where"/d9vk
-  # Josh's weebiness might leak onto Doitsujin :frog:
-  rm -rf "$srcdir"/"$_dxvksrcdir"
   rm -rf "$_where"/dxvk
   msg2 'exit cleanup done'
 fi
@@ -160,11 +154,11 @@ if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; th
   _update_winevulkan="true"
   _use_libfonts="true"
   _use_mono="true"
-  if [ "$_use_dxvk" == "winelib" ]; then
-    _use_dxvk="true"
+  if [ "$_use_dxvk" == "true" ]; then
+    _use_dxvk="release"
   fi
-  if [ "$_use_d9vk" == "winelib" ]; then
-    _use_d9vk="true"
+  if [ "$_use_d9vk" == "true" ]; then
+    _use_d9vk="release"
   fi
 elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
   error "It looks like you're attempting to build a Proton version of wine-tkg-git."
@@ -202,27 +196,8 @@ else
   fi
 
   if [ "$_use_vkd3d" == "true" ]; then
-    if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
-      pkgname="${pkgname/%-git/-vkd3d-git}"
-      msg2 "Using VKD3D for d3d12 translation"
-    else
-      msg2 "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !"
-    fi
-  fi
-
-  if [ "$_use_dxvk" != "true" ] && [ "$_use_d9vk" == "true" ]; then
-    pkgname="${pkgname/%-git/-d9vk-git}"
-    msg2 "Using D9VK winelib for d3d9 translation"
-  fi
-
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" == "true" ]; then
-    pkgname="${pkgname/%-git/-d9+dxvk-git}"
-    msg2 "Using D9VK for d3d9 and DXVK for d3d10 and d3d11 translation (winelibs)"
-  fi
-
-  if [ "$_use_dxvk" == "true" ] && [ "$_use_d9vk" != "true" ]; then
-    pkgname="${pkgname/%-git/-dxvk-git}"
-    msg2 "Using DXVK winelib for d3d10 and d3d11 translation"
+    pkgname="${pkgname/%-git/-vkd3d-git}"
+    msg2 "Using VKD3D for d3d12 translation"
   fi
 
   if [ "$_use_faudio" == "true" ]; then
@@ -249,16 +224,6 @@ fi
 # custom staging commit to pass to git
 if [ "$_use_staging" == "true" ] && [ -n "$_staging_version" ]; then
   _staging_commit="#commit=$_staging_version"
-fi
-
-# custom dxvk commit to pass to git
-if [ "$_use_dxvk" == "true" ]; then
-  _dxvk_commit="#commit=$_dxvk_version"
-fi
-
-# custom d9vk commit to pass to git
-if [ "$_use_d9vk" == "true" ]; then
-  _d9vk_commit="#commit=$_d9vk_version"
 fi
 
 pkgdesc='This "Wine to rule them all" package is the result of some random pkgbuild found online. Looks safe to me, amirite? Some variants of it can be found in lutris runners.'
@@ -329,16 +294,10 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'ocl-icd'               'lib32-ocl-icd'
     'opencl-headers'
 )
-# We need wine installed to build DXVK/D9VK winelib
-if [ "$_use_dxvk" == "true" ] || [ "$_use_d9vk" == "true" ]; then
-  makedepends=("${makedepends[@]}" wine)
-fi
 
 # vkd3d deps
 if [ "$_use_vkd3d" == "true" ]; then
-  if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
-    makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
-  fi
+  makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
 fi
 
 # liberation fonts deps
@@ -450,8 +409,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'GLSL-toggle.patch' # Toggles OpenGL shading language
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'plasma_systray_fix.patch' # Systray fix for winex11
-		'dxvk-winelib.patch' # Enables DXVK winelib building
-		'd9vk-winelib.patch' # Enables D9VK winelib building
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
@@ -472,7 +429,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg.patch' # Proton-tkg
 		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging
 		'proton-tkg-staging.patch' # Proton-tkg-staging
-		'dxvk-async.patch' # DXVK async patch
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'msvcrt_nativebuiltin-eafb4aff.patch' # Enforce mscvrt Dlls to native then builtin - from Proton (<eafb4aff)
@@ -545,8 +501,6 @@ md5sums=('SKIP'
          '65d47ea14d7c666d6308fc65a5ccd729'
          '3aafb27f35d4817942085d87904dcfc8'
          '927f39348cd29ce9876871e4edb15a09'
-         'b2638b27a99b9f3a2f270a85a422d430'
-         '54b38ef7e04e4f01c1d59fc34f2c6e57'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '6262b0ff26fd1e00eb6123db5e0a4160'
          '89e55abb8bbfb8a077eb7f2fb5d197e3'
@@ -567,7 +521,6 @@ md5sums=('SKIP'
          '7ef6961b9a54d93ba970a2af827bb969'
          'ce0332f66626399574d79d10642896d2'
          '09274cf0d0b8775afa040f2cdc2a03e0'
-         '239651ec4613ecf09f89b398b4cf668d'
          'd047619c11d95c4c9bbefae564876950'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
@@ -590,20 +543,6 @@ md5sums=('SKIP'
 if [ "$_use_staging" == "true" ]; then
   source+=("$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}")
   md5sums+=('SKIP')
-fi
-
-if ! pacman -Qq mingw-w64-gcc &> /dev/null || [ "$_NOMINGW" == "true" ]; then
-  # DXVK source
-  if [ "$_use_dxvk" == "true" ]; then
-    source+=("$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}")
-    md5sums+=('SKIP')
-  fi
-
-  # D9VK source
-  if [ "$_use_d9vk" == "true" ]; then
-    source+=("$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}")
-    md5sums+=('SKIP')
-  fi
 fi
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -729,24 +668,6 @@ prepare() {
 	    git clean -xdf 			# delete untracked files
 	  fi
 
-	  if ! pacman -Qq mingw-w64-gcc &> /dev/null || [ "$_NOMINGW" == "true" ]; then
-	    if [ "$_use_dxvk" == "true" ]; then
-	      cd "${srcdir}"/"${_dxvksrcdir}"
-
-	      msg2 'Cleaning dxvk source code tree...'
-	      git reset --hard HEAD 	# restore tracked files
-	      git clean -xdf 			# delete untracked files
-	    fi
-
-	    if [ "$_use_d9vk" == "true" ]; then
-	      cd "${srcdir}"/"${_d9vksrcdir}"
-
-	      msg2 'Cleaning d9vk source code tree...'
-	      git reset --hard HEAD 	# restore tracked files
-	      git clean -xdf 			# delete untracked files
-	    fi
-	  fi
-
 	  cd "${srcdir}"/"${_winesrcdir}"
 
 	  msg2 'Cleaning wine source code tree...'
@@ -827,37 +748,8 @@ prepare() {
 	fi
 
 	if [ "$_use_vkd3d" == "true" ]; then
-	  if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
-	    _configure_args+=(--with-vkd3d)
-	    echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
-	  else
-	    echo "VKD3D force disabled as it requires wine's dxgi instead of DXVK's !" >> "$_where"/last_build_config.log
-	  fi
-	fi
-
-	if [ "$_use_dxvk" == "true" ]; then
-	  if pacman -Qq mingw-w64-gcc &> /dev/null && [ "$_NOMINGW" != "true" ]; then
-	    echo "Using DXVK latest master for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
-	  else
-	    cd "${srcdir}"/"${_dxvksrcdir}"
-	    _dxvkversion=$(_describe_other)
-	    cd "${srcdir}"/"${_winesrcdir}"
-	    echo "Using DXVK winelib for d3d10 and d3d11 translation (version $_dxvkversion)" >> "$_where"/last_build_config.log
-	    if [ "$_dxvk_dxgi" == "true" ]; then
-	      echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
-	    fi
-	  fi
-	fi
-
-	if [ "$_use_d9vk" == "true" ]; then
-	  if pacman -Qq mingw-w64-gcc &> /dev/null && [ "$_NOMINGW" != "true" ]; then
-	    echo "Using D9VK latest master for d3d9 translation" >> "$_where"/last_build_config.log
-	  else
-	    cd "${srcdir}"/"${_d9vksrcdir}"
-	    _d9vkversion=$(_describe_other)
-	    cd "${srcdir}"/"${_winesrcdir}"
-	    echo "Using D9VK winelib for d3d9 translation (version $_d9vkversion)" >> "$_where"/last_build_config.log
-	  fi
+	  _configure_args+=(--with-vkd3d)
+	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
 	fi
 
 	echo "" >> "$_where"/last_build_config.log
@@ -1436,40 +1328,9 @@ EOM
 	  _version_tags+=(Nine)
 	fi
 	if [ "$_use_vkd3d" == "true" ]; then
-	  if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_dxgi" != "true" ] || [ "$_use_dxvk" != "true" ]; then
-	    _version_tags+=(Vkd3d)
-	  fi
-	fi
-	if [ "$_use_dxvk" == "true" ]; then
-	  _version_tags+=(Dxvk)
-	  if [ "$_dxvk_async" == "true" ]; then
-	    _version_tags+=(Async)
-	  fi
-	fi
-	if [ "$_use_d9vk" == "true" ]; then
-	  _version_tags+=(D9vk)
+	  _version_tags+=(Vkd3d)
 	fi
 	sed -i "s/\\\1/\\\1  ( ${_version_tags[*]} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
-
-	if ! pacman -Qq mingw-w64-gcc &> /dev/null || [ "$_NOMINGW" == "true" ] && [ "$_user_patches" == "true" ]; then
-	  # dxvk user patches
-	  if [ "$_use_dxvk" == "true" ]; then
-	    _userpatch_target="dxvk"
-	    _userpatch_ext="mydxvk"
-	    cd "${srcdir}"/"${_dxvksrcdir}"
-	    user_patcher
-	    cd "${srcdir}"/"${_winesrcdir}"
-	  fi
-
-	  # d9vk user patches
-	  if [ "$_use_d9vk" == "true" ]; then
-	    _userpatch_target="d9vk"
-	    _userpatch_ext="myd9vk"
-	    cd "${srcdir}"/"${_d9vksrcdir}"
-	    user_patcher
-	    cd "${srcdir}"/"${_winesrcdir}"
-	  fi
-	fi
 
 	# fix path of opencl headers
 	sed 's|OpenCL/opencl.h|CL/opencl.h|g' -i configure*
@@ -1616,56 +1477,6 @@ build() {
 	    schedtool -B -n 1 -e ionice -n 1 make
 	  fi
 	fi
-
-	# Check for mingw-w64-gcc to either build winelib or PE DXVK/D9VK
-	if pacman -Qq mingw-w64-gcc &> /dev/null && [ "$_NOMINGW" != "true" ]; then
-	  if [ "$_use_dxvk" == "true" ]; then
-	    # Build DXVK using dxvk-tools
-	    "$_where"/../dxvk-tools/updxvk build
-	    mkdir -p "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master && cp -rv ./DXVKBUILD/master/latest/x32 "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/
-	    if [ "$_dxvk_dxgi" == "true" ]; then
-	      rm -f "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/dxgi.dll
-	    fi
-	  fi
-
-	  if [ "$_use_d9vk" == "true" ]; then
-	    # Build D9VK using dxvk-tools
-	    "$_where"/../dxvk-tools/upd9vk build
-	    mkdir -p "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master && cp -rv ./D9VKBUILD/master/latest/x32 "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/
-	  fi
-	else
-	  # Build DXVK winelib
-	  if [ "$_use_dxvk" == "true" ]; then
-	    cd "${srcdir}"/"${_dxvksrcdir}"
-	    if [ "$_dxvk_dxgi" == "true" ]; then
-	      touch plzdxgi
-	    fi
-	    mkdir build
-	    _patchname='dxvk-winelib.patch' && _patchmsg="Using dxvk-winelib patch" && nonuser_patcher
-	    if [ "$_dxvk_async" == "true" ]; then
-	      _patchname='dxvk-async.patch' && _patchmsg="Using dxvk-async patch" && nonuser_patcher
-	    fi
-	    if [ "$_NOLIB32" == "true" ]; then
-	      sed -i "/build_arch 32/d" package-release-wine.sh
-	    elif [ "$_NOLIB64" == "true" ]; then
-	      sed -i "/build_arch 64/d" package-release-wine.sh
-	    fi
-	    ./package-release-wine.sh master build --no-package
-	  fi
-
-	  # Build D9VK winelib
-	  if [ "$_use_d9vk" == "true" ]; then
-	    cd "${srcdir}"/"${_d9vksrcdir}"
-	    mkdir build
-	    _patchname='d9vk-winelib.patch' && _patchmsg="Using d9vk-winelib patch" && nonuser_patcher
-	    if [ "$_NOLIB32" == "true" ]; then
-	      sed -i "/build_arch 32/d" package-release-wine.sh
-	    elif [ "$_NOLIB64" == "true" ]; then
-	      sed -i "/build_arch 64/d" package-release-wine.sh
-	    fi
-	    ./package-release-wine.sh master build --no-package
-	  fi
-	fi
 }
 
 package() {
@@ -1745,24 +1556,6 @@ package() {
 	cp "$_where"/wine-tkg-patches/wine-tkg "${pkgdir}$_prefix"/bin/wine-tkg
 	cp "$_where"/wine-tkg-patches/wine-tkg-interactive "${pkgdir}$_prefix"/bin/wine-tkg-interactive
 
-	# dxvk
-	if [ "$_use_dxvk" == "true" ]; then
-	  if [ "$_NOLIB32" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x32/* "${pkgdir}$_prefix"/"$_lib32name"/wine
-	  elif [ "$_NOLIB64" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/x64/* "${pkgdir}$_prefix"/"$_lib64name"/wine
-	  fi
-	fi
-
-	# d9vk
-	if [ "$_use_d9vk" == "true" ]; then
-	  if [ "$_NOLIB32" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x32/d3d9.* "${pkgdir}$_prefix"/"$_lib32name"/wine
-	  elif [ "$_NOLIB64" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x64/d3d9.* "${pkgdir}$_prefix"/"$_lib64name"/wine
-	  fi
-	fi
-
 	cp "$_where"/last_build_config.log "${pkgdir}$_prefix"/share/wine/wine-tkg-config.txt
 
 	if [ "$_use_esync" == "true" ]; then
@@ -1773,16 +1566,6 @@ package() {
 	  msg2 'https://raw.githubusercontent.com/zfigura/wine/esync/README.esync'
 	  msg2 ''
 	  msg2 '##########################################################################################################################'
-	fi
-
-	if [ "$_use_dxvk" == "true" ] && [ "$_dxvk_async" == "true" ]; then
-	  msg2 '################################################'
-	  msg2 ''
-	  msg2 'Remember to export DXVK_ASYNC=1 to use ASYNC'
-	  msg2 ''
-	  msg2 'https://github.com/jomihaka/dxvk-poe-hack'
-	  msg2 ''
-	  msg2 '################################################'
 	fi
 
 	# External install
