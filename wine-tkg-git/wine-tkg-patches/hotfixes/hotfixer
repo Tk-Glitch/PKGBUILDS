@@ -1,7 +1,8 @@
 #!/bin/bash
 
-cd "${srcdir}"/"${_stgsrcdir}"
-if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 5ed9211eabf3bac7f466cb5c4f7ba1237f161b71 HEAD; then # Added mailing list patchset
+if [ "$_use_staging" == "true" ]; then
+  cd "${srcdir}"/"${_stgsrcdir}"
+  if git merge-base --is-ancestor 5ed9211eabf3bac7f466cb5c4f7ba1237f161b71 HEAD; then # Added mailing list patchset
   cd "${srcdir}"/"${_winesrcdir}"
 
   hotfixer() {
@@ -48,5 +49,11 @@ if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 5ed9211eabf3bac
 	    done
 	  fi
 	fi
+  }
+
+  fi
+else
+  hotfixer() {
+  msg2 "No hotfix for you"
   }
 fi
