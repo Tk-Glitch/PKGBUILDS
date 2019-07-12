@@ -5,7 +5,7 @@ pkgver=4.12.1.r3.g5ed9211e
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=181
+eval pkgrel=182
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -591,16 +591,18 @@ if [ "$_use_staging" == "true" ]; then
   md5sums+=('SKIP')
 fi
 
-# DXVK source
-if [ "$_use_dxvk" == "true" ]; then
-  source+=("$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}")
-  md5sums+=('SKIP')
-fi
+if ! pacman -Qq mingw-w64-gcc &> /dev/null || [ "$_NOMINGW" == "true" ]; then
+  # DXVK source
+  if [ "$_use_dxvk" == "true" ]; then
+    source+=("$_dxvksrcdir"::"git+https://github.com/doitsujin/dxvk.git${_dxvk_commit}")
+    md5sums+=('SKIP')
+  fi
 
-# D9VK source
-if [ "$_use_d9vk" == "true" ]; then
-  source+=("$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}")
-  md5sums+=('SKIP')
+  # D9VK source
+  if [ "$_use_d9vk" == "true" ]; then
+    source+=("$_d9vksrcdir"::"git+https://github.com/Joshua-Ashton/d9vk.git${_d9vk_commit}")
+    md5sums+=('SKIP')
+  fi
 fi
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
@@ -726,20 +728,22 @@ prepare() {
 	    git clean -xdf 			# delete untracked files
 	  fi
 
-	  if [ "$_use_dxvk" == "true" ]; then
-	    cd "${srcdir}"/"${_dxvksrcdir}"
+	  if ! pacman -Qq mingw-w64-gcc &> /dev/null || [ "$_NOMINGW" == "true" ]; then
+	    if [ "$_use_dxvk" == "true" ]; then
+	      cd "${srcdir}"/"${_dxvksrcdir}"
 
-	    msg2 'Cleaning dxvk source code tree...'
-	    git reset --hard HEAD 	# restore tracked files
-	    git clean -xdf 			# delete untracked files
-	  fi
+	      msg2 'Cleaning dxvk source code tree...'
+	      git reset --hard HEAD 	# restore tracked files
+	      git clean -xdf 			# delete untracked files
+	    fi
 
-	  if [ "$_use_d9vk" == "true" ]; then
-	    cd "${srcdir}"/"${_d9vksrcdir}"
+	    if [ "$_use_d9vk" == "true" ]; then
+	      cd "${srcdir}"/"${_d9vksrcdir}"
 
-	    msg2 'Cleaning d9vk source code tree...'
-	    git reset --hard HEAD 	# restore tracked files
-	    git clean -xdf 			# delete untracked files
+	      msg2 'Cleaning d9vk source code tree...'
+	      git reset --hard HEAD 	# restore tracked files
+	      git clean -xdf 			# delete untracked files
+	    fi
 	  fi
 
 	  cd "${srcdir}"/"${_winesrcdir}"
@@ -829,20 +833,28 @@ prepare() {
 	fi
 
 	if [ "$_use_dxvk" == "true" ]; then
-	  cd "${srcdir}"/"${_dxvksrcdir}"
-	  _dxvkversion=$(_describe_other)
-	  cd "${srcdir}"/"${_winesrcdir}"
-	  echo "Using DXVK winelib for d3d10 and d3d11 translation (version $_dxvkversion)" >> "$_where"/last_build_config.log
-	  if [ "$_dxvk_dxgi" == "true" ]; then
-	    echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
+	  if pacman -Qq mingw-w64-gcc &> /dev/null && [ "$_NOMINGW" != "true" ]; then
+	    echo "Using DXVK latest master for d3d10 and d3d11 translation" >> "$_where"/last_build_config.log
+	  else
+	    cd "${srcdir}"/"${_dxvksrcdir}"
+	    _dxvkversion=$(_describe_other)
+	    cd "${srcdir}"/"${_winesrcdir}"
+	    echo "Using DXVK winelib for d3d10 and d3d11 translation (version $_dxvkversion)" >> "$_where"/last_build_config.log
+	    if [ "$_dxvk_dxgi" == "true" ]; then
+	      echo "Using DXVK's dxgi instead of wine's" >> "$_where"/last_build_config.log
+	    fi
 	  fi
 	fi
 
 	if [ "$_use_d9vk" == "true" ]; then
-	  cd "${srcdir}"/"${_d9vksrcdir}"
-	  _d9vkversion=$(_describe_other)
-	  cd "${srcdir}"/"${_winesrcdir}"
-	  echo "Using D9VK winelib for d3d9 translation (version $_d9vkversion)" >> "$_where"/last_build_config.log
+	  if pacman -Qq mingw-w64-gcc &> /dev/null && [ "$_NOMINGW" != "true" ]; then
+	    echo "Using D9VK latest master for d3d9 translation" >> "$_where"/last_build_config.log
+	  else
+	    cd "${srcdir}"/"${_d9vksrcdir}"
+	    _d9vkversion=$(_describe_other)
+	    cd "${srcdir}"/"${_winesrcdir}"
+	    echo "Using D9VK winelib for d3d9 translation (version $_d9vkversion)" >> "$_where"/last_build_config.log
+	  fi
 	fi
 
 	echo "" >> "$_where"/last_build_config.log
@@ -1434,22 +1446,24 @@ EOM
 	fi
 	sed -i "s/\\\1/\\\1  ( ${_version_tags[*]} )/g" "${srcdir}"/"${_winesrcdir}"/libs/wine/Makefile.in
 
-	# dxvk user patches
-	if [ "$_user_patches" == "true" ] && [ "$_use_dxvk" == "true" ]; then
-	  _userpatch_target="dxvk"
-	  _userpatch_ext="mydxvk"
-	  cd "${srcdir}"/"${_dxvksrcdir}"
-	  user_patcher
-	  cd "${srcdir}"/"${_winesrcdir}"
-	fi
+	if ! pacman -Qq mingw-w64-gcc &> /dev/null || [ "$_NOMINGW" == "true" ] && [ "$_user_patches" == "true" ]; then
+	  # dxvk user patches
+	  if [ "$_use_dxvk" == "true" ]; then
+	    _userpatch_target="dxvk"
+	    _userpatch_ext="mydxvk"
+	    cd "${srcdir}"/"${_dxvksrcdir}"
+	    user_patcher
+	    cd "${srcdir}"/"${_winesrcdir}"
+	  fi
 
-	# d9vk user patches
-	if [ "$_user_patches" == "true" ] && [ "$_use_d9vk" == "true" ]; then
-	  _userpatch_target="d9vk"
-	  _userpatch_ext="myd9vk"
-	  cd "${srcdir}"/"${_d9vksrcdir}"
-	  user_patcher
-	  cd "${srcdir}"/"${_winesrcdir}"
+	  # d9vk user patches
+	  if [ "$_use_d9vk" == "true" ]; then
+	    _userpatch_target="d9vk"
+	    _userpatch_ext="myd9vk"
+	    cd "${srcdir}"/"${_d9vksrcdir}"
+	    user_patcher
+	    cd "${srcdir}"/"${_winesrcdir}"
+	  fi
 	fi
 
 	# fix path of opencl headers
@@ -1598,36 +1612,54 @@ build() {
 	  fi
 	fi
 
-	# Build DXVK winelib
-	if [ "$_use_dxvk" == "true" ]; then
-	  cd "${srcdir}"/"${_dxvksrcdir}"
-	  if [ "$_dxvk_dxgi" == "true" ]; then
-	    touch plzdxgi
+	# Check for mingw-w64-gcc to either build winelib or PE DXVK/D9VK
+	if pacman -Qq mingw-w64-gcc &> /dev/null && [ "$_NOMINGW" != "true" ]; then
+	  if [ "$_use_dxvk" == "true" ]; then
+	    # Build DXVK using dxvk-tools
+	    "$_where"/../dxvk-tools/updxvk build
+	    mkdir -p "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master && cp -rv ./DXVKBUILD/master/latest/x32 "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/
+	    if [ "$_dxvk_dxgi" == "true" ]; then
+	      rm -f "${srcdir}"/"${_dxvksrcdir}"/build/dxvk-master/dxgi.dll
+	    fi
 	  fi
-	  mkdir build
-	  _patchname='dxvk-winelib.patch' && _patchmsg="Using dxvk-winelib patch" && nonuser_patcher
-	  if [ "$_dxvk_async" == "true" ]; then
-	    _patchname='dxvk-async.patch' && _patchmsg="Using dxvk-async patch" && nonuser_patcher
-	  fi
-	  if [ "$_NOLIB32" == "true" ]; then
-	    sed -i "/build_arch 32/d" package-release-wine.sh
-	  elif [ "$_NOLIB64" == "true" ]; then
-	    sed -i "/build_arch 64/d" package-release-wine.sh
-	  fi
-	  ./package-release-wine.sh master build --no-package
-	fi
 
-	# Build D9VK winelib
-	if [ "$_use_d9vk" == "true" ]; then
-	  cd "${srcdir}"/"${_d9vksrcdir}"
-	  mkdir build
-	  _patchname='d9vk-winelib.patch' && _patchmsg="Using d9vk-winelib patch" && nonuser_patcher
-	  if [ "$_NOLIB32" == "true" ]; then
-	    sed -i "/build_arch 32/d" package-release-wine.sh
-	  elif [ "$_NOLIB64" == "true" ]; then
-	    sed -i "/build_arch 64/d" package-release-wine.sh
+	  if [ "$_use_d9vk" == "true" ]; then
+	    # Build D9VK using dxvk-tools
+	    "$_where"/../dxvk-tools/upd9vk build
+	    mkdir -p "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master && cp -rv ./D9VKBUILD/master/latest/x32 "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/
 	  fi
-	  ./package-release-wine.sh master build --no-package
+	else
+	  # Build DXVK winelib
+	  if [ "$_use_dxvk" == "true" ]; then
+	    cd "${srcdir}"/"${_dxvksrcdir}"
+	    if [ "$_dxvk_dxgi" == "true" ]; then
+	      touch plzdxgi
+	    fi
+	    mkdir build
+	    _patchname='dxvk-winelib.patch' && _patchmsg="Using dxvk-winelib patch" && nonuser_patcher
+	    if [ "$_dxvk_async" == "true" ]; then
+	      _patchname='dxvk-async.patch' && _patchmsg="Using dxvk-async patch" && nonuser_patcher
+	    fi
+	    if [ "$_NOLIB32" == "true" ]; then
+	      sed -i "/build_arch 32/d" package-release-wine.sh
+	    elif [ "$_NOLIB64" == "true" ]; then
+	      sed -i "/build_arch 64/d" package-release-wine.sh
+	    fi
+	    ./package-release-wine.sh master build --no-package
+	  fi
+
+	  # Build D9VK winelib
+	  if [ "$_use_d9vk" == "true" ]; then
+	    cd "${srcdir}"/"${_d9vksrcdir}"
+	    mkdir build
+	    _patchname='d9vk-winelib.patch' && _patchmsg="Using d9vk-winelib patch" && nonuser_patcher
+	    if [ "$_NOLIB32" == "true" ]; then
+	      sed -i "/build_arch 32/d" package-release-wine.sh
+	    elif [ "$_NOLIB64" == "true" ]; then
+	      sed -i "/build_arch 64/d" package-release-wine.sh
+	    fi
+	    ./package-release-wine.sh master build --no-package
+	  fi
 	fi
 }
 
@@ -1720,9 +1752,9 @@ package() {
 	# d9vk
 	if [ "$_use_d9vk" == "true" ]; then
 	  if [ "$_NOLIB32" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x32/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib32name"/wine
+	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x32/d3d9.* "${pkgdir}$_prefix"/"$_lib32name"/wine
 	  elif [ "$_NOLIB64" != "true" ]; then
-	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x64/d3d9.dll.so "${pkgdir}$_prefix"/"$_lib64name"/wine
+	    cp -rv "${srcdir}"/"${_d9vksrcdir}"/build/d9vk-master/x64/d3d9.* "${pkgdir}$_prefix"/"$_lib64name"/wine
 	  fi
 	fi
 
