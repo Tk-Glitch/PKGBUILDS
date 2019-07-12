@@ -357,10 +357,12 @@ else
     echo " Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
     echo ""
     echo "####################################################################################################"
-    echo ""
-    read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
-    if [ "$_ask_uninstall" == "y" ]; then
-      proton_tkg_uninstaller
+    if [ "$_skip_uninstaller" != "true" ]; then
+      echo ""
+      read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
+      if [ "$_ask_uninstall" == "y" ]; then
+        proton_tkg_uninstaller
+      fi
     fi
   else
     rm $_nowhere/proton_tkg_token
