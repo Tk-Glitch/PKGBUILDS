@@ -25,15 +25,3 @@ You can also revert wine patches by giving them the .myrevert extension.
 You can use your own wine-staging patches by giving them the .mystagingpatch extension.
 
 You can also revert wine-staging patches by giving them the .mystagingrevert extension.
-
-
-## For dxvk
-You can use your own dxvk patches by giving them the .mydxvkpatch extension.
-
-You can also revert dxvk patches by giving them the .mydxvkrevert extension.
-
-
-## For d9vk
-You can use your own d9vk patches by giving them the .myd9vkpatch extension.
-
-You can also revert d9vk patches by giving them the .myd9vkrevert extension.
