@@ -1,0 +1,31 @@
+From 15a71eb3d02afbb3d4257e11458871073220cead Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Fri, 12 Jul 2019 06:27:34 +0200
+Subject: derp
+
+
+diff --git a/patches/winedevice-Default_Drivers/0001-win32k.sys-Add-stub-driver.patch b/patches/winedevice-Default_Drivers/0001-win32k.sys-Add-stub-driver.patch
+index afbd1565..1f4f2471 100644
+--- a/patches/winedevice-Default_Drivers/0001-win32k.sys-Add-stub-driver.patch
++++ b/patches/winedevice-Default_Drivers/0001-win32k.sys-Add-stub-driver.patch
+@@ -336,16 +336,17 @@ index 0000000..c794391
+ +@ cdecl -private memmove(ptr ptr long) ntoskrnl.exe.memmove
+ +@ cdecl -private memset(ptr long long) ntoskrnl.exe.memset
+ diff --git a/tools/make_specfiles b/tools/make_specfiles
+-index eac36ca..28ac498 100755
++index 5c30ce5003..33b0a1e69d 100755
+ --- a/tools/make_specfiles
+ +++ b/tools/make_specfiles
+-@@ -429,6 +429,7 @@ my @dll_groups =
++@@ -482,6 +482,7 @@ my @dll_groups =
+   [
+    "ntoskrnl.exe",
+    "hal",
+ +  "win32k.sys",
+   ],
+- );
++  [
++   "mscoree",
+  
+ -- 
+ 1.9.1
