@@ -10,7 +10,7 @@ if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 5ed9211eabf3bac
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	    msg2 "Found ${#_patches[@]} reverting hotfix:"
 	    printf '%s\n' "${_patches[@]}"
-	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
+	    read -rp "Do you want to install it/them?"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "${_patches[@]}"; do
@@ -32,7 +32,7 @@ if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 5ed9211eabf3bac
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	    msg2 "Found ${#_patches[@]} hotfix:"
 	    printf '%s\n' "${_patches[@]}"
-	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
+	    read -rp "Do you want to install it/them?"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
 	    for _f in "${_patches[@]}"; do
