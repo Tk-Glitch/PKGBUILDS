@@ -71,9 +71,9 @@ _basever=52
 pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
-#_sub=rc7
-pkgver="${_basekernel}" #."${_sub}"
-pkgrel=1
+_sub=1
+pkgver="${_basekernel}"."${_sub}"
+pkgrel=2
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -86,7 +86,7 @@ else
   options=('!strip')
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
-        #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
+        "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         #"https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-${_basekernel}.patch"
         'config.x86_64' # config
         'linux52-tkg.preset' # standard config files for mkinitcpio ramdisk
@@ -110,6 +110,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0011-ZFS-fix.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
+            'b7c0c14fcc945dbbd3194786bc4834d812b23666fcd3cf49790a74e217473773'
             '94139f076ba8db54aa114f744d3ff76e292ba5731362486b44434d32dc3b6198'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -173,7 +174,7 @@ prepare() {
   cd "${srcdir}/linux-${_basekernel}"
 
   # add upstream patch
-  #patch -p1 -i ../patch-"${pkgver}"
+  patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
