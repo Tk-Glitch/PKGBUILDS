@@ -50,7 +50,10 @@ if [ "$_use_staging" == "true" ]; then
 	  fi
 	fi
   }
-
+  else
+    hotfixer() {
+    msg2 "No hotfix for you"
+    }
   fi
 else
   hotfixer() {
