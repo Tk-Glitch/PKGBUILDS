@@ -119,36 +119,6 @@ else
 
   cd "$_nowhere"
 
-  if [ ! -d "$_nowhere"/dxvk ]; then
-    echo "##########################################################################################"
-    echo ""
-    echo " DXVK is missing in your proton-tkg dir. Downloading latest release from github for you..."
-    echo ""
-    echo "##########################################################################################"
-    echo ""
-    curl -s https://api.github.com/repos/doitsujin/dxvk/releases/latest \
-    | grep "browser_download_url.*tar.gz" \
-    | cut -d : -f 2,3 \
-    | tr -d \" \
-    | wget -qi -
-    tar -xvf dxvk-*.tar.gz >/dev/null 2>&1
-    rm -f dxvk-*.tar.*
-    mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
-  fi
-
-  if [ ! -d "$_nowhere"/d9vk ]; then
-    echo "########################################################################################"
-    echo ""
-    echo " D9VK is missing in your proton-tkg dir. Downloading some release from github for you..."
-    echo ""
-    echo "########################################################################################"
-    echo ""
-    wget https://github.com/Joshua-Ashton/d9vk/releases/download/0.13/d9vk-0.13.tar.gz
-    tar -xvf d9vk-*.tar.gz >/dev/null 2>&1
-    rm -f d9vk-*.tar.*
-    mv "$_nowhere"/d9vk-* "$_nowhere"/d9vk
-  fi
-
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
   echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "$_wine_tkg_git_path"/
 
@@ -243,47 +213,46 @@ else
       cp -v Proton/build/steam.win32/libsteam_api.so proton_dist_tmp/lib/
     fi
 
-    # If the token gave us _prebuilt_dxvk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
-    if [ "$_use_dxvk" == "prebuilt" ] || [ "$_use_dxvk" == "release" ]; then
-      if [ -d "$_nowhere"/dxvk ]; then
-        mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
-        mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
-      else
-        echo "##################################################################################"
+    # dxvk
+    if [ "$_use_dxvk" != "false" ]; then
+      if [ ! -d "$_nowhere"/dxvk ] || [ "$_use_dxvk" == "release" ]; then
+        rm -rf "$_nowhere"/dxvk
+        echo "#######################################################"
         echo ""
-        echo " Your config file is set up to include prebuilt DXVK, but it seems to be missing !"
-        echo " Please verify that your DXVK dlls are present in the ./dxvk dir"
-        echo " See the readme for more details on how to setup DXVK for proton-tkg"
+        echo " Downloading latest DXVK release from github for you..."
         echo ""
-        echo "##################################################################################" && exit 1
+        echo "#######################################################"
+        echo ""
+        curl -s https://api.github.com/repos/doitsujin/dxvk/releases/latest \
+        | grep "browser_download_url.*tar.gz" \
+        | cut -d : -f 2,3 \
+        | tr -d \" \
+        | wget -qi -
+        tar -xvf dxvk-*.tar.gz >/dev/null 2>&1
+        rm -f dxvk-*.tar.*
+        mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
       fi
+      mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
+      mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
     fi
 
-    # If user asked for DXVK release, define prebuilt and clean for next time
-    if [ "$_use_dxvk" == "release" ]; then
-      _use_dxvk="prebuilt"
-      rm -rf "$_nowhere"/dxvk
-    fi
-    # If user asked for D9VK release, define prebuilt and clean for next time
-    if [ "$_use_d9vk" == "release" ]; then
-      _use_d9vk="prebuilt"
-      rm -rf "$_nowhere"/d9vk
-    fi
-
-    # If the token gave us prebuilt d9vk, try to build with it - See dir hierarchy below(or in readme) if you aren't building using dxvk-tools
-    if [ "$_use_d9vk" == "prebuilt" ]; then
-      if [ -d "$_nowhere"/d9vk ]; then
-        mkdir -p proton_dist_tmp/lib64/wine/d9vk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/d9vk/
-        mkdir -p proton_dist_tmp/lib/wine/d9vk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/d9vk/
-      else
-        echo "##################################################################################"
+    # d9vk
+    if [ "$_use_d9vk" != "false" ]; then
+      if [ ! -d "$_nowhere"/d9vk ] || [ "$_use_d9vk" == "release" ]; then
+        rm -rf "$_nowhere"/d9vk
+        echo "#####################################################"
         echo ""
-        echo " Your config file is set up to include prebuilt D9VK, but it seems to be missing !"
-        echo " Please verify that your D9VK dlls are present in the ./d9vk dir"
-        echo " See the readme for more details on how to setup D9VK for proton-tkg"
+        echo " Downloading some D9VK release from github for you..."
         echo ""
-        echo "##################################################################################" && exit 1
+        echo "#####################################################"
+        echo ""
+        wget https://github.com/Joshua-Ashton/d9vk/releases/download/0.13/d9vk-0.13.tar.gz
+        tar -xvf d9vk-*.tar.gz >/dev/null 2>&1
+        rm -f d9vk-*.tar.*
+        mv "$_nowhere"/d9vk-* "$_nowhere"/d9vk
       fi
+      mkdir -p proton_dist_tmp/lib64/wine/d9vk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/d9vk/
+      mkdir -p proton_dist_tmp/lib/wine/d9vk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/d9vk/
     fi
 
     echo ''
