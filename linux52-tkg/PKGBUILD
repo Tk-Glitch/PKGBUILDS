@@ -111,13 +111,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             'b7c0c14fcc945dbbd3194786bc4834d812b23666fcd3cf49790a74e217473773'
-            '94139f076ba8db54aa114f744d3ff76e292ba5731362486b44434d32dc3b6198'
+            'ee838ac01ce07bde95689c4ab055e9b5a5a3597db56c35ab7ec6d9619b9fe8a9'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             '87c42cc27dfdeae2e05dd2cfb1a359ba34aa27634c5c1c1c86e1ce275f90dca4'
-            'd82f7817dfe390638c4d83e9f3963f7e6d41fe499785610af3d575d681a05e1d'
+            'a6172a766652494496b5c30407ad5ef5670ee8d6811120796d85c83f327be7a9'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '050fe4f17f320ce99c9525c2c95e6d3d81cd6e3087422a6d0bef5b3d87c14314'
@@ -295,6 +295,8 @@ prepare() {
     sed -i -e 's/# CONFIG_MEXCAVATOR is not set/CONFIG_MEXCAVATOR=y/' ./.config
   elif [ "$_processor_opt" == "zen" ]; then
     sed -i -e 's/# CONFIG_MZEN is not set/CONFIG_MZEN=y/' ./.config
+  elif [ "$_processor_opt" == "zen2" ]; then
+    sed -i -e 's/# CONFIG_MZEN2 is not set/CONFIG_MZEN2=y/' ./.config
   elif [ "$_processor_opt" == "mpsc" ]; then
     sed -i -e 's/# CONFIG_MPSC is not set/CONFIG_MPSC=y/' ./.config
   elif [ "$_processor_opt" == "atom" ]; then
