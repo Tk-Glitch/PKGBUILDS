@@ -2,7 +2,7 @@
 
 if [ "$_use_staging" == "true" ]; then
   cd "${srcdir}"/"${_stgsrcdir}"
-  if git merge-base --is-ancestor 5ed9211eabf3bac7f466cb5c4f7ba1237f161b71 HEAD; then # Added mailing list patchset
+  if git merge-base --is-ancestor c95aae104930a1fb99e4891b46b158e055fb89d2 HEAD; then # Added mailing list patchset
   cd "${srcdir}"/"${_winesrcdir}"
 
   hotfixer() {
