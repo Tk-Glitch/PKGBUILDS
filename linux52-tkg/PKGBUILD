@@ -73,7 +73,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=3
+pkgrel=4
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -106,7 +106,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0008-bcachefs.patch
         #0009-uksm-5.2.patch
         0010-glitched-bmq.patch
-        0010-v5.2_bmq097.patch
+        0010-v5.2_bmq098.patch
         0011-ZFS-fix.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
@@ -123,7 +123,7 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '050fe4f17f320ce99c9525c2c95e6d3d81cd6e3087422a6d0bef5b3d87c14314'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
-            '4ea19a28cb6664417554c7ba4add8b0fb84116dd22109a1dd6295ac66bc54e58'
+            '628efd7ea8d6eb7a015e8790411e2353aa9cd6548099aa5c229a3b1cd25f1794'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
 
 user_patcher() {
@@ -194,7 +194,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0010-v5.2_bmq097.patch
+    patch -Np1 -i ../0010-v5.2_bmq098.patch
     patch -Np1 -i ../0010-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
