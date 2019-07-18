@@ -235,25 +235,23 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       patch -p2 -i "$srcdir"/linux-version.diff
     cd ..
 
-    # kernel version variables
+    ## kernel version variables, quirks & driver patch whitelists
+
+    # 4.16
     if (( $(vercmp "$_kernel" "4.16") >= 0 )); then
       _kernel416="1"
-    fi
-    if (( $(vercmp "$_kernel" "4.19") >= 0 )); then
-      _kernel419="1"
-    fi
-    if (( $(vercmp "$_kernel" "5.0") >= 0 )); then
-      _kernel50="1"
-    fi
-    if (( $(vercmp "$_kernel" "5.1") >= 0 )); then
-      _kernel51="1"
-    fi
-    if (( $(vercmp "$_kernel" "5.2") >= 0 )); then
-      _kernel52="1"
+      _whitelist416=( 396* 410* 415* 418.3* 418.4* 418.52.0* 418.52.10 418.52.14 )
     fi
 
-    # Fix for "unknown type name 'ipmi_user_t'" (required for older than 2018.12.7 drivers when used on 4.20+)
+    # 4.19
+    if (( $(vercmp "$_kernel" "4.19") >= 0 )); then
+      _kernel419="1"
+      _whitelist419=( 396* )
+    fi
+
+    # 4.20
     if (( $(vercmp "$_kernel" "4.20") >= 0 )); then
+      # Fix for "unknown type name 'ipmi_user_t'" (required for older than 2018.12.7 drivers when used on 4.20+)
       if [[ $pkgver = 396* ]] || [[ $pkgver = 410.5* ]] || [[ $pkgver = 410.6* ]] || [[ $pkgver = 410.7* ]] || [[ $pkgver = 415.1* ]]; then
         _oldstuff="1"
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
@@ -270,20 +268,37 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
     fi
 
-    if (( $(vercmp "$_kernel" "5.1") >= 0 )) && [[ $pkgver != 430* ]]; then
-      sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
-      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.3* ]] || [[ $pkgver = 418.4* ]]; then
-        _low418="1"
-        cd "$srcdir"/"$_pkg"/kernel-$_kernel
-        msg2 "Applying list_is_first.diff for $_kernel..."
-        # Use sed for the moving parts of the patch - Fix for "redefinition of ‘list_is_first’" (required for older than 418.56 drivers when used on 5.1+)
-        sed -i "s/static inline int list_is_first(const struct list_head \*list,/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic inline int list_is_first(const struct list_head \*list,/g" "$srcdir/$_pkg/kernel-$_kernel/common/inc/nv-list-helpers.h"
-        sed -i "s/                                const struct list_head \*head)/                                const struct list_head \*head)\n#else\nstatic inline int nv_list_is_first(const struct list_head \*list,\n                                   const struct list_head \*head)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/common/inc/nv-list-helpers.h"
-        patch -Np2 -i "$srcdir"/list_is_first.diff
-        cd ..
-      else
-        msg2 "Skipping list_is_first fixes (not needed for this driver/kernel combination)"
+    # 5.0
+    if (( $(vercmp "$_kernel" "5.0") >= 0 )); then
+      _kernel50="1"
+      _whitelist50=( 396* 410* 415* )
+    fi
+
+    # 5.1
+    if (( $(vercmp "$_kernel" "5.1") >= 0 )); then
+      _kernel51="1"
+      _whitelist51=( 396* 410* 415* 418.3* 418.4* 418.52.0* 418.52.10 )
+      if [[ $pkgver != 430* ]]; then
+        sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
+        if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.3* ]] || [[ $pkgver = 418.4* ]]; then
+          _low418="1"
+          cd "$srcdir"/"$_pkg"/kernel-$_kernel
+          msg2 "Applying list_is_first.diff for $_kernel..."
+          # Use sed for the moving parts of the patch - Fix for "redefinition of ‘list_is_first’" (required for older than 418.56 drivers when used on 5.1+)
+          sed -i "s/static inline int list_is_first(const struct list_head \*list,/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic inline int list_is_first(const struct list_head \*list,/g" "$srcdir/$_pkg/kernel-$_kernel/common/inc/nv-list-helpers.h"
+          sed -i "s/                                const struct list_head \*head)/                                const struct list_head \*head)\n#else\nstatic inline int nv_list_is_first(const struct list_head \*list,\n                                   const struct list_head \*head)\n#endif/g" "$srcdir/$_pkg/kernel-$_kernel/common/inc/nv-list-helpers.h"
+          patch -Np2 -i "$srcdir"/list_is_first.diff
+          cd ..
+        else
+          msg2 "Skipping list_is_first fixes (not needed for this driver/kernel combination)"
+        fi
       fi
+    fi
+
+    # 5.2
+    if (( $(vercmp "$_kernel" "5.2") >= 0 )); then
+      _kernel52="1"
+      _whitelist52=( 396* 410* 415* 418.3* 418.4* 418.52.0* 418.52.10 418.52.14 )
     fi
 
     # Loop patches (linux-4.15.patch, lol.patch, ...)
@@ -294,21 +309,33 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       # Cd in place
       cd "$srcdir"/"$_pkg"/kernel-$_kernel
 
-      # Compare versions
-      if [[ $pkgver != 396* ]] && [ "$_p" == "kernel-4.19.patch" ]; then
-        msg2 "Skipping $_p as it doesn't apply to this driver version..."
-      elif [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [ "$_p" == "kernel-5.0.patch" ]; then
-        msg2 "Skipping $_p as it doesn't apply to this driver version..."
-      elif [[ $pkgver = 418.7* ]] || [[ $pkgver = 418.52.14 ]] || [[ $pkgver = 418.52.16 ]] && [ "$_p" == "kernel-5.1.patch" ]; then
-        msg2 "Skipping $_p as it doesn't apply to this driver version..."
-      elif [ "$_p" == "kernel-4.16.patch" ] || [ "$_p" == "kernel-5.1.patch" ] || [ "$_p" == "kernel-5.2.patch" ] && [[ $pkgver = 430* ]] || [[ $pkgver = 418.52.16 ]]; then
-        msg2 "Skipping $_p as it doesn't apply to this driver version..."
-      else
-        if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
+      if [ "$_patch" == "4.16" ]; then
+        _whitelist=(${_whitelist416[@]})
+      fi
+      if [ "$_patch" == "4.19" ]; then
+        _whitelist=(${_whitelist419[@]})
+      fi
+      if [ "$_patch" == "5.0" ]; then
+        _whitelist=(${_whitelist50[@]})
+      fi
+      if [ "$_patch" == "5.1" ]; then
+        _whitelist=(${_whitelist51[@]})
+      fi
+      if [ "$_patch" == "5.2" ]; then
+        _whitelist=(${_whitelist52[@]})
+      fi
+
+      patchy=0
+      if (( $(vercmp "$_kernel" "$_patch") >= 0 )); then
+        for yup in "${_whitelist[@]}"; do
+          [[ $pkgver = $yup ]] && patchy=1
+        done
+
+        if [ "$patchy" == "1" ]; then
           msg2 "Applying $_p for $_kernel..."
           patch -p2 -i "$srcdir"/$_p
         else
-          msg2 "Skipping $_p..."  # List these, instead of ignoring silently
+          msg2 "Skipping $_p as it doesn't apply to this driver version..."
         fi
       fi
     done
@@ -321,37 +348,61 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
   if [ "$_dkms" == "true" ]; then
     msg2 "Applying linux-version.diff for dkms..."
     patch -Np1 -i "$srcdir"/linux-version.diff
+
+    # 4.16
     if [ "$_kernel416" == "1" ]; then
-      if [[ $pkgver = 430* ]]; then
-        msg2 "Skipping kernel-4.16.patch as it doesn't apply to this driver version..."
-      else
+      patchy=0
+      for yup in "${_whitelist416[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
         msg2 "Applying kernel-4.16.patch for dkms..."
         patch -Np1 -i "$srcdir"/kernel-4.16.patch
+      else
+        msg2 "Skipping kernel-4.16.patch as it doesn't apply to this driver version..."
       fi
     fi
+
+    # 4.19
     if [ "$_kernel419" == "1" ]; then
-      if [[ $pkgver = 396* ]]; then
+      patchy=0
+      for yup in "${_whitelist419[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
         msg2 "Applying kernel-4.19.patch for dkms..."
         patch -Np1 -i "$srcdir"/kernel-4.19.patch
       else
         msg2 "Skipping kernel-4.19.patch as it doesn't apply to this driver version..."
       fi
     fi
+
+    # 5.0
     if [ "$_kernel50" == "1" ]; then
-      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]]; then
-        msg2 "Skipping kernel-5.0.patch as it doesn't apply to this driver version..."
-      else
+      patchy=0
+      for yup in "${_whitelist50[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
         msg2 "Applying kernel-5.0.patch for dkms..."
         patch -Np1 -i "$srcdir"/kernel-5.0.patch
+      else
+        msg2 "Skipping kernel-5.0.patch as it doesn't apply to this driver version..."
       fi
     fi
+
+    # 5.1
     if [ "$_kernel51" == "1" ]; then
-      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [[ $pkgver != 418.3* ]] && [[ $pkgver != 418.4* ]] && [[ $pkgver != 418.5* ]] || [[ $pkgver = 418.52.14 ]] || [[ $pkgver = 418.52.16 ]]; then
-        msg2 "Skipping kernel-5.1.patch as it doesn't apply to this driver version..."
-      else
+      patchy=0
+      for yup in "${_whitelist51[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
         msg2 "Applying kernel-5.1.patch for dkms..."
         patch -Np1 -i "$srcdir"/kernel-5.1.patch
         sed -i "s/static int nv_drm_vma_fault(struct vm_fault \*vmf)/#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0)\nstatic int nv_drm_vma_fault(struct vm_fault \*vmf)\n#else\nstatic vm_fault_t nv_drm_vma_fault(struct vm_fault \*vmf)\n#endif/g" "$srcdir/$_pkg/kernel-dkms/nvidia-drm/nvidia-drm-gem-nvkms-memory.c"
+      else
+        msg2 "Skipping kernel-5.1.patch as it doesn't apply to this driver version..."
       fi
       if [ "$_low418" == "1" ]; then
         msg2 "Applying list_is_first.patch for dkms..."
@@ -361,15 +412,22 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         patch -Np1 -i "$srcdir"/list_is_first.diff
       fi
     fi
+
+    # 5.2
     if [ "$_kernel52" == "1" ]; then
-      if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [[ $pkgver != 418.3* ]] && [[ $pkgver != 418.4* ]] && [[ $pkgver != 418.5* ]] && [[ $pkgver != 418.7* ]] || [[ $pkgver = 418.52.16 ]]; then
-        msg2 "Skipping kernel-5.2.patch as it doesn't apply to this driver version..."
-      else
+      patchy=0
+      for yup in "${_whitelist52[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
         msg2 "Applying kernel-5.2.patch for dkms..."
         patch -Np1 -i "$srcdir"/kernel-5.2.patch
+      else
+        msg2 "Skipping kernel-5.2.patch as it doesn't apply to this driver version..."
       fi
     fi
 
+    # Legacy quirks
     if [ "$_oldstuff" == "1" ]; then
       msg2 "Applying 01-ipmi-vm.diff for dkms..."
       patch -Np1 -i "$srcdir"/01-ipmi-vm.diff
