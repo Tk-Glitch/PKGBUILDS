@@ -131,7 +131,7 @@ index d5b8597d8e..7103b86055 100644
 +@ cdecl __wine_send_raw_input(ptr)
  @ cdecl __wine_set_pixel_format(long long)
 diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
-index f737a306a5..e9cb591cb5 100644
+index f737a306a5..03262c063a 100644
 --- a/dlls/winex11.drv/mouse.c
 +++ b/dlls/winex11.drv/mouse.c
 @@ -257,6 +257,10 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
@@ -259,7 +259,7 @@ index f737a306a5..e9cb591cb5 100644
          DestroyWindow( hwnd );
      }
      else if (hwnd == GetForegroundWindow())  /* request to clip */
-@@ -1724,16 +1759,18 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1724,16 +1759,19 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  {
      XIRawEvent *event = xev->data;
      const double *values = event->valuators.values;
@@ -272,6 +272,7 @@ index f737a306a5..e9cb591cb5 100644
 +    double dx = 0, dy = 0, raw_dx = 0, raw_dy = 0, val, raw_val;
      struct x11drv_thread_data *thread_data = x11drv_thread_data();
      struct x11drv_valuator_data *x_rel, *y_rel;
++    static unsigned int last_cookie = 0;
  
      if (thread_data->x_rel_valuator.number < 0 || thread_data->y_rel_valuator.number < 0) return FALSE;
      if (!event->valuators.mask_len) return FALSE;
@@ -280,7 +281,7 @@ index f737a306a5..e9cb591cb5 100644
  
      /* If there is no slave currently detected, no previous motion nor device
       * change events were received. Look it up now on the device list in this
-@@ -1758,12 +1795,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1758,12 +1796,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      x_rel = &thread_data->x_rel_valuator;
      y_rel = &thread_data->y_rel_valuator;
  
@@ -299,7 +300,7 @@ index f737a306a5..e9cb591cb5 100644
  
      virtual_rect = get_virtual_screen_rect();
  
-@@ -1771,32 +1812,77 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1771,32 +1813,77 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      {
          if (!XIMaskIsSet( event->valuators.mask, i )) continue;
          val = *values++;
@@ -373,7 +374,7 @@ index f737a306a5..e9cb591cb5 100644
 +        x_rel->raw_accum -= raw_input.data.mouse.lLastX;
 +        y_rel->raw_accum -= raw_input.data.mouse.lLastY;
 +
-+        if ( LIST_ENTRY(list_head(&g_x11_threads), struct x11drv_thread_data, entry) == thread_data)
++        if (InterlockedExchange(&last_cookie, xev->cookie) != xev->cookie)
 +        {
 +            TRACE("raw event %d,%d(event %f,%f)\n", raw_input.data.mouse.lLastX, raw_input.data.mouse.lLastY, raw_dx, raw_dy);
 +            __wine_send_raw_input( &raw_input );
@@ -386,7 +387,7 @@ index f737a306a5..e9cb591cb5 100644
  }
  
 diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
-index a0308b0675..06b09730ee 100644
+index a0308b0675..408c1c3c72 100644
 --- a/dlls/winex11.drv/x11drv.h
 +++ b/dlls/winex11.drv/x11drv.h
 @@ -194,6 +194,8 @@ extern BOOL X11DRV_UnrealizePalette( HPALETTE hpal ) DECLSPEC_HIDDEN;
@@ -407,7 +408,7 @@ index a0308b0675..06b09730ee 100644
  };
  
  struct x11drv_thread_data
-@@ -335,14 +339,16 @@ struct x11drv_thread_data
+@@ -335,7 +339,7 @@ struct x11drv_thread_data
      HWND     clip_hwnd;            /* message window stored in desktop while clipping is active */
      DWORD    clip_reset;           /* time when clipping was last reset */
      HKL      kbd_layout;           /* active keyboard layout */
@@ -416,46 +417,24 @@ index a0308b0675..06b09730ee 100644
      void    *xi2_devices;          /* list of XInput2 devices (valid when state is enabled) */
      int      xi2_device_count;
      struct x11drv_valuator_data x_rel_valuator;
-     struct x11drv_valuator_data y_rel_valuator;
-     int      xi2_core_pointer;     /* XInput2 core pointer id */
-     int      xi2_current_slave;    /* Current slave driving the Core pointer */
-+    struct   list entry;           /* Entry in global list of setup X11 threads */
- };
-+extern struct list g_x11_threads DECLSPEC_HIDDEN; /* Global list of setup X11 threads */
- 
- extern struct x11drv_thread_data *x11drv_init_thread_data(void) DECLSPEC_HIDDEN;
- extern DWORD thread_data_tls_index DECLSPEC_HIDDEN;
 diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
-index e67a3c05a9..685b3dd0f4 100644
+index e67a3c05a9..351ab89781 100644
 --- a/dlls/winex11.drv/x11drv_main.c
 +++ b/dlls/winex11.drv/x11drv_main.c
-@@ -601,6 +601,9 @@ static BOOL process_attach(void)
- }
- 
- 
-+struct list g_x11_threads = LIST_INIT( g_x11_threads );
-+
-+
- /***********************************************************************
-  *           ThreadDetach (X11DRV.@)
-  */
-@@ -610,6 +613,9 @@ void CDECL X11DRV_ThreadDetach(void)
+@@ -610,6 +610,8 @@ void CDECL X11DRV_ThreadDetach(void)
  
      if (data)
      {
-+        list_remove( &data->entry );
 +        X11DRV_XInput2_Disable();
 +
          if (data->xim) XCloseIM( data->xim );
          if (data->font_set) XFreeFontSet( data->display, data->font_set );
          XCloseDisplay( data->display );
-@@ -680,6 +686,10 @@ struct x11drv_thread_data *x11drv_init_thread_data(void)
+@@ -680,6 +682,8 @@ struct x11drv_thread_data *x11drv_init_thread_data(void)
  
      if (use_xim) X11DRV_SetupXIM();
  
 +    X11DRV_XInput2_Enable();
-+
-+    list_add_tail( &g_x11_threads, &data->entry );
 +
      return data;
  }
