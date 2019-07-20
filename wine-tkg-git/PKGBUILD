@@ -536,8 +536,8 @@ md5sums=('SKIP'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
          'aa8d6b65936c9646972c04864eafc479'
-         '8ac82e326a9ec2b52b29836c95fa791f'
-         'de5a24bc3ddfd73a2038a27a3c2bfdc0')
+         '54834acf944f04634c0c5d4d2ab92341'
+         'c1b0f027dfdae0eb894867660d146969')
 
 # Wine staging source
 if [ "$_use_staging" == "true" ]; then
