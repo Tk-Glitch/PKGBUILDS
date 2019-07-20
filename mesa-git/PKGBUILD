@@ -284,7 +284,9 @@ build () {
     meson configure _build64
     ninja  $NINJAFLAGS -C _build64
 
-    echo -e "prefix=/usr\nlibdir=\${prefix}/lib64\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build64/glesv2.pc
+    if [ "$_localglesv2pc" == "true" ]; then
+      echo -e "prefix=/usr\nlibdir=\${prefix}/lib64\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build64/glesv2.pc
+    fi
 
     if [ "$_lib32" == "true" ]; then
       cd "$srcdir"
@@ -331,7 +333,9 @@ build () {
       meson configure _build32
       ninja  $NINJAFLAGS -C _build32
 
-      echo -e "prefix=/usr\nlibdir=\${prefix}/lib32\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build32/glesv2.pc
+      if [ "$_localglesv2pc" == "true" ]; then
+        echo -e "prefix=/usr\nlibdir=\${prefix}/lib32\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build32/glesv2.pc
+      fi
     fi
 }
 
