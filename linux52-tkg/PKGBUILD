@@ -218,7 +218,6 @@ prepare() {
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ default config
     echo "CONFIG_SCHED_BMQ=y" >> ./.config
-    echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
   else
     # CFS default config
     sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
@@ -294,6 +293,10 @@ prepare() {
         sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
       elif [ "${_cpusched}" == "bmq" ]; then
         echo "SCHED_TIMESLICE=${_rrvalue}" >> ./.config
+      fi
+    else
+      if [ "${_cpusched}" == "bmq" ]; then
+        echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
       fi
     fi
   fi
