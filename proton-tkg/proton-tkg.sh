@@ -246,7 +246,7 @@ else
         echo ""
         echo "#####################################################"
         echo ""
-        wget https://github.com/Joshua-Ashton/d9vk/releases/download/0.13/d9vk-0.13.tar.gz
+        wget https://github.com/Joshua-Ashton/d9vk/releases/download/0.13f/d9vk-0.13f.tar.gz
         tar -xvf d9vk-*.tar.gz >/dev/null 2>&1
         rm -f d9vk-*.tar.*
         mv "$_nowhere"/d9vk-* "$_nowhere"/d9vk
