@@ -1,0 +1,123 @@
+From 4684da9df3fea497b0ea8808ff0c9a413a1c21c9 Mon Sep 17 00:00:00 2001
+From: Joshua Ashton <joshua@froggi.es>
+Date: Fri, 19 Jul 2019 17:31:09 +0100
+Subject: [PATCH] radv: Implement VK_JOSH_depth_bias_info
+
+---
+ src/amd/vulkan/radv_cmd_buffer.c  | 13 +++++++++++--
+ src/amd/vulkan/radv_device.c      |  7 +++++++
+ src/amd/vulkan/radv_extensions.py |  1 +
+ src/amd/vulkan/radv_pipeline.c    | 13 +++++++++++++
+ src/amd/vulkan/radv_private.h     |  7 +++++++
+ 5 files changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_cmd_buffer.c b/src/amd/vulkan/radv_cmd_buffer.c
+index b4301c0da1..e71dfecd83 100644
+--- a/src/amd/vulkan/radv_cmd_buffer.c
++++ b/src/amd/vulkan/radv_cmd_buffer.c
+@@ -1224,8 +1224,12 @@ static void
+ radv_emit_depth_bias(struct radv_cmd_buffer *cmd_buffer)
+ {
+ 	struct radv_dynamic_state *d = &cmd_buffer->state.dynamic;
++	struct radv_pipeline *pipeline = cmd_buffer->state.pipeline;
+ 	unsigned slope = fui(d->depth_bias.slope * 16.0f);
+-	unsigned bias = fui(d->depth_bias.bias * cmd_buffer->state.offset_scale);
++	float scale = (pipeline && pipeline->depth_bias_state.use_user_scale)
++				? pipeline->depth_bias_state.user_scale
++				: cmd_buffer->state.offset_scale;
++	unsigned bias = fui(d->depth_bias.bias * scale);
+ 
+ 
+ 	radeon_set_context_reg_seq(cmd_buffer->cs,
+@@ -1472,8 +1476,13 @@ radv_emit_fb_ds_state(struct radv_cmd_buffer *cmd_buffer,
+ 	/* Update the ZRANGE_PRECISION value for the TC-compat bug. */
+ 	radv_update_zrange_precision(cmd_buffer, ds, image, layout, true);
+ 
++	struct radv_pipeline *pipeline = cmd_buffer->state.pipeline;
++
++	uint32_t poly_offset = (pipeline && pipeline->depth_bias_state.offset_units_unscaled)
++		? 0 : ds->pa_su_poly_offset_db_fmt_cntl;
++
+ 	radeon_set_context_reg(cmd_buffer->cs, R_028B78_PA_SU_POLY_OFFSET_DB_FMT_CNTL,
+-			       ds->pa_su_poly_offset_db_fmt_cntl);
++			       poly_offset);
+ }
+ 
+ /**
+diff --git a/src/amd/vulkan/radv_device.c b/src/amd/vulkan/radv_device.c
+index 8dd24cb819..851c2fb251 100644
+--- a/src/amd/vulkan/radv_device.c
++++ b/src/amd/vulkan/radv_device.c
+@@ -988,6 +988,13 @@ void radv_GetPhysicalDeviceFeatures2(
+ 			features->uniformBufferStandardLayout = true;
+ 			break;
+ 		}
++		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_BIAS_FEATURES_JOSH: {
++			VkPhysicalDeviceDepthBiasFeaturesJOSH *features =
++				(VkPhysicalDeviceDepthBiasFeaturesJOSH *)ext;
++			features->modeFloat = true;
++			features->userScale = true;
++			break;
++		}
+ 		default:
+ 			break;
+ 		}
+diff --git a/src/amd/vulkan/radv_extensions.py b/src/amd/vulkan/radv_extensions.py
+index e9addad003..f82c171fb4 100644
+--- a/src/amd/vulkan/radv_extensions.py
++++ b/src/amd/vulkan/radv_extensions.py
+@@ -145,6 +145,7 @@ def __init__(self, name, ext_version, enable):
+     Extension('VK_GOOGLE_decorate_string',                1, True),
+     Extension('VK_GOOGLE_hlsl_functionality1',            1, True),
+     Extension('VK_NV_compute_shader_derivatives',         1, 'device->rad_info.chip_class >= GFX8'),
++    Extension('VK_JOSH_depth_bias_info',                  1, True),
+ ]
+ 
+ class VkVersion:
+diff --git a/src/amd/vulkan/radv_pipeline.c b/src/amd/vulkan/radv_pipeline.c
+index a7ff0e2d13..cfd8037d1e 100644
+--- a/src/amd/vulkan/radv_pipeline.c
++++ b/src/amd/vulkan/radv_pipeline.c
+@@ -4315,6 +4315,19 @@ radv_pipeline_init(struct radv_pipeline *pipeline,
+ 	/* prim vertex count will need TESS changes */
+ 	pipeline->graphics.prim_vertex_count = prim_size_table[prim];
+ 
++	const VkPipelineRasterizationDepthBiasCreateInfoJOSH *depth_bias_info =
++		vk_find_struct_const(pCreateInfo->pRasterizationState->pNext, PIPELINE_RASTERIZATION_DEPTH_BIAS_CREATE_INFO_JOSH);
++	
++	if (depth_bias_info) {
++		pipeline->depth_bias_state.use_user_scale        = depth_bias_info->useDepthBiasScale;
++		pipeline->depth_bias_state.user_scale            = depth_bias_info->depthBiasScale;
++		pipeline->depth_bias_state.offset_units_unscaled = depth_bias_info->depthBiasMode == VK_DEPTH_BIAS_MODE_FLOAT_JOSH;
++	} else {
++		pipeline->depth_bias_state.use_user_scale        = false;
++		pipeline->depth_bias_state.user_scale            = 1.0f;
++		pipeline->depth_bias_state.offset_units_unscaled = false;
++	}
++
+ 	radv_pipeline_init_dynamic_state(pipeline, pCreateInfo);
+ 
+ 	/* Ensure that some export memory is always allocated, for two reasons:
+diff --git a/src/amd/vulkan/radv_private.h b/src/amd/vulkan/radv_private.h
+index f1f30887e0..7bb689bfff 100644
+--- a/src/amd/vulkan/radv_private.h
++++ b/src/amd/vulkan/radv_private.h
+@@ -1452,11 +1452,18 @@ struct radv_ia_multi_vgt_param_helpers {
+ 	bool partial_vs_wave;
+ };
+ 
++struct radv_depth_bias_state {
++	bool  use_user_scale;
++	float user_scale;
++	bool  offset_units_unscaled;
++};
++
+ #define SI_GS_PER_ES 128
+ 
+ struct radv_pipeline {
+ 	struct radv_device *                          device;
+ 	struct radv_dynamic_state                     dynamic_state;
++	struct radv_depth_bias_state                  depth_bias_state;
+ 
+ 	struct radv_pipeline_layout *                 layout;
+ 

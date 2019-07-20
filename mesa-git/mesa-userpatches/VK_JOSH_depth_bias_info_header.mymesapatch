@@ -1,0 +1,97 @@
+From 5b531cc3f44b0cf516c0d32e1a92c4a4f014d3d8 Mon Sep 17 00:00:00 2001
+From: Joshua Ashton <joshua@froggi.es>
+Date: Fri, 19 Jul 2019 13:29:21 +0100
+Subject: [PATCH] vulkan: Add VK_JOSH_depth_bias_info
+
+---
+ include/vulkan/vulkan_core.h | 46 ++++++++++++++++++++++++++++++++++++
+ src/vulkan/registry/vk.xml   | 13 ++++++++++
+ 2 files changed, 59 insertions(+)
+
+diff --git a/include/vulkan/vulkan_core.h b/include/vulkan/vulkan_core.h
+index 544f24fb69..c5d5c94aee 100644
+--- a/include/vulkan/vulkan_core.h
++++ b/include/vulkan/vulkan_core.h
+@@ -511,6 +511,8 @@ typedef enum VkStructureType {
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES_EXT = 1000276000,
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT = 1000281000,
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT = 1000281001,
++    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_BIAS_CREATE_INFO_JOSH = 100029100, // VK_JOSH_depth_bias_info
++    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_BIAS_FEATURES_JOSH = 100029101, // VK_JOSH_depth_bias_info
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
+     VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+@@ -9556,6 +9558,50 @@ typedef struct VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT {
+ } VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT;
+ 
+ 
++
++#define VK_JOSH_depth_bias_info 1
++#define VK_JOSH_DEPTH_BIAS_INFO_SPEC_VERSION 1
++#define VK_JOSH_DEPTH_BIAS_INFO_EXTENSION_NAME "VK_JOSH_depth_bias_info"
++
++///////////////////////
++//VkDepthBiasModeJOSH//
++///////////////////////
++// VK_DEPTH_BIAS_MODE_LEAST_REPRESENTABLE_JOSH (default w/o struct)
++// -> The given depth bias value in VkPipelineRasterizationStateCreateInfo is
++//    treat like a least representable value of the given depth format, r = format dependent
++////
++// VK_DEPTH_BIAS_MODE_FLOAT_JOSH
++// -> The given depth bias value in VkPipelineRasterizationStateCreateInfo is
++//    treat like a floating point number. r = 1
++//
++typedef enum VkDepthBiasModeJOSH {
++    VK_DEPTH_BIAS_MODE_LEAST_REPRESENTABLE_JOSH = 0,
++    VK_DEPTH_BIAS_MODE_FLOAT_JOSH = 1,
++    VK_DEPTH_BIAS_MODE_MAX_ENUM_JOSH = 0x7FFFFFFF
++} VkDepthBiasModeJOSH;
++
++//////////////////
++//depthBiasScale//
++//////////////////
++// depthBiasScale allows complete control of the vendor's scale for the depth bias
++// only enabled if the useDepthBiasScale is VK_TRUE
++
++// pNext of VkPipelineRasterizationStateCreateInfo
++typedef struct VkPipelineRasterizationDepthBiasCreateInfoJOSH {
++    VkStructureType                                        sType;
++    const void*                                            pNext;
++    VkBool32                                               useDepthBiasScale;
++    float                                                  depthBiasScale;
++    VkDepthBiasModeJOSH                                    depthBiasMode;
++} VkPipelineRasterizationDepthBiasCreateInfoJOSH;
++
++typedef struct VkPhysicalDeviceDepthBiasFeaturesJOSH {
++    VkStructureType    sType;
++    void*              pNext;
++    VkBool32           modeFloat;
++    VkBool32           userScale;
++} VkPhysicalDeviceDepthBiasFeaturesJOSH;
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/src/vulkan/registry/vk.xml b/src/vulkan/registry/vk.xml
+index e3d040ad79..41f585cbbe 100644
+--- a/src/vulkan/registry/vk.xml
++++ b/src/vulkan/registry/vk.xml
+@@ -11186,5 +11186,18 @@ typedef void <name>CAMetalLayer</name>;
+                 <enum value="&quot;VK_EXT_extension_284&quot;"              name="VK_EXT_extension_284"/>
+             </require>
+         </extension>
++        <extension name="VK_JOSH_depth_bias_info" number="291" type="device" author="JOSH" contact="Joshua Ashton" supported="vulkan">
++            <require>
++                <enum value="1"                                                     name="VK_JOSH_depth_bias_info"/>
++                <enum value="1"                                                     name="VK_JOSH_DEPTH_BIAS_INFO_SPEC_VERSION"/>
++                <enum value="&quot;VK_JOSH_DEPTH_BIAS_INFO_EXTENSION_NAME&quot;"    name="VK_JOSH_DEPTH_BIAS_INFO_EXTENSION_NAME"/>
++
++                <enum offset="0" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_BIAS_CREATE_INFO_JOSH"/>
++                <enum offset="1" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_BIAS_FEATURES_JOSH"/>
++
++                <type name="VkPipelineRasterizationDepthBiasCreateInfoJOSH"/>
++                <type name="VkPhysicalDeviceDepthBiasFeaturesJOSH"/>
++            </require>
++        </extension>
+     </extensions>
+ </registry>
