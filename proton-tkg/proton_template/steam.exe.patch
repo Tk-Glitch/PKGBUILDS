@@ -1,31 +1,31 @@
 diff --git a/proton b/proton
-index bc96544..90b6e33 100755
+index 96b1b7e..998f94a 100755
 --- a/proton
 +++ b/proton
-@@ +191,7 -191,7 @@ with dist_lock:
+@@ -191,7 +191,7 @@ with dist_lock:
          try_copy(basedir + "/version", basedir + "/dist/")
  
  env = dict(os.environ)
-+dlloverrides = {"steam.exe": "b"} #always use our special built-in steam.exe
 -dlloverrides = {}
++dlloverrides = {"steam.exe": "b"} #always use our special built-in steam.exe
  
  if "HOST_LC_ALL" in env and len(env["HOST_LC_ALL"]) > 0:
      #steam sets LC_ALL=C to help some games, but Wine requires the real value
-@@ -628,7 +628,7 @@ def dump_dbg_scripts():
+@@ -705,7 +705,7 @@ def dump_dbg_scripts():
                  f.write(" \"" + arg + "\"")
          f.write(")\n")
          dump_dbg_env(f)
-+        f.write("\t\"" + wine_path + "\" steam.exe \"${@:-${DEF_CMD[@]}}\"\n")
 -        f.write("\t\"" + wine_path + "\" \"${@:-${DEF_CMD[@]}}\"\n")
++        f.write("\t\"" + wine_path + "\" steam.exe \"${@:-${DEF_CMD[@]}}\"\n")
      os.chmod(tmpdir + "run", 0o755)
  
  def run():
-@@ -637,7 +637,7 @@ def run():
+@@ -714,7 +714,7 @@ def run():
              dump_dbg_scripts()
          except OSError:
              log("Unable to write debug scripts! " + str(sys.exc_info()[1]))
-+    run_wine([wine_path, "steam"] + sys.argv[2:])
 -    run_wine([wine_path] + sys.argv[2:])
++    run_wine([wine_path, "steam"] + sys.argv[2:])
  
  if sys.version_info[0] == 2:
      binary_stdout = sys.stdout
