@@ -255,6 +255,49 @@ prepare() {
     fi
   fi
 
+  # Round Robin interval
+  if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
+    if [ -n "$_rr_interval" ]; then
+      CONDITION0="$_rr_interval"
+    else
+      plain ""
+      plain "Round Robin interval is the longest duration two tasks with the same nice level will"
+      plain "be delayed for. When CPU time is requested by a task, it receives a time slice equal"
+      plain "to the rr_interval in addition to a virtual deadline. When using yield_type 2, a low"
+      plain "value can help offset the disadvantages of rescheduling a process that has yielded."
+      plain ""
+      plain "MuQSS default: 6ms"
+      plain "PDS default: 4ms"
+      plain "BMQ default: 4ms"
+      read -rp "`echo $'\n> 0.Keep defaults\n  1.2ms \n  2.4ms\n  3.6ms\n  4.8ms\n  [0-4?]: '`" CONDITION0;
+    fi
+    if [ "$CONDITION0" == "1" ]; then
+      msg2 "Using 2ms rr_interval"
+      _rrvalue="2"
+    elif [ "$CONDITION0" == "2" ]; then
+      msg2 "Using 4ms rr_interval"
+      _rrvalue="4"
+    elif [ "$CONDITION0" == "3" ]; then
+      msg2 "Using 6ms rr_interval"
+      _rrvalue="6"
+    elif [ "$CONDITION0" == "4" ]; then
+      msg2 "Using 8ms rr_interval"
+      _rrvalue="8"
+    else
+      msg2 "Using default rr_interval"
+      _rrvalue="default"
+    fi
+    if [ "$_rrvalue" != "default" ]; then
+      if [ "${_cpusched}" == "MuQSS" ]; then
+        sed -i -e "s/int rr_interval __read_mostly = 6;/int rr_interval __read_mostly = ${_rrvalue};/" ./kernel/sched/"${_cpusched}".c
+      elif [ "${_cpusched}" == "pds" ]; then
+        sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
+      elif [ "${_cpusched}" == "bmq" ]; then
+        echo "SCHED_TIMESLICE=${_rrvalue}" >> ./.config
+      fi
+    fi
+  fi
+
   # zenify
   if [ "$_zenify" == "true" ]; then
     echo "CONFIG_ZENIFY=y" >> ./.config
