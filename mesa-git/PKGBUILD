@@ -28,8 +28,13 @@ if [ "$_lib32" == "true" ]; then
   pkgname+=('lib32-mesa-tkg-git')
 fi
 
+ master
 pkgdesc="an open-source implementation of the OpenGL and Vulkan specifications, git version"
-pkgver=19.2.0_devel.113862.3f3665b8d52
+pkgver=19.2.0_devel.113365.d31d25f634a
+=======
+pkgdesc="an open-source implementation of the OpenGL specification, git version"
+pkgver=19.2.0_devel.113365.d31d25f634a
+ master
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto'
@@ -284,6 +289,10 @@ build () {
     meson configure _build64
     ninja  $NINJAFLAGS -C _build64
 
+    if [ "$_localglesv2pc" == "true" ]; then
+      echo -e "prefix=/usr\nlibdir=\${prefix}/lib64\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build64/glesv2.pc
+    fi
+
     if [ "$_lib32" == "true" ]; then
       cd "$srcdir"
       export CC="gcc -m32"
@@ -328,6 +337,10 @@ build () {
        
       meson configure _build32
       ninja  $NINJAFLAGS -C _build32
+
+      if [ "$_localglesv2pc" == "true" ]; then
+        echo -e "prefix=/usr\nlibdir=\${prefix}/lib32\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build32/glesv2.pc
+      fi
     fi
 }
 
@@ -336,6 +349,9 @@ package_mesa-tkg-git() {
 
   # indirect rendering
   ln -s /usr/lib/libGLX_mesa.so.0 ${pkgdir}/usr/lib/libGLX_indirect.so.0
+
+  # bring back glesv2.pc
+  install -m644 -Dt "$pkgdir"/usr/lib/pkgconfig "$srcdir"/_build64/glesv2.pc
 
   install -Dt "$pkgdir"/usr/share/licenses/$pkgname "$srcdir"/LICENSE
 }
@@ -352,6 +368,10 @@ package_lib32-mesa-tkg-git() {
 
   # indirect rendering
   ln -s /usr/lib32/libGLX_mesa.so.0 "${pkgdir}/usr/lib32/libGLX_indirect.so.0"
+
+  # bring back glesv2.pc
+  install -m644 -Dt "$pkgdir"/usr/lib32/pkgconfig "$srcdir"/_build32/glesv2.pc
+
   install -Dt  "$pkgdir"/usr/share/licenses/$pkgbase/ -m644 "$srcdir"/LICENSE 
 }
  
