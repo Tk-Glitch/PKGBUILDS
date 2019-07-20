@@ -28,7 +28,7 @@ if [ "$_lib32" == "true" ]; then
   pkgname+=('lib32-mesa-tkg-git')
 fi
 
-pkgdesc="an open-source implementation of the OpenGL specification, git version"
+pkgdesc="an open-source implementation of the OpenGL and Vulkan specifications, git version"
 pkgver=19.2.0_devel.113862.3f3665b8d52
 pkgrel=1
 arch=('x86_64')
