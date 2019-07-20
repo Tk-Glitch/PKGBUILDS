@@ -292,7 +292,7 @@ prepare() {
       elif [ "${_cpusched}" == "pds" ]; then
         sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
       elif [ "${_cpusched}" == "bmq" ]; then
-        echo "SCHED_TIMESLICE=${_rrvalue}" >> ./.config
+        echo "CONFIG_SCHED_TIMESLICE=${_rrvalue}" >> ./.config
       fi
     else
       if [ "${_cpusched}" == "bmq" ]; then
