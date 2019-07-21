@@ -605,7 +605,7 @@ prepare() {
   fi
 
   # menuconfig / nconfig
-  if [ -z "$_menuconfig" ]; then
+  if [ -z "$_menunconfig" ]; then
     plain ""
     plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig"
     plain "to configure the kernel before building it?"
