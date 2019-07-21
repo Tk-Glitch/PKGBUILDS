@@ -48,15 +48,19 @@ fi
 
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
-  plain "What CPU sched variant do you want to build/install? (MuQSS will be back)"
-  read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.BMQ\nchoice[1-3?]: '`" CONDITION;
+  plain "What CPU sched variant do you want to build/install?"
+  read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\n    4.BMQ\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
+    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "4" ]; then
     echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
+elif [ "$_cpusched" == "muqss" ]; then
+  echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
@@ -73,7 +77,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=6
+pkgrel=7
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -98,8 +102,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0002-clear-patches.patch
         0003-glitched-base.patch
         0003-glitched-cfs.patch
-        #0004-glitched-muqss.patch
-        #0004-5.2-ck1.patch
+        0004-glitched-muqss.patch
+        0004-5.2-ck1.patch
         0005-glitched-pds.patch
         0005-v5.2_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
@@ -119,6 +123,8 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '87c42cc27dfdeae2e05dd2cfb1a359ba34aa27634c5c1c1c86e1ce275f90dca4'
             '74dcf9a00f5da91ef2a2dea93b2fb45b52c9070a9c672e91f5aef5b1ffdc4ce2'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
+            'd62da725769975bf1c5f817dbec29163f307978ca81b7bbadf725ebbd901519b'
+            '72c9333b79f199eb8b09c3397223f9d6543c8b0bd2c736bf8c41a11bcf329b43'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '050fe4f17f320ce99c9525c2c95e6d3d81cd6e3087422a6d0bef5b3d87c14314'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
@@ -476,7 +482,7 @@ prepare() {
     plain "Just tickless idle can perform better on some platforms (mostly AMD based)."
     read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION3;
   fi
-  if [ "$CONDITION3" == "1" ] || [ "$CONDITION3" == "2" ] || [ "$_tickless" == "1" ] || [ "$_tickless" == "2" ]; then
+  if [ "$CONDITION3" != "0" ] || [ "$_tickless" != "0" ]; then
     sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
     sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
     sed -i -e 's/# CONFIG_RCU_BOOST is not set/CONFIG_RCU_BOOST=y/' ./.config
@@ -485,11 +491,15 @@ prepare() {
     echo "CONFIG_RCU_BOOST_DELAY=0" >> ./.config
     echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
     echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
-    if [ "$CONDITION3" == "1" ] || [ "$_tickless" == "1" ]; then
-      sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
-    elif [ "$CONDITION3" == "2" ] || [ "$_tickless" == "2" ]; then
+    if [ "$CONDITION3" == "2" ] || [ "$_tickless" == "2" ]; then
       sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
+      echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+    else
+      sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+      echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
     fi
+  else
+    echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
   fi
 
   # voluntary preempt
