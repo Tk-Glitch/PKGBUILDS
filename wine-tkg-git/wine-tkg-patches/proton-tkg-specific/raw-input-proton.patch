@@ -1,5 +1,5 @@
 diff --git a/dlls/user32/input.c b/dlls/user32/input.c
-index 8b2ae805aa..f7ef1c3be2 100644
+index 8b2ae805aa..a11de905a2 100644
 --- a/dlls/user32/input.c
 +++ b/dlls/user32/input.c
 @@ -33,6 +33,7 @@
@@ -10,16 +10,17 @@ index 8b2ae805aa..f7ef1c3be2 100644
  
  #include "ntstatus.h"
  #define WIN32_NO_STATUS
-@@ -129,6 +130,34 @@ BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input )
+@@ -129,6 +130,35 @@ BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input )
      return !status;
  }
  
-+BOOL CDECL __wine_send_raw_input( const RAWINPUT *raw_input )
++BOOL CDECL __wine_send_raw_input( HWND hwnd, const RAWINPUT *raw_input )
 +{
 +    NTSTATUS status;
 +
 +    SERVER_START_REQ( send_rawinput_message )
 +    {
++        req->win = wine_server_user_handle( hwnd );
 +        req->input.type = raw_input->header.dwType;
 +        switch (raw_input->header.dwType)
 +        {
@@ -121,17 +122,17 @@ index 2085fd3f9f..120de073c8 100644
  
          d[i].usage_page = devices[i].usUsagePage;
 diff --git a/dlls/user32/user32.spec b/dlls/user32/user32.spec
-index d5b8597d8e..7103b86055 100644
+index d5b8597d8e..f31af278bb 100644
 --- a/dlls/user32/user32.spec
 +++ b/dlls/user32/user32.spec
 @@ -832,4 +832,5 @@
  # or 'wine_' (for user-visible functions) to avoid namespace conflicts.
  #
  @ cdecl __wine_send_input(long ptr)
-+@ cdecl __wine_send_raw_input(ptr)
++@ cdecl __wine_send_raw_input(long ptr)
  @ cdecl __wine_set_pixel_format(long long)
 diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
-index f737a306a5..b1adb8e424 100644
+index f737a306a5..fb0a504de7 100644
 --- a/dlls/winex11.drv/mouse.c
 +++ b/dlls/winex11.drv/mouse.c
 @@ -257,6 +257,8 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
@@ -157,7 +158,7 @@ index f737a306a5..b1adb8e424 100644
 +    {
 +        RAWINPUT raw_input;
 +        raw_input.header.dwType = RIM_ENABLE_NATIVE_MOUSE_MOVE;
-+        __wine_send_raw_input(&raw_input);
++        __wine_send_raw_input(NULL, &raw_input);
 +        once = 1;
 +    }
 +}
@@ -257,7 +258,7 @@ index f737a306a5..b1adb8e424 100644
          DestroyWindow( hwnd );
      }
      else if (hwnd == GetForegroundWindow())  /* request to clip */
-@@ -1724,17 +1757,21 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1724,17 +1757,20 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  {
      XIRawEvent *event = xev->data;
      const double *values = event->valuators.values;
@@ -271,7 +272,6 @@ index f737a306a5..b1adb8e424 100644
 +    double dx = 0, dy = 0, raw_dx = 0, raw_dy = 0, val, raw_val;
      struct x11drv_thread_data *thread_data = x11drv_thread_data();
      struct x11drv_valuator_data *x_rel, *y_rel;
-+    static unsigned long last_time = 0;
 +    static double raw_accum_x = 0, raw_accum_y = 0;
  
      if (thread_data->x_rel_valuator.number < 0 || thread_data->y_rel_valuator.number < 0) return FALSE;
@@ -281,7 +281,7 @@ index f737a306a5..b1adb8e424 100644
  
      /* If there is no slave currently detected, no previous motion nor device
       * change events were received. Look it up now on the device list in this
-@@ -1758,12 +1795,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1758,12 +1794,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      x_rel = &thread_data->x_rel_valuator;
      y_rel = &thread_data->y_rel_valuator;
  
@@ -300,7 +300,7 @@ index f737a306a5..b1adb8e424 100644
  
      virtual_rect = get_virtual_screen_rect();
  
-@@ -1771,38 +1812,83 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1771,38 +1811,80 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      {
          if (!XIMaskIsSet( event->valuators.mask, i )) continue;
          val = *values++;
@@ -367,9 +367,6 @@ index f737a306a5..b1adb8e424 100644
 +        }
 +    }
 +
-+    if (InterlockedExchange( (LONG volatile*)&last_time, (LONG)event->time ) == event->time)
-+        return TRUE;
-+
 +    raw_accum_x += raw_dx;
 +    raw_accum_y += raw_dy;
 +    if (fabs(raw_accum_x) < 1.0 && fabs(raw_accum_y) < 1.0)
@@ -384,7 +381,7 @@ index f737a306a5..b1adb8e424 100644
 +        raw_accum_y -= raw_input.data.mouse.lLastY;
 +
 +        TRACE("raw event %d,%d(event %f,%f)\n", raw_input.data.mouse.lLastX, raw_input.data.mouse.lLastY, raw_dx, raw_dy);
-+        __wine_send_raw_input( &raw_input );
++        __wine_send_raw_input( thread_data->grab_hwnd, &raw_input );
 +    }
  
 -    input.type = INPUT_MOUSE;
@@ -445,19 +442,19 @@ index e67a3c05a9..351ab89781 100644
  }
  
 diff --git a/include/winuser.h b/include/winuser.h
-index 3cffaa19ac..5d8774b6e6 100644
+index 3cffaa19ac..ebb4960ebc 100644
 --- a/include/winuser.h
 +++ b/include/winuser.h
 @@ -4354,6 +4354,7 @@ WORD        WINAPI SYSTEM_KillSystemTimer( WORD );
  
  #ifdef __WINESRC__
  WINUSERAPI BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input );
-+WINUSERAPI BOOL CDECL __wine_send_raw_input( const RAWINPUT *raw_input );
++WINUSERAPI BOOL CDECL __wine_send_raw_input( HWND hwnd, const RAWINPUT *raw_input );
  #endif
  
  #ifdef __cplusplus
 diff --git a/server/protocol.def b/server/protocol.def
-index 5adc83db8b..9703b49154 100644
+index 5adc83db8b..7ba70c5cd8 100644
 --- a/server/protocol.def
 +++ b/server/protocol.def
 @@ -304,10 +304,11 @@ struct hardware_msg_data
@@ -508,11 +505,12 @@ index 5adc83db8b..9703b49154 100644
  typedef union
  {
      unsigned char            bytes[1];   /* raw data for sent messages */
-@@ -2293,6 +2319,11 @@ enum message_type
+@@ -2293,6 +2319,12 @@ enum message_type
  #define SEND_HWMSG_INJECTED    0x01
  
  
 +@REQ(send_rawinput_message)
++    user_handle_t win;
 +    hw_rawinput_t input;
 +@END
 +
@@ -521,7 +519,7 @@ index 5adc83db8b..9703b49154 100644
  @REQ(get_message)
      unsigned int    flags;     /* PM_* flags */
 diff --git a/server/queue.c b/server/queue.c
-index 24239916af..41c26d8fa0 100644
+index 24239916af..e39cb3247d 100644
 --- a/server/queue.c
 +++ b/server/queue.c
 @@ -372,6 +372,9 @@ static void set_cursor_pos( struct desktop *desktop, int x, int y )
@@ -646,7 +644,7 @@ index 24239916af..41c26d8fa0 100644
      }
  
      if (!(msg = alloc_hardware_message( input->kbd.info, source, time ))) return 0;
-@@ -2370,6 +2430,53 @@ DECL_HANDLER(send_hardware_message)
+@@ -2370,6 +2430,62 @@ DECL_HANDLER(send_hardware_message)
      release_object( desktop );
  }
  
@@ -666,6 +664,15 @@ index 24239916af..41c26d8fa0 100644
 +    case RIM_TYPEMOUSE:
 +        if ((device = current->process->rawinput_mouse))
 +        {
++            struct thread *thread = NULL;
++            if (!req->win || req->win != device->target || !(thread = get_window_thread( req->win )) || thread->queue->input != desktop->foreground_input)
++            {
++                if ( thread )
++                    release_object( thread );
++                release_object( desktop );
++                return;
++            }
++
 +            if (!(msg = alloc_hardware_message( 0, source, 0 ))) return;
 +            msg_data = msg->data;
 +
