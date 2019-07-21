@@ -44,11 +44,6 @@ fi
 depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'libelf'
          'libomxil-bellagio' 'libunwind' 'libglvnd' 'wayland' 'lm_sensors' 'libclc' 'glslang')
 optdepends=('opengl-man-pages: for the OpenGL API man pages')
-provides=(mesa=$pkgver-$pkgrel vulkan-intel=$pkgver-$pkgrel vulkan-radeon=$pkgver-$pkgrel vulkan-mesa-layer=$pkgver-$pkgrel  libva-mesa-driver=$pkgver-$pkgrel mesa-vdpau=$pkgver-$pkgrel vulkan-driver opencl- opengl-driver opencl-driver)
-conflicts=('mesa' 'opencl-mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'libva-mesa-driver' 'mesa-vdpau')
-if [ "$_lib32" == "true" ]; then
-  conflicts+=('lib32-mesa' 'lib32-vulkan-intel' 'lib32-vulkan-radeon' 'lib32-libva-mesa-driver' 'lib32-mesa-vdpau')
-fi
 
 # Use ccache if available
 if pacman -Qq ccache &> /dev/null; then
@@ -340,6 +335,9 @@ build () {
 }
 
 package_mesa-tkg-git() {
+  provides=(mesa=$pkgver-$pkgrel vulkan-intel=$pkgver-$pkgrel vulkan-radeon=$pkgver-$pkgrel vulkan-mesa-layer=$pkgver-$pkgrel  libva-mesa-driver=$pkgver-$pkgrel mesa-vdpau=$pkgver-$pkgrel vulkan-driver opencl- opengl-driver opencl-driver)
+  conflicts=('mesa' 'opencl-mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'libva-mesa-driver' 'mesa-vdpau')
+
   DESTDIR="$pkgdir" ninja $NINJAFLAGS -C _build64 install
 
   # indirect rendering
@@ -352,6 +350,9 @@ package_mesa-tkg-git() {
 }
 
 package_lib32-mesa-tkg-git() {
+  provides=(lib32-mesa=$pkgver-$pkgrel lib32-vulkan-intel=$pkgver-$pkgrel lib32-vulkan-radeon=$pkgver-$pkgrel lib32-libva-mesa-driver=$pkgver-$pkgrel lib32-mesa-vdpau=$pkgver-$pkgrel 'lib32-opengl-driver')
+  conflicts+=('lib32-mesa' 'lib32-vulkan-intel' 'lib32-vulkan-radeon' 'lib32-libva-mesa-driver' 'lib32-mesa-vdpau')
+
   DESTDIR="$pkgdir" ninja $NINJAFLAGS -C _build32 install
 
   # remove files provided by mesa-git
