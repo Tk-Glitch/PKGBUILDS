@@ -48,7 +48,7 @@ fi
 
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
-  plain "What CPU sched variant do you want to build/install?"
+  plain "What CPU sched variant do you want to build/install? (MuQSS will be back)"
   read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.BMQ\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
@@ -243,7 +243,7 @@ prepare() {
       plain "0: No yield."
       plain "1: Deboost and requeue task. (default)"
       plain "2: Set rq skip task."
-      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended unless you have issues with 0 or 1)\n  [0-2?]: '`" CONDITION0;
+      read -rp "`echo $'\n    > 0. Recommended option for gaming on PDS and MuQSS - "tkg" default\n      1. Default, but can lead to stability issues on some platforms\n      2. Can be a good option with low rr_interval on MuQSS\n    [0-2?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
       msg2 "Using default CPU sched yield type (1)"
@@ -268,7 +268,7 @@ prepare() {
       plain "MuQSS default: 6ms"
       plain "PDS default: 4ms"
       plain "BMQ default: 4ms"
-      read -rp "`echo $'\n> 0.Keep defaults\n  1.2ms \n  2.4ms\n  3.6ms\n  4.8ms\n  [0-4?]: '`" CONDITION0;
+      read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
       msg2 "Using 2ms rr_interval"
@@ -437,7 +437,8 @@ prepare() {
   # ftrace
   if [ -z "$_ftracedisable" ]; then
     plain ""
-    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
+    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging"
+    plain "and analyzing of kernel functions."
     read -rp "`echo $'    > N/y : '`" CONDITION1;
   fi
   if [ "$CONDITION1" == "y" ] || [ "$_ftracedisable" == "true" ]; then
@@ -450,7 +451,7 @@ prepare() {
   # disable numa
   if [ -z "$_numadisable" ]; then
     plain ""
-    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
+    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia if disabled."
     plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
     read -rp "`echo $'    > N/y : '`" CONDITION2;
   fi
@@ -489,7 +490,9 @@ prepare() {
   # voluntary preempt
   if [ -z "$_voluntary_preempt" ]; then
     plain ""
-    plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
+    plain "Use explicit preemption points?"
+    plain "It can improve latency on PDS (at the cost of throughput)"
+    plain "and improve throughput on other schedulers (at the cost of latency)"
     read -rp "`echo $'    > N/y : '`" CONDITION31;
   fi
   if [ "$CONDITION31" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
@@ -575,7 +578,8 @@ prepare() {
   # modprobed-db
   if [ -z "$_modprobeddb" ]; then
     plain ""
-    plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
+    plain "Use modprobed db to clean config from unneeded modules?"
+    plain "Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
     read -rp "`echo $'    > N/y : '`" CONDITION9;
@@ -588,8 +592,10 @@ prepare() {
   # menuconfig / nconfig
   if [ -z "$_menuconfig" ]; then
     plain ""
-    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig to configure the kernel before building it?"
-    plain "If you do, make sure your terminal is currently at least 19 lines by 80 columns large or you'll get an error :D"
+    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig"
+    plain "to configure the kernel before building it?"
+    plain "If you do, make sure your terminal is currently"
+    plain "at least 19 lines by 80 columns large or you'll get an error :D"
     read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION10;
   fi
   if [ "$CONDITION10" == "1" ] || [ "$_menunconfig" == "1" ]; then
