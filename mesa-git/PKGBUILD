@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=19.2.0_devel.113365.d31d25f634a
+pkgver=19.2.0_devel.113368.f7224014df0
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto'
@@ -368,7 +368,7 @@ package_lib32-mesa-tkg-git() {
   # bring back glesv2.pc
   install -m644 -Dt "$pkgdir"/usr/lib32/pkgconfig "$srcdir"/_build32/glesv2.pc
 
-  install -Dt  "$pkgdir"/usr/share/licenses/$pkgbase/ -m644 "$srcdir"/LICENSE 
+  install -Dt "$pkgdir"/usr/share/licenses/$pkgname "$srcdir"/LICENSE
 }
  
 trap exit_cleanup EXIT
