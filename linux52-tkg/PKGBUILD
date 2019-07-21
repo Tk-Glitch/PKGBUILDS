@@ -73,7 +73,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -469,15 +469,15 @@ prepare() {
   fi
 
   # tickless
-  if [ -z "$_full_tickless" ]; then
+  if [ -z "$_tickless" ]; then
     plain ""
-    plain "Use CattaRappa mode? (Full Tickless)"
-    plain "Can give higher performances in various cases but, depending on hardware, lower consistency"
-    read -rp "`echo $'    > N/y : '`" CONDITION3;
+    plain "Use CattaRappa mode (Tickless/Dynticks) ?"
+    plain "Can give higher performances in many cases but lower consistency on some hardware."
+    plain "Just tickless idle can perform better on some platforms (mostly AMD based)."
+    read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION3;
   fi
-  if [ "$CONDITION3" == "y" ] || [ "$_full_tickless" == "true" ]; then
+  if [ "$CONDITION3" == "1" ] || [ "$CONDITION3" == "2" ] || [ "$_tickless" == "1" ] || [ "$_tickless" == "2" ]; then
     sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
-    sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
     sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
     sed -i -e 's/# CONFIG_RCU_BOOST is not set/CONFIG_RCU_BOOST=y/' ./.config
     echo "CONFIG_NO_HZ_COMMON=y" >> ./.config
@@ -485,6 +485,11 @@ prepare() {
     echo "CONFIG_RCU_BOOST_DELAY=0" >> ./.config
     echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
     echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
+    if [ "$CONDITION3" == "1" ] || [ "$_tickless" == "1" ]; then
+      sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+    elif [ "$CONDITION3" == "2" ] || [ "$_tickless" == "2" ]; then
+      sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
+    fi
   fi
 
   # voluntary preempt
