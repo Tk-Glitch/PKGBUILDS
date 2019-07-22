@@ -1,0 +1,819 @@
+# Based on the file created for Arch Linux by:
+# Tobias Powalowski <tpowa@archlinux.org>
+# Thomas Baechler <thomas@archlinux.org>
+
+# Contributor: Tk-Glitch <ti3nou at gmail dot com>
+
+plain '       .---.`               `.---.'
+plain '    `/syhhhyso-           -osyhhhys/`'
+plain '   .syNMdhNNhss/``.---.``/sshNNhdMNys.'
+plain '   +sdMh.`+MNsssssssssssssssNM+`.hMds+'
+plain '   :syNNdhNNhssssssssssssssshNNhdNNys:'
+plain '    /ssyhhhysssssssssssssssssyhhhyss/'
+plain '    .ossssssssssssssssssssssssssssso.'
+plain '   :sssssssssssssssssssssssssssssssss:'
+plain '  /sssssssssssssssssssssssssssssssssss/'
+plain ' :sssssssssssssoosssssssoosssssssssssss:'
+plain ' osssssssssssssoosssssssoossssssssssssso'
+plain ' osssssssssssyyyyhhhhhhhyyyyssssssssssso'
+plain ' /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/'
+plain '  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms'
+plain '   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/'
+plain '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`'
+plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
+plain '             `.-:///////:-.`'
+
+_where=$PWD # track basedir as different Arch based distros are moving srcdir around
+
+cp "$_where"/linux53-tkg-patches/* "$_where" # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+cp "$_where"/linux53-tkg-config/* "$_where" # copy config files and hooks inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+
+source "$_where"/customization.cfg # load default configuration from file
+
+# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+if [ -e "$_EXT_CONFIG_PATH" ]; then
+  source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
+fi
+
+if [ -z "$_OPTIPROFILE" ] && [ ! -e "$_where"/cpuschedset ]; then
+  # Prompt about optimized configurations. Available variable values will overwrite customization.cfg/external config ones.
+  plain "Do you want to use a predefined optimized profile?"
+  read -rp "`echo $'  > 1.Custom\n    2.Ryzen Desktop (Performance)\n    3.Other Desktop (Performance)\nchoice[1-3?]: '`" _OPTIPROFILE;
+fi
+if [ "$_OPTIPROFILE" == "2" ]; then
+  source "$_where"/ryzen-desktop-profile.cfg && msg2 "Ryzen Desktop (Performance) profile will be used." && msg2 ""
+elif [ "$_OPTIPROFILE" == "3" ]; then
+  source "$_where"/generic-desktop-profile.cfg && msg2 "Generic Desktop (Performance) profile will be used." && msg2 ""
+fi
+
+# CPU SCHED selector
+if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
+  plain "What CPU sched variant do you want to build/install?"
+  read -rp "`echo $'  > 1.PDS\n    2.CFS\nchoice[1-2?]: '`" CONDITION;
+  if [ "$CONDITION" == "2" ]; then
+    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+  else
+    echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+  fi
+elif [ "$_cpusched" == "cfs" ]; then
+  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "pds" ]; then
+  echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+fi
+
+source "$_where"/cpuschedset
+
+_basever=53
+pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
+pkgname=("${pkgbase}" "${pkgbase}-headers")
+_basekernel=5.3
+_sub=rc1
+pkgver="${_basekernel}"."${_sub}"
+pkgrel=1
+arch=('x86_64') # no i686 in here
+url="http://www.kernel.org/"
+license=('GPL2')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'elfutils' 'schedtool' 'patchutils' 'flex')
+if pacman -Qq ccache &> /dev/null; then
+  msg2 'ccache was found and will be used'
+  options=('!strip' 'ccache')
+else
+  msg2 'ccache was not found and will not be used'
+  options=('!strip')
+fi
+source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
+        #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
+        'config.x86_64' # config
+        'linux53-tkg.preset' # standard config files for mkinitcpio ramdisk
+        '60-linux.hook'     # pacman hook for depmod
+        '90-linux.hook'     # pacman hook for initramfs regeneration
+        # ARCH Patches
+        0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+        # TkG
+        0002-clear-patches.patch
+        0003-glitched-base.patch
+        0003-glitched-cfs.patch
+        0005-glitched-pds.patch
+        0005-v5.3_undead-pds099o.patch
+        0006-add-acs-overrides_iommu.patch
+)
+sha256sums=('9338628ab9fdf1ab15a539da09bc6daef969a78f3a3d21994d8a22ea1e6e36da'
+            'd3bd37a47a717926bc88a84ceaabecee35400f4bfc931089bde85244f31a72c6'
+            'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
+            'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
+            '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
+            '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
+            '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
+            '74dcf9a00f5da91ef2a2dea93b2fb45b52c9070a9c672e91f5aef5b1ffdc4ce2'
+            '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
+            '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
+            '6fff646fdb874b5c23316680aa3d89311bf6fc8de8c0dc6bd2e92e2ab7f7f8ff'
+            'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb')
+
+user_patcher() {
+	# To patch the user because all your base are belong to us
+	if [[ $(find "$_where" -name "*.${_userpatch_ext}patch") ]]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
+	  read -rp "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  fi
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
+	    for _f in "$_where"/*.${_userpatch_ext}patch; do
+	    if [ -e "${_f}" ]; then
+	      msg2 "######################################################"
+	      msg2 ""
+	      msg2 "Applying your own ${_userpatch_target} patch ${_f}"
+	      msg2 ""
+	      msg2 "######################################################"
+	      patch -Np1 < "${_f}"
+	      echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
+	    fi
+	    done
+	  fi
+	fi
+	if [[ $(find "$_where" -name "*.${_userpatch_ext}revert") ]]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
+	  read -rp "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	  fi
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
+	    for _f in "$_where"/*.${_userpatch_ext}revert; do
+	    if [ -e "${_f}" ]; then
+	      msg2 "######################################################"
+	      msg2 ""
+	      msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
+	      msg2 ""
+	      msg2 "######################################################"
+	      patch -Np1 -R < "${_f}"
+	      echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
+	    fi
+	    done
+	  fi
+	fi
+}
+
+prepare() {
+  rm -rf $pkgdir # Nuke the entire pkg folder so it'll get regenerated clean on next build
+
+  ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
+
+  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+
+  # add upstream patch
+  #patch -p1 -i ../patch-"${pkgver}"
+
+  # ARCH Patches
+  patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+
+  # TkG
+  patch -Np1 -i ../0002-clear-patches.patch
+
+  patch -Np1 -i ../0003-glitched-base.patch
+
+  if [ "${_cpusched}" == "MuQSS" ]; then
+    # MuQSS
+    patch -Np1 -i ../0004-5.3-ck1.patch
+    patch -Np1 -i ../0004-glitched-muqss.patch
+  elif [ "${_cpusched}" == "pds" ]; then
+    # PDS-mq
+    patch -Np1 -i ../0005-v5.3_undead-pds099o.patch
+    patch -Np1 -i ../0005-glitched-pds.patch
+  elif [ "${_cpusched}" == "bmq" ]; then
+    # BMQ
+    patch -Np1 -i ../0010-v5.3_bmq098.patch
+    patch -Np1 -i ../0010-glitched-bmq.patch
+  else
+    patch -Np1 -i ../0003-glitched-cfs.patch
+  fi
+
+  cat "${srcdir}/config.x86_64" > ./.config
+
+  # LOCALVERSION
+  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"."${_sub}"-tkg-${_cpusched}\"|g" ./.config
+  sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
+
+  # set extraversion to pkgrel
+  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  if [ "${_cpusched}" == "MuQSS" ]; then
+    # MuQSS default config
+    echo "CONFIG_SCHED_MUQSS=y" >> ./.config
+  elif [ "${_cpusched}" == "pds" ]; then
+    # PDS default config
+    echo "CONFIG_SCHED_PDS=y" >> ./.config
+  elif [ "${_cpusched}" == "bmq" ]; then
+    # BMQ default config
+    echo "CONFIG_SCHED_BMQ=y" >> ./.config
+  else
+    # CFS default config
+    sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
+    sed -i -e 's/# CONFIG_CFS_BANDWIDTH is not set/CONFIG_CFS_BANDWIDTH=y/' ./.config
+    sed -i -e 's/# CONFIG_CGROUP_CPUACCT is not set/CONFIG_CGROUP_CPUACCT=y/' ./.config
+    sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
+  fi
+
+  # sched yield type
+  if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
+    if [ -n "$_sched_yield_type" ]; then
+      CONDITION0="$_sched_yield_type"
+    else
+      plain ""
+      plain "CPU sched_yield_type - Choose what sort of yield sched_yield will perform."
+      plain ""
+      plain "For PDS and MuQSS:"
+      plain "0: No yield."
+      plain "1: Yield only to better priority/deadline tasks."
+      plain "2: Expire timeslice and recalculate deadline."
+      plain ""
+      plain "For BMQ (experimental) - No recommended value yet, so try for yourself x) :"
+      plain "0: No yield."
+      plain "1: Deboost and requeue task. (default)"
+      plain "2: Set rq skip task."
+      read -rp "`echo $'\n    > 0. Recommended option for gaming on PDS and MuQSS - "tkg" default\n      1. Default, but can lead to stability issues on some platforms\n      2. Can be a good option with low rr_interval on MuQSS\n    [0-2?]: '`" CONDITION0;
+    fi
+    if [ "$CONDITION0" == "1" ]; then
+      msg2 "Using default CPU sched yield type (1)"
+    elif [ "$CONDITION0" == "2" ]; then
+      sed -i -e 's/int sched_yield_type __read_mostly = 1;/int sched_yield_type __read_mostly = 2;/' ./kernel/sched/"${_cpusched}".c
+    else
+      sed -i -e 's/int sched_yield_type __read_mostly = 1;/int sched_yield_type __read_mostly = 0;/' ./kernel/sched/"${_cpusched}".c
+    fi
+  fi
+
+  # Round Robin interval
+  if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
+    if [ -n "$_rr_interval" ]; then
+      CONDITION0="$_rr_interval"
+    else
+      plain ""
+      plain "Round Robin interval is the longest duration two tasks with the same nice level will"
+      plain "be delayed for. When CPU time is requested by a task, it receives a time slice equal"
+      plain "to the rr_interval in addition to a virtual deadline. When using yield_type 2, a low"
+      plain "value can help offset the disadvantages of rescheduling a process that has yielded."
+      plain ""
+      plain "MuQSS default: 6ms"
+      plain "PDS default: 4ms"
+      plain "BMQ default: 4ms"
+      read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION0;
+    fi
+    if [ "$CONDITION0" == "1" ]; then
+      msg2 "Using 2ms rr_interval"
+      _rrvalue="2"
+    elif [ "$CONDITION0" == "2" ]; then
+      msg2 "Using 4ms rr_interval"
+      _rrvalue="4"
+    elif [ "$CONDITION0" == "3" ]; then
+      msg2 "Using 6ms rr_interval"
+      _rrvalue="6"
+    elif [ "$CONDITION0" == "4" ]; then
+      msg2 "Using 8ms rr_interval"
+      _rrvalue="8"
+    else
+      msg2 "Using default rr_interval"
+      _rrvalue="default"
+    fi
+    if [ "$_rrvalue" != "default" ]; then
+      if [ "${_cpusched}" == "MuQSS" ]; then
+        sed -i -e "s/int rr_interval __read_mostly = 6;/int rr_interval __read_mostly = ${_rrvalue};/" ./kernel/sched/"${_cpusched}".c
+      elif [ "${_cpusched}" == "pds" ]; then
+        sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
+      elif [ "${_cpusched}" == "bmq" ]; then
+        echo "CONFIG_SCHED_TIMESLICE=${_rrvalue}" >> ./.config
+      fi
+    else
+      if [ "${_cpusched}" == "bmq" ]; then
+        echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
+      fi
+    fi
+  fi
+
+  # zenify
+  if [ "$_zenify" == "true" ]; then
+    echo "CONFIG_ZENIFY=y" >> ./.config
+  elif [ "$_zenify" == "false" ]; then
+    echo "# CONFIG_ZENIFY is not set" >> ./.config
+  fi
+
+  # cpu opt
+  if [ -n "$_processor_opt" ] && [ "$_processor_opt" != "native" ]; then
+    echo "# CONFIG_MNATIVE is not set" >> ./.config
+  fi
+
+  if [ -n "$_processor_opt" ] && [ "$_processor_opt" != "generic" ]; then
+    sed -i -e 's/CONFIG_GENERIC_CPU=y/# CONFIG_GENERIC_CPU is not set/' ./.config
+  fi
+
+  if [ "$_processor_opt" == "native" ]; then
+    echo "CONFIG_MNATIVE=y" >> ./.config
+  elif [ "$_processor_opt" == "k8" ]; then
+    sed -i -e 's/# CONFIG_MK8 is not set/CONFIG_MK8=y/' ./.config
+  elif [ "$_processor_opt" == "k8sse3" ]; then
+    sed -i -e 's/# CONFIG_MK8SSE3 is not set/CONFIG_MK8SSE3=y/' ./.config
+  elif [ "$_processor_opt" == "k10" ]; then
+    sed -i -e 's/# CONFIG_MK10 is not set/CONFIG_MK10=y/' ./.config
+  elif [ "$_processor_opt" == "barcelona" ]; then
+    sed -i -e 's/# CONFIG_MBARCELONA is not set/CONFIG_MBARCELONA=y/' ./.config
+  elif [ "$_processor_opt" == "bobcat" ]; then
+    sed -i -e 's/# CONFIG_MBOBCAT is not set/CONFIG_MBOBCAT=y/' ./.config
+  elif [ "$_processor_opt" == "jaguar" ]; then
+    sed -i -e 's/# CONFIG_MJAGUAR is not set/CONFIG_MJAGUAR=y/' ./.config
+  elif [ "$_processor_opt" == "bulldozer" ]; then
+    sed -i -e 's/# CONFIG_MBULLDOZER is not set/CONFIG_MBULLDOZER=y/' ./.config
+  elif [ "$_processor_opt" == "piledriver" ]; then
+    sed -i -e 's/# CONFIG_MPILEDRIVER is not set/CONFIG_MPILEDRIVER=y/' ./.config
+  elif [ "$_processor_opt" == "steamroller" ]; then
+    sed -i -e 's/# CONFIG_MSTEAMROLLER is not set/CONFIG_MSTEAMROLLER=y/' ./.config
+  elif [ "$_processor_opt" == "excavator" ]; then
+    sed -i -e 's/# CONFIG_MEXCAVATOR is not set/CONFIG_MEXCAVATOR=y/' ./.config
+  elif [ "$_processor_opt" == "zen" ]; then
+    sed -i -e 's/# CONFIG_MZEN is not set/CONFIG_MZEN=y/' ./.config
+  elif [ "$_processor_opt" == "zen2" ]; then
+    sed -i -e 's/# CONFIG_MZEN2 is not set/CONFIG_MZEN2=y/' ./.config
+  elif [ "$_processor_opt" == "mpsc" ]; then
+    sed -i -e 's/# CONFIG_MPSC is not set/CONFIG_MPSC=y/' ./.config
+  elif [ "$_processor_opt" == "atom" ]; then
+    sed -i -e 's/# CONFIG_MATOM is not set/CONFIG_MATOM=y/' ./.config
+  elif [ "$_processor_opt" == "core2" ]; then
+    sed -i -e 's/# CONFIG_MCORE2 is not set/CONFIG_MCORE2=y/' ./.config
+  elif [ "$_processor_opt" == "nehalem" ]; then
+    sed -i -e 's/# CONFIG_MNEHALEM is not set/CONFIG_MNEHALEM=y/' ./.config
+  elif [ "$_processor_opt" == "westmere" ]; then
+    sed -i -e 's/# CONFIG_MWESTMERE is not set/CONFIG_MWESTMERE=y/' ./.config
+  elif [ "$_processor_opt" == "silvermont" ]; then
+    sed -i -e 's/# CONFIG_MSILVERMONT is not set/CONFIG_MSILVERMONT=y/' ./.config
+  elif [ "$_processor_opt" == "sandybridge" ]; then
+    sed -i -e 's/# CONFIG_MSANDYBRIDGE is not set/CONFIG_MSANDYBRIDGE=y/' ./.config
+  elif [ "$_processor_opt" == "ivybridge" ]; then
+    sed -i -e 's/# CONFIG_MIVYBRIDGE is not set/CONFIG_MIVYBRIDGE=y/' ./.config
+  elif [ "$_processor_opt" == "haswell" ]; then
+    sed -i -e 's/# CONFIG_MHASWELL is not set/CONFIG_MHASWELL=y/' ./.config
+  elif [ "$_processor_opt" == "broadwell" ]; then
+    sed -i -e 's/# CONFIG_MBROADWELL is not set/CONFIG_MBROADWELL=y/' ./.config
+  elif [ "$_processor_opt" == "skylake" ]; then
+    sed -i -e 's/# CONFIG_MSKYLAKE is not set/CONFIG_MSKYLAKE=y/' ./.config
+  elif [ "$_processor_opt" == "skylakex" ]; then
+    sed -i -e 's/# CONFIG_MSKYLAKEX is not set/CONFIG_MSKYLAKEX=y/' ./.config
+  elif [ "$_processor_opt" == "cannonlake" ]; then
+    sed -i -e 's/# CONFIG_MCANNONLAKE is not set/CONFIG_MCANNONLAKE=y/' ./.config
+  elif [ "$_processor_opt" == "icelake" ]; then
+    sed -i -e 's/# CONFIG_MICELAKE is not set/CONFIG_MICELAKE=y/' ./.config
+  fi
+
+  # irq threading
+  if [ "$_irq_threading" == "true" ]; then
+    echo "CONFIG_FORCE_IRQ_THREADING=y" >> ./.config
+  elif [ "$_irq_threading" == "false" ]; then
+    echo "# CONFIG_FORCE_IRQ_THREADING is not set" >> ./.config
+  fi
+
+  # smt nice
+  if [ "$_smt_nice" == "true" ]; then
+    echo "CONFIG_SMT_NICE=y" >> ./.config
+  elif [ "$_smt_nice" == "false" ]; then
+    echo "# CONFIG_SMT_NICE is not set" >> ./.config
+  fi
+
+  # random trust cpu
+  if [ "$_random_trust_cpu" == "true" ]; then
+    echo "CONFIG_RANDOM_TRUST_CPU=y" >> ./.config
+  elif [ "$_random_trust_cpu" == "false" ]; then
+    echo "# CONFIG_RANDOM_TRUST_CPU is not set" >> ./.config
+  fi
+
+  # rq sharing
+  if [ "$_runqueue_sharing" == "none" ]; then
+    echo -e "CONFIG_RQ_NONE=y\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "smt" ]; then
+    echo -e "# CONFIG_RQ_NONE is not set\nCONFIG_RQ_SMT=y\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "mc" ]; then
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\nCONFIG_RQ_MC=y\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "smp" ]; then
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\nCONFIG_RQ_SMP=y\n# CONFIG_RQ_ALL is not set" >> ./.config
+  elif [ "$_runqueue_sharing" == "all" ]; then
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\nCONFIG_RQ_ALL=y" >> ./.config
+  fi
+
+  # timer freq
+  if [ "$_timer_freq" == "1000" ]; then
+    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
+    echo "CONFIG_HZ_1000=y" >> ./.config
+    echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
+  elif [ "$_timer_freq" == "750" ]; then
+    echo "# CONFIG_HZ_1000 is not set" >> ./.config
+    echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+  elif [ "$_timer_freq" == "500" ]; then
+    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
+    echo "CONFIG_HZ_500=y" >> ./.config
+    echo "CONFIG_HZ_500_NODEF=y" >> ./.config
+    echo "# CONFIG_HZ_1000 is not set" >> ./.config
+    echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+  fi
+
+  # default cpu gov
+  if [ "$_default_cpu_gov" == "performance" ]; then
+    sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set/' ./.config
+    sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y/' ./.config
+  elif [ "$_default_cpu_gov" == "schedutil" ]; then
+    sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set/' ./.config
+    sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y/' ./.config
+  fi
+
+  # ftrace
+  if [ -z "$_ftracedisable" ]; then
+    plain ""
+    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging"
+    plain "and analyzing of kernel functions."
+    read -rp "`echo $'    > N/y : '`" CONDITION1;
+  fi
+  if [ "$CONDITION1" == "y" ] || [ "$_ftracedisable" == "true" ]; then
+  sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
+      -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
+      -i -e '/CONFIG_DYNAMIC_FTRACE=y/d' \
+      -i -e '/CONFIG_DYNAMIC_FTRACE_WITH_REGS=y/d' ./.config
+  fi
+
+  # disable numa
+  if [ -z "$_numadisable" ]; then
+    plain ""
+    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia if disabled."
+    plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
+    read -rp "`echo $'    > N/y : '`" CONDITION2;
+  fi
+  if [ "$CONDITION2" == "y" ] || [ "$_numadisable" == "true" ]; then
+    # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
+    sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
+        -i -e '/CONFIG_AMD_NUMA=y/d' \
+        -i -e '/CONFIG_X86_64_ACPI_NUMA=y/d' \
+        -i -e '/CONFIG_NODES_SPAN_OTHER_NODES=y/d' \
+        -i -e '/# CONFIG_NUMA_EMU is not set/d' \
+        -i -e '/CONFIG_NODES_SHIFT=6/d' \
+        -i -e '/CONFIG_NEED_MULTIPLE_NODES=y/d' \
+        -i -e '/CONFIG_USE_PERCPU_NUMA_NODE_ID=y/d' \
+        -i -e '/CONFIG_ACPI_NUMA=y/d' ./.config
+  fi
+
+  # tickless
+  if [ -z "$_tickless" ]; then
+    plain ""
+    plain "Use CattaRappa mode (Tickless/Dynticks) ?"
+    plain "Can give higher performances in many cases but lower consistency on some hardware."
+    plain "Just tickless idle can perform better on some platforms (mostly AMD based)."
+    read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION3;
+  fi
+  if [ "$CONDITION3" != "0" ] || [ "$_tickless" != "0" ]; then
+    sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
+    sed -i -e 's/# CONFIG_RCU_BOOST is not set/CONFIG_RCU_BOOST=y/' ./.config
+    echo "CONFIG_NO_HZ_COMMON=y" >> ./.config
+    echo "# CONFIG_RCU_FAST_NO_HZ is not set" >> ./.config
+    echo "CONFIG_RCU_BOOST_DELAY=0" >> ./.config
+    echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
+    echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
+    if [ "$CONDITION3" == "2" ] || [ "$_tickless" == "2" ]; then
+      sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
+      echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+    else
+      sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+      echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
+    fi
+  else
+    echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+  fi
+
+  # voluntary preempt
+  if [ -z "$_voluntary_preempt" ]; then
+    plain ""
+    plain "Use explicit preemption points?"
+    plain "It can improve latency on PDS (at the cost of throughput)"
+    plain "and improve throughput on other schedulers (at the cost of latency)"
+    read -rp "`echo $'    > N/y : '`" CONDITION31;
+  fi
+  if [ "$CONDITION31" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
+    sed -i -e 's/CONFIG_PREEMPT_LL=y/# CONFIG_PREEMPT_LL is not set/' ./.config
+    sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
+  fi
+
+  # Open Firmware support
+  if [ -z "$_OFenable" ]; then
+    plain ""
+    plain "Enable Device Tree and Open Firmware support?"
+    read -rp "`echo $'    > N/y : '`" CONDITION4;
+  fi
+  if [ "$CONDITION4" == "y" ] || [ "$_OFenable" == "true" ]; then
+    sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
+  fi
+
+  # acs override
+  if [ -z "$_acs_override" ]; then
+    plain ""
+    plain "Use ACS override patch?"
+    plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
+    read -rp "`echo $'    > N/y : '`" CONDITION5;
+  fi
+  if [ "$CONDITION5" == "y" ] || [ "$_acs_override" == "true" ]; then
+    patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
+  fi
+
+  # userpatches
+  if [ "$_user_patches" == "true" ]; then
+    _userpatch_target="linux-${_basekernel}"
+    _userpatch_ext="my"
+    user_patcher
+  fi
+
+  # don't run depmod on 'make install'. We'll do this ourselves in packaging
+  sed -i '2iexit 0' scripts/depmod.sh
+
+  # get kernel version
+  make prepare
+
+  # modprobed-db
+  if [ -z "$_modprobeddb" ]; then
+    plain ""
+    plain "Use modprobed db to clean config from unneeded modules?"
+    plain "Speeds up compilation considerably. Requires root."
+    plain "https://wiki.archlinux.org/index.php/Modprobed-db"
+    plain "!!!! Make sure to have a well populated db !!!!"
+    read -rp "`echo $'    > N/y : '`" CONDITION9;
+  fi
+  if [ "$CONDITION9" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+    sudo modprobed-db recall
+    make localmodconfig
+  fi
+
+  # menuconfig / nconfig
+  if [ -z "$_menunconfig" ]; then
+    plain ""
+    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig"
+    plain "to configure the kernel before building it?"
+    plain "If you do, make sure your terminal is currently"
+    plain "at least 19 lines by 80 columns large or you'll get an error :D"
+    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION10;
+  fi
+  if [ "$CONDITION10" == "1" ] || [ "$_menunconfig" == "1" ]; then
+    make menuconfig
+  elif [ "$CONDITION10" == "2" ] || [ "$_menunconfig" == "2" ]; then
+    make nconfig
+  else
+    # rewrite configuration
+    yes "" | make config >/dev/null
+  fi
+
+}
+
+build() {
+  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+
+  if [ "$_force_all_threads" == "true" ]; then
+    _force_all_threads=-j$(nproc)
+  else
+    _force_all_threads=""
+  fi
+
+  # build!
+  _runtime=$( time ( schedtool -B -n 1 -e ionice -n 1 make $_force_all_threads LOCALVERSION= bzImage modules 2>&1 ) 3>&1 1>&2 2>&3 )
+}
+
+hackbase() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
+  optdepends=('linux-docs: Kernel hackers manual - HTML documentation that comes with the Linux kernel.'
+              'crda: to set the correct wireless channels of your country.'
+              'modprobed-db: Keeps track of EVERY kernel module that has ever been probed. Useful for make localmodconfig.'
+              'nvidia-tkg: NVIDIA drivers for all installed kernels - non-dkms version.'
+              'nvidia-dkms-tkg: NVIDIA drivers for all installed kernels - dkms version.'
+              'update-grub: Simple wrapper around grub-mkconfig.')
+  provides=("linux=${pkgver}" "${pkgbase}")
+  backup=("etc/mkinitcpio.d/${pkgbase}.preset")
+  install=linux${_basever}-tkg.install
+
+  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+
+  # get kernel version
+  _kernver="$(make LOCALVERSION= kernelrelease)"
+
+  mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
+  make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
+  cp arch/x86/boot/bzImage "${pkgdir}/boot/vmlinuz-${pkgbase}"
+
+  # make room for external modules
+  local _extramodules="extramodules-${_basekernel}-tkg-${_cpusched}"
+  ln -s "../${_extramodules}" "${pkgdir}/usr/lib/modules/${_kernver}/extramodules"
+
+  # add real version for building modules and running depmod from hook
+  echo "${_kernver}" |
+    install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_extramodules}/version"
+
+  # remove build and source links
+  rm "${pkgdir}"/usr/lib/modules/"${_kernver}"/{source,build}
+
+  # now we call depmod...
+  depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
+
+  # add vmlinux
+  install -Dt "${pkgdir}/usr/lib/modules/${_kernver}/build" -m644 vmlinux
+
+  # sed expression for following substitutions
+  local _subst="
+    s|%PKGBASE%|${pkgbase}|g
+    s|%KERNVER%|${_kernver}|g
+    s|%EXTRAMODULES%|${_extramodules}|g
+  "
+
+  # hack to allow specifying an initially nonexisting install file
+  sed "${_subst}" "${startdir}/${install}" > "${startdir}/${install}.pkg"
+  true && install="${install}".pkg
+
+  # install mkinitcpio preset file
+  sed "${_subst}" "${srcdir}"/linux"${_basever}"-tkg.preset |
+    install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
+
+  # install pacman hooks
+  sed "${_subst}" ${srcdir}/60-linux.hook |
+    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
+  sed "${_subst}" ${srcdir}/90-linux.hook |
+    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
+}
+
+hackheaders() {
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  provides=("linux-headers=${pkgver}" "${pkgbase}-headers=${pkgver}")
+
+  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
+  install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
+
+  mkdir "${_builddir}/.tmp_versions"
+
+  cp -t "${_builddir}" -a include scripts
+
+  install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
+  install -Dt "${_builddir}/arch/x86/kernel" -m644 "arch/x86/kernel/asm-offsets.s"
+
+  cp -t "${_builddir}/arch/x86" -a "arch/x86/include"
+
+  install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # http://bugs.archlinux.org/task/13146
+  install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+  # http://bugs.archlinux.org/task/20402
+  install -Dt "${_builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${_builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${_builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${_builddir}"/{fs/xfs,mm}
+
+  # copy in Kconfig files
+  find . -name Kconfig\* -exec install -Dm644 {} "${_builddir}/{}" \;
+
+  # add objtool for external module building and enabled VALIDATION_STACK option
+  install -Dt "${_builddir}/tools/objtool" tools/objtool/objtool
+
+  # remove unneeded architectures
+  local _arch
+  for _arch in "${_builddir}"/arch/*/; do
+    [[ ${_arch} == */x86/ ]] && continue
+    rm -r "${_arch}"
+  done
+
+  # remove files already in linux-docs package
+  rm -r "${_builddir}/Documentation"
+
+  # Fix permissions
+  chmod -R u=rwX,go=rX "${_builddir}"
+
+  # strip scripts directory
+  local _binary _strip
+  while read -rd '' _binary; do
+    case "$(file -bi "${_binary}")" in
+      *application/x-sharedlib*)  _strip="${STRIP_SHARED}"   ;; # Libraries (.so)
+      *application/x-archive*)    _strip="${STRIP_STATIC}"   ;; # Libraries (.a)
+      *application/x-executable*) _strip="${STRIP_BINARIES}" ;; # Binaries
+      *) continue ;;
+    esac
+    /usr/bin/strip ${_strip} "${_binary}"
+  done < <(find "${_builddir}/scripts" -type f -perm -u+w -print0 2>/dev/null)
+
+  if [ $_NUKR == "true" ]; then
+    rm -rf "$srcdir" # Nuke the entire src folder so it'll get regenerated clean on next build
+  fi
+}
+
+package_linux53-tkg-pds() {
+hackbase
+}
+
+package_linux53-tkg-MuQSS() {
+hackbase
+}
+
+package_linux53-tkg-cfs() {
+hackbase
+}
+
+package_linux53-tkg-bmq() {
+hackbase
+}
+
+package_linux53-tkg-pds-headers() {
+hackheaders
+}
+
+package_linux53-tkg-MuQSS-headers() {
+hackheaders
+}
+
+package_linux53-tkg-cfs-headers() {
+hackheaders
+}
+
+package_linux53-tkg-bmq-headers() {
+hackheaders
+}
+
+function exit_cleanup {
+  # Remove state tracker
+  rm -f "$_where"/cpuschedset
+  
+  # Remove temporarily copied files
+  rm -rf "$_where"/*.patch
+  rm -rf "$_where"/*.hook
+  rm -rf "$_where"/*.install
+  rm -rf "$_where"/*.preset
+  rm -rf "$_where"/*-profile.cfg
+  rm -f "$_where"/config.x86_64
+
+  if [ $_NUKR == "true" ]; then
+    rm -rf "$_where"/src/*
+    # Double tap
+    rm -rf "$srcdir"/linux-*
+    rm -rf "$srcdir"/*.xz
+    rm -rf "$srcdir"/*.patch
+    rm -rf "$srcdir"/*.hook
+    rm -rf "$srcdir"/*.install
+    rm -rf "$srcdir"/*.preset
+    rm -rf "$srcdir"/*-profile.cfg
+    rm -f "$srcdir"/config.x86_64
+    rm -f "$srcdir"/customization.cfg
+  else
+    # Meh
+    rm -rf "$srcdir"/linux-${_basekernel}/Documentation/filesystems/aufs/*
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/ABI/testing/*-aufs
+    rm -rf "$srcdir"/linux-${_basekernel}/fs/aufs/*
+    rm -f "$srcdir"/linux-${_basekernel}/include/uapi/linux/aufs*
+
+    rm -f "$srcdir"/linux-${_basekernel}/mm/prfile.c
+
+    rm -f "$srcdir"/linux-${_basekernel}/block/bfq*
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/tp_smapi.txt
+
+    rm -f "$srcdir"/linux-${_basekernel}/drivers/platform/x86/thinkpad_ec.c
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/thinkpad_ec.h
+    rm -f "$srcdir"/linux-${_basekernel}/drivers/platform/x86/tp_smapi.c
+
+    rm -rf "$srcdir"/linux-${_basekernel}/drivers/scsi/vhba/*
+
+    rm -rf "$srcdir"/linux-${_basekernel}/fs/exfat/*
+    rm -f "$srcdir"/linux-${_basekernel}/include/trace/events/fs.h
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-PDS-mq.txt
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/skip_list.h
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/pds.c
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/pds_sched.h
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-BMQ.txt
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/bmq.c
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/bmq_sched.h
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-BFS.txt
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/scheduler/sched-MuQSS.txt
+    rm -rf "$srcdir"/linux-${_basekernel}/arch/blackfin/*
+    rm -f "$srcdir"/linux-${_basekernel}/arch/powerpc/configs/c2k_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/arch/score/configs/spct6600_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/arch/tile/configs/tilegx_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/arch/tile/configs/tilepro_defconfig
+    rm -f "$srcdir"/linux-${_basekernel}/drivers/staging/lustre/lnet/lnet/lib-eq.c
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/sched/MuQSS*
+    rm -f "$srcdir"/linux-${_basekernel}/kernel/skip_list.c
+
+    rm -f "$srcdir"/linux-${_basekernel}/Documentation/vm/uksm.txt
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/sradix-tree.h
+    rm -f "$srcdir"/linux-${_basekernel}/include/linux/uksm.h
+    rm -f "$srcdir"/linux-${_basekernel}/lib/sradix-tree.c
+    rm -f "$srcdir"/linux-${_basekernel}/mm/uksm.c
+  fi
+
+  remove_deps
+
+  msg2 'exit cleanup done\n'
+  if [ -n "$_runtime" ]; then
+    msg2 "compilation time : \n$_runtime"
+  fi
+}
+
+trap exit_cleanup EXIT
