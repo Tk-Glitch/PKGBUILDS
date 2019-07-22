@@ -1,6 +1,6 @@
 A custom Linux kernel 4.19.y with specific PDS and MuQSS CPU schedulers related patchsets selector (stock CFS is also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
-Various personnalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
+Various personalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
 
 PDS-mq : http://cchalpha.blogspot.com/
 
