@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=19.2.0_devel.113368.f7224014df0
+pkgver=19.2.0_devel.113430.c41545c2f52
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto'
@@ -282,6 +282,9 @@ build () {
     if [ "$_localglesv2pc" == "true" ]; then
       echo -e "prefix=/usr\nlibdir=\${prefix}/lib64\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build64/glesv2.pc
     fi
+    if [ "$_localeglpc" == "true" ]; then
+      echo -e "prefix=/usr\nlibdir=\${prefix}/lib64\nincludedir=\${prefix}/include\n\nName: egl\nDescription: Mesa EGL Library\nVersion: ${pkgver}\nRequires.private: x11, xext, xdamage >=  1.1, xfixes, x11-xcb, xcb, xcb-glx >=  1.8.1, xcb-dri2 >=  1.8, xxf86vm, libdrm >=  2.4.75\nLibs: -L\${libdir} -lEGL\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build64/egl.pc
+    fi
 
     if [ "$_lib32" == "true" ]; then
       cd "$srcdir"
@@ -331,6 +334,9 @@ build () {
       if [ "$_localglesv2pc" == "true" ]; then
         echo -e "prefix=/usr\nlibdir=\${prefix}/lib32\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build32/glesv2.pc
       fi
+      if [ "$_localeglpc" == "true" ]; then
+        echo -e "prefix=/usr\nlibdir=\${prefix}/lib32\nincludedir=\${prefix}/include\n\nName: egl\nDescription: Mesa EGL Library\nVersion: ${pkgver}\nRequires.private: x11, xext, xdamage >=  1.1, xfixes, x11-xcb, xcb, xcb-glx >=  1.8.1, xcb-dri2 >=  1.8, xxf86vm, libdrm >=  2.4.75\nLibs: -L\${libdir} -lEGL\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build32/egl.pc
+      fi
     fi
 }
 
@@ -343,8 +349,14 @@ package_mesa-tkg-git() {
   # indirect rendering
   ln -s /usr/lib/libGLX_mesa.so.0 ${pkgdir}/usr/lib/libGLX_indirect.so.0
 
-  # bring back glesv2.pc
-  install -m644 -Dt "$pkgdir"/usr/lib/pkgconfig "$srcdir"/_build64/glesv2.pc
+  if [ "$_localglesv2pc" == "true" ]; then
+    # bring back glesv2.pc
+    install -m644 -Dt "$pkgdir"/usr/lib/pkgconfig "$srcdir"/_build64/glesv2.pc
+  fi
+  if [ "$_localeglpc" == "true" ]; then
+    # bring back egl.pc
+    install -m644 -Dt "$pkgdir"/usr/lib/pkgconfig "$srcdir"/_build64/egl.pc
+  fi
 
   install -Dt "$pkgdir"/usr/share/licenses/$pkgname "$srcdir"/LICENSE
 }
@@ -365,8 +377,14 @@ package_lib32-mesa-tkg-git() {
   # indirect rendering
   ln -s /usr/lib32/libGLX_mesa.so.0 "${pkgdir}/usr/lib32/libGLX_indirect.so.0"
 
-  # bring back glesv2.pc
-  install -m644 -Dt "$pkgdir"/usr/lib32/pkgconfig "$srcdir"/_build32/glesv2.pc
+  if [ "$_localglesv2pc" == "true" ]; then
+    # bring back glesv2.pc
+    install -m644 -Dt "$pkgdir"/usr/lib32/pkgconfig "$srcdir"/_build32/glesv2.pc
+  fi
+  if [ "$_localeglpc" == "true" ]; then
+    # bring back egl.pc
+    install -m644 -Dt "$pkgdir"/usr/lib32/pkgconfig "$srcdir"/_build32/egl.pc
+  fi
 
   install -Dt "$pkgdir"/usr/share/licenses/$pkgname "$srcdir"/LICENSE
 }
