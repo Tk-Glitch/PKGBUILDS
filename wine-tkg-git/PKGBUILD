@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.12.1.r18.g5d7a86d0
+pkgver=4.12.1.r20.g9fd7972c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -369,7 +369,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'mwo.patch' # Mechwarrior Online fix
 		'pythonfix.patch' # Backported Python/Sims4 squash patch for <=3.18
 		'resident_evil_4_hack.patch' # Fixes broken rendering
-		'woff-hack.patch' # Hack for child window rendering support for vk - Fixes World of Final Fantasy
+		'childwindow.patch' # Child window rendering support for vk - Fixes World of Final Fantasy and others
 		'warframe-launcher.patch' # Fix for Warframe Launcher failing to update itself
 		'ffxiv-launcher-workaround.patch' # Workaround for Final Fantasy XIV Launcher 404 error
 		'leagueoflolfix.patch' # LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)
@@ -464,7 +464,7 @@ md5sums=('SKIP'
          'd34ec9e86cbbf48b485a8c6f99d24921'
          'a527081e5f6eca3aec0b390d96d8587b'
          'f063189ec090d9071397d455d271199d'
-         '6766554ceda75c32b79e0d33c216396f'
+         '5836490c1082ba2f8ac63f9f9f3b9d0c'
          '5b07ab957a128801b6c45e30b31432a7'
          'b1dea6339eba7ca8c37d3e5b8399fc5f'
          'a38deffe982282b3dea92e7bd48dc725'
@@ -910,9 +910,9 @@ EOM
 	  _patchname='resident_evil_4_hack.patch' && _patchmsg="Applied Resident Evil 4 hack" && nonuser_patcher
 	fi
 
-	# World of Final Fantasy hack - https://bugs.winehq.org/show_bug.cgi?id=45277
-	if [ "$_woff_fix" == "true" ]; then
-	  _patchname='woff-hack.patch' && _patchmsg="Applied World of Final Fantasy hack" && nonuser_patcher
+	# Child window support for vk - Fixes World of Final Fantasy and others - https://bugs.winehq.org/show_bug.cgi?id=45277
+	if [ "$_childwindow_fix" == "true" ]; then
+	  _patchname='childwindow.patch' && _patchmsg="Applied child window for vk patch" && nonuser_patcher
 	fi
 
 	# steam crossover hack for store/web functionality
