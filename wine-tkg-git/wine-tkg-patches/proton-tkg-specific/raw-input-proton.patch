@@ -131,7 +131,7 @@ index d5b8597d8e..7103b86055 100644
 +@ cdecl __wine_send_raw_input(ptr)
  @ cdecl __wine_set_pixel_format(long long)
 diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
-index f737a306a5..b1f72c7ad7 100644
+index f737a306a5..77054618de 100644
 --- a/dlls/winex11.drv/mouse.c
 +++ b/dlls/winex11.drv/mouse.c
 @@ -257,6 +257,8 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
@@ -143,7 +143,7 @@ index f737a306a5..b1f72c7ad7 100644
  
      for (i = 0; i < n_valuators; i++)
      {
-@@ -284,11 +286,26 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
+@@ -284,15 +286,31 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
  }
  #endif
  
@@ -172,17 +172,53 @@ index f737a306a5..b1f72c7ad7 100644
  {
  #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
      struct x11drv_thread_data *data = x11drv_thread_data();
-@@ -318,7 +335,6 @@ static void enable_xinput2(void)
+     XIEventMask mask;
++    int core_pointer;
+     XIDeviceInfo *pointer_info;
+     unsigned char mask_bits[XIMaskLen(XI_LASTEVENT)];
+     int count;
+@@ -301,7 +319,7 @@ static void enable_xinput2(void)
+ 
+     if (data->xi2_state == xi_unknown)
+     {
+-        int major = 2, minor = 0;
++        int major = 2, minor = 1;
+         if (!pXIQueryVersion( data->display, &major, &minor )) data->xi2_state = xi_disabled;
+         else
+         {
+@@ -310,64 +328,65 @@ static void enable_xinput2(void)
+         }
+     }
+     if (data->xi2_state == xi_unavailable) return;
+-    if (!pXIGetClientPointer( data->display, None, &data->xi2_core_pointer )) return;
++    if (!pXIGetClientPointer( data->display, None, &core_pointer )) return;
+ 
+     mask.mask     = mask_bits;
+     mask.mask_len = sizeof(mask_bits);
+-    mask.deviceid = XIAllDevices;
++    mask.deviceid = XIAllMasterDevices;
      memset( mask_bits, 0, sizeof(mask_bits) );
-     XISetMask( mask_bits, XI_DeviceChanged );
+-    XISetMask( mask_bits, XI_DeviceChanged );
      XISetMask( mask_bits, XI_RawMotion );
 -    XISetMask( mask_bits, XI_ButtonPress );
  
      pXISelectEvents( data->display, DefaultRootWindow( data->display ), &mask, 1 );
  
-@@ -337,19 +353,21 @@ static void enable_xinput2(void)
-     data->xi2_current_slave = 0;
+-    pointer_info = pXIQueryDevice( data->display, data->xi2_core_pointer, &count );
++    pointer_info = pXIQueryDevice( data->display, core_pointer, &count );
+     update_relative_valuators( pointer_info->classes, pointer_info->num_classes );
+     pXIFreeDeviceInfo( pointer_info );
  
+-    /* This device info list is only used to find the initial current slave if
+-     * no XI_DeviceChanged events happened. If any hierarchy change occurred that
+-     * might be relevant here (eg. user switching mice after (un)plugging), a
+-     * XI_DeviceChanged event will point us to the right slave. So this list is
+-     * safe to be obtained statically at enable_xinput2() time.
+-     */
+-    if (data->xi2_devices) pXIFreeDeviceInfo( data->xi2_devices );
+-    data->xi2_devices = pXIQueryDevice( data->display, XIAllDevices, &data->xi2_device_count );
+-    data->xi2_current_slave = 0;
+-
      data->xi2_state = xi_enabled;
 +
 +    inform_wineserver();
@@ -205,7 +241,19 @@ index f737a306a5..b1f72c7ad7 100644
  
      TRACE( "disabling\n" );
      data->xi2_state = xi_disabled;
-@@ -368,6 +386,21 @@ static void disable_xinput2(void)
+ 
+     mask.mask = NULL;
+     mask.mask_len = 0;
+-    mask.deviceid = XIAllDevices;
++    mask.deviceid = XIAllMasterDevices;
+ 
+     pXISelectEvents( data->display, DefaultRootWindow( data->display ), &mask, 1 );
+-    pXIFreeDeviceInfo( data->xi2_devices );
+     data->x_rel_valuator.number = -1;
+     data->y_rel_valuator.number = -1;
+-    data->xi2_devices = NULL;
+-    data->xi2_core_pointer = 0;
+-    data->xi2_current_slave = 0;
  #endif
  }
  
@@ -227,7 +275,7 @@ index f737a306a5..b1f72c7ad7 100644
  
  /***********************************************************************
   *		grab_clipping_window
-@@ -393,9 +426,9 @@ static BOOL grab_clipping_window( const RECT *clip )
+@@ -393,9 +412,9 @@ static BOOL grab_clipping_window( const RECT *clip )
          return TRUE;
  
      /* enable XInput2 unless we are already clipping */
@@ -239,7 +287,7 @@ index f737a306a5..b1f72c7ad7 100644
      {
          WARN( "XInput2 not supported, refusing to clip to %s\n", wine_dbgstr_rect(clip) );
          DestroyWindow( msg_hwnd );
-@@ -423,7 +456,7 @@ static BOOL grab_clipping_window( const RECT *clip )
+@@ -423,7 +442,7 @@ static BOOL grab_clipping_window( const RECT *clip )
  
      if (!clipping_cursor)
      {
@@ -248,7 +296,7 @@ index f737a306a5..b1f72c7ad7 100644
          DestroyWindow( msg_hwnd );
          return FALSE;
      }
-@@ -489,7 +522,7 @@ LRESULT clip_cursor_notify( HWND hwnd, HWND new_clip_hwnd )
+@@ -489,7 +508,7 @@ LRESULT clip_cursor_notify( HWND hwnd, HWND new_clip_hwnd )
          TRACE( "clip hwnd reset from %p\n", hwnd );
          data->clip_hwnd = 0;
          data->clip_reset = GetTickCount();
@@ -257,7 +305,30 @@ index f737a306a5..b1f72c7ad7 100644
          DestroyWindow( hwnd );
      }
      else if (hwnd == GetForegroundWindow())  /* request to clip */
-@@ -1724,17 +1757,20 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1701,22 +1720,6 @@ BOOL X11DRV_EnterNotify( HWND hwnd, XEvent *xev )
+ 
+ #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
+ 
+-/***********************************************************************
+- *           X11DRV_DeviceChanged
+- */
+-static BOOL X11DRV_DeviceChanged( XGenericEventCookie *xev )
+-{
+-    XIDeviceChangedEvent *event = xev->data;
+-    struct x11drv_thread_data *data = x11drv_thread_data();
+-
+-    if (event->deviceid != data->xi2_core_pointer) return FALSE;
+-    if (event->reason != XISlaveSwitch) return FALSE;
+-
+-    update_relative_valuators( event->classes, event->num_classes );
+-    data->xi2_current_slave = event->sourceid;
+-    return TRUE;
+-}
+-
+ /***********************************************************************
+  *           X11DRV_RawMotion
+  */
+@@ -1724,47 +1727,34 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  {
      XIRawEvent *event = xev->data;
      const double *values = event->valuators.values;
@@ -276,11 +347,28 @@ index f737a306a5..b1f72c7ad7 100644
      if (thread_data->x_rel_valuator.number < 0 || thread_data->y_rel_valuator.number < 0) return FALSE;
      if (!event->valuators.mask_len) return FALSE;
 -    if (thread_data->xi2_state != xi_enabled) return FALSE;
+-
+-    /* If there is no slave currently detected, no previous motion nor device
+-     * change events were received. Look it up now on the device list in this
+-     * case.
+-     */
+-    if (!thread_data->xi2_current_slave)
+-    {
+-        XIDeviceInfo *devices = thread_data->xi2_devices;
+-
+-        for (i = 0; i < thread_data->xi2_device_count; i++)
+-        {
+-            if (devices[i].use != XISlavePointer) continue;
+-            if (devices[i].deviceid != event->deviceid) continue;
+-            if (devices[i].attachment != thread_data->xi2_core_pointer) continue;
+-            thread_data->xi2_current_slave = event->deviceid;
+-            break;
+-        }
+-    }
+-
+-    if (event->deviceid != thread_data->xi2_current_slave) return FALSE;
 +    if (thread_data->xi2_state < xi_enabled) return FALSE;
  
-     /* If there is no slave currently detected, no previous motion nor device
-      * change events were received. Look it up now on the device list in this
-@@ -1758,12 +1794,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      x_rel = &thread_data->x_rel_valuator;
      y_rel = &thread_data->y_rel_valuator;
  
@@ -299,7 +387,7 @@ index f737a306a5..b1f72c7ad7 100644
  
      virtual_rect = get_virtual_screen_rect();
  
-@@ -1771,38 +1811,80 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1771,38 +1761,80 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
      {
          if (!XIMaskIsSet( event->valuators.mask, i )) continue;
          val = *values++;
@@ -388,8 +476,18 @@ index f737a306a5..b1f72c7ad7 100644
      return TRUE;
  }
  
+@@ -1858,9 +1890,6 @@ BOOL X11DRV_GenericEvent( HWND hwnd, XEvent *xev )
+ 
+     switch (event->evtype)
+     {
+-    case XI_DeviceChanged:
+-        ret = X11DRV_DeviceChanged( event );
+-        break;
+     case XI_RawMotion:
+         ret = X11DRV_RawMotion( event );
+         break;
 diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
-index a0308b0675..392b046c6d 100644
+index a0308b0675..7dfc06bcd2 100644
 --- a/dlls/winex11.drv/x11drv.h
 +++ b/dlls/winex11.drv/x11drv.h
 @@ -194,6 +194,8 @@ extern BOOL X11DRV_UnrealizePalette( HPALETTE hpal ) DECLSPEC_HIDDEN;
@@ -409,15 +507,21 @@ index a0308b0675..392b046c6d 100644
  };
  
  struct x11drv_thread_data
-@@ -335,7 +338,7 @@ struct x11drv_thread_data
+@@ -335,13 +338,9 @@ struct x11drv_thread_data
      HWND     clip_hwnd;            /* message window stored in desktop while clipping is active */
      DWORD    clip_reset;           /* time when clipping was last reset */
      HKL      kbd_layout;           /* active keyboard layout */
 -    enum { xi_unavailable = -1, xi_unknown, xi_disabled, xi_enabled } xi2_state; /* XInput2 state */
+-    void    *xi2_devices;          /* list of XInput2 devices (valid when state is enabled) */
+-    int      xi2_device_count;
 +    enum { xi_unavailable = -1, xi_unknown, xi_disabled, xi_enabled, xi_extra } xi2_state; /* XInput2 state */
-     void    *xi2_devices;          /* list of XInput2 devices (valid when state is enabled) */
-     int      xi2_device_count;
      struct x11drv_valuator_data x_rel_valuator;
+     struct x11drv_valuator_data y_rel_valuator;
+-    int      xi2_core_pointer;     /* XInput2 core pointer id */
+-    int      xi2_current_slave;    /* Current slave driving the Core pointer */
+ };
+ 
+ extern struct x11drv_thread_data *x11drv_init_thread_data(void) DECLSPEC_HIDDEN;
 diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
 index e67a3c05a9..351ab89781 100644
 --- a/dlls/winex11.drv/x11drv_main.c
