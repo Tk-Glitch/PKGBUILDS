@@ -69,7 +69,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=rc1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=2
+pkgrel=3
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -98,7 +98,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0006-add-acs-overrides_iommu.patch
 )
 sha256sums=('9338628ab9fdf1ab15a539da09bc6daef969a78f3a3d21994d8a22ea1e6e36da'
-            '632d4bdc208d1a58b35f8bf07cd418cae4dc3d8ce66d7c0756654ecf910669bf'
+            '4c40836d05e25ffca2047be284a55ed9a87405b85a03644d2e49b5ef77a07e2d'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -393,18 +393,16 @@ prepare() {
 
   # timer freq
   if [ "$_timer_freq" == "1000" ]; then
-    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
-    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_500=y/# CONFIG_HZ_500 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_500_NODEF=y/# CONFIG_HZ_500_NODEF is not set/' ./.config
     echo "CONFIG_HZ_1000=y" >> ./.config
     echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
   elif [ "$_timer_freq" == "750" ]; then
+    sed -i -e 's/# CONFIG_HZ_750 is not set/CONFIG_HZ_750=y/' ./.config
+    sed -i -e 's/# CONFIG_HZ_750_NODEF is not set/CONFIG_HZ_750_NODEF=y/' ./.config
     echo "# CONFIG_HZ_1000 is not set" >> ./.config
     echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
   elif [ "$_timer_freq" == "500" ]; then
-    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
-    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
-    echo "CONFIG_HZ_500=y" >> ./.config
-    echo "CONFIG_HZ_500_NODEF=y" >> ./.config
     echo "# CONFIG_HZ_1000 is not set" >> ./.config
     echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
   fi

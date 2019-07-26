@@ -77,7 +77,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
 _sub=20
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=31
+pkgrel=32
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -115,7 +115,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '943ab149a0e8926669a287131959658b48f7a35f138a779189b2585dfa10ba6d'
-            'ac5a85f376e41523a5e73ddf8fe0287476b08fdbe86a11b68637d1ccbf41a00b'
+            'cd7f71ca36bd03f823dcc9a20d8f129d18c47ac16ab347a0772d6e6c961d111b'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -123,7 +123,7 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '87c42cc27dfdeae2e05dd2cfb1a359ba34aa27634c5c1c1c86e1ce275f90dca4'
             '3b7dfbd27193c7e9b08860c6bc32c1676dd1c0459c0fdfd6feefa991d1ea7047'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
-            '781820373cd919ca3f3a6e65e026ed0a26fd844b194428a3a0e4a58d8aef2dbb'
+            'e1ded96bd48223094b92155069adba84b0a68e2ed640ed33357351b4c2a49c66'
             'f3d06f0e47b733c7b6b0e7e548691b030a5f9f979cfdf4fdca9c73e670735439'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
@@ -370,18 +370,16 @@ prepare() {
 
   # timer freq
   if [ "$_timer_freq" == "1000" ]; then
-    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
-    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_500=y/# CONFIG_HZ_500 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_500_NODEF=y/# CONFIG_HZ_500_NODEF is not set/' ./.config
     echo "CONFIG_HZ_1000=y" >> ./.config
     echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
   elif [ "$_timer_freq" == "750" ]; then
+    sed -i -e 's/# CONFIG_HZ_750 is not set/CONFIG_HZ_750=y/' ./.config
+    sed -i -e 's/# CONFIG_HZ_750_NODEF is not set/CONFIG_HZ_750_NODEF=y/' ./.config
     echo "# CONFIG_HZ_1000 is not set" >> ./.config
     echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
   elif [ "$_timer_freq" == "500" ]; then
-    sed -i -e 's/CONFIG_HZ_750=y/# CONFIG_HZ_750 is not set/' ./.config
-    sed -i -e 's/CONFIG_HZ_750_NODEF=y/# CONFIG_HZ_750_NODEF is not set/' ./.config
-    echo "CONFIG_HZ_500=y" >> ./.config
-    echo "CONFIG_HZ_500_NODEF=y" >> ./.config
     echo "# CONFIG_HZ_1000 is not set" >> ./.config
     echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
   fi

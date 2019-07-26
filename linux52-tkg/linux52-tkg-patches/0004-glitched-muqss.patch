@@ -47,14 +47,21 @@ index 2a202a846757..1d9c7ed79b11 100644
  	prompt "Timer frequency"
  	default HZ_100 if SCHED_MUQSS
 -	default HZ_250_NODEF if !SCHED_MUQSS
-+	default HZ_750_NODEF if !SCHED_MUQSS
++	default HZ_500_NODEF if !SCHED_MUQSS
  	help
  	 Allows the configuration of the timer frequency. It is customary
  	 to have the timer interrupt run at 1000 Hz but 100 Hz may be more
-@@ -50,6 +50,13 @@ choice
+@@ -50,6 +50,20 @@ choice
  	 on SMP and NUMA systems and exactly dividing by both PAL and
  	 NTSC frame rates for video and multimedia work.
  
++	config HZ_500_NODEF
++		bool "500 HZ"
++	help
++	 500 Hz is a good timer frequency for desktops. Provides fast
++	 interactivity with great smoothness without sacrificing too
++	 much throughput.
++
 +	config HZ_750_NODEF
 +		bool "750 HZ"
 +	help
@@ -65,10 +72,11 @@ index 2a202a846757..1d9c7ed79b11 100644
  	config HZ_1000_NODEF
  		bool "1000 HZ"
  	help
-@@ -63,6 +70,7 @@ config HZ
+@@ -63,6 +70,8 @@ config HZ
  	default 100 if HZ_100
  	default 250 if HZ_250_NODEF
  	default 300 if HZ_300_NODEF
++	default 500 if HZ_500_NODEF
 +	default 750 if HZ_750_NODEF
  	default 1000 if HZ_1000_NODEF
  
