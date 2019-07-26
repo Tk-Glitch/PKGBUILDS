@@ -37,6 +37,15 @@ svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/folder_name
 
 While some are already available there without userpatches or lib32 support, the most interesting ones aren't (namely linux kernels, nvidia-all and wine-tkg-git) because of the way they are working. You're prompted for options or even config file editing to get the package customized the way you want it to be. For nvidia-all, there's no way around it so I'd consider that non-AUR compliant by default. For linux kernels and wine-tkg-git, I could indeed provide a fixed preset and remove all prompts. That would work. But then, are these still as interesting without customization? I strongly believe they aren't.
 
+
+### Some daily builds (pacman packages) are available on chaotic-aur (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
+
+http://lonewolf-builder.duckdns.org/chaotic-aur
+
+Mirror (Germany) : http://chaotic.bangl.de/chaotic-aur/x86_64/
+
+To use the mirror in pacman.conf : `Server = http://chaotic.bangl.de/$repo/x86_64`
+
 **Wanna talk about it? Need help? Feel free to join the Frog Family discord server : https://discord.gg/jRy3Nxk**
 
 **If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch**

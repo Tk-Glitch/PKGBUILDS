@@ -45,8 +45,6 @@ With other patches available such as (but not limited to) :
 
 For Gallium 9 support, use https://github.com/iXit/wine-nine-standalone (available from winetricks and AUR) - Legacy nine support can still be turned on if you're building a 4.1 base or older.
 
-Some daily builds (pacman packages) are available on http://lonewolf-builder.duckdns.org/chaotic-aur
-
 
 # Quick how-to :
 
