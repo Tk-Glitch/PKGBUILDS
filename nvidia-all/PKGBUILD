@@ -22,13 +22,8 @@ plain '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`'
 plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
-# If you want to ignore some packages, set them to "false". Default is all set to "true" for a complete installation.
-_lib32="true"
-_opencl="true"
-_eglwayland="true"
-
-# Coolbits value - Enables fan control & overclocking from nvidia-settings - A value of 31 enables all features
-_coolbits="31"
+where=$PWD # track basedir as different Arch based distros are moving srcdir around
+source "$where"/customization.cfg
 
 # Auto-add kernel userpatches to source
 _autoaddpatch="false"
@@ -41,7 +36,7 @@ if [ $(pacman -Qs linux-headers | head -c1 | wc -c) -eq 0 ]; then
 fi
 
 # Package type selector
-if [ ! -e options ]; then
+if [ -z "$_driver_version" ] && [ -z "$_driver_branch" ] && [ -z "$_dkms" ] && [ ! -e options ]; then
   read -p "What driver version do you want?`echo $'\n> 1.418.52.17 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.34 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
@@ -79,9 +74,13 @@ if [ ! -e options ]; then
     else
       echo '_dkms="true"' >> options
     fi
+else
+  _md5sum='SKIP'
 fi
 
-source options
+if [ -e options ]; then
+  source options
+fi
 
 # packages
 if [ "$_dkms" == "true" ]; then
@@ -108,7 +107,6 @@ fi
 
 pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_utils} ${_lib32_nv_opencl})
 
-where=$PWD # track basedir as different Arch based distros are moving srcdir around
 pkgver=$_driver_version
 pkgrel=55
 arch=('x86_64')
