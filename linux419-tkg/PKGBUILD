@@ -66,7 +66,11 @@ fi
 source "$_where"/cpuschedset
 
 _basever=419
-pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
+if [ -n "$_custom_pkgbase" ]; then
+  pkgbase="${_custom_pkgbase}"
+else
+  pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
+fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=61
@@ -698,6 +702,16 @@ hackheaders
 package_linux419-tkg-cfs-headers() {
 hackheaders
 }
+
+source /dev/stdin <<EOF
+package_${_custom_pkgbase}() {
+hackbase
+}
+
+package_${_custom_pkgbase}-headers() {
+hackheaders
+}
+EOF
 
 function exit_cleanup {
   # Remove state tracker

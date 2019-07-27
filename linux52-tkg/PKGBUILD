@@ -72,7 +72,11 @@ fi
 source "$_where"/cpuschedset
 
 _basever=52
-pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
+if [ -n "$_custom_pkgbase" ]; then
+  pkgbase="${_custom_pkgbase}"
+else
+  pkgbase=linux"${_basever}"-tkg-"${_cpusched}"
+fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=3
@@ -796,6 +800,16 @@ hackheaders
 package_linux52-tkg-bmq-headers() {
 hackheaders
 }
+
+source /dev/stdin <<EOF
+package_${_custom_pkgbase}() {
+hackbase
+}
+
+package_${_custom_pkgbase}-headers() {
+hackheaders
+}
+EOF
 
 function exit_cleanup {
   # Remove state tracker
