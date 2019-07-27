@@ -5,7 +5,7 @@ pkgver=4.12.1.r23.g7ebc640e
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=185
+eval pkgrel=184
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -538,8 +538,8 @@ md5sums=('SKIP'
          'eea40375be4cd3615eaef5412802274b'
          'b415db953ef35b73c1608bc360356113'
          'aa8d6b65936c9646972c04864eafc479'
-         '3de023a63f1b31f98d2323f4526fffbd'
-         '331d66ead447867a1fbf341b13610416')
+         'fa7dec8c4064434208a715c024ab3ea7'
+         '44f4479c0cfa11b8861b5964c51c96e3')
 
 # Wine staging source
 if [ "$_use_staging" == "true" ]; then
@@ -833,6 +833,9 @@ prepare() {
 
 	# raw input fix by Guy1524 - part one
 	if [ "$_rawinput_fix" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  if [ "$_proton_fs_hack" != "true" ]; then
+	    _staging_args+=(-W winex11.drv-mouse-coorrds)
+	  fi
 	  _staging_args+=(-W winex11-mouse-movements)
 	  for _f in "$_where"/valve_proton_fullscreen_hack-staging*.patch ; do
 	    patch ${_f} << 'EOM'
