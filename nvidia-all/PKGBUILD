@@ -25,6 +25,11 @@ plain '             `.-:///////:-.`'
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$where"/customization.cfg
 
+# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+if [ -e "$_EXT_CONFIG_PATH" ]; then
+  source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
+fi
+
 # Auto-add kernel userpatches to source
 _autoaddpatch="false"
 
@@ -36,7 +41,7 @@ if [ $(pacman -Qs linux-headers | head -c1 | wc -c) -eq 0 ]; then
 fi
 
 # Package type selector
-if [ -z "$_driver_version" ] && [ -z "$_driver_branch" ] && [ -z "$_dkms" ] && [ ! -e options ]; then
+if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; then
   read -p "What driver version do you want?`echo $'\n> 1.418.52.17 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.34 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
@@ -68,12 +73,14 @@ if [ -z "$_driver_version" ] && [ -z "$_driver_branch" ] && [ -z "$_dkms" ] && [
       echo '_driver_branch=vulkandev' >> options
     fi
 # Package type selector
-  read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
-    if [ "$CONDITION" == "2" ]; then
-      echo '_dkms="false"' >> options
-    else
-      echo '_dkms="true"' >> options
-    fi
+  if [ -z "$_dkms" ]; then
+    read -p "Build the dkms package or the regular one?`echo $'\n> 1.dkms\n  2.regular\nchoice[1-2?]: '`" CONDITION;
+      if [ "$CONDITION" == "2" ]; then
+        echo '_dkms="false"' >> options
+      else
+        echo '_dkms="true"' >> options
+      fi
+  fi
 else
   _md5sum='SKIP'
 fi
@@ -83,7 +90,10 @@ if [ -e options ]; then
 fi
 
 # packages
-if [ "$_dkms" == "true" ]; then
+if [ "$_dkms" == "full" ]; then
+   _nv_base='nvidia-dkms-tkg'
+   _nv_baseadd='nvidia-tkg'
+elif [ "$_dkms" == "true" ]; then
   _nv_base='nvidia-dkms-tkg'
 else
   _nv_base='nvidia-tkg'
@@ -105,7 +115,7 @@ if [ "$_eglwayland" == "true" ]; then
   _nv_eglwayland='nvidia-egl-wayland-tkg'
 fi
 
-pkgname=(${_nv_base} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_utils} ${_lib32_nv_opencl})
+pkgname=(${_nv_base} ${_nv_baseadd} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_utils} ${_lib32_nv_opencl})
 
 pkgver=$_driver_version
 pkgrel=55
@@ -683,7 +693,7 @@ package_nvidia-utils-tkg() {
     _create_links
 }
 
-if [ "$_dkms" == "false" ]; then
+if [ "$_dkms" == "false" ] || [ "$_dkms" == "full" ]; then
   package_nvidia-tkg() {
     pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries)"
     depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
@@ -727,8 +737,6 @@ if [ "$_dkms" == "false" ]; then
   # Blacklist Nouveau
   mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo -e "blacklist nouveau\nblacklist nvidiafb" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
-
-  rm -v ${where}/options
   }
 fi
 
@@ -806,7 +814,7 @@ package_lib32-nvidia-utils-tkg() {
     ln -s nvidia-utils/ "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 
-if [ "$_dkms" == "true" ]; then
+if [ "$_dkms" == "true" ] || [ "$_dkms" == "full" ]; then
   package_nvidia-dkms-tkg() {
     pkgdesc="NVIDIA kernel module sources (DKMS)"
     depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
@@ -822,8 +830,6 @@ if [ "$_dkms" == "true" ]; then
     echo -e "blacklist nouveau\nblacklist nvidiafb" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
-
-    rm -fv "${where}"/options
   }
 fi
 
