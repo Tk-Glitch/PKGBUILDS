@@ -102,7 +102,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0006-add-acs-overrides_iommu.patch
 )
 sha256sums=('9338628ab9fdf1ab15a539da09bc6daef969a78f3a3d21994d8a22ea1e6e36da'
-            '4c40836d05e25ffca2047be284a55ed9a87405b85a03644d2e49b5ef77a07e2d'
+            'ce68a6f727b8e07f5a1a0848e804693c3ad414adda50155b55628405561c298e'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
