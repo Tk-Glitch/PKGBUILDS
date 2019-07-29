@@ -42,7 +42,7 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.418.52.17 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.34 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.418.52.18 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.34 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
@@ -68,8 +68,8 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; t
       echo "_md5sum='SKIP'" >> options
       echo "_driver_version=$_driver_version" >> options
     else
-      echo '_driver_version=418.52.17' > options
-      echo '_md5sum=f123eb4df4c0d143cbc4a7eea30dd528' >> options
+      echo '_driver_version=418.52.18' > options
+      echo '_md5sum=5480d71d44b4ea6c2444e254d93fc051' >> options
       echo '_driver_branch=vulkandev' >> options
     fi
 # Package type selector
