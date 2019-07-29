@@ -21,6 +21,7 @@ plain '   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/'
 plain '    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`'
 plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
+plain ''
 
 where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$where"/customization.cfg
@@ -42,20 +43,28 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.418.52.18 (vulkan dev)\n  2.415.27 (short lived)\n  3.430.40 (long lived)\n  4.430.09 (beta)\n  5.Custom version (396.45 to 418.xx series)\nchoice[1-5?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 418.52.18\n  2.430 series: 430.40\n  3.418 series: 418.88\n  4.415 series: 415.27\n  5.410 series: 410.104\n  6.396 series: 396.54\n  7.Custom version (396.xx to 430.xx series)\nchoice[1-7?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
-      echo '_driver_version=415.27' > options
-      echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
-      echo '_driver_branch=regular' >> options
-    elif [ "$CONDITION" == "3" ]; then
       echo '_driver_version=430.40' > options
       echo '_md5sum=3a1d7e988d5cb03669aa93ec3fea74ba' >> options
       echo '_driver_branch=regular' >> options
+    elif [ "$CONDITION" == "3" ]; then
+      echo '_driver_version=418.88' > options
+      echo '_md5sum=b670e91f989826e54a1f05213a5a88ec' >> options
+      echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "4" ]; then
-      echo '_driver_version=430.09' > options
-      echo '_md5sum=db4dc51501e22ef7aac60ccbe5814226' >> options
+      echo '_driver_version=415.27' > options
+      echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "5" ]; then
+      echo '_driver_version=410.104' > options
+      echo '_md5sum=4f3219b5fad99465dea399fc3f4bb866' >> options
+      echo '_driver_branch=regular' >> options
+    elif [ "$CONDITION" == "6" ]; then
+      echo '_driver_version=396.54' > options
+      echo '_md5sum=195afa93d400bdbb9361ede6cef95143' >> options
+      echo '_driver_branch=regular' >> options
+    elif [ "$CONDITION" == "7" ]; then
       echo '_driver_version=custom' > options
       read -p "What branch do you want?`echo $'\n> 1.Stable or regular beta\n  2.Vulkan dev\nchoice[1-2?]: '`" CONDITION;
       if [ "$CONDITION" == "2" ]; then
@@ -118,7 +127,7 @@ fi
 pkgname=(${_nv_base} ${_nv_baseadd} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_utils} ${_lib32_nv_opencl})
 
 pkgver=$_driver_version
-pkgrel=55
+pkgrel=56
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -281,7 +290,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # 5.0
     if (( $(vercmp "$_kernel" "5.0") >= 0 )); then
       _kernel50="1"
-      _whitelist50=( 396* 410* 415* )
+      _whitelist50=( 396* 410.5* 410.6* 410.7* 410.9* 415* )
     fi
 
     # 5.1
