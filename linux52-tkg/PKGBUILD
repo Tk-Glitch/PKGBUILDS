@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=4
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=13
+pkgrel=14
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -119,6 +119,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0010-glitched-bmq.patch
         0010-v5.2_bmq098.patch
         0011-ZFS-fix.patch
+        0012-v5.2-fsync.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '17fb1743904fd03484b0ed353b3975da66d224d030ce4e2fc783dc3cb8ee8714'
@@ -137,7 +138,8 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '628efd7ea8d6eb7a015e8790411e2353aa9cd6548099aa5c229a3b1cd25f1794'
-            'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
+            'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
+            '3fc0b0fee9a83bf9e0afe7392351d57fa76e1325b1220a5220575fca6bde111a')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -580,6 +582,17 @@ prepare() {
   fi
   if [ "$CONDITION8" == "y" ] || [ "$_zfsfix" == "true" ]; then
     patch -Np1 -i ../0011-ZFS-fix.patch
+  fi
+
+  # fsync support
+  if [ -z "$_fsync" ]; then
+    plain ""
+    plain "Enable support for fsync, an experimental replacement for esync in Valve Proton 4.11+"
+    plain "https://steamcommunity.com/games/221410/announcements/detail/2957094910196249305"
+    read -rp "`echo $'    > N/y : '`" CONDITION9;
+  fi
+  if [ "$CONDITION9" == "y" ] || [ "$_fsync" == "true" ]; then
+    patch -Np1 -i ../0012-v5.2-fsync.patch
   fi
 
   # userpatches
