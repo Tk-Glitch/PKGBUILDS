@@ -615,9 +615,9 @@ prepare() {
     plain "Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -rp "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION10;
   fi
-  if [ "$CONDITION9" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+  if [ "$CONDITION10" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
