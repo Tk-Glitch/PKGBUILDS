@@ -38,12 +38,12 @@ makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11'  'libvdpau' 'lib
 if [ "$_lib32" == "true" ]; then
   makedepends+=('lib32-libxml2' 'lib32-libx11' 'lib32-libdrm' 'lib32-libxshmfence' 'lib32-libxxf86vm'
                 'lib32-gcc-libs' 'lib32-libvdpau' 'lib32-libelf' 'lib32-libgcrypt' 'lib32-systemd'
-                'lib32-lm_sensors' 'lib32-libxdamage' 'gcc-multilib' 'lib32-libglvnd' 'lib32-libva'
-                'lib32-wayland' 'lib32-libva' 'lib32-libxrandr')
+                'lib32-lm_sensors' 'lib32-libxdamage' 'gcc-multilib' 'lib32-libunwind' 'lib32-libglvnd'
+                'lib32-libva' 'lib32-wayland' 'lib32-libva' 'lib32-libxrandr')
 fi
 
-depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'libelf'
-         'libomxil-bellagio' 'libunwind' 'libglvnd' 'wayland' 'lm_sensors' 'libclc' 'glslang')
+depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'libelf' 'libomxil-bellagio' 'libunwind'
+         'libglvnd' 'wayland' 'lm_sensors' 'libclc' 'glslang')
 optdepends=('opengl-man-pages: for the OpenGL API man pages')
 
 # Use ccache if available
