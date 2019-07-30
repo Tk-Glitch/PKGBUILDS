@@ -80,7 +80,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=rc2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=6
+pkgrel=7
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -108,6 +108,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0005-glitched-pds.patch
         0005-v5.3_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
+        0007-v5.3-fsync.patch
 )
 sha256sums=('8c5bfdeadd35b56bc4b71142750c93142b3182870fd7ff66ab8f24e4d0283580'
             'acf2b5368da1ab93b513d168139cf0ac2ead4f3c3505a39e8c2adc49525c4a97'
@@ -121,7 +122,8 @@ sha256sums=('8c5bfdeadd35b56bc4b71142750c93142b3182870fd7ff66ab8f24e4d0283580'
             '9d1ec9a093ba5858c7b55caf555e27419c55699a83e77ecca6274e86770490d7'
             '5c2bfef5396ce41eda18ad19966229d42c5f39eedcccf3cdfd0636d87d9fdb0d'
             '6fff646fdb874b5c23316680aa3d89311bf6fc8de8c0dc6bd2e92e2ab7f7f8ff'
-            'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb')
+            'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
+            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -528,6 +530,17 @@ prepare() {
   fi
   if [ "$CONDITION5" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
+  fi
+
+  # fsync support
+  if [ -z "$_fsync" ]; then
+    plain ""
+    plain "Enable support for fsync, an experimental replacement for esync in Valve Proton 4.11+"
+    plain "https://steamcommunity.com/games/221410/announcements/detail/2957094910196249305"
+    read -rp "`echo $'    > N/y : '`" CONDITION6;
+  fi
+  if [ "$CONDITION6" == "y" ] || [ "$_fsync" == "true" ]; then
+    patch -Np1 -i ../0007-v5.3-fsync.patch
   fi
 
   # userpatches
