@@ -629,11 +629,11 @@ prepare() {
     plain "to configure the kernel before building it?"
     plain "If you do, make sure your terminal is currently"
     plain "at least 19 lines by 80 columns large or you'll get an error :D"
-    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION10;
+    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION11;
   fi
-  if [ "$CONDITION10" == "1" ] || [ "$_menunconfig" == "1" ]; then
+  if [ "$CONDITION11" == "1" ] || [ "$_menunconfig" == "1" ]; then
     make menuconfig
-  elif [ "$CONDITION10" == "2" ] || [ "$_menunconfig" == "2" ]; then
+  elif [ "$CONDITION11" == "2" ] || [ "$_menunconfig" == "2" ]; then
     make nconfig
   else
     # rewrite configuration
