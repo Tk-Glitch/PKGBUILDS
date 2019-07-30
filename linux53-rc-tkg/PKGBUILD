@@ -57,6 +57,9 @@ if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
+  if [ -n "$_custom_pkgbase" ]; then
+    echo "_custom_pkgbase=\"${_custom_pkgbase}\"" >> "$_where"/cpuschedset
+  fi
 elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "cfsturbo" ]; then
