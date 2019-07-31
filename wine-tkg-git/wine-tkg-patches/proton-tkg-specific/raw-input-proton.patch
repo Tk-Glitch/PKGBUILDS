@@ -303,9 +303,9 @@ index f737a306a5..5cd8e07e21 100644
          WARN( "XInput2 not supported, refusing to clip to %s\n", wine_dbgstr_rect(clip) );
          DestroyWindow( msg_hwnd );
 @@ -423,7 +452,7 @@ static BOOL grab_clipping_window( const RECT *clip )
- 
      if (!clipping_cursor)
      {
+         ERR("Failed to grab pointer\n");
 -        disable_xinput2();
 +        disable_xinput2_path();
          DestroyWindow( msg_hwnd );

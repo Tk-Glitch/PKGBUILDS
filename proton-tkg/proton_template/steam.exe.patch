@@ -2,15 +2,14 @@ diff --git a/proton b/proton
 index 96b1b7e..998f94a 100755
 --- a/proton
 +++ b/proton
-@@ -191,7 +191,7 @@ with dist_lock:
-         try_copy(basedir + "/version", basedir + "/dist/")
+@@ -191,6 +191,7 @@ with dist_lock:
  
  env = dict(os.environ)
--dlloverrides = {}
-+dlloverrides = {"steam.exe": "b"} #always use our special built-in steam.exe
+ dlloverrides = {
++        "steam.exe": "b", #always use our special built-in steam.exe
+         "mfplay": "n" #disable built-in mfplay
+     }
  
- if "HOST_LC_ALL" in env and len(env["HOST_LC_ALL"]) > 0:
-     #steam sets LC_ALL=C to help some games, but Wine requires the real value
 @@ -705,7 +705,7 @@ def dump_dbg_scripts():
                  f.write(" \"" + arg + "\"")
          f.write(")\n")

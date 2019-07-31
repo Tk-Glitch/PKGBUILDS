@@ -946,3 +946,93 @@ index 89ea65bba6..711e333f4c 100644
      IoInvalidateDeviceRelations(mouse_obj, BusRelations);
  }
  
+From 4a84812acc94947a598ef119f21c7c13fc384bf4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Bernon?= <rbernon@codeweavers.com>
+Date: Mon, 17 Jun 2019 21:52:33 +0200
+Subject: [PATCH] winebus: Translate all XBOX controllers names reported by the
+ SDL
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Some games (Inside) are checking for the exact name of the XBOX 360
+controller, as reported on Windows, to decide wether or not to enable
+rumble.
+
+Signed-off-by: Rémi Bernon <rbernon@codeweavers.com>
+---
+ dlls/winebus.sys/bus_sdl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/dlls/winebus.sys/bus_sdl.c b/dlls/winebus.sys/bus_sdl.c
+index 931a5eeb236..a010158b68d 100644
+--- a/dlls/winebus.sys/bus_sdl.c
++++ b/dlls/winebus.sys/bus_sdl.c
+@@ -719,6 +719,14 @@ static NTSTATUS get_string(DEVICE_OBJECT *device, DWORD index, WCHAR *buffer, DW
+                 str = pSDL_GameControllerName(ext->sdl_controller);
+             else
+                 str = pSDL_JoystickName(ext->sdl_joystick);
++
++            // HACK: Force the Xbox360 controller name to the same name
++            // as on Windows, some applications are checking for it
++            if (pSDL_JoystickGetVendor != NULL &&
++                pSDL_JoystickGetProduct != NULL &&
++                is_xbox_gamepad(pSDL_JoystickGetVendor(ext->sdl_joystick),
++                                pSDL_JoystickGetProduct(ext->sdl_joystick)))
++                str = "Controller (XBOX 360 For Windows)";
+             break;
+         case HID_STRING_ID_IMANUFACTURER:
+             str = "SDL";
+
+From 45fda2263b4dac746e356fd603d9f1207d7b8f6a Mon Sep 17 00:00:00 2001
+From: Brendan Shanks <bshanks@codeweavers.com>
+Date: Wed, 19 Jun 2019 14:40:42 -0700
+Subject: [PATCH] dinput: Use the "PIDVID" GUID for the device product GUID
+
+Windows uses {PID_VID-0000-0000-0000-504944564944} ("PIDVID") for
+guidProduct.
+
+This GUID is not officially documented, but DiRT Rally 2.0 compares
+against the entire GUID to detect specific devices (and seems to disable
+force feedback for unknown devices).
+SDL and GLFW both look for "PIDVID" in Data4 before extracting the
+PID/VID from Data1.
+
+Signed-off-by: Brendan Shanks <bshanks@codeweavers.com>
+---
+ dlls/dinput/joystick_sdl.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/dinput/joystick_sdl.c b/dlls/dinput/joystick_sdl.c
+index 50a09ac1d3a..2872788f5c7 100644
+--- a/dlls/dinput/joystick_sdl.c
++++ b/dlls/dinput/joystick_sdl.c
+@@ -108,6 +108,10 @@ static const GUID DInput_Wine_SDL_Joystick_GUID = { /* 001E36B7-5DBA-4C4F-A8C9-C
+   0x001E36B7, 0x5DBA, 0x4C4F, {0xA8, 0xC9, 0xCF, 0xC8, 0x68, 0x9D, 0xB4, 0x03}
+ };
+ 
++static const GUID DInput_PIDVID_Product_GUID = { /* PIDVID-0000-0000-0000-504944564944 "PIDVID" */
++  0x00000000, 0x0000, 0x0000, {0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44}
++};
++
+ static int have_sdldevs = -1;
+ static struct SDLDev *sdldevs = NULL;
+ 
+@@ -214,7 +218,7 @@ static void fill_joystick_dideviceinstanceW(LPDIDEVICEINSTANCEW lpddi, DWORD ver
+     lpddi->dwSize       = dwSize;
+     lpddi->guidInstance = DInput_Wine_SDL_Joystick_GUID;
+     lpddi->guidInstance.Data3 = id;
+-    lpddi->guidProduct = DInput_Wine_SDL_Joystick_GUID;
++    lpddi->guidProduct = DInput_PIDVID_Product_GUID;
+     lpddi->guidProduct.Data1 = MAKELONG(sdldevs[id].vendor_id, sdldevs[id].product_id);
+     lpddi->guidFFDriver = GUID_NULL;
+ 
+@@ -389,7 +393,7 @@ static JoystickImpl *alloc_device(REFGUID rguid, IDirectInputImpl *dinput, unsig
+ 
+     newDevice->generic.guidInstance = DInput_Wine_SDL_Joystick_GUID;
+     newDevice->generic.guidInstance.Data3 = index;
+-    newDevice->generic.guidProduct = DInput_Wine_SDL_Joystick_GUID;
++    newDevice->generic.guidProduct = DInput_PIDVID_Product_GUID;
+     newDevice->generic.guidProduct.Data1 = MAKELONG(sdldevs[index].vendor_id, sdldevs[index].product_id);
+     newDevice->generic.joy_polldev = poll_sdl_device_state;
+ 
