@@ -76,9 +76,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=62
+_sub=63
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=88
+pkgrel=89
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -112,7 +112,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-uksm.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            'eda440f44b9889d13eb65f4515776401e903e1047fac33e912710b2451818550'
+            'd1f9826816072e964720f28ec67e7e448b004cf11a40458847684c60e154c01c'
             '9dc282ec303d38a53a3d505c64c19ba2ae2472ea764deefec086febfc9ee262d'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
