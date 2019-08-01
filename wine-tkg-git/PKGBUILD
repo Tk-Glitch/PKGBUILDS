@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.12.1.r26.g276ed085
+pkgver=4.12.1.r27.g2394b080
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -89,6 +89,8 @@ if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && 
   fi
   if [[ $pkgver = 3.* ]]; then
     echo '_proton_branch="proton_3.16"' >> "$_proton_tkg_path"/proton_tkg_token
+  else
+    echo "_proton_branch=${_proton_branch}" >> "$_proton_tkg_path"/proton_tkg_token
   fi
   if [ -n "$_proton_dxvk_configfile" ]; then
     echo "_proton_dxvk_configfile=${_proton_dxvk_configfile}" >> "$_proton_tkg_path"/proton_tkg_token

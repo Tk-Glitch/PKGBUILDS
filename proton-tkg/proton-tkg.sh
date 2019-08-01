@@ -12,9 +12,6 @@ set -e
 _nowhere=$PWD
 _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
 
-# Make sure we're not using proton_3.7 /s
-_proton_branch="proton_4.11"
-
 cat <<'EOF'
        .---.`               `.---.
     `/syhhhyso-           -osyhhhys/`
@@ -202,7 +199,11 @@ else
       cp -a Proton/steam_helper/* Proton/build/steam.win32
       cd Proton/build/steam.win32
 
-      export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
+      if [ "$_proton_branch" != "proton_4.11" ]; then
+        export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
+      else
+        export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
+      fi
 
       winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
       make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" && strip steam.exe.so
