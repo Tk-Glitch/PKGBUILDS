@@ -21,16 +21,3 @@ diff -urN a/dlls/ntdll/ntdll.spec a/dlls/ntdll/ntdll.spec
  @ cdecl __wine_user_shared_data()
 +
 +@ cdecl IsTransgaming()
-diff --git a/loader/wine.inf.in b/loader/wine.inf.in
-index 4d28a93c35..8b1fa7ff5c 100644
---- a/loader/wine.inf.in
-+++ b/loader/wine.inf.in
-@@ -651,6 +651,7 @@ HKLM,%MciExtStr%,"wmx",,"MPEGVideo"
- HKLM,%MciExtStr%,"wvx",,"MPEGVideo"
- 
- [Misc]
-+HKCU,Software\Wine,"HideWineExports",,"Y"
- HKLM,Software\Borland\Database Engine\Settings\SYSTEM\INIT,SHAREDMEMLOCATION,,9000
- HKLM,Software\Clients\Mail,,2,"Native Mail Client"
- HKLM,Software\Clients\Mail\Native Mail Client,,2,"Native Mail Client"
-

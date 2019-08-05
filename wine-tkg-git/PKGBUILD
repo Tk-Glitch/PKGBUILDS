@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.12.1.r27.g2394b080
+pkgver=4.13.r0.g3f06c18b
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -470,7 +470,7 @@ md5sums=('SKIP'
          'f063189ec090d9071397d455d271199d'
          '5836490c1082ba2f8ac63f9f9f3b9d0c'
          '5b07ab957a128801b6c45e30b31432a7'
-         'b1dea6339eba7ca8c37d3e5b8399fc5f'
+         '25b6bb1032c5d78204c7847c00cc9620'
          'a38deffe982282b3dea92e7bd48dc725'
          'cf308e18ad3724e4872280ec35e25338'
          '8a6d9ad92d3becae6bd9dbb05d7d6f48'
