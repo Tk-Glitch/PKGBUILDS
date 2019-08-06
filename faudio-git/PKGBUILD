@@ -33,7 +33,7 @@ if [ "$_lib32" == "true" ]; then
   pkgname=("${pkgname[@]}" "lib32-${_pkgname}-git")
 fi
 
-pkgver=r1108.cb5b726
+pkgver=r1190.4715d54
 pkgrel=1
 pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
 arch=('i686' 'x86_64')
@@ -128,8 +128,13 @@ pkgver() {
 }
 
 build() {
-  if git merge-base --is-ancestor 3dd4e04153b0a35efd605c1a27a4123a69b08cc0 HEAD; then
-    _nolegacy="true"
+  cd "$srcdir/${_gitname}"
+  if git merge-base --is-ancestor 122b635efe75bd8640cd511da139fef2f01219a5 HEAD; then
+    _patchver="0"
+  elif git merge-base --is-ancestor 3dd4e04153b0a35efd605c1a27a4123a69b08cc0 HEAD; then
+    _patchver="1"
+  else
+    _patchver="2"
   fi
 
   cd "$srcdir/64/build"
@@ -147,15 +152,17 @@ build() {
 
     # Fix for lib32 SDL2
     cd "$srcdir/32"
-    if [ "$_nolegacy" == "true" ]; then
+    if [ "$_patchver" == "1" ]; then
       patch -p1 -i ../force-lib32-sdl2.patch
-    else
+    elif [ "$_patchver" == "2" ]; then
       patch -p1 -i ../force-lib32-sdl2-legacy.patch
     fi
 
     cd "$srcdir/32/build"
 
-    export CFLAGS="${CFLAGS} -m32"
+    export CC="gcc -m32 -mstackrealign"
+    export CXX="g++ -m32 -mstackrealign"
+    export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
 
     cmake .. \
       -DCMAKE_BUILD_TYPE=Release \
