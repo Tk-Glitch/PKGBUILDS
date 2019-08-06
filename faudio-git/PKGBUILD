@@ -33,7 +33,7 @@ if [ "$_lib32" == "true" ]; then
   pkgname=("${pkgname[@]}" "lib32-${_pkgname}-git")
 fi
 
-pkgver=r1177.9070da5
+pkgver=r1108.cb5b726
 pkgrel=1
 pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
 arch=('i686' 'x86_64')
@@ -48,9 +48,11 @@ fi
 
 makedepends=('git' 'cmake')
 source=("git+https://github.com/FNA-XNA/FAudio.git#commit=${_faudio_commit}"
-        'force-lib32-sdl2.patch')
+        'force-lib32-sdl2.patch'
+        'force-lib32-sdl2-legacy.patch')
 sha256sums=('SKIP'
-            '74a3432a09b1fa70cda254af5b0e04dbdb72f7f082dde7f625a477cacd634975')
+            '74a3432a09b1fa70cda254af5b0e04dbdb72f7f082dde7f625a477cacd634975'
+            '8454e8342989cdbfb571ff9769baea962576b9c961f166df4bff47c610b7f114')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -126,6 +128,10 @@ pkgver() {
 }
 
 build() {
+  if git merge-base --is-ancestor 3dd4e04153b0a35efd605c1a27a4123a69b08cc0 HEAD; then
+    _nolegacy="true"
+  fi
+
   cd "$srcdir/64/build"
 
   cmake .. \
@@ -141,7 +147,11 @@ build() {
 
     # Fix for lib32 SDL2
     cd "$srcdir/32"
-    patch -p1 -i ../force-lib32-sdl2.patch
+    if [ "$_nolegacy" == "true" ]; then
+      patch -p1 -i ../force-lib32-sdl2.patch
+    else
+      patch -p1 -i ../force-lib32-sdl2-legacy.patch
+    fi
 
     cd "$srcdir/32/build"
 
