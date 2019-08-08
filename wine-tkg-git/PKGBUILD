@@ -5,7 +5,7 @@ pkgver=4.13.r3.g73f58bac
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=186
+eval pkgrel=187
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -151,7 +151,6 @@ if [ -e "$_proton_tkg_path"/proton_tkg_token ] && [ -n "$_proton_tkg_path" ]; th
   _use_faudio="true"
   _highcorecount_fix="true"
   _update_winevulkan="true"
-  _use_libfonts="true"
   _use_mono="true"
   if [ "$_use_dxvk" == "true" ]; then
     _use_dxvk="release"
@@ -268,6 +267,7 @@ depends=(
     'faudio'                'lib32-faudio'
     'desktop-file-utils'
 )
+
 makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'gcc>=4.5.0-2'
     'giflib'                'lib32-giflib'
@@ -301,22 +301,18 @@ makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
 
 # vkd3d deps
 if [ "$_use_vkd3d" == "true" ]; then
-  makedepends=("${makedepends[@]}" vkd3d lib32-vkd3d)
+  makedepends+=('vkd3d' 'lib32-vkd3d')
 fi
 
-# liberation fonts deps
-if [ "$_use_libfonts" == "true" ]; then
-  depends=("${depends[@]}" fontforge python-fonttools)
-fi
-
-# proton winetricks integration dep
+# proton-tkg deps
 if [ -e "$_where"/proton_tkg_token ]; then
-  depends=("${depends[@]}" tk)
+  makedepends+=('fontforge' 'python-fonttools')
+  depends+=('tk')
 fi
 
 # wine-mono deps
 if [ "$_use_mono" == "true" ]; then
-  depends=("${depends[@]}" wine-mono)
+  depends+=('wine-mono')
 fi
 
 optdepends=(
