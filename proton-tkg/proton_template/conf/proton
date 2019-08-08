@@ -278,6 +278,7 @@ check_environment("PROTON_NO_D3D10", "nod3d10")
 check_environment("PROTON_NO_D3D9", "nod3d9")
 check_environment("PROTON_USE_CUSTOMD3D9", "custom9")
 check_environment("PROTON_NO_ESYNC", "noesync")
+check_environment("PROTON_NO_FSYNC", "nofsync")
 check_environment("PROTON_FORCE_LARGE_ADDRESS_AWARE", "forcelgadd")
 check_environment("PROTON_OLD_GL_STRING", "oldglstr")
 check_environment("PROTON_DXVK_ASYNC", "dxvkasync")
@@ -309,6 +310,9 @@ if "winetricks" in config_opts:
 
 if not "noesync" in config_opts:
     env["WINEESYNC"] = "1"
+
+if not "nofsync" in config_opts:
+    env["WINEFSYNC"] = "1"
 
 if "oldglstr" in config_opts:
     #mesa override

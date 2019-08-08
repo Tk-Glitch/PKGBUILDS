@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.13.r0.g3f06c18b
+pkgver=4.13.r3.g73f58bac
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -180,8 +180,13 @@ else
   fi
 
   if [ "$_use_esync" == "true" ]; then
-    pkgname="${pkgname/%-git/-esync-git}"
-    msg2 "Using esync patchset"
+    if [ "$_use_fsync" == "true" ]; then
+      pkgname="${pkgname/%-git/-fsync-git}"
+      msg2 "Using fsync patchset"
+    else
+      pkgname="${pkgname/%-git/-esync-git}"
+      msg2 "Using esync patchset"
+    fi
   fi
 
   if [ "$_use_pba" == "true" ]; then
@@ -449,6 +454,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton_FS_hack_refreshrate.patch' # Add custom fake refreshrate to proton_FS_hack
 		'raw-input.patch' # Raw input fix by Guy1524
 		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
+		'fsync-mainline.patch' # Fsync patchset, introduced with Proton 4.11-1
+		'fsync-staging.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
 )
 
@@ -543,6 +550,8 @@ md5sums=('SKIP'
          'aa8d6b65936c9646972c04864eafc479'
          'a3f348520f840fa69fa3db3c18895d17'
          '25430af14b18f78cc5b74c0640bbdf3f'
+         '3a49876426fb9d9e899ed68546404021'
+         'f53444690854e77368962815d6aa21ca'
          '9b74ad2e9c6881f27c7eab0299ecc2c2')
 
 # Wine staging source
@@ -1167,6 +1176,17 @@ EOM
 	  _patchname='virtual_desktop_refreshrate.patch' && _patchmsg="Applied custom fake virtual desktop refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
 	fi
 
+	# fsync - experimental replacement for esync introduced with Proton 4.11-1
+	if [ "$_use_fsync" == "true" ]; then
+	  if [ "$_staging_esync" == "true" ] && git merge-base --is-ancestor 1d9a3f6d12322891a2af4aadd66a92ea66479233 HEAD; then
+	    _patchname='fsync-staging.patch' && _patchmsg="Applied fsync, an experimental replacement for esync" && nonuser_patcher
+	  elif [ "$_use_esync" == "true" ] && git merge-base --is-ancestor 29914d583fe098521472332687b8da69fc692690 HEAD; then
+	    _patchname='fsync-mainline.patch' && _patchmsg="Applied fsync, an experimental replacement for esync" && nonuser_patcher
+	  else
+	    echo "Fsync forcefully disabled due to incompatible tree" >> "$_where"/last_build_config.log
+	  fi
+	fi
+
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
@@ -1342,6 +1362,9 @@ EOM
 	fi
 	if [ "$_use_esync" == "true" ] || [ "$_staging_esync" == "true" ]; then
 	  _version_tags+=(Esync)
+	fi
+	if [ "$_use_fsync" == "true" ] && [ "$_staging_esync" == "true" ]; then
+	  _version_tags+=(Fsync)
 	fi
 	if [ "$_use_pba" == "true" ] && [ "$_pba_version" != "none" ]; then
 	  _version_tags+=(PBA)
