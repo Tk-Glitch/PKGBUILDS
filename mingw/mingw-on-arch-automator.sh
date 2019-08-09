@@ -181,8 +181,8 @@ _AURPKGNAME=mingw-w64-gcc
 _mingwloop
 
 if [ $_sdlandco == "true" ]; then
-  # mingw-w64-pkg-config - mingw-w64-cmake - mingw-w64-sdl2
-  _AURPKGS=(mingw-w64-pkg-config mingw-w64-cmake mingw-w64-sdl2)
+  # mingw-w64-cmake - mingw-w64-sdl2
+  _AURPKGS=(mingw-w64-cmake mingw-w64-sdl2)
   for _AURPKGNAME in "${_AURPKGS[@]}"; do
     _mingwloop
   done
