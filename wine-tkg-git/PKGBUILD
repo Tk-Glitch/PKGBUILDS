@@ -5,7 +5,7 @@ pkgver=4.13.r5.gf9011564
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=188
+eval pkgrel=189
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -455,6 +455,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
 		'fsync-mainline.patch' # Fsync patchset, introduced with Proton 4.11-1
 		'fsync-staging.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition
+		'fsync-staging-no_alloc_handle.patch' # Add no_alloc_handle object method to fsync for staging
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
 )
 
@@ -553,7 +554,8 @@ md5sums=('SKIP'
          'a3f348520f840fa69fa3db3c18895d17'
          '25430af14b18f78cc5b74c0640bbdf3f'
          '3a49876426fb9d9e899ed68546404021'
-         'f53444690854e77368962815d6aa21ca'
+         'ad752d92011e85109567b4f2e7c779b7'
+         'ff418685a55dbe3d4a14dfd1c9cde41c'
          '9b74ad2e9c6881f27c7eab0299ecc2c2')
 
 # Wine staging source
@@ -1181,7 +1183,10 @@ EOM
 	# fsync - experimental replacement for esync introduced with Proton 4.11-1
 	if [ "$_use_fsync" == "true" ]; then
 	  if [ "$_staging_esync" == "true" ] && git merge-base --is-ancestor 1d9a3f6d12322891a2af4aadd66a92ea66479233 HEAD; then
-	    _patchname='fsync-staging.patch' && _patchmsg="Applied fsync, an experimental replacement for esync" && nonuser_patcher
+	    _patchname='fsync-staging.patch' && _patchmsg="Applied fsync, an experimental replacement for esync (staging)" && nonuser_patcher
+	    if [ "$_proton_use_steamhelper" != "true" ]; then
+	      _patchname='fsync-staging-no_alloc_handle.patch' && _patchmsg="Added no_alloc_handle object method to fsync" && nonuser_patcher
+	    fi
 	  elif [ "$_use_esync" == "true" ] && git merge-base --is-ancestor 29914d583fe098521472332687b8da69fc692690 HEAD; then
 	    _patchname='fsync-mainline.patch' && _patchmsg="Applied fsync, an experimental replacement for esync" && nonuser_patcher
 	  else
