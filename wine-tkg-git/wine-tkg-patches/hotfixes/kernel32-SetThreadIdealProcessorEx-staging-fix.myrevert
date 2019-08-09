@@ -1,0 +1,42 @@
+From 16944e0e4b46d0fb0346937c7d288bfc08abe612 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
+Date: Sat, 4 Feb 2017 16:31:59 +0100
+Subject: [PATCH] kernel32: Add stub for SetThreadIdealProcessorEx.
+
+---
+ dlls/kernelbase/thread.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/kernelbase/thread.c b/dlls/kernelbase/thread.c
+index 852ab354f..172a0f16b 100644
+--- a/dlls/kernelbase/thread.c
++++ b/dlls/kernelbase/thread.c
+@@ -431,9 +431,22 @@ DWORD WINAPI DECLSPEC_HOTPATCH SetThreadIdealProcessor( HANDLE thread, DWORD pro
+ BOOL WINAPI DECLSPEC_HOTPATCH SetThreadIdealProcessorEx( HANDLE thread, PROCESSOR_NUMBER *ideal,
+                                                          PROCESSOR_NUMBER *previous )
+ {
+-    FIXME( "(%p %p %p): stub\n", thread, ideal, previous );
+-    SetLastError( ERROR_CALL_NOT_IMPLEMENTED );
+-    return FALSE;
++    FIXME("(%p, %p, %p): stub\n", thread, processor, previous);
++
++    if (!processor || processor->Group > 0 || processor->Number > MAXIMUM_PROCESSORS)
++    {
++        SetLastError(ERROR_INVALID_PARAMETER);
++        return FALSE;
++    }
++
++    if (previous)
++    {
++        previous->Group = 0;
++        previous->Number = 0;
++        previous->Reserved = 0;
++    }
++
++    return TRUE;
+ }
+ 
+ 
+-- 
+2.22.0
+
