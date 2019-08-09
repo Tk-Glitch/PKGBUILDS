@@ -82,9 +82,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
-_sub=7
+_sub=8
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=17
+pkgrel=18
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -122,7 +122,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0012-v5.2-fsync.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
-            '20eae28e7c8365350692967df14bdb8af714d8017cd3da3006038d62d5d8a64c'
+            '41df22ac3e5b3f729276c429299eb72d4db4789c43a9d35dd7f3002aeafe9999'
             'c646fb8746de5347dcc632e99feeea89128609ce495f5dfe9b872f22aff4183c'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
