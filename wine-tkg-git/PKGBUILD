@@ -5,7 +5,7 @@ pkgver=4.13.r3.g73f58bac
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=187
+eval pkgrel=188
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -420,6 +420,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'valve_proton_fullscreen_hack-staging-4.5.patch' # Proton FS hack for <=4.5
 		'valve_proton_fullscreen_hack-staging-4.4.patch' # Proton FS hack for <=4.4
 		'valve_proton_fullscreen_hack-staging-legacy.patch' # Proton FS hack for <=3.16 masochists
+		'valve_proton_fullscreen_hack_realmodes.patch' # Real modes listing in FS hack
 		'enable_stg_shared_mem_def.patch' # Enable STAGING_SHARED_MEMORY by default
 		'LAA-legacy.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
 		'LAA-staging-legacy.patch' # Same as above, for staging
@@ -516,6 +517,7 @@ md5sums=('SKIP'
          'c7eb87afb00130d687b8e5496b859da6'
          '1f9b4f02e9e8f1ec9261568e13a1fdf3'
          '962fa3a5a4c5fd57b9f4715ed587fbe6'
+         '0c93865bf197626361557bd34b14be60'
          '07b48859d0b274c9b35be4de3016ae27'
          '3cb83a83c7ed9335eddbef665f4d89f9'
          '25e20e66ee3b2896f2979ba4e16ff767'
@@ -1208,6 +1210,8 @@ EOM
 	  fi
 	  if [ -n "$_fake_refresh_rate" ]; then
 	    _patchname='proton_FS_hack_refreshrate.patch' && _patchmsg="Applied custom fake proton FS hack refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
+	  else
+	    _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack" && nonuser_patcher
 	  fi
 	fi
 
