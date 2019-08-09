@@ -536,6 +536,10 @@ class Session:
     def init_session(self):
         self.env["WINEPREFIX"] = g_compatdata.prefix_dir
 
+        if not "__GL_SHADER_DISK_CACHE_PATH" in os.environ:
+            log("Shader cache path is undefined. Using prefix path as a fallback.")
+            self.env["__GL_SHADER_DISK_CACHE_PATH"] = g_compatdata.prefix_dir
+
         #load environment overrides
         if os.path.exists(g_proton.user_settings_file):
             try:
