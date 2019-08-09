@@ -1,30 +1,36 @@
+From 84cbe52bdacc382f8addd76d3a4492e199ba3fac Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Fri, 9 Aug 2019 22:07:37 +0200
+Subject: Use Steam helper
+
+
 diff --git a/proton b/proton
-index 96b1b7e..998f94a 100755
+index c0857e793..e305148b6 100755
 --- a/proton
 +++ b/proton
-@@ -191,6 +191,7 @@ with dist_lock:
+@@ -494,6 +494,7 @@ class Session:
+         self.log_file = None
+         self.env = dict(os.environ)
+         self.dlloverrides = {
++                "steam.exe": "b", #always use our special built-in steam.exe
+                 "mfplay": "n" #disable built-in mfplay
+         }
+         if "STEAM_COMPAT_CONFIG" in os.environ:
+@@ -761,7 +762,7 @@ class Session:
+                     f.write(" \"" + arg + "\"")
+             f.write(")\n")
+             self.dump_dbg_env(f)
+-            f.write("\t\"" + g_proton.wine_bin + "\" \"${@:-${DEF_CMD[@]}}\"\n")
++            f.write("\t\"" + g_proton.wine_bin + "\" steam.exe \"${@:-${DEF_CMD[@]}}\"\n")
+         os.chmod(tmpdir + "run", 0o755)
  
- env = dict(os.environ)
- dlloverrides = {
-+        "steam.exe": "b", #always use our special built-in steam.exe
-         "mfplay": "n" #disable built-in mfplay
-     }
- 
-@@ -705,7 +705,7 @@ def dump_dbg_scripts():
-                 f.write(" \"" + arg + "\"")
-         f.write(")\n")
-         dump_dbg_env(f)
--        f.write("\t\"" + wine_path + "\" \"${@:-${DEF_CMD[@]}}\"\n")
-+        f.write("\t\"" + wine_path + "\" steam.exe \"${@:-${DEF_CMD[@]}}\"\n")
-     os.chmod(tmpdir + "run", 0o755)
- 
- def run():
-@@ -714,7 +714,7 @@ def run():
-             dump_dbg_scripts()
-         except OSError:
-             log("Unable to write debug scripts! " + str(sys.exc_info()[1]))
--    run_wine([wine_path] + sys.argv[2:])
-+    run_wine([wine_path, "steam"] + sys.argv[2:])
- 
- if sys.version_info[0] == 2:
-     binary_stdout = sys.stdout
+     def run_proc(self, args, local_env=None):
+@@ -784,7 +785,7 @@ class Session:
+                 comfile = open(comfile_path, "w")
+                 comfile.write("Command: " + str(sys.argv[2:]) + "\n")
+                 comfile.close()
+-        commandtorun=[g_proton.wine_bin] + sys.argv[2:]
++        commandtorun=[g_proton.wine_bin, "steam"] + sys.argv[2:]
+         if "winetricks" in self.compat_config:
+             if os.path.exists(os.environ["STEAM_COMPAT_DATA_PATH"]):
+                 tricksfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/tricks"
