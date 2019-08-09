@@ -1036,3 +1036,29 @@ index 50a09ac1d3a..2872788f5c7 100644
      newDevice->generic.guidProduct.Data1 = MAKELONG(sdldevs[index].vendor_id, sdldevs[index].product_id);
      newDevice->generic.joy_polldev = poll_sdl_device_state;
  
+From 073d099bbfa972d7980b7f287f308a34a4de4331 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Bernon?= <rbernon@codeweavers.com>
+Date: Tue, 30 Jul 2019 15:00:02 +0200
+Subject: [PATCH] winebus: Add xinput-specific device interface first
+
+This way, when a game receives the HID WM_DEVICECHANGE notification,
+the xinput-interface is already there and XInput does not return a
+ERROR_DEVICE_NOT_CONNECTED error on first call.
+---
+ dlls/winebus.sys/bus_sdl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dlls/winebus.sys/bus_sdl.c b/dlls/winebus.sys/bus_sdl.c
+index 95a096bad89..1fa31b8cd9d 100644
+--- a/dlls/winebus.sys/bus_sdl.c
++++ b/dlls/winebus.sys/bus_sdl.c
+@@ -1101,8 +1101,8 @@ static void process_device_event(SDL_Event *event)
+ 
+     if (event->type == SDL_JOYDEVICEADDED)
+     {
+-        try_add_device(((SDL_JoyDeviceEvent*)event)->which, FALSE);
+         try_add_device(((SDL_JoyDeviceEvent*)event)->which, TRUE);
++        try_add_device(((SDL_JoyDeviceEvent*)event)->which, FALSE);
+     }
+     else if (event->type == SDL_JOYDEVICEREMOVED)
+     {
