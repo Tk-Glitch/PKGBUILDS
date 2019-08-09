@@ -793,7 +793,7 @@ class Session:
                     root.withdraw()
                     if not len( os.popen( "ps -aef | grep -i 'winetricks' | grep -v 'grep' | awk '{ print $3 }'" ).read().strip().split( '\n' ) ) > 1:
                         if "tk" == root.title():
-                            if messagebox.askyesno('Proton-tkg', 'Do you want to run winetricks? (if yes, be patient)'):
+                            if messagebox.askyesno('Proton-tkg', 'Do you want to run winetricks?'):
                                 root.destroy()
                                 open(tricksfile_path, "w+").close()
                                 commandtorun=g_proton.winetricks_bin
