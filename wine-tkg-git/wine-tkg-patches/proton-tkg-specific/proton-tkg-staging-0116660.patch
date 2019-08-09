@@ -877,6 +877,280 @@ index 9c957f02c06..e14b514ccc1 100644
              !strncmp( var, "VK_", sizeof("VK_")-1 ));
  }
  
+From 59e3f7faf3aca068ca37ad274490e4d7bcd85907 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 11 Jun 2018 13:40:24 -0500
+Subject: [PATCH] kernel32: Implement Set and GetThreadDescription
+
+---
+ dlls/kernel32/kernel32.spec  |   2 +
+ dlls/kernel32/tests/thread.c |  46 ++++++++++++++
+ dlls/kernel32/thread.c       | 112 ++++++++++++++++++++++++++++++++---
+ include/winbase.h            |   2 +
+ 4 files changed, 154 insertions(+), 8 deletions(-)
+
+diff --git a/dlls/kernel32/kernel32.spec b/dlls/kernel32/kernel32.spec
+index f1d75b8e1c6..98f37215756 100644
+--- a/dlls/kernel32/kernel32.spec
++++ b/dlls/kernel32/kernel32.spec
+@@ -847,6 +847,7 @@
+ @ stdcall GetTempPathA(long ptr)
+ @ stdcall GetTempPathW(long ptr)
+ @ stdcall GetThreadContext(long ptr)
++@ stdcall GetThreadDescription(long ptr)
+ @ stdcall GetThreadErrorMode()
+ @ stdcall GetThreadGroupAffinity(long ptr)
+ @ stdcall GetThreadId(ptr)
+@@ -1447,6 +1448,7 @@
+ @ stdcall SetTermsrvAppInstallMode(long)
+ @ stdcall SetThreadAffinityMask(long long)
+ @ stdcall SetThreadContext(long ptr)
++@ stdcall SetThreadDescription(long ptr)
+ @ stdcall SetThreadErrorMode(long ptr)
+ @ stdcall SetThreadExecutionState(long)
+ @ stdcall SetThreadGroupAffinity(long ptr ptr)
+diff --git a/dlls/kernel32/tests/thread.c b/dlls/kernel32/tests/thread.c
+index b69d2eb371f..2be405e7ae7 100644
+--- a/dlls/kernel32/tests/thread.c
++++ b/dlls/kernel32/tests/thread.c
+@@ -102,6 +102,8 @@ static NTSTATUS (WINAPI *pNtQueryInformationThread)(HANDLE,THREADINFOCLASS,PVOID
+ static BOOL (WINAPI *pSetThreadGroupAffinity)(HANDLE,const GROUP_AFFINITY*,GROUP_AFFINITY*);
+ static NTSTATUS (WINAPI *pNtSetInformationThread)(HANDLE,THREADINFOCLASS,LPCVOID,ULONG);
+ static NTSTATUS (WINAPI *pNtSetLdtEntries)(ULONG,ULONG,ULONG,ULONG,ULONG,ULONG);
++static HRESULT (WINAPI *pSetThreadDescription)(HANDLE,const WCHAR *);
++static HRESULT (WINAPI *pGetThreadDescription)(HANDLE,WCHAR **);
+ 
+ static HANDLE create_target_process(const char *arg)
+ {
+@@ -1594,6 +1596,47 @@ static void test_ThreadErrorMode(void)
+     pSetThreadErrorMode(oldmode, NULL);
+ }
+ 
++static void test_ThreadDescription(void)
++{
++    HRESULT hr;
++    static const WCHAR test_nameW[] = {'t','e','s','t','_','n','a','m','e',0};
++    static const WCHAR emptyW[] = {0};
++    WCHAR *out;
++
++    if (!pSetThreadDescription)
++    {
++        win_skip("SetThreadDescription not implemented\n");
++        return;
++    }
++
++    if(0)
++    {
++        /* crash on win10 */
++        hr = pGetThreadDescription(GetCurrentThread(), NULL);
++    }
++
++    hr = pGetThreadDescription(GetCurrentThread(), &out);
++    ok(hr == 0x10000000, "GetThreadDescription failed: 0x%x\n", hr);
++    todo_wine ok(!lstrcmpW(out, emptyW), "Got non-empty thread name: %s\n", wine_dbgstr_w(out));
++    LocalFree(out);
++
++    hr = pSetThreadDescription(GetCurrentThread(), test_nameW);
++    ok(hr == 0x10000000, "SetThreadDescription failed: 0x%x\n", hr);
++
++    hr = pGetThreadDescription(GetCurrentThread(), &out);
++    ok(hr == 0x10000000, "GetThreadDescription failed: 0x%x\n", hr);
++    ok(!lstrcmpW(test_nameW, out), "Got wrong thread name: %s\n", wine_dbgstr_w(out));
++    LocalFree(out);
++
++    hr = pSetThreadDescription(GetCurrentThread(), NULL);
++    ok(hr == 0x10000000, "SetThreadDescription should have failed: 0x%x\n", hr);
++
++    hr = pGetThreadDescription(GetCurrentThread(), &out);
++    ok(hr == 0x10000000, "GetThreadDescription failed: 0x%x\n", hr);
++    ok(!lstrcmpW(emptyW, out), "Got wrong thread name: %s\n", wine_dbgstr_w(out));
++    LocalFree(out);
++}
++
+ #if (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))) || (defined(_MSC_VER) && defined(__i386__))
+ static inline void set_fpu_cw(WORD cw)
+ {
+@@ -2024,6 +2067,8 @@ static void init_funcs(void)
+ 
+     X(GetThreadGroupAffinity);
+     X(SetThreadGroupAffinity);
++    X(SetThreadDescription);
++    X(GetThreadDescription);
+ 
+     X(FlsAlloc);
+     X(FlsFree);
+@@ -2096,6 +2141,7 @@ START_TEST(thread)
+    test_TLS();
+    test_FLS();
+    test_ThreadErrorMode();
++   test_ThreadDescription();
+ #if (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))) || (defined(_MSC_VER) && defined(__i386__))
+    test_thread_fpu_cw();
+ #endif
+diff --git a/dlls/kernel32/thread.c b/dlls/kernel32/thread.c
+index a86ad3443a4..6cc11a69fed 100644
+--- a/dlls/kernel32/thread.c
++++ b/dlls/kernel32/thread.c
+@@ -28,6 +28,9 @@
+ #ifdef HAVE_UNISTD_H
+ # include <unistd.h>
+ #endif
++#ifdef HAVE_SYS_PRCTL_H
++# include <sys/prctl.h>
++#endif
+ 
+ #include "ntstatus.h"
+ #define WIN32_NO_STATUS
+@@ -35,6 +38,7 @@
+ #include "winbase.h"
+ #include "winerror.h"
+ #include "winternl.h"
++#include "winnls.h"
+ #include "wine/exception.h"
+ #include "wine/library.h"
+ #include "wine/server.h"
+@@ -269,20 +273,112 @@ BOOL WINAPI GetThreadContext( HANDLE handle,     /* [in]  Handle to thread with
+ 
+ 
+ /***********************************************************************
+- * Wow64GetThreadContext [KERNEL32.@]
+- */
++* Wow64GetThreadContext [KERNEL32.@]
++*/
+ BOOL WINAPI Wow64GetThreadContext( HANDLE handle, WOW64_CONTEXT *context)
+ {
+ #ifdef __i386__
+-    NTSTATUS status = NtGetContextThread( handle, (CONTEXT *)context );
++NTSTATUS status = NtGetContextThread( handle, (CONTEXT *)context );
+ #elif defined(__x86_64__)
+-    NTSTATUS status = RtlWow64GetThreadContext( handle, context );
++NTSTATUS status = RtlWow64GetThreadContext( handle, context );
+ #else
+-    NTSTATUS status = STATUS_NOT_IMPLEMENTED;
+-    FIXME("not implemented on this platform\n");
++NTSTATUS status = STATUS_NOT_IMPLEMENTED;
++FIXME("not implemented on this platform\n");
+ #endif
+-    if (status) SetLastError( RtlNtStatusToDosError(status) );
+-    return !status;
++if (status) SetLastError( RtlNtStatusToDosError(status) );
++return !status;
++}
++
++
++/* ??? MSDN says it should be HRESULT, but we get this */
++#define THREADDESC_SUCCESS 0x10000000
++
++/***********************************************************************
++* SetThreadDescription [KERNEL32.@]  Sets name of thread.
++*
++* RETURNS
++*    Success: TRUE
++*    Failure: FALSE
++*/
++HRESULT WINAPI SetThreadDescription( HANDLE handle, const WCHAR *descW )
++{
++TRACE("(%p,%s)\n", handle, wine_dbgstr_w( descW ));
++
++if (handle != GetCurrentThread())
++{
++    FIXME("Can't set other thread description\n");
++    return THREADDESC_SUCCESS;
++}
++
++#ifdef HAVE_PRCTL
++
++#ifndef PR_SET_NAME
++# define PR_SET_NAME 15
++#endif
++
++if (descW)
++{
++    DWORD length;
++    char *descA;
++
++    length = WideCharToMultiByte( CP_UNIXCP, 0, descW, -1, NULL, 0, NULL, NULL );
++    if (!(descA = HeapAlloc( GetProcessHeap(), 0, length ))) return E_OUTOFMEMORY;
++    WideCharToMultiByte( CP_UNIXCP, 0, descW, -1, descA, length, NULL, NULL );
++
++    prctl( PR_SET_NAME, descA );
++
++    HeapFree( GetProcessHeap(), 0, descA );
++}
++else
++    prctl( PR_SET_NAME, "" );
++
++#endif  /* HAVE_PRCTL */
++
++return THREADDESC_SUCCESS;
++}
++
++
++/***********************************************************************
++* GetThreadDescription [KERNEL32.@]  Retrieves name of thread.
++*
++* RETURNS
++*    Success: TRUE
++*    Failure: FALSE
++*/
++HRESULT WINAPI GetThreadDescription( HANDLE handle, WCHAR **descW )
++{
++#ifdef HAVE_PRCTL
++char descA[16];
++#endif
++
++*descW = LocalAlloc( 0, 16 * sizeof(WCHAR) );
++if(!*descW)
++    return E_OUTOFMEMORY;
++
++if (handle != GetCurrentThread())
++{
++    FIXME("Can't get other thread description\n");
++    (*descW)[0] = 0;
++    return THREADDESC_SUCCESS;
++}
++
++#ifdef HAVE_PRCTL
++#ifndef PR_GET_NAME
++# define PR_GET_NAME 16
++#endif
++
++    if (prctl( PR_GET_NAME, descA ) != 0)
++    {
++        (*descW)[0] = 0;
++        return THREADDESC_SUCCESS;
++    }
++
++    MultiByteToWideChar( CP_UNIXCP, 0, descA, -1, *descW, 16 );
++#else
++    (*descW)[0] = 0;
++#endif
++
++    return THREADDESC_SUCCESS;
+ }
+ 
+ 
+diff --git a/include/winbase.h b/include/winbase.h
+index 8b26308b956..bfbc81ca098 100644
+--- a/include/winbase.h
++++ b/include/winbase.h
+@@ -2247,6 +2247,7 @@ WINBASEAPI DWORD       WINAPI GetTickCount(void);
+ WINBASEAPI ULONGLONG   WINAPI GetTickCount64(void);
+ WINBASEAPI DWORD       WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION);
+ WINBASEAPI BOOL        WINAPI GetThreadContext(HANDLE,CONTEXT *);
++WINBASEAPI HRESULT     WINAPI GetThreadDescription(HANDLE,WCHAR **);
+ WINBASEAPI DWORD       WINAPI GetThreadErrorMode(void);
+ WINBASEAPI INT         WINAPI GetThreadPriority(HANDLE);
+ WINBASEAPI BOOL        WINAPI GetThreadPriorityBoost(HANDLE,PBOOL);
+@@ -2612,6 +2613,7 @@ WINBASEAPI DWORD       WINAPI SetTapeParameters(HANDLE,DWORD,LPVOID);
+ WINBASEAPI DWORD       WINAPI SetTapePosition(HANDLE,DWORD,DWORD,DWORD,DWORD,BOOL);
+ WINBASEAPI DWORD_PTR   WINAPI SetThreadAffinityMask(HANDLE,DWORD_PTR);
+ WINBASEAPI BOOL        WINAPI SetThreadContext(HANDLE,const CONTEXT *);
++WINBASEAPI HRESULT     WINAPI SetThreadDescription(HANDLE,const WCHAR *);
+ WINBASEAPI BOOL        WINAPI SetThreadErrorMode(DWORD,LPDWORD);
+ WINBASEAPI DWORD       WINAPI SetThreadExecutionState(EXECUTION_STATE);
+ WINBASEAPI DWORD       WINAPI SetThreadIdealProcessor(HANDLE,DWORD);
+
 From 971dc3c4225b33fb5346187cd37e8355f265800f Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Mon, 18 Jun 2018 07:56:35 -0500

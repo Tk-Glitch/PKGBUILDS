@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.13.r3.g73f58bac
+pkgver=4.13.r5.gf9011564
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -429,9 +429,11 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'winevulkan-1.1.103.patch' # Update winevulkan
 		'winevulkan-1.1.113.patch' # Update winevulkan
 		'winevulkan-1.1.113-proton.patch' # Update winevulkan - Proton edition
-		'proton-tkg-eafb4af.patch' # Proton-tkg
+		'proton-tkg-eafb4af.patch' # Proton-tkg (<eafb4af)
+		'proton-tkg-0116660.patch' # Proton-tkg (<0116660)
 		'proton-tkg.patch' # Proton-tkg
-		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging
+		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging (<eafb4af)
+		'proton-tkg-staging-0116660.patch' # Proton-tkg-staging (<0116660)
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
@@ -528,8 +530,10 @@ md5sums=('SKIP'
          '15995e43af57b18bf7b45cc2d5af4f2d'
          'cd0cb1517cdde6fa60296ea452816ee9'
          '7ef6961b9a54d93ba970a2af827bb969'
+         '5f4fee214ec0d94decb19309caf8ec6e'
          'ce0332f66626399574d79d10642896d2'
          '09274cf0d0b8775afa040f2cdc2a03e0'
+         'd20a871566773b7d71c443383ddfb272'
          'd047619c11d95c4c9bbefae564876950'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
