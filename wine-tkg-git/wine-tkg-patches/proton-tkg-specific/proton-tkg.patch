@@ -62,20 +62,20 @@ index 5767b29887c..75d5f4a7216 100644
 From bc614834ee153ce33449c06e697b4a30748e9257 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Thu, 27 Apr 2017 13:25:04 -0500
-Subject: [PATCH] HACK kernel32: Substitute the current pid for the Steam
+Subject: [PATCH] HACK kernelbase: Substitute the current pid for the Steam
  client pid
 
 ---
- dlls/kernel32/process.c | 16 ++++++++++++++++
+ dlls/kernelbase/process.c | 16 ++++++++++++++++
  1 file changed, 16 insertions(+)
 
-diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
+diff --git a/dlls/kernelbase/process.c b/dlls/kernelbase/process.c
 index 85e0042024c..9c957f02c06 100644
---- a/dlls/kernel32/process.c
-+++ b/dlls/kernel32/process.c
-@@ -3001,6 +3001,22 @@ HANDLE WINAPI OpenProcess( DWORD access, BOOL inherit, DWORD id )
-     OBJECT_ATTRIBUTES   attr;
-     CLIENT_ID           cid;
+--- a/dlls/kernelbase/process.c
++++ b/dlls/kernelbase/process.c
+@@ -220,6 +220,22 @@ HANDLE WINAPI DECLSPEC_HOTPATCH OpenProcess( DWORD access, BOOL inherit, DWORD id )
+     attr.SecurityDescriptor = NULL;
+     attr.SecurityQualityOfService = NULL;
  
 +    if(id == 0xfffe)
 +        /* STEAMOS HACK:
@@ -94,7 +94,7 @@ index 85e0042024c..9c957f02c06 100644
 +        id = GetCurrentProcessId();
 +
      cid.UniqueProcess = ULongToHandle(id);
-     cid.UniqueThread = 0; /* FIXME ? */
+     cid.UniqueThread  = 0;
  
 From a277e32030a31abe90af9d38462f1159bc94b7b0 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
