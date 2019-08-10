@@ -70,9 +70,9 @@ function proton_tkg_uninstaller {
     _strip_builds="${_available_builds[@]//proton_tkg_/}"
     _config_file="$HOME/.local/share/Steam/config/config.vdf"
 
-    cp $_config_file $_config_file.bak && echo "Your config.vdf file was backed up from $_config_file (.bak)" && echo ""
-
     steam_is_running
+
+    cp $_config_file $_config_file.bak && echo "Your config.vdf file was backed up from $_config_file (.bak)" && echo ""
 
     echo "What Proton-tkg build do you want to uninstall?"
 
@@ -327,6 +327,8 @@ else
     fi
 
     cd $_nowhere
+
+    steam_is_running
 
     # Nuke same version if exists before copying new build
     if [ -e "$HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
