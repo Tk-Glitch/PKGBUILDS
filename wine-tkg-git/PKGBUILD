@@ -5,7 +5,7 @@ pkgver=4.13.r6.g49b441e0
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=190
+eval pkgrel=191
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -1455,12 +1455,10 @@ build() {
 	# workaround for FS#55128
 	# https://bugs.archlinux.org/task/55128
 	# https://bugs.winehq.org/show_bug.cgi?id=43530
-	if [ -z "$_proton_tkg_path" ]; then
-	  export CFLAGS="${CFLAGS/-fno-plt/}"
-	  export LDFLAGS="${LDFLAGS/,-z,now/}"
-	  export CROSSCFLAGS="${CROSSCFLAGS/-fno-plt/}"
-	  export CROSSLDFLAGS="${CROSSLDFLAGS/,-z,now/}"
-	fi
+	export CFLAGS="${CFLAGS/-fno-plt/}"
+	export LDFLAGS="${LDFLAGS/,-z,now/}"
+	export CROSSCFLAGS="${CROSSCFLAGS/-fno-plt/}"
+	export CROSSLDFLAGS="${CROSSLDFLAGS/,-z,now/}"
 
 	local _prefix=/usr
 	local _lib32name="lib32"
