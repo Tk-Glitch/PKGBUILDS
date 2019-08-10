@@ -162,3 +162,34 @@ index 20dcf19ea057627d91be07b4ec20f0827c30084c..24fa90ca63d144cc4f45d82d88407ea7
  
  enum {
  
+diff --git a/init/Kconfig b/init/Kconfig
+index 11fd9b502d06..e9bc34d3019b 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -948,7 +948,6 @@ config CGROUP_DEVICE
+ 
+ config CGROUP_CPUACCT
+ 	bool "Simple CPU accounting controller"
+-	depends on !SCHED_PDS
+ 	help
+ 	  Provides a simple controller for monitoring the
+ 	  total CPU consumed by the tasks in a cgroup.
+diff --git a/kernel/sched/Makefile b/kernel/sched/Makefile
+index b23231bae996..cab4e5c5b38e 100644
+--- a/kernel/sched/Makefile
++++ b/kernel/sched/Makefile
+@@ -24,13 +24,13 @@ obj-y += fair.o rt.o deadline.o
+ obj-$(CONFIG_SMP) += cpudeadline.o topology.o stop_task.o
+ obj-$(CONFIG_SCHED_AUTOGROUP) += autogroup.o
+ obj-$(CONFIG_SCHED_DEBUG) += debug.o
+-obj-$(CONFIG_CGROUP_CPUACCT) += cpuacct.o
+ endif
+ obj-y += loadavg.o clock.o cputime.o
+ obj-y += idle.o
+ obj-y += wait.o wait_bit.o swait.o completion.o
+ obj-$(CONFIG_SMP) += cpupri.o pelt.o
+ obj-$(CONFIG_SCHEDSTATS) += stats.o
++obj-$(CONFIG_CGROUP_CPUACCT) += cpuacct.o
+ obj-$(CONFIG_CPU_FREQ) += cpufreq.o
+ obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
+ obj-$(CONFIG_MEMBARRIER) += membarrier.o
