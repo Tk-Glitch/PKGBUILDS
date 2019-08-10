@@ -990,3 +990,31 @@ index faeabe5852..8b1f1a263b 100755
  );
  
  my @requests = ();
+diff --git a/dlls/user32/rawinput.c b/dlls/user32/rawinput.c
+index 58480b8ae7e..c231e2059cb 100644
+--- a/dlls/user32/rawinput.c
++++ b/dlls/user32/rawinput.c
+@@ -271,7 +271,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH RegisterRawInputDevices(RAWINPUTDEVICE *devices, U
+         TRACE("device %u: page %#x, usage %#x, flags %#x, target %p.\n",
+                 i, devices[i].usUsagePage, devices[i].usUsage,
+                 devices[i].dwFlags, devices[i].hwndTarget);
+-        if (devices[i].dwFlags & ~(RIDEV_REMOVE|RIDEV_NOLEGACY))
++        if (devices[i].dwFlags & ~(RIDEV_REMOVE|RIDEV_NOLEGACY|RIDEV_INPUTSINK))
+             FIXME("Unhandled flags %#x for device %u.\n", devices[i].dwFlags, i);
+ 
+         d[i].usage_page = devices[i].usUsagePage;
+diff --git a/server/queue.c b/server/queue.c
+index 70b4f883022..811bc715816 100644
+--- a/server/queue.c
++++ b/server/queue.c
+@@ -2442,7 +2442,9 @@ DECL_HANDLER(send_rawinput_message)
+         if ((device = current->process->rawinput_mouse))
+         {
+             struct thread *thread = device->target ? get_window_thread( device->target ) : NULL;
+-            if ((current->queue->input != desktop->foreground_input) || (thread && thread != current))
++            if ((current->queue->input != desktop->foreground_input && !(device->flags & RIDEV_INPUTSINK))
++             || (thread && thread != current)
++             || (!thread && device->flags & RIDEV_INPUTSINK))
+                 goto done;
+ 
+             if (!(msg = alloc_hardware_message( 0, source, 0 ))) goto done;
