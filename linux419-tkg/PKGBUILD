@@ -479,6 +479,8 @@ prepare() {
       echo "# CONFIG_HZ_750 is not set" >> ./.config
       echo "# CONFIG_HZ_750_NODEF is not set" >> ./.config
       echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
+      echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
     elif [ "$_timer_freq" == "750" ]; then
       sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=750/' ./.config
       echo "# CONFIG_HZ_500 is not set" >> ./.config
@@ -486,6 +488,8 @@ prepare() {
       echo "CONFIG_HZ_750=y" >> ./.config
       echo "CONFIG_HZ_750_NODEF=y" >> ./.config
       echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
     elif [ "$_timer_freq" == "500" ]; then
       sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=500/' ./.config
       echo "CONFIG_HZ_500=y" >> ./.config
@@ -493,6 +497,8 @@ prepare() {
       echo "# CONFIG_HZ_750 is not set" >> ./.config
       echo "# CONFIG_HZ_750_NODEF is not set" >> ./.config
       echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
     fi
   else
     sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set/' ./.config
@@ -500,6 +506,8 @@ prepare() {
     sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=500/' ./.config
     echo "CONFIG_HZ_500=y" >> ./.config
     echo "CONFIG_HZ_500_NODEF=y" >> ./.config
+    echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
+    echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
   fi
 
   # default cpu gov
