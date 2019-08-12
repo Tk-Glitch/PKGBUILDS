@@ -78,7 +78,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
-_sub=rc3
+_sub=rc4
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=8
 arch=('x86_64') # no i686 in here
@@ -110,7 +110,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0006-add-acs-overrides_iommu.patch
         0007-v5.3-fsync.patch
 )
-sha256sums=('06224c1ca561ee372982bfeb3b2111d3407f647abf509e381b349a05893f56ae'
+sha256sums=('b79938622739cf91187d59f9823a963d2e23c58b7131e4f83b95ce23c3ed90d8'
             'acf2b5368da1ab93b513d168139cf0ac2ead4f3c3505a39e8c2adc49525c4a97'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
