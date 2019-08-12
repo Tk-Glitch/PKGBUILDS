@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
 _sub=21
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=33
+pkgrel=34
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -98,8 +98,8 @@ else
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
-        #"https://raw.githubusercontent.com/dolohow/uksm/master/v5.x/uksm-${_basekernel}.patch"
-        'config.x86_64' # config
+        'config.x86_64' # stock Arch config
+        'config_hardened.x86_64' # hardened Arch config
         'linux51-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
         '90-linux.hook'     # pacman hook for initramfs regeneration
@@ -122,7 +122,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '1283bb5ef11e8a137c6df22fcc4ab6535a20bef11f70057248c6b0fc2683203b'
-            '26b637f020e979b469633254c312fa5d8528a2777d0c099055a637a302d65750'
+            '70b70889e6549cf615769b60bb378b54f589eb3359eba74c02f79308a226e33d'
+            '31f5ca58842d35df92133bc6635a3ff4872901d87092762f342f66c2b95ec957'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -214,7 +215,11 @@ prepare() {
     patch -Np1 -i ../0003-glitched-cfs.patch
   fi
 
-  cat "${srcdir}/config.x86_64" > ./.config
+  if [ -z "${_configfile}" ]; then
+    _configfile="config.x86_64"
+  fi
+
+  cat "${srcdir}/${_configfile}" > ./.config
 
   # LOCALVERSION
   sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-tkg-${_cpusched}\"|g" ./.config
@@ -222,6 +227,50 @@ prepare() {
 
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  # Set some -tkg defaults
+  echo "# CONFIG_DYNAMIC_FAULT is not set" >> ./.config
+  sed -i -e 's/CONFIG_DEFAULT_FQ_CODEL=y/# CONFIG_DEFAULT_FQ_CODEL is not set/' ./.config
+  echo "CONFIG_DEFAULT_CAKE=y" >> ./.config
+  echo "CONFIG_NR_TTY_DEVICES=63" >> ./.config
+  echo "CONFIG_TP_SMAPI=m" >> ./.config
+  echo "CONFIG_RAID6_USE_PREFER_GEN=y" >> ./.config
+
+  # Inject cpuopts options
+  echo "# CONFIG_MK8SSE3 is not set" >> ./.config
+  echo "# CONFIG_MK10 is not set" >> ./.config
+  echo "# CONFIG_MBARCELONA is not set" >> ./.config
+  echo "# CONFIG_MBOBCAT is not set" >> ./.config
+  echo "# CONFIG_MJAGUAR is not set" >> ./.config
+  echo "# CONFIG_MBULLDOZER is not set" >> ./.config
+  echo "# CONFIG_MPILEDRIVER is not set" >> ./.config
+  echo "# CONFIG_MSTEAMROLLER is not set" >> ./.config
+  echo "# CONFIG_MEXCAVATOR is not set" >> ./.config
+  echo "# CONFIG_MZEN is not set" >> ./.config
+  echo "# CONFIG_MZEN2 is not set" >> ./.config
+  echo "# CONFIG_MATOM is not set" >> ./.config
+  echo "# CONFIG_MNEHALEM is not set" >> ./.config
+  echo "# CONFIG_MWESTMERE is not set" >> ./.config
+  echo "# CONFIG_MSILVERMONT is not set" >> ./.config
+  echo "# CONFIG_MSANDYBRIDGE is not set" >> ./.config
+  echo "# CONFIG_MIVYBRIDGE is not set" >> ./.config
+  echo "# CONFIG_MHASWELL is not set" >> ./.config
+  echo "# CONFIG_MBROADWELL is not set" >> ./.config
+  echo "# CONFIG_MSKYLAKE is not set" >> ./.config
+  echo "# CONFIG_MSKYLAKEX is not set" >> ./.config
+  echo "# CONFIG_MCANNONLAKE is not set" >> ./.config
+  echo "# CONFIG_MICELAKE is not set" >> ./.config
+
+  # Disable some debugging
+  if [ "${_debugdisable}" == "true" ]; then
+    sed -i -e 's/CONFIG_SLUB_DEBUG=y/# CONFIG_SLUB_DEBUG is not set/' ./.config
+    sed -i -e 's/CONFIG_PM_DEBUG=y/# CONFIG_PM_DEBUG is not set/' ./.config
+    sed -i -e 's/CONFIG_PM_ADVANCED_DEBUG=y/# CONFIG_PM_ADVANCED_DEBUG is not set/' ./.config
+    sed -i -e 's/CONFIG_PM_SLEEP_DEBUG=y/# CONFIG_PM_SLEEP_DEBUG is not set/' ./.config
+    sed -i -e 's/CONFIG_ACPI_DEBUG=y/# CONFIG_ACPI_DEBUG is not set/' ./.config
+    sed -i -e 's/CONFIG_SCHED_DEBUG=y/# CONFIG_SCHED_DEBUG is not set/' ./.config
+    sed -i -e 's/CONFIG_DEBUG_PREEMPT=y/# CONFIG_DEBUG_PREEMPT is not set/' ./.config
+  fi
 
   if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS default config
@@ -232,17 +281,15 @@ prepare() {
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ default config
     echo "CONFIG_SCHED_BMQ=y" >> ./.config
-    echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
-  else
-    # CFS default config
-    sed -i -e 's/# CONFIG_FAIR_GROUP_SCHED is not set/CONFIG_FAIR_GROUP_SCHED=y/' ./.config
-    sed -i -e 's/# CONFIG_CFS_BANDWIDTH is not set/CONFIG_CFS_BANDWIDTH=y/' ./.config
-    sed -i -e 's/# CONFIG_CGROUP_CPUACCT is not set/CONFIG_CGROUP_CPUACCT=y/' ./.config
-    sed -i -e 's/# CONFIG_SCHED_AUTOGROUP is not set/CONFIG_SCHED_AUTOGROUP=y/' ./.config
   fi
 
-  # sched yield type
   if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
+    # Disable CFS
+    sed -i -e 's/CONFIG_FAIR_GROUP_SCHED=y/# CONFIG_FAIR_GROUP_SCHED is not set/' ./.config
+    sed -i -e 's/CONFIG_CFS_BANDWIDTH=y/# CONFIG_CFS_BANDWIDTH is not set/' ./.config
+    sed -i -e 's/CONFIG_CGROUP_CPUACCT=y/# CONFIG_CGROUP_CPUACCT is not set/' ./.config
+    sed -i -e 's/CONFIG_SCHED_AUTOGROUP=y/# CONFIG_SCHED_AUTOGROUP is not set/' ./.config
+    # sched yield type
     if [ -n "$_sched_yield_type" ]; then
       CONDITION0="$_sched_yield_type"
     else
@@ -258,7 +305,7 @@ prepare() {
       plain "0: No yield."
       plain "1: Deboost and requeue task. (default)"
       plain "2: Set rq skip task."
-      read -rp "`echo $'\n> 0 (Recommended option for gaming on PDS and MuQSS - "tkg" default)\n  1 (Default, but can lead to stability issues on some platforms)\n  2 (Usually the slowest option for PDS and MuQSS, not recommended unless you have issues with 0 or 1)\n  [0-2?]: '`" CONDITION0;
+      read -rp "`echo $'\n    > 0. Recommended option for gaming on PDS and MuQSS - "tkg" default\n      1. Default, but can lead to stability issues on some platforms\n      2. Can be a good option with low rr_interval on MuQSS\n    [0-2?]: '`" CONDITION0;
     fi
     if [ "$CONDITION0" == "1" ]; then
       msg2 "Using default CPU sched yield type (1)"
@@ -269,11 +316,70 @@ prepare() {
     fi
   fi
 
+  # Round Robin interval
+  if [ "${_cpusched}" == "MuQSS" ] || [ "${_cpusched}" == "pds" ] || [ "${_cpusched}" == "bmq" ]; then
+    if [ -n "$_rr_interval" ]; then
+      CONDITION1="$_rr_interval"
+    else
+      plain ""
+      plain "Round Robin interval is the longest duration two tasks with the same nice level will"
+      plain "be delayed for. When CPU time is requested by a task, it receives a time slice equal"
+      plain "to the rr_interval in addition to a virtual deadline. When using yield_type 2, a low"
+      plain "value can help offset the disadvantages of rescheduling a process that has yielded."
+      plain ""
+      plain "MuQSS default: 6ms"
+      plain "PDS default: 4ms"
+      plain "BMQ default: 4ms"
+      read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION1;
+    fi
+    if [ "$CONDITION1" == "1" ]; then
+      msg2 "Using 2ms rr_interval"
+      _rrvalue="2"
+    elif [ "$CONDITION1" == "2" ]; then
+      msg2 "Using 4ms rr_interval"
+      _rrvalue="4"
+    elif [ "$CONDITION1" == "3" ]; then
+      msg2 "Using 6ms rr_interval"
+      _rrvalue="6"
+    elif [ "$CONDITION1" == "4" ]; then
+      msg2 "Using 8ms rr_interval"
+      _rrvalue="8"
+    else
+      msg2 "Using default rr_interval"
+      _rrvalue="default"
+    fi
+    if [ "$_rrvalue" != "default" ]; then
+      if [ "${_cpusched}" == "MuQSS" ]; then
+        sed -i -e "s/int rr_interval __read_mostly = 6;/int rr_interval __read_mostly = ${_rrvalue};/" ./kernel/sched/"${_cpusched}".c
+      elif [ "${_cpusched}" == "pds" ]; then
+        sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
+      elif [ "${_cpusched}" == "bmq" ]; then
+        echo "CONFIG_SCHED_TIMESLICE=${_rrvalue}" >> ./.config
+      fi
+    else
+      if [ "${_cpusched}" == "bmq" ]; then
+        echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
+      fi
+    fi
+  fi
+
   # zenify
   if [ "$_zenify" == "true" ]; then
     echo "CONFIG_ZENIFY=y" >> ./.config
   elif [ "$_zenify" == "false" ]; then
     echo "# CONFIG_ZENIFY is not set" >> ./.config
+  fi
+
+  # compiler optimization level
+  if [ "$_compileroptlevel" == "1" ]; then
+    echo "# CONFIG_CC_OPTIMIZE_HARDER is not set" >> ./.config
+  elif [ "$_compileroptlevel" == "2" ]; then
+    sed -i -e 's/CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y/# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set/' ./.config
+    echo "CONFIG_CC_OPTIMIZE_HARDER=y" >> ./.config
+  elif [ "$_compileroptlevel" == "3" ]; then
+    sed -i -e 's/CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y/# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set/' ./.config
+    sed -i -e 's/# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set/CONFIG_CC_OPTIMIZE_FOR_SIZE=y/' ./.config
+    echo "# CONFIG_CC_OPTIMIZE_HARDER is not set" >> ./.config
   fi
 
   # cpu opt
@@ -357,9 +463,7 @@ prepare() {
 
   # random trust cpu
   if [ "$_random_trust_cpu" == "true" ]; then
-    echo "CONFIG_RANDOM_TRUST_CPU=y" >> ./.config
-  elif [ "$_random_trust_cpu" == "false" ]; then
-    echo "# CONFIG_RANDOM_TRUST_CPU is not set" >> ./.config
+    sed -i -e 's/# CONFIG_RANDOM_TRUST_CPU is not set/CONFIG_RANDOM_TRUST_CPU=y/' ./.config
   fi
 
   # rq sharing
@@ -376,37 +480,61 @@ prepare() {
   fi
 
   # timer freq
-  if [ "$_timer_freq" == "1000" ]; then
-    sed -i -e 's/CONFIG_HZ_500=y/# CONFIG_HZ_500 is not set/' ./.config
-    sed -i -e 's/CONFIG_HZ_500_NODEF=y/# CONFIG_HZ_500_NODEF is not set/' ./.config
-    echo "CONFIG_HZ_1000=y" >> ./.config
-    echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
-  elif [ "$_timer_freq" == "750" ]; then
-    sed -i -e 's/# CONFIG_HZ_750 is not set/CONFIG_HZ_750=y/' ./.config
-    sed -i -e 's/# CONFIG_HZ_750_NODEF is not set/CONFIG_HZ_750_NODEF=y/' ./.config
-    echo "# CONFIG_HZ_1000 is not set" >> ./.config
-    echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
-  elif [ "$_timer_freq" == "500" ]; then
-    echo "# CONFIG_HZ_1000 is not set" >> ./.config
-    echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+  if [ -n "$_timer_freq" ] && [ "$_timer_freq" != "300" ]; then
+    sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_300_NODEF=y/# CONFIG_HZ_300_NODEF is not set/' ./.config
+    if [ "$_timer_freq" == "1000" ]; then
+      sed -i -e 's/# CONFIG_HZ_1000 is not set/CONFIG_HZ_1000=y/' ./.config
+      sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=1000/' ./.config
+      echo "# CONFIG_HZ_500 is not set" >> ./.config
+      echo "# CONFIG_HZ_500_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_750 is not set" >> ./.config
+      echo "# CONFIG_HZ_750_NODEF is not set" >> ./.config
+      echo "CONFIG_HZ_1000_NODEF=y" >> ./.config
+    elif [ "$_timer_freq" == "750" ]; then
+      sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=750/' ./.config
+      echo "# CONFIG_HZ_500 is not set" >> ./.config
+      echo "# CONFIG_HZ_500_NODEF is not set" >> ./.config
+      echo "CONFIG_HZ_750=y" >> ./.config
+      echo "CONFIG_HZ_750_NODEF=y" >> ./.config
+      echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+    elif [ "$_timer_freq" == "500" ]; then
+      sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=500/' ./.config
+      echo "CONFIG_HZ_500=y" >> ./.config
+      echo "CONFIG_HZ_500_NODEF=y" >> ./.config
+      echo "# CONFIG_HZ_750 is not set" >> ./.config
+      echo "# CONFIG_HZ_750_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+    fi
+  else
+    sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ_300_NODEF=y/# CONFIG_HZ_300_NODEF is not set/' ./.config
+    sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=500/' ./.config
+    echo "CONFIG_HZ_500=y" >> ./.config
+    echo "CONFIG_HZ_500_NODEF=y" >> ./.config
   fi
 
   # default cpu gov
   if [ "$_default_cpu_gov" == "performance" ]; then
-    sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set/' ./.config
+    sed -i -e 's/CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' ./.config
+    sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set/' ./.config
     sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y/' ./.config
+  elif [ "$_default_cpu_gov" == "ondemand" ]; then
+    sed -i -e 's/CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' ./.config
+    sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set/' ./.config
+    sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y/' ./.config
   elif [ "$_default_cpu_gov" == "schedutil" ]; then
-    sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set/' ./.config
-    sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y/' ./.config
+    sed -i -e 's/CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' ./.config
   fi
 
   # ftrace
   if [ -z "$_ftracedisable" ]; then
     plain ""
-    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
-    read -rp "`echo $'    > N/y : '`" CONDITION1;
+    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging"
+    plain "and analyzing of kernel functions."
+    read -rp "`echo $'    > N/y : '`" CONDITION2;
   fi
-  if [ "$CONDITION1" == "y" ] || [ "$_ftracedisable" == "true" ]; then
+  if [ "$CONDITION2" == "y" ] || [ "$_ftracedisable" == "true" ]; then
   sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
       -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
       -i -e '/CONFIG_DYNAMIC_FTRACE=y/d' \
@@ -416,11 +544,11 @@ prepare() {
   # disable numa
   if [ -z "$_numadisable" ]; then
     plain ""
-    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
+    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia if disabled."
     plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
-    read -rp "`echo $'    > N/y : '`" CONDITION2;
+    read -rp "`echo $'    > N/y : '`" CONDITION3;
   fi
-  if [ "$CONDITION2" == "y" ] || [ "$_numadisable" == "true" ]; then
+  if [ "$CONDITION3" == "y" ] || [ "$_numadisable" == "true" ]; then
     # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
     sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
         -i -e '/CONFIG_AMD_NUMA=y/d' \
@@ -434,31 +562,35 @@ prepare() {
   fi
 
   # tickless
-  if [ -z "$_full_tickless" ]; then
+  if [ -z "$_tickless" ]; then
     plain ""
-    plain "Use CattaRappa mode? (Full Tickless)"
-    plain "Can give higher performances in various cases but, depending on hardware, lower consistency"
-    read -rp "`echo $'    > N/y : '`" CONDITION3;
+    plain "Use CattaRappa mode (Tickless/Dynticks) ?"
+    plain "Can give higher performances in many cases but lower consistency on some hardware."
+    plain "Just tickless idle can perform better on some platforms (mostly AMD based)."
+    read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION4;
   fi
-  if [ "$CONDITION3" == "y" ] || [ "$_full_tickless" == "true" ]; then
-    sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
-    sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
-    sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
-    sed -i -e 's/# CONFIG_RCU_BOOST is not set/CONFIG_RCU_BOOST=y/' ./.config
-    echo "CONFIG_NO_HZ_COMMON=y" >> ./.config
-    echo "# CONFIG_RCU_FAST_NO_HZ is not set" >> ./.config
-    echo "CONFIG_RCU_BOOST_DELAY=0" >> ./.config
-    echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
-    echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
+  if [ "$CONDITION4" == "0" ] || [ "$_tickless" == "0" ]; then
+    sed -i -e 's/# CONFIG_HZ_PERIODIC is not set/CONFIG_HZ_PERIODIC=y/' ./.config
+    sed -i -e 's/CONFIG_NO_HZ=y/# CONFIG_NO_HZ is not set/' ./.config
+    sed -i -e 's/CONFIG_RCU_BOOST=y/# CONFIG_RCU_BOOST is not set/' ./.config
+    sed -i -e 's/CONFIG_NO_HZ_COMMON=y/# CONFIG_NO_HZ_COMMON is not set/' ./.config
+  elif [ "$CONDITION4" == "2" ] || [ "$_tickless" == "2" ]; then
+      sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
+      sed -i -e 's/CONFIG_NO_HZ_FULL=y/# CONFIG_NO_HZ_FULL is not set/' ./.config
+      echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+  else
+    echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
   fi
 
   # voluntary preempt
   if [ -z "$_voluntary_preempt" ]; then
     plain ""
-    plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
-    read -rp "`echo $'    > N/y : '`" CONDITION31;
+    plain "Use explicit preemption points?"
+    plain "It can improve latency on PDS (at the cost of throughput)"
+    plain "and improve throughput on other schedulers (at the cost of latency)"
+    read -rp "`echo $'    > N/y : '`" CONDITION5;
   fi
-  if [ "$CONDITION31" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
+  if [ "$CONDITION5" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
     sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
     sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
   fi
@@ -467,9 +599,9 @@ prepare() {
   if [ -z "$_OFenable" ]; then
     plain ""
     plain "Enable Device Tree and Open Firmware support?"
-    read -rp "`echo $'    > N/y : '`" CONDITION4;
+    read -rp "`echo $'    > N/y : '`" CONDITION6;
   fi
-  if [ "$CONDITION4" == "y" ] || [ "$_OFenable" == "true" ]; then
+  if [ "$CONDITION6" == "y" ] || [ "$_OFenable" == "true" ]; then
     sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
   fi
 
@@ -478,40 +610,27 @@ prepare() {
     plain ""
     plain "Use ACS override patch?"
     plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
-    read -rp "`echo $'    > N/y : '`" CONDITION5;
+    read -rp "`echo $'    > N/y : '`" CONDITION7;
   fi
-  if [ "$CONDITION5" == "y" ] || [ "$_acs_override" == "true" ]; then
+  if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
-
-  # ksm/uksm
-  #if [ -z "$_ksm_uksm" ]; then
-  #  plain ""
-  #  plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
-  #  plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-  #  read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
-  #fi
-  #if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
-  #  patch -Np1 -i ../0009-uksm-${_basekernel}.patch
-  #  sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
-  #  echo "CONFIG_KSM_LEGACY=y" >> ./.config
-  #  echo "# CONFIG_UKSM is not set" >> ./.config
-  #elif [ "$CONDITION6" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
-  #  patch -Np1 -i ../0009-uksm-${_basekernel}.patch
-  #  sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
-  #  echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
-  #  echo "CONFIG_UKSM=y" >> ./.config
-  #fi
 
   # bcachefs
   if [ -z "$_bcachefs" ]; then
     plain ""
     plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
     plain "https://bcachefs.org/"
-    read -rp "`echo $'    > N/y : '`" CONDITION7;
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
   fi
-  if [ "$CONDITION7" == "y" ] || [ "$_bcachefs" == "true" ]; then
+  if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
     patch -Np1 -i ../0008-bcachefs.patch
+    echo "CONFIG_BCACHEFS_FS=m" >> ./.config
+    echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
+    echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
+    echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
+    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
+    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
   fi
 
   # ZFS fix
@@ -519,9 +638,9 @@ prepare() {
     plain ""
     plain "Add back missing symbol for AES-NI/AVX support on ZFS"
     plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions.patch"
-    read -rp "`echo $'    > N/y : '`" CONDITION8;
+    read -rp "`echo $'    > N/y : '`" CONDITION9;
   fi
-  if [ "$CONDITION8" == "y" ] || [ "$_zfsfix" == "true" ]; then
+  if [ "$CONDITION9" == "y" ] || [ "$_zfsfix" == "true" ]; then
     patch -Np1 -i ../0011-ZFS-fix.patch
   fi
 
@@ -541,12 +660,13 @@ prepare() {
   # modprobed-db
   if [ -z "$_modprobeddb" ]; then
     plain ""
-    plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
+    plain "Use modprobed db to clean config from unneeded modules?"
+    plain "Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -rp "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
   fi
-  if [ "$CONDITION9" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+  if [ "$CONDITION11" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
@@ -554,13 +674,15 @@ prepare() {
   # menuconfig / nconfig
   if [ -z "$_menunconfig" ]; then
     plain ""
-    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig to configure the kernel before building it?"
-    plain "If you do, make sure your terminal is currently at least 19 lines by 80 columns large or you'll get an error :D"
-    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION10;
+    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig"
+    plain "to configure the kernel before building it?"
+    plain "If you do, make sure your terminal is currently"
+    plain "at least 19 lines by 80 columns large or you'll get an error :D"
+    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION12;
   fi
-  if [ "$CONDITION10" == "1" ] || [ "$_menunconfig" == "1" ]; then
+  if [ "$CONDITION12" == "1" ] || [ "$_menunconfig" == "1" ]; then
     make menuconfig
-  elif [ "$CONDITION10" == "2" ] || [ "$_menunconfig" == "2" ]; then
+  elif [ "$CONDITION12" == "2" ] || [ "$_menunconfig" == "2" ]; then
     make nconfig
   else
     # rewrite configuration
@@ -764,7 +886,7 @@ function exit_cleanup {
   rm -rf "$_where"/*.install
   rm -rf "$_where"/*.preset
   rm -rf "$_where"/*-profile.cfg
-  rm -f "$_where"/config.x86_64
+  rm -f "$_where"/config*
 
   if [ $_NUKR == "true" ]; then
     rm -rf "$_where"/src/*
@@ -828,7 +950,7 @@ function exit_cleanup {
 
   remove_deps
 
-  msg2 'exit cleanup done'
+  msg2 'exit cleanup done\n'
   if [ -n "$_runtime" ]; then
     msg2 "compilation time : \n$_runtime"
   fi
