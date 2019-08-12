@@ -119,6 +119,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0010-glitched-bmq.patch
         0010-v5.1_bmq096.patch
         0011-ZFS-fix.patch
+        0012-linux-hardened.patch
 )
 sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '1283bb5ef11e8a137c6df22fcc4ab6535a20bef11f70057248c6b0fc2683203b'
@@ -139,7 +140,8 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '1123a4c61ebf87daa3e0defb4126454c1e6e131743786474ff851099bc47d198'
             '5ead892c8398eda1968bdd16a1795431bd7bd3f6c4ad9ba3d5e1a4bae0301346'
             '48be5e7f27d4a0570bd31f37ed1ad35241ff7f427dae5513cab875c7b44aeb08'
-            'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642')
+            'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
+            '2c8a96b3404712c7f7c9d97697bf89362fb0c08795e984c0b37683788ab32ad5')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -192,7 +194,12 @@ prepare() {
   patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
-  patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  if [ "${_configfile}" == "config_hardened.x86_64" ] && [ "${_cpusched}" == "cfs" ]; then
+    msg2 "Using linux hardened patchset"
+    patch -Np1 -i ../0012-linux-hardened.patch
+  else
+    patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  fi
 
   # TkG
   patch -Np1 -i ../0002-clear-patches.patch
