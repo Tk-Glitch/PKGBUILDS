@@ -38,7 +38,7 @@ fi
 if [ -z "$_OPTIPROFILE" ] && [ ! -e "$_where"/cpuschedset ]; then
   # Prompt about optimized configurations. Available variable values will overwrite customization.cfg/external config ones.
   plain "Do you want to use a predefined optimized profile?"
-  read -rp "`echo $'  > 1.Default\n    2.Ryzen Desktop (Performance)\nchoice[1-2?]: '`" _OPTIPROFILE;
+  read -rp "`echo $'  > 1.Custom\n    2.Ryzen Desktop (Performance)\nchoice[1-2?]: '`" _OPTIPROFILE;
 fi
 if [ "$_OPTIPROFILE" == "2" ]; then
   source "$_where"/ryzen-desktop-profile.cfg && msg2 "Ryzen Desktop (Performance) profile will be used." && msg2 ""
@@ -49,7 +49,7 @@ if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
   read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
+    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   else
@@ -59,7 +59,7 @@ if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
     echo "_custom_pkgbase=\"${_custom_pkgbase}\"" >> "$_where"/cpuschedset
   fi
 elif [ "$_cpusched" == "muqss" ]; then
-  echo "_cpusched=\"muqss\"" > "$_where"/cpuschedset
+  echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
@@ -92,7 +92,6 @@ else
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v4.x/patch-${pkgver}.xz"
-        #"aufs::git+https://github.com/sfjro/aufs4-standalone.git#branch=aufs${_basekernel}"
         'config.x86_64' # config
         'linux419-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -174,24 +173,6 @@ prepare() {
 
   ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
-  # AUFS
-  #cd "${srcdir}/aufs"
-  #rm -v -f $(find . -type f -name '*.orig')
-  #rm -rf "../tmp/linux-${_basekernel}"
-  #mkdir -p "../tmp/linux-${_basekernel}"
-  #cp -a fs "../tmp/linux-${_basekernel}"
-  #cp -a include "../tmp/linux-${_basekernel}"
-  #cp -a Documentation "../tmp/linux-${_basekernel}"
-  #rm "../tmp/linux-${_basekernel}/include/uapi/linux/Kbuild"
-  #cd "../tmp"
-  #diff -Naur null linux-${_basekernel}  | filterdiff | \
-  #sed -e 's|null\(/include/uapi/linux/Kbuild\)|linux-'"${_basekernel}"'-old\1|;s|^--- null.*|--- /dev/null|;\|linux-'"${_basekernel}"'/include/uapi/linux/Kbuild|,${\|@@ -0,0 +1 @@|,$d}' > aufs${_basekernel}.patch
-  #mv *patch* "${srcdir}"
-  #cd "${srcdir}/aufs"
-  #mv *patch* "${srcdir}"
-  #cd "${srcdir}"
-  #rm -rf tmp aufs
-
   cd "${srcdir}/linux-${_basekernel}"
 
   # add upstream patch
@@ -200,22 +181,12 @@ prepare() {
   # ARCH Patches
   patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
 
-  # AUFS Patches
-  #patch -Np1 -i ../aufs"${_basekernel}".patch
-  #patch -Np1 -i ../aufs4-base.patch
-  #patch -Np1 -i ../aufs4-kbuild.patch
-  #patch -Np1 -i ../aufs4-loopback.patch
-  #patch -Np1 -i ../aufs4-mmap.patch
-  #patch -Np1 -i ../aufs4-standalone.patch
-  #patch -Np1 -i ../tmpfs-idr.patch
-  #patch -Np1 -i ../vfs-ino.patch
-
   # TkG
   patch -Np1 -i ../0002-clear-patches.patch
 
   patch -Np1 -i ../0003-glitched-base.patch
 
-  if [ "${_cpusched}" == "muqss" ]; then
+  if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
     patch -Np1 -i ../0004-4.19-ck1.patch
     patch -Np1 -i ../0004-glitched-muqss.patch
@@ -237,6 +208,7 @@ prepare() {
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
   if [ "${_cpusched}" == "muqss" ]; then
+  if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS default config
     echo "CONFIG_SCHED_MUQSS=y" >> ./.config
   elif [ "${_cpusched}" == "pds" ]; then
@@ -384,10 +356,11 @@ prepare() {
   # ftrace
   if [ -z "$_ftracedisable" ]; then
     plain ""
-    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging and analyzing of kernel functions."
-    read -rp "`echo $'    > N/y : '`" CONDITION1;
+    plain "Disable FUNCTION_TRACER/GRAPH_TRACER? Lowers overhead but limits debugging"
+    plain "and analyzing of kernel functions."
+    read -rp "`echo $'    > N/y : '`" CONDITION2;
   fi
-  if [ "$CONDITION1" == "y" ] || [ "$_ftracedisable" == "true" ]; then
+  if [ "$CONDITION2" == "y" ] || [ "$_ftracedisable" == "true" ]; then
   sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
       -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
       -i -e '/CONFIG_DYNAMIC_FTRACE=y/d' \
@@ -397,11 +370,11 @@ prepare() {
   # disable numa
   if [ -z "$_numadisable" ]; then
     plain ""
-    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia equipped systems if disabled."
+    plain "Disable NUMA? Lowers overhead, but breaks CUDA/NvEnc on Nvidia if disabled."
     plain "https://bbs.archlinux.org/viewtopic.php?id=239174"
-    read -rp "`echo $'    > N/y : '`" CONDITION2;
+    read -rp "`echo $'    > N/y : '`" CONDITION3;
   fi
-  if [ "$CONDITION2" == "y" ] || [ "$_numadisable" == "true" ]; then
+  if [ "$CONDITION3" == "y" ] || [ "$_numadisable" == "true" ]; then
     # disable NUMA since 99.9% of users do not have multiple CPUs but do have multiple cores in one CPU
     sed -i -e 's/CONFIG_NUMA=y/# CONFIG_NUMA is not set/' \
         -i -e '/CONFIG_AMD_NUMA=y/d' \
@@ -436,10 +409,12 @@ prepare() {
   # voluntary preempt
   if [ -z "$_voluntary_preempt" ]; then
     plain ""
-    plain "Use explicit preemption points to lower latency? (at the cost of a small throughput loss)"
-    read -rp "`echo $'    > N/y : '`" CONDITION31;
+    plain "Use explicit preemption points?"
+    plain "It can improve latency on PDS (at the cost of throughput)"
+    plain "and improve throughput on other schedulers (at the cost of latency)"
+    read -rp "`echo $'    > N/y : '`" CONDITION5;
   fi
-  if [ "$CONDITION31" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
+  if [ "$CONDITION5" == "y" ] || [ "$_voluntary_preempt" == "true" ]; then
     sed -i -e 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/' ./.config
     sed -i -e 's/# CONFIG_PREEMPT_VOLUNTARY is not set/CONFIG_PREEMPT_VOLUNTARY=y/' ./.config
   fi
@@ -448,9 +423,9 @@ prepare() {
   if [ -z "$_OFenable" ]; then
     plain ""
     plain "Enable Device Tree and Open Firmware support?"
-    read -rp "`echo $'    > N/y : '`" CONDITION4;
+    read -rp "`echo $'    > N/y : '`" CONDITION6;
   fi
-  if [ "$CONDITION4" == "y" ] || [ "$_OFenable" == "true" ]; then
+  if [ "$CONDITION6" == "y" ] || [ "$_OFenable" == "true" ]; then
     sed -i -e 's/# CONFIG_OF is not set/CONFIG_OF=y/' ./.config
   fi
 
@@ -459,9 +434,9 @@ prepare() {
     plain ""
     plain "Use ACS override patch?"
     plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
-    read -rp "`echo $'    > N/y : '`" CONDITION5;
+    read -rp "`echo $'    > N/y : '`" CONDITION7;
   fi
-  if [ "$CONDITION5" == "y" ] || [ "$_acs_override" == "true" ]; then
+  if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
 
@@ -470,14 +445,14 @@ prepare() {
     plain ""
     plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
     plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-    read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION6;
+    read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION8;
   fi
-  if [ "$CONDITION6" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
+  if [ "$CONDITION8" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
     patch -Np1 -i ../0008-uksm.patch
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     echo "CONFIG_KSM_LEGACY=y" >> ./.config
     echo "# CONFIG_UKSM is not set" >> ./.config
-  elif [ "$CONDITION6" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
+  elif [ "$CONDITION8" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
     patch -Np1 -i ../0008-uksm.patch
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
@@ -511,12 +486,13 @@ prepare() {
   # modprobed-db
   if [ -z "$_modprobeddb" ]; then
     plain ""
-    plain "Use modprobed db to clean config from unneeded modules? Speeds up compilation considerably. Requires root."
+    plain "Use modprobed db to clean config from unneeded modules?"
+    plain "Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -rp "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
   fi
-  if [ "$CONDITION9" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+  if [ "$CONDITION11" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
@@ -524,13 +500,15 @@ prepare() {
   # menuconfig / nconfig
   if [ -z "$_menunconfig" ]; then
     plain ""
-    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig to configure the kernel before building it?"
-    plain "If you do, make sure your terminal is currently at least 19 lines by 80 columns large or you'll get an error :D"
-    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION10;
+    plain "*Optional* For advanced users - Do you want to use make menuconfig or nconfig"
+    plain "to configure the kernel before building it?"
+    plain "If you do, make sure your terminal is currently"
+    plain "at least 19 lines by 80 columns large or you'll get an error :D"
+    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION12;
   fi
-  if [ "$CONDITION10" == "1" ] || [ "$_menunconfig" == "1" ]; then
+  if [ "$CONDITION12" == "1" ] || [ "$_menunconfig" == "1" ]; then
     make menuconfig
-  elif [ "$CONDITION10" == "2" ] || [ "$_menunconfig" == "2" ]; then
+  elif [ "$CONDITION12" == "2" ] || [ "$_menunconfig" == "2" ]; then
     make nconfig
   else
     # rewrite configuration
@@ -686,7 +664,7 @@ package_linux419-tkg-pds() {
 hackbase
 }
 
-package_linux419-tkg-muqss() {
+package_linux419-tkg-MuQSS() {
 hackbase
 }
 
@@ -698,7 +676,7 @@ package_linux419-tkg-pds-headers() {
 hackheaders
 }
 
-package_linux419-tkg-muqss-headers() {
+package_linux419-tkg-MuQSS-headers() {
 hackheaders
 }
 
@@ -786,7 +764,7 @@ function exit_cleanup {
 
   remove_deps
 
-  msg2 'exit cleanup done'
+  msg2 'exit cleanup done\n'
   if [ -n "$_runtime" ]; then
     msg2 "compilation time : \n$_runtime"
   fi
