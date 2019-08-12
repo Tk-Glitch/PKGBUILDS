@@ -530,10 +530,8 @@ prepare() {
     read -rp "`echo $'    > N/y : '`" CONDITION2;
   fi
   if [ "$CONDITION2" == "y" ] || [ "$_ftracedisable" == "true" ]; then
-  sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' \
-      -i -e '/CONFIG_FUNCTION_GRAPH_TRACER=y/d' \
-      -i -e '/CONFIG_DYNAMIC_FTRACE=y/d' \
-      -i -e '/CONFIG_DYNAMIC_FTRACE_WITH_REGS=y/d' ./.config
+    sed -i -e 's/CONFIG_FUNCTION_TRACER=y/# CONFIG_FUNCTION_TRACER is not set/' ./.config
+    sed -i -e 's/CONFIG_FUNCTION_GRAPH_TRACER=y/# CONFIG_FUNCTION_GRAPH_TRACER is not set/' ./.config
   fi
 
   # disable numa
