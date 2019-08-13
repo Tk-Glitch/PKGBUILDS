@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.13.r6.g49b441e0
+pkgver=4.13.r7.gca09e891
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -432,10 +432,12 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-eafb4af.patch' # Proton-tkg (<eafb4af)
 		'proton-tkg-0116660.patch' # Proton-tkg (<0116660)
 		'proton-tkg-09f588e.patch' # Proton-tkg (<09f588e)
+		'proton-tkg-05d0027.patch' # Proton-tkg (<05d0027)
 		'proton-tkg.patch' # Proton-tkg
 		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging (<eafb4af)
 		'proton-tkg-staging-0116660.patch' # Proton-tkg-staging (<0116660)
 		'proton-tkg-staging-09f588e.patch' # Proton-tkg-staging (<09f588e)
+		'proton-tkg-staging-05d0027.patch' # Proton-tkg-staging (<05d0027)
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
@@ -535,10 +537,12 @@ md5sums=('SKIP'
          '7ef6961b9a54d93ba970a2af827bb969'
          '5f4fee214ec0d94decb19309caf8ec6e'
          '333469023e6e55496c4ec28518f87a3f'
+         '3a5216f3730d18055dd2d743e9fb28ed'
          'ce0332f66626399574d79d10642896d2'
          '09274cf0d0b8775afa040f2cdc2a03e0'
          'd20a871566773b7d71c443383ddfb272'
          '3d55df1bc8677b16a41d7e6b555a609a'
+         '22408e09a040e63181ca628f5d517a1d'
          'd047619c11d95c4c9bbefae564876950'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
@@ -1282,29 +1286,26 @@ EOM
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  if git merge-base --is-ancestor 09f588ee6909369b541398dd392d3ff77231e6a6 HEAD; then
+	  if git merge-base --is-ancestor 05d00276c627753487c571c30fddfc56c02ad37e HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging)" && nonuser_patcher
 	    else
 	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches" && nonuser_patcher
 	    fi
-	  elif git merge-base --is-ancestor 0116660dd80b38da8201e2156adade67fc2ae823 HEAD; then
-	    if [ "$_use_staging" == "true" ]; then
-	      _patchname='proton-tkg-staging-09f588e.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging-09f588e)" && nonuser_patcher
-	    else
-	      _patchname='proton-tkg-09f588e.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (09f588e)" && nonuser_patcher
-	    fi
-	  elif git merge-base --is-ancestor eafb4aff5a2c322f4f156fdfada5743834996be4 HEAD; then
-	    if [ "$_use_staging" == "true" ]; then
-	      _patchname='proton-tkg-staging-0116660.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging-0116660)" && nonuser_patcher
-	    else
-	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (0116660)" && nonuser_patcher
-	    fi
 	  else
-	    if [ "$_use_staging" == "true" ]; then
-	      _patchname='proton-tkg-staging-eafb4af.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging-eafb4af)" && nonuser_patcher
+	    if git merge-base --is-ancestor 09f588ee6909369b541398dd392d3ff77231e6a6 HEAD; then
+	      _lastcommit="05d0027"
+	    elif git merge-base --is-ancestor 0116660dd80b38da8201e2156adade67fc2ae823 HEAD; then
+	      _lastcommit="09f588e"
+	    elif git merge-base --is-ancestor eafb4aff5a2c322f4f156fdfada5743834996be4 HEAD; then
+	      _lastcommit="0116660"
 	    else
-	      _patchname='proton-tkg-eafb4af.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (eafb4af)" && nonuser_patcher
+	      _lastcommit="eafb4af"
+        fi
+	    if [ "$_use_staging" == "true" ]; then
+	      _patchname="proton-tkg-staging-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches (staging-$_lastcommit)" && nonuser_patcher
+	    else
+	      _patchname="proton-tkg-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches ($_lastcommit)" && nonuser_patcher
 	    fi
 	  fi
 	  # Enforce mscvrt Dlls to native then builtin - from Proton
