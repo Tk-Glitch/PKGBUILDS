@@ -43,28 +43,32 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 418.52.20\n  2.430 series: 430.40\n  3.418 series: 418.88\n  4.415 series: 415.27\n  5.410 series: 410.104\n  6.396 series: 396.54\n  7.Custom version (396.xx to 430.xx series)\nchoice[1-7?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 418.52.20\n  2.435 series: 435.17\n  3.430 series: 430.40\n  4.418 series: 418.88\n  5.415 series: 415.27\n  6.410 series: 410.104\n  7.396 series: 396.54\n  8.Custom version (396.xx to 435.xx series)\nchoice[1-8?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
+      echo '_driver_version=435.17' > options
+      echo '_md5sum=e9dffca7bd1b4eda264487d26c337367' >> options
+      echo '_driver_branch=regular' >> options
+    elif [ "$CONDITION" == "3" ]; then
       echo '_driver_version=430.40' > options
       echo '_md5sum=3a1d7e988d5cb03669aa93ec3fea74ba' >> options
       echo '_driver_branch=regular' >> options
-    elif [ "$CONDITION" == "3" ]; then
+    elif [ "$CONDITION" == "4" ]; then
       echo '_driver_version=418.88' > options
       echo '_md5sum=b670e91f989826e54a1f05213a5a88ec' >> options
       echo '_driver_branch=regular' >> options
-    elif [ "$CONDITION" == "4" ]; then
+    elif [ "$CONDITION" == "5" ]; then
       echo '_driver_version=415.27' > options
       echo '_md5sum=f4777691c4673c808d82e37695367f6d' >> options
       echo '_driver_branch=regular' >> options
-    elif [ "$CONDITION" == "5" ]; then
+    elif [ "$CONDITION" == "6" ]; then
       echo '_driver_version=410.104' > options
       echo '_md5sum=4f3219b5fad99465dea399fc3f4bb866' >> options
       echo '_driver_branch=regular' >> options
-    elif [ "$CONDITION" == "6" ]; then
+    elif [ "$CONDITION" == "7" ]; then
       echo '_driver_version=396.54' > options
       echo '_md5sum=195afa93d400bdbb9361ede6cef95143' >> options
       echo '_driver_branch=regular' >> options
-    elif [ "$CONDITION" == "7" ]; then
+    elif [ "$CONDITION" == "8" ]; then
       echo '_driver_version=custom' > options
       read -p "What branch do you want?`echo $'\n> 1.Stable or regular beta\n  2.Vulkan dev\nchoice[1-2?]: '`" CONDITION;
       if [ "$CONDITION" == "2" ]; then
@@ -135,7 +139,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=58
+pkgrel=59
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -250,7 +254,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
   cd ../
   bsdtar -xf nvidia-persistenced-init.tar.bz2
 
-  sed -i 's/__NV_VK_ICD__/libGLX_nvidia.so.0/' nvidia_icd.json.template
+  if [[ $pkgver != 435* ]]; then
+    sed -i 's/__NV_VK_ICD__/libGLX_nvidia.so.0/' nvidia_icd.json.template
+  fi
 
   # Loop kernels (4.15.0-1-ARCH, 4.14.5-1-ck, ...)
   for _kernel in $(cat /usr/lib/modules/extramodules-*/version); do
@@ -534,8 +540,10 @@ nvidia-egl-wayland-tkg() {
     _eglwver="1.0.3"
   elif [[ $pkgver == 410* ]] || [[ $pkgver == 415* ]]; then
     _eglwver="1.1.0"
-  else
+  elif [[ $pkgver == 418* ]] || [[ $pkgver == 430* ]]; then
     _eglwver="1.1.2"
+  else
+    _eglwver="1.1.3"
   fi
   pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.$_eglwver) for 'nvidia-utils-tkg'"
   depends=('nvidia-utils-tkg')
@@ -594,7 +602,7 @@ nvidia-utils-tkg() {
       ln -s "libglxserver_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/nvidia/xorg/libglxserver_nvidia.so"
     fi
 
-    if [[ $pkgver == 418* ]] || [[ $pkgver == 430* ]]; then
+    if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]]; then
       # optical flow
       install -D -m755 "libnvidia-opticalflow.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-opticalflow.so.${pkgver}"
     else
@@ -631,7 +639,11 @@ nvidia-utils-tkg() {
     fi
 
     # Vulkan ICD
-    install -D -m644 "nvidia_icd.json.template" "${pkgdir}/usr/share/vulkan/icd.d/nvidia_icd.json"
+    if [[ $pkgver != 396* ]] && [[ $pkgver != 410* ]] && [[ $pkgver != 415* ]] && [[ $pkgver != 418* ]] && [[ $pkgver != 430* ]]; then
+      install -D -m644 "nvidia_icd.json" "${pkgdir}/usr/share/vulkan/icd.d/nvidia_icd.json"
+    else
+      install -D -m644 "nvidia_icd.json.template" "${pkgdir}/usr/share/vulkan/icd.d/nvidia_icd.json"
+    fi
 
     # VDPAU
     install -D -m755 "libvdpau_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/vdpau/libvdpau_nvidia.so.${pkgver}"
