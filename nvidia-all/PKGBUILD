@@ -98,36 +98,44 @@ if [ -e options ]; then
   source options
 fi
 
-# packages
-if [ "$_dkms" == "full" ]; then
-   _nv_base='nvidia-dkms-tkg'
-   _nv_baseadd='nvidia-tkg'
-elif [ "$_dkms" == "true" ]; then
-  _nv_base='nvidia-dkms-tkg'
+_pkgname_array=()
+
+if [ "$_driver_branch" == "vulkandev" ]; then
+  _branchname="nvidia-dev"
 else
-  _nv_base='nvidia-tkg'
+  _branchname="nvidia"
 fi
 
-_nv_utils='nvidia-utils-tkg'
+# packages
+if [ "$_dkms" == "full" ]; then
+  _pkgname_array+=("$_branchname-dkms-tkg")
+  _pkgname_array+=("$_branchname-tkg")
+elif [ "$_dkms" == "true" ]; then
+  _pkgname_array+=("$_branchname-dkms-tkg")
+else
+  _pkgname_array+=("$_branchname-tkg")
+fi
+
+_pkgname_array+=("$_branchname-utils-tkg")
+
 if [ "$_lib32" == "true" ]; then
-  _lib32_nv_utils='lib32-nvidia-utils-tkg'
+  _pkgname_array+=("lib32-$_branchname-utils-tkg")
 fi
 
 if [ "$_opencl" == "true" ]; then
-  _nv_opencl='opencl-nvidia-tkg'
+  _pkgname_array+=("opencl-$_branchname-tkg")
   if [ "$_lib32" == "true" ]; then
-    _lib32_nv_opencl='lib32-opencl-nvidia-tkg'
+    _pkgname_array+=("lib32-opencl-$_branchname-tkg")
   fi
 fi
 
 if [ "$_eglwayland" == "true" ]; then
-  _nv_eglwayland='nvidia-egl-wayland-tkg'
+  _pkgname_array+=("$_branchname-egl-wayland-tkg")
 fi
 
-pkgname=(${_nv_base} ${_nv_baseadd} ${_nv_utils} ${_nv_eglwayland} ${_nv_opencl} ${_lib32_nv_utils} ${_lib32_nv_opencl})
-
+pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=57
+pkgrel=58
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -494,7 +502,7 @@ build() {
   fi
 }
 
-package_opencl-nvidia-tkg() {
+opencl-nvidia-tkg() {
   pkgdesc="NVIDIA's OpenCL implemention for 'nvidia-utils-tkg'"
   depends=('zlib')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
@@ -514,8 +522,14 @@ package_opencl-nvidia-tkg() {
   install -d "$pkgdir"/usr/share/licenses/
   ln -s nvidia/ "$pkgdir"/usr/share/licenses/opencl-nvidia
 }
+package_opencl-nvidia-tkg() {
+  opencl-nvidia-tkg
+}
+package_opencl-nvidia-dev-tkg() {
+  opencl-nvidia-tkg
+}
 
-package_nvidia-egl-wayland-tkg() {
+nvidia-egl-wayland-tkg() {
   if [[ $pkgver == 396* ]]; then
     _eglwver="1.0.3"
   elif [[ $pkgver == 410* ]] || [[ $pkgver == 415* ]]; then
@@ -543,8 +557,14 @@ package_nvidia-egl-wayland-tkg() {
     sed -i "s/Version:.*/Version: $_eglwver/g" "${pkgdir}"/usr/share/pkgconfig/wayland-eglstream-protocols.pc
     sed -i "s/Version:.*/Version: $_eglwver/g" "${pkgdir}"/usr/share/pkgconfig/wayland-eglstream.pc
 }
+package_nvidia-egl-wayland-tkg() {
+  nvidia-egl-wayland-tkg
+}
+package_nvidia-dev-egl-wayland-tkg() {
+  nvidia-egl-wayland-tkg
+}
 
-package_nvidia-utils-tkg() {
+nvidia-utils-tkg() {
   pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-tkg'"
   depends=('xorg-server' 'libglvnd' 'mesa>=17.0.2-2')
   optdepends=('gtk2: nvidia-settings (GTK+ v2)'
@@ -701,9 +721,15 @@ package_nvidia-utils-tkg() {
 
     _create_links
 }
+package_nvidia-utils-tkg() {
+  nvidia-utils-tkg
+}
+package_nvidia-dev-utils-tkg() {
+  nvidia-utils-tkg
+}
 
 if [ "$_dkms" == "false" ] || [ "$_dkms" == "full" ]; then
-  package_nvidia-tkg() {
+  nvidia-tkg() {
     pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries)"
     depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
     provides=("nvidia=$pkgver")
@@ -747,9 +773,15 @@ if [ "$_dkms" == "false" ] || [ "$_dkms" == "full" ]; then
   mkdir -p "${pkgdir}/usr/lib/modprobe.d"
   echo -e "blacklist nouveau\nblacklist nvidiafb" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
   }
+  package_nvidia-tkg() {
+    nvidia-tkg
+  }
+  package_nvidia-dev-tkg() {
+    nvidia-tkg
+  }
 fi
 
-package_lib32-opencl-nvidia-tkg() {
+lib32-opencl-nvidia-tkg() {
   pkgdesc="NVIDIA's OpenCL implemention for 'lib32-nvidia-utils-tkg' "
   depends=('lib32-zlib' 'lib32-gcc-libs')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
@@ -768,8 +800,14 @@ package_lib32-opencl-nvidia-tkg() {
   install -d "$pkgdir"/usr/share/licenses/
   ln -s nvidia-utils/ "$pkgdir"/usr/share/licenses/lib32-opencl-nvidia
 }
+package_lib32-opencl-nvidia-tkg() {
+  lib32-opencl-nvidia-tkg
+}
+package_lib32-opencl-nvidia-dev-tkg() {
+  lib32-opencl-nvidia-tkg
+}
 
-package_lib32-nvidia-utils-tkg() {
+lib32-nvidia-utils-tkg() {
   pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-tkg' (32-bit)"
   depends=('lib32-zlib' 'lib32-gcc-libs' 'nvidia-utils-tkg' 'lib32-libglvnd' 'lib32-mesa>=17.0.2-1')
   optdepends=('lib32-opencl-nvidia-tkg: OpenCL support')
@@ -822,9 +860,15 @@ package_lib32-nvidia-utils-tkg() {
     mkdir -p "${pkgdir}/usr/share/licenses"
     ln -s nvidia-utils/ "${pkgdir}/usr/share/licenses/${pkgname}"
 }
+package_lib32-nvidia-utils-tkg() {
+  lib32-nvidia-utils-tkg
+}
+package_lib32-nvidia-dev-utils-tkg() {
+  lib32-nvidia-utils-tkg
+}
 
 if [ "$_dkms" == "true" ] || [ "$_dkms" == "full" ]; then
-  package_nvidia-dkms-tkg() {
+  nvidia-dkms-tkg() {
     pkgdesc="NVIDIA kernel module sources (DKMS)"
     depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
     provides=("nvidia=${pkgver}" 'nvidia-dkms')
@@ -839,6 +883,12 @@ if [ "$_dkms" == "true" ] || [ "$_dkms" == "full" ]; then
     echo -e "blacklist nouveau\nblacklist nvidiafb" > "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
 
     install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
+  }
+  package_nvidia-dkms-tkg() {
+    nvidia-dkms-tkg
+  }
+  package_nvidia-dev-dkms-tkg() {
+    nvidia-dkms-tkg
   }
 fi
 
