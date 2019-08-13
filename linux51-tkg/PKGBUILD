@@ -591,6 +591,7 @@ prepare() {
       sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
       sed -i -e 's/CONFIG_NO_HZ_FULL=y/# CONFIG_NO_HZ_FULL is not set/' ./.config
       echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+      echo "CONFIG_TICK_CPU_ACCOUNTING=y" >> ./.config
   else
     echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
   fi
