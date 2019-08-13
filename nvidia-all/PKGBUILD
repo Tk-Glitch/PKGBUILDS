@@ -509,7 +509,7 @@ opencl-nvidia-tkg() {
   pkgdesc="NVIDIA's OpenCL implemention for 'nvidia-utils-tkg'"
   depends=('zlib')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
-  provides=("opencl-nvidia=$pkgver" 'opencl-driver')
+  provides=("opencl-nvidia=$pkgver" "opencl-nvidia-tkg=$pkgver" 'opencl-driver')
   conflicts=('opencl-nvidia')
   cd $_pkg
 
@@ -544,7 +544,7 @@ nvidia-egl-wayland-tkg() {
   fi
   pkgdesc="NVIDIA EGL Wayland library (libnvidia-egl-wayland.so.$_eglwver) for 'nvidia-utils-tkg'"
   depends=('nvidia-utils-tkg')
-  provides=("egl-wayland")
+  provides=("egl-wayland" "nvidia-egl-wayland-tkg")
   conflicts=('egl-wayland')
   cd $_pkg
 
@@ -577,7 +577,7 @@ nvidia-utils-tkg() {
               'opencl-nvidia-tkg: OpenCL support'
               'xorg-server-devel: nvidia-xconfig'
               'egl-wayland-git: for alternative, more advanced Wayland library (libnvidia-egl-wayland.so)')
-  provides=("nvidia-utils=$pkgver" "nvidia-settings=$pkgver" 'vulkan-driver' 'opengl-driver' 'nvidia-libgl')
+  provides=("nvidia-utils=$pkgver" "nvidia-utils-tkg=$pkgver" "nvidia-settings=$pkgver" 'vulkan-driver' 'opengl-driver' 'nvidia-libgl')
   conflicts=('nvidia-utils' 'nvidia-settings' 'nvidia-libgl')
   backup=('etc/X11/xorg.conf.d/20-nvidia.conf')
   install=nvidia-utils-tkg.install
@@ -741,7 +741,7 @@ if [ "$_dkms" == "false" ] || [ "$_dkms" == "full" ]; then
   nvidia-tkg() {
     pkgdesc="Full NVIDIA drivers' package for all kernels on the system (drivers and shared utilities and libraries)"
     depends=("nvidia-utils-tkg>=$pkgver" 'libglvnd')
-    provides=("nvidia=$pkgver")
+    provides=("nvidia=$pkgver" "nvidia-tkg>=$pkgver")
     conflicts=('nvidia-96xx' 'nvidia-173xx' 'nvidia')
     install=nvidia-tkg.install
 
@@ -794,7 +794,7 @@ lib32-opencl-nvidia-tkg() {
   pkgdesc="NVIDIA's OpenCL implemention for 'lib32-nvidia-utils-tkg' "
   depends=('lib32-zlib' 'lib32-gcc-libs')
   optdepends=('opencl-headers: headers necessary for OpenCL development')
-  provides=("lib32-opencl-nvidia=$pkgver" 'lib32-opencl-driver')
+  provides=("lib32-opencl-nvidia=$pkgver" "lib32-opencl-nvidia-tkg=$pkgver" 'lib32-opencl-driver')
   conflicts=('lib32-opencl-nvidia')
   cd $_pkg/32
 
@@ -820,7 +820,7 @@ lib32-nvidia-utils-tkg() {
   pkgdesc="NVIDIA driver utilities and libraries for 'nvidia-tkg' (32-bit)"
   depends=('lib32-zlib' 'lib32-gcc-libs' 'nvidia-utils-tkg' 'lib32-libglvnd' 'lib32-mesa>=17.0.2-1')
   optdepends=('lib32-opencl-nvidia-tkg: OpenCL support')
-  provides=("lib32-nvidia-utils=$pkgver" 'lib32-vulkan-driver' 'lib32-opengl-driver' 'lib32-nvidia-libgl')
+  provides=("lib32-nvidia-utils=$pkgver" "lib32-nvidia-utils-tkg=$pkgver" 'lib32-vulkan-driver' 'lib32-opengl-driver' 'lib32-nvidia-libgl')
   conflicts=('lib32-nvidia-utils' 'lib32-nvidia-libgl')
   cd $_pkg/32
 
@@ -880,7 +880,7 @@ if [ "$_dkms" == "true" ] || [ "$_dkms" == "full" ]; then
   nvidia-dkms-tkg() {
     pkgdesc="NVIDIA kernel module sources (DKMS)"
     depends=('dkms' "nvidia-utils-tkg>=${pkgver}" 'nvidia-libgl')
-    provides=("nvidia=${pkgver}" 'nvidia-dkms')
+    provides=("nvidia=${pkgver}" 'nvidia-dkms' "nvidia-dkms-tkg=${pkgver}")
     conflicts=('nvidia')
 
     cd ${_pkg}
