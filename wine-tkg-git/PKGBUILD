@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.13.r7.gca09e891
+pkgver=4.13.r8.g35a5f7db
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -415,6 +415,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'FS_bypass_compositor.patch' # Perf
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
+		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
 		'valve_proton_fullscreen_hack-staging-4.6.patch' # Proton FS hack for <=4.6
 		'valve_proton_fullscreen_hack-staging-4.5-a4b9460.patch' # Proton FS hack for <=4.5-a4b9460
 		'valve_proton_fullscreen_hack-staging-4.5.patch' # Proton FS hack for <=4.5
@@ -518,13 +519,14 @@ md5sums=('SKIP'
          '927f39348cd29ce9876871e4edb15a09'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '6262b0ff26fd1e00eb6123db5e0a4160'
+         '126f11c8ea4bc4bdb8a07f8724712564'
          '535357a01b37df0984f4a8a13678fa52'
          '89e55abb8bbfb8a077eb7f2fb5d197e3'
          'd0a632b9fcab1a06baee8ad6ec515473'
          'c7eb87afb00130d687b8e5496b859da6'
          '1f9b4f02e9e8f1ec9261568e13a1fdf3'
          '962fa3a5a4c5fd57b9f4715ed587fbe6'
-         '55a2541d6a294dd9c32e84d77d19b7c1'
+         '3a4f9eede37d146b7bb80cf16809d7e3'
          '07b48859d0b274c9b35be4de3016ae27'
          '3cb83a83c7ed9335eddbef665f4d89f9'
          '25e20e66ee3b2896f2979ba4e16ff767'
@@ -1208,21 +1210,25 @@ EOM
 	    _FS_bypass_compositor="true"
 	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" && nonuser_patcher
 	  fi
-	  cd "${srcdir}"/"${_stgsrcdir}"
-	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
-	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
+	  if git merge-base --is-ancestor de6450135de419ac7e64aee0c0efa27b60bea3e8 HEAD; then
+	    _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
 	  else
-	    cd "${srcdir}"/"${_winesrcdir}"
-	    if git merge-base --is-ancestor 0cb79db12ac7c48477518dcff269ccc5d6b745e0 HEAD; then
-	      _patchname='valve_proton_fullscreen_hack-staging-4.6.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.6)" && nonuser_patcher
-	    elif git merge-base --is-ancestor a4b9460ad68bad6675f9e50b390503db9ef94d6b HEAD; then
-	      _patchname='valve_proton_fullscreen_hack-staging-4.5-a4b9460.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.5-a4b9460)" && nonuser_patcher
-	    elif git merge-base --is-ancestor 57bb5cce75aed1cb06172cc0b6b696dfb008e7c1 HEAD; then
-	      _patchname='valve_proton_fullscreen_hack-staging-4.5.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.5)" && nonuser_patcher
-	    elif git merge-base --is-ancestor 6e87235523f48d523285409dcbbd7885df9948d0 HEAD; then
-	      _patchname='valve_proton_fullscreen_hack-staging-4.4.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.4)" && nonuser_patcher
+	    cd "${srcdir}"/"${_stgsrcdir}"
+	    if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
+	      cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging-de64501.patch' && _patchmsg="Applied Proton fullscreen hack patch (<de64501)" && nonuser_patcher
 	    else
-	      _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	      if git merge-base --is-ancestor 0cb79db12ac7c48477518dcff269ccc5d6b745e0 HEAD; then
+	        _patchname='valve_proton_fullscreen_hack-staging-4.6.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.6)" && nonuser_patcher
+	      elif git merge-base --is-ancestor a4b9460ad68bad6675f9e50b390503db9ef94d6b HEAD; then
+	        _patchname='valve_proton_fullscreen_hack-staging-4.5-a4b9460.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.5-a4b9460)" && nonuser_patcher
+	      elif git merge-base --is-ancestor 57bb5cce75aed1cb06172cc0b6b696dfb008e7c1 HEAD; then
+	        _patchname='valve_proton_fullscreen_hack-staging-4.5.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.5)" && nonuser_patcher
+	      elif git merge-base --is-ancestor 6e87235523f48d523285409dcbbd7885df9948d0 HEAD; then
+	        _patchname='valve_proton_fullscreen_hack-staging-4.4.patch' && _patchmsg="Applied Proton fullscreen hack patch (for <=4.4)" && nonuser_patcher
+	      else
+	        _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
+	      fi
 	    fi
 	  fi
 	  if [ -n "$_fake_refresh_rate" ]; then
