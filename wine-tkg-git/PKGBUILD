@@ -711,6 +711,16 @@ prepare() {
 
 	source "$_where"/wine-tkg-patches/hotfixes/hotfixer
 
+	# wine-staging user patches
+	if [ "$_user_patches" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  _userpatch_target="wine-staging"
+	  _userpatch_ext="mystaging"
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  hotfixer
+	  user_patcher
+	  cd "${srcdir}"/"${_winesrcdir}"
+	fi
+
 	if [ "$_use_staging" == "true" ] && [ "$_staging_upstreamignore" != "true" ]; then
 	  cd "${srcdir}"/"${_winesrcdir}"
 	  # change back to the wine upstream commit that this version of wine-staging is based in
@@ -967,16 +977,6 @@ EOM
 	if [ "$_CSMT_toggle" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  _patchname='CSMT-toggle.patch' && _patchmsg="Applied CSMT toggle logic patch" && nonuser_patcher
-	  cd "${srcdir}"/"${_winesrcdir}"
-	fi
-
-	# wine-staging user patches
-	if [ "$_user_patches" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  _userpatch_target="wine-staging"
-	  _userpatch_ext="mystaging"
-	  cd "${srcdir}"/"${_stgsrcdir}"
-	  hotfixer
-	  user_patcher
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
