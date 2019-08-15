@@ -1,0 +1,13 @@
+diff --git a/patches/patchinstall.sh b/patches/patchinstall.sh
+index 1619b2085..bfbc4fa64 100755
+--- a/patches/patchinstall.sh
++++ b/patches/patchinstall.sh
+@@ -52,7 +52,7 @@ usage()
+ # Get the upstream commit sha
+ upstream_commit()
+ {
+-	echo "4c6aa8b2fa1678c39aa5a89d9b26cfc4002e744e"
++	echo "bf31a900d1c684f6e5b3fadc9f5c13f018d83c92"
+ }
+ 
+ # Show version information 
