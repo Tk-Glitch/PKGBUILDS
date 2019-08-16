@@ -1281,7 +1281,7 @@ EOM
 	fi
 
 	# Workarounds to prevent crashes on some mf functions
-	if [ "$_use_staging" == "true" ] && [ "$_proton_mf_hacks" == "true" ]; then
+	if [ "$_use_staging" == "true" ] && [ "$_proton_mf_hacks" == "true" ] && git merge-base --is-ancestor b182ba882cfcce7b8769470f49f0fba216095c45 HEAD; then
 	  _patchname='proton_mf_hacks.patch' && _patchmsg="Applied proton mf hacks patch" && nonuser_patcher
 	fi
 
