@@ -1281,7 +1281,7 @@ EOM
 	fi
 
 	# Workarounds to prevent crashes on some mf functions
-	if [ "$_proton_mf_hacks" == "true" ]; then
+	if [ "$_use_staging" == "true" ] && [ "$_proton_mf_hacks" == "true" ]; then
 	  _patchname='proton_mf_hacks.patch' && _patchmsg="Applied proton mf hacks patch" && nonuser_patcher
 	fi
 
