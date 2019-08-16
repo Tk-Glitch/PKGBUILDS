@@ -1254,7 +1254,11 @@ EOM
 	# raw input fix by Guy1524 - part two
 	if [ "$_rawinput_fix" == "true" ] && git merge-base --is-ancestor 4da1c4370be6515bf64c185e6b55a305247c754b HEAD; then
 	  if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
-	    _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
+	    cd "${srcdir}"/"${_stgsrcdir}"
+	    if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
+	      cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
+	    fi
+	    cd "${srcdir}"/"${_winesrcdir}"
 	  else
 	    _patchname='raw-input.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
 	  fi
