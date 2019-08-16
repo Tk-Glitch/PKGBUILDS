@@ -4920,30 +4920,3 @@ index 97500ae6d9b..2fd7685f8bf 100644
  static inline void mirror_rect( const RECT *window_rect, RECT *rect )
  {
      int width = window_rect->right - window_rect->left;
-
-From 91b92633da9a6c990072fd3a82fb585d4b53901b Mon Sep 17 00:00:00 2001
-From: Andrew Eikum <aeikum@codeweavers.com>
-Date: Wed, 26 Jun 2019 08:09:27 -0500
-Subject: [PATCH] Revert "winex11.drv: Activate window when restoring from
- iconic state."
-
-This reverts commit 82c6ec3a32f44e8b3e0cc88b7f10e0c0d7fa1b89.
-
-Causes alt-tab problems with several games.
----
- dlls/winex11.drv/event.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
-index 3e95df3873c..ba68447d2e1 100644
---- a/dlls/winex11.drv/event.c
-+++ b/dlls/winex11.drv/event.c
-@@ -1311,8 +1311,6 @@ static void handle_wm_state_notify( HWND hwnd, XPropertyEvent *event, BOOL updat
-             {
-                 TRACE( "restoring win %p/%lx\n", data->hwnd, data->whole_window );
-                 release_win_data( data );
--                if ((style & (WS_MINIMIZE | WS_VISIBLE)) == (WS_MINIMIZE | WS_VISIBLE))
--                    SetActiveWindow( hwnd );
-                 SendMessageW( hwnd, WM_SYSCOMMAND, SC_RESTORE, 0 );
-                 return;
-             }

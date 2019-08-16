@@ -5,7 +5,7 @@ pkgver=4.13.r10.g523d4ac9
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=191
+eval pkgrel=192
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -416,6 +416,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'faudio-exp.patch' # Faudio experimental support
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
 		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
+		'valve_proton_fullscreen_hack-staging-82c6ec3.patch' # Proton FS hack (<82c6ec3)
 		'valve_proton_fullscreen_hack-staging-4.6.patch' # Proton FS hack for <=4.6
 		'valve_proton_fullscreen_hack-staging-4.5-a4b9460.patch' # Proton FS hack for <=4.5-a4b9460
 		'valve_proton_fullscreen_hack-staging-4.5.patch' # Proton FS hack for <=4.5
@@ -520,7 +521,8 @@ md5sums=('SKIP'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '6262b0ff26fd1e00eb6123db5e0a4160'
          '126f11c8ea4bc4bdb8a07f8724712564'
-         '535357a01b37df0984f4a8a13678fa52'
+         'a21dd4c345c597bc2f9204ea253794d3'
+         '46f69d6e2911afdce9a5e446aca3982a'
          '89e55abb8bbfb8a077eb7f2fb5d197e3'
          'd0a632b9fcab1a06baee8ad6ec515473'
          'c7eb87afb00130d687b8e5496b859da6'
@@ -1212,10 +1214,12 @@ EOM
 	  fi
 	  if git merge-base --is-ancestor de6450135de419ac7e64aee0c0efa27b60bea3e8 HEAD; then
 	    _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
+	  elif git merge-base --is-ancestor 82c6ec3a32f44e8b3e0cc88b7f10e0c0d7fa1b89 HEAD; then
+	    _patchname='valve_proton_fullscreen_hack-staging-de64501.patch' && _patchmsg="Applied Proton fullscreen hack patch (<de64501)" && nonuser_patcher
 	  else
 	    cd "${srcdir}"/"${_stgsrcdir}"
 	    if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
-	      cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging-de64501.patch' && _patchmsg="Applied Proton fullscreen hack patch (<de64501)" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging-82c6ec3.patch' && _patchmsg="Applied Proton fullscreen hack patch (<82c6ec3)" && nonuser_patcher
 	    else
 	      cd "${srcdir}"/"${_winesrcdir}"
 	      if git merge-base --is-ancestor 0cb79db12ac7c48477518dcff269ccc5d6b745e0 HEAD; then
