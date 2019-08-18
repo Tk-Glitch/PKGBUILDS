@@ -78,9 +78,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
-_sub=rc4
+_sub=rc5
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=9
+pkgrel=10
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -110,7 +110,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0006-add-acs-overrides_iommu.patch
         0007-v5.3-fsync.patch
 )
-sha256sums=('b79938622739cf91187d59f9823a963d2e23c58b7131e4f83b95ce23c3ed90d8'
+sha256sums=('7749cc70d241aef1c8965a7da561b82791d8701e91a00ff8d93906eb466955c3'
             'd2df45d77ff5f9d9bc2e44e69cd3727a2ad5a7e1c822bcc1be0c54ac3b6c858b'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -121,7 +121,7 @@ sha256sums=('b79938622739cf91187d59f9823a963d2e23c58b7131e4f83b95ce23c3ed90d8'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '9d1ec9a093ba5858c7b55caf555e27419c55699a83e77ecca6274e86770490d7'
             'b25e0fa6e896f2c95507d859602ee83dd1eccb6cf4317dc12d1a47a28ad1f519'
-            '6fff646fdb874b5c23316680aa3d89311bf6fc8de8c0dc6bd2e92e2ab7f7f8ff'
+            'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d')
 

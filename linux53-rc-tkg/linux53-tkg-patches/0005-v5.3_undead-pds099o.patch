@@ -1,7 +1,7 @@
 From 1f5dc25333082122907dee4306627bd6da82b4bc Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Mon, 8 Jul 2019 03:48:37 +0200
-Subject: PDS 099o, 5.2 rebase
+Subject: PDS 099o, 5.3 rebase
 
 
 diff --git a/Documentation/scheduler/sched-PDS-mq.txt b/Documentation/scheduler/sched-PDS-mq.txt
@@ -998,7 +998,7 @@ index 962cf343f798..2821ce592b89 100644
 +#ifndef CONFIG_SCHED_PDS
  	if (cpu_bw_dl(cpu_rq(sg_cpu->cpu)) > sg_cpu->bw_dl)
 +#endif
- 		sg_policy->need_freq_update = true;
+ 		sg_policy->limits_changed = true;
  }
  
 @@ -668,6 +678,7 @@ static int sugov_kthread_create(struct sugov_policy *sg_policy)
