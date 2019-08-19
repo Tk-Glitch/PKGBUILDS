@@ -761,8 +761,8 @@ prepare() {
         ( cd "$_where"; "${srcdir}/linux-${_basekernel}/scripts/diffconfig" -m "${srcdir}/linux-${_basekernel}/.config.orig" "${srcdir}/linux-${_basekernel}/.config" > "$_diffconfig_name" )
       fi
     fi
+    rm .config.orig
   fi
-  rm .config.orig
 }
 
 build() {
