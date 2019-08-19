@@ -23,7 +23,7 @@ plain '             `.-:///////:-.`'
 _NUKR="true"
 
 pkgname=('spirv-tools-tkg-git' 'lib32-spirv-tools-tkg-git')
-pkgver=r2202.7b4e5bd5
+pkgver=2019.4.r11.gbc62722b
 pkgrel=1
 pkgdesc='API and commands for processing SPIR-V modules'
 url='https://github.com/KhronosGroup/SPIRV-Tools'
@@ -42,7 +42,7 @@ options=('staticlibs')
 
 pkgver() {
   cd "${srcdir}"/SPIRV-Tools
-  printf "r%d.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//'
 }
 
 build() {
@@ -77,7 +77,7 @@ build() {
 }
 
 package_spirv-tools-tkg-git() {
-  provides=('spirv-tools')
+  provides=("spirv-tools=$pkgver-$pkgrel")
   conflicts=('spirv-tools')
 
   cd "${srcdir}"/SPIRV-Tools/build64
@@ -89,7 +89,7 @@ package_spirv-tools-tkg-git() {
 }
 
 package_lib32-spirv-tools-tkg-git() {
-  provides=('lib32-spirv-tools')
+  provides=("lib32-spirv-tools=$pkgver-$pkgrel")
   conflicts=('lib32-spirv-tools')
 
   cd "${srcdir}"/SPIRV-Tools/build32
