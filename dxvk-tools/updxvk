@@ -332,7 +332,6 @@ if [ "$1" == "proton-tkg" ]; then
       echo "###############################################################"
       echo ""
       echo "This DXVK build will be integrated to your next Proton-tkg build"
-      echo "      !!! as long as DXVK winelib is disabled in cfg !!!"
       echo ""
       echo "###############################################################"
 
