@@ -39,12 +39,10 @@ While some are already available there without userpatches or lib32 support, the
 
 
 ### Some daily builds (pacman packages) are available on chaotic-aur (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
+- http://lonewolf-builder.duckdns.org/chaotic-aur - Thanks Pedro !
+- Mirror (Germany) : http://chaotic.bangl.de/chaotic-aur/x86_64/ - Thanks to BangL
 
-http://lonewolf-builder.duckdns.org/chaotic-aur
-
-Mirror (Germany) : http://chaotic.bangl.de/chaotic-aur/x86_64/
-
-To use the mirror in pacman.conf : `Server = http://chaotic.bangl.de/$repo/x86_64`
+For the current stable mainline kernel version, you can find per-arch optimized daily builds for PDS and MuQSS variants here : https://repo.kitsuna.net/ - Thanks to LordKitsuna.
 
 **Wanna talk about it? Need help? Feel free to join the Frog Family discord server : https://discord.gg/jRy3Nxk**
 
