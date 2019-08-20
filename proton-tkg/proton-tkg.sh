@@ -132,7 +132,6 @@ else
     cd $_nowhere
 
     # Create required dirs and clean
-    mkdir -p "$HOME/.steam/root/compatibilitytools.d"
     rm -rf "proton_tkg_$_protontkg_version" && mkdir "proton_tkg_$_protontkg_version"
     mkdir -p proton_template/share/fonts
 
@@ -329,6 +328,9 @@ else
     cd $_nowhere
 
     steam_is_running
+
+    # Create custom compat tools dir if needed
+    mkdir -p "$HOME/.steam/root/compatibilitytools.d"
 
     # Nuke same version if exists before copying new build
     if [ -e "$HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
