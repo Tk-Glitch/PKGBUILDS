@@ -36,6 +36,8 @@ pkgver() {
   source "$_where"/wine-tkg-scripts/prepare.sh
   source "$_where"/wine-tkg-scripts/build.sh
 
+  msg2 "Non-makepkg build script will be used.\n"
+
 # init step
   _init
 
