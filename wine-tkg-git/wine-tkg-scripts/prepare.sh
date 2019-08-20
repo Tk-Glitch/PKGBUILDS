@@ -446,7 +446,9 @@ _prepare() {
 	      fi
 	    fi
 	  else
-	    _configure_args+=(--with-faudio)
+	    if [ "$_faudio_ignorecheck" != "true" ]; then
+	      _configure_args+=(--with-faudio)
+	    fi
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
