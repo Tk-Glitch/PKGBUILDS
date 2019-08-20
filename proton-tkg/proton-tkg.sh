@@ -12,25 +12,13 @@ set -e
 _nowhere=$PWD
 _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
 
+# Enforce not using makepkg even if available with --nomakepkg
+if [ "$1" == "--nomakepkg" ]; then
+  _nomakepkg="true"
+fi
+
 cat <<'EOF'
-       .---.`               `.---.
-    `/syhhhyso-           -osyhhhys/`
-   .syNMdhNNhss/``.---.``/sshNNhdMNys.
-   +sdMh.`+MNsssssssssssssssNM+`.hMds+
-   :syNNdhNNhssssssssssssssshNNhdNNys:
-    /ssyhhhysssssssssssssssssyhhhyss/
-    .ossssssssssssssssssssssssssssso.
-   :sssssssssssssssssssssssssssssssss:
-  /sssssssssssssssssssssssssssssssssss/
- :sssssssssssssoosssssssoosssssssssssss:
- osssssssssssssoosssssssoossssssssssssso
- osssssssssssyyyyhhhhhhhyyyyssssssssssso
- /yyyyyyhhdmmmmNNNNNNNNNNNmmmmdhhyyyyyy/
-  smmmNNNNNNNNNNNNNNNNNNNNNNNNNNNNNmmms
-   /dNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNd/
-    `:sdNNNNNNNNNNNNNNNNNNNNNNNNNds:`
-       `-+shdNNNNNNNNNNNNNNNdhs+-`
-             `.-:///////:-.`
+
  ______              __                      __   __
 |   __ \.----.-----.|  |_.-----.-----.______|  |_|  |--.-----.
 |    __/|   _|  _  ||   _|  _  |     |______|   _|    <|  _  |
@@ -121,7 +109,12 @@ else
 
   # Now let's build
   cd "$_wine_tkg_git_path"
-  makepkg -s || true
+  if [ ! -e "/usr/bin/makepkg" ] || [ "$_nomakepkg" == "true" ]; then
+    rm -f "$_wine_tkg_git_path"/non-makepkg-builds/HL3_confirmed
+    ./non-makepkg-build.sh
+  else
+    makepkg -s || true
+  fi
 
   # Wine-tkg-git has injected versioning and settings in the token for us, so get the values back
   source "$_nowhere/proton_tkg_token"
