@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.14.r7.g74068f2c
+pkgver=4.14.r9.g2007f010
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -1643,7 +1643,7 @@ package() {
 
 	cp "$_where"/last_build_config.log "${pkgdir}$_prefix"/share/wine/wine-tkg-config.txt
 
-	if [ "$_use_esync" == "true" ]; then
+	if [ "$_use_esync" == "true" ] || [ "$_staging_esync" == "true" ]; then
 	  msg2 '##########################################################################################################################'
 	  msg2 ''
 	  msg2 'To enable esync, export WINEESYNC=1 and increase file descriptors limits in /etc/security/limits.conf to use ESYNC goodness ;)'
