@@ -139,7 +139,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=59
+pkgrel=60
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -328,7 +328,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # 5.2
     if (( $(vercmp "$_kernel" "5.2") >= 0 )); then
       _kernel52="1"
-      _whitelist52=( 396* 410* 415* 418.3* 418.4* 418.52.0* 418.52.10 418.52.14 )
+      _whitelist52=( 396* 410* 415* 418.3* 418.4* 418.56 418.7* 418.52.0* 418.52.10 418.52.14 )
     fi
 
     # 5.3
