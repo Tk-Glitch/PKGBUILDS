@@ -53,7 +53,7 @@ _build() {
 	if [ "$_NOLIB64" != "true" ]; then
 		# build wine 64-bit
 		# (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
-	  if [ -e /usr/bin/ccache] && [ "$_NOMINGW" != "true"]; then
+	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache x86_64-w64-mingw32-gcc"
 	  fi
 	  msg2 'Building Wine-64...'
@@ -78,11 +78,15 @@ _build() {
 	fi
 
 	if [ "$_NOLIB32" != "true" ]; then
-	  if [ -e /usr/bin/ccache] && [ "$_NOMINGW" != "true"]; then
+	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache i686-w64-mingw32-gcc"
 	  fi
 	  # build wine 32-bit
-	  export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
+	  if [ -d '/usr/lib32/pkgconfig' ]; then # Typical Arch path, also used on Fedora
+	    export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
+	  elif [ -d '/usr/lib/i386-linux-gnu/pkgconfig' ]; then # Ubuntu 18.04/19.04 path
+	    export PKG_CONFIG_PATH='/usr/lib/i386-linux-gnu/pkgconfig'
+	  fi
 	  msg2 'Building Wine-32...'
 	  cd "${srcdir}/${pkgname}"-32-build
 	  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then

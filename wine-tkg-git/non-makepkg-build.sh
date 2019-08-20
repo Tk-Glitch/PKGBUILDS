@@ -2,6 +2,11 @@
 
 # This script replaces the wine-tkg PKGBUILD's function for use outside of makepkg or on non-pacman distros
 
+## On a stock Ubuntu 19.04 install, you'll need the following deps as bare minimum to build default wine-tkg (without Faudio):
+# pkg-config (or pkgconf) bison flex schedtool libfreetype6-dev xserver-xorg-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev 
+# For 32-bit support : gcc-multilib libfreetype6-dev:i386 xserver-xorg-dev:i386 libgstreamer1.0-dev:i386 libgstreamer-plugins-base1.0-dev:i386
+## You're on your own to resolve additional dependencies you might want to build with, such as Faudio.
+
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
@@ -46,7 +51,13 @@ pkgver() {
     _EXTERNAL_INSTALL="false"
   fi
 
+  # disable faudio check so we don't fail to build even if faudio libs are missing
+  _faudio_ignorecheck="true"
+
   _pkgnaming
+
+  # remove the faudio pkgname tag as we can't be sure it'll get used even if enabled
+  pkgname="${pkgname/-faudio-git/}"
 # init step end
 
   # Wine source
