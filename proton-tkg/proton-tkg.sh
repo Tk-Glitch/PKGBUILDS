@@ -28,9 +28,9 @@ else
 fi
 
 # Set Steam config file path
-if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]
+if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]; then
   _config_file="$HOME/.local/share/Steam/config/config.vdf"
-elif [ -e "$_steampath/steam/config/config.vdf" ]
+elif [ -e "$_steampath/steam/config/config.vdf" ]; then
   _config_file="$_steampath/steam/config/config.vdf"
 else
   echo -e "Your Steam config file path wasn't found! Exiting.."
