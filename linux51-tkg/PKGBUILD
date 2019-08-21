@@ -643,7 +643,7 @@ prepare() {
     plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
     read -rp "`echo $'    > N/y : '`" CONDITION8;
   fi
-  if [ "$CONDITION8" == "y" ] || [ "$_acs_override" == "true" ]; then
+  if [ "$CONDITION8" == "y" ] || [ "$_amd_overdrive_flickering_fix" == "true" ]; then
     patch -Np1 -i ../0009-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
   fi
 
