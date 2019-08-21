@@ -1,9 +1,11 @@
 #!/bin/bash
 
-if [ "$_use_staging" == "true" ]; then
-  cd "${srcdir}"/"${_stgsrcdir}"
-  if git merge-base --is-ancestor 67035d62f74ae1cdfc5658ce55bbbc3a15c5988b HEAD; then
-  cd "${srcdir}"/"${_winesrcdir}"
+if git merge-base --is-ancestor 0116660dd80b38da8201e2156adade67fc2ae823 HEAD; then
+
+#if [ "$_use_staging" == "true" ]; then
+#  cd "${srcdir}"/"${_stgsrcdir}"
+#  if git merge-base --is-ancestor 67035d62f74ae1cdfc5658ce55bbbc3a15c5988b HEAD; then
+#  cd "${srcdir}"/"${_winesrcdir}"
 
   hotfixer() {
 	local _patches=("$_where"/wine-tkg-patches/hotfixes/*."${_userpatch_ext}revert")
@@ -33,6 +35,7 @@ if [ "$_use_staging" == "true" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	    msg2 "Found ${#_patches[@]} hotfix:"
 	    printf '%s\n' "${_patches[@]}"
+	    msg2 "This hotfix is a workaround  for https://bugs.winehq.org/show_bug.cgi?id=47633"
 	    read -rp "Do you want to install it/them?"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
@@ -50,11 +53,11 @@ if [ "$_use_staging" == "true" ]; then
 	  fi
 	fi
   }
-  else
-    hotfixer() {
-    msg2 "No hotfix for you"
-    }
-  fi
+  #else
+  #  hotfixer() {
+  #  msg2 "No hotfix for you"
+  #  }
+  #fi
 else
   hotfixer() {
   msg2 "No hotfix for you"
