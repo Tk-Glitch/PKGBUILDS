@@ -8,6 +8,10 @@
 *.xz
 *.pkg
 *.bak
+*.tar.gz
+*.old
+*.db
+*.files
 */src/
 */pkg/
 wine-tkg-git/wine-staging-git/
