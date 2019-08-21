@@ -44,8 +44,6 @@ _exit_cleanup() {
     rm -rf "$srcdir"/*.conf
     rm -f "$srcdir"/wine-tkg
     rm -f "$srcdir"/wine-tkg-interactive
-    rm -rf "$_where"/d9vk
-    rm -rf "$_where"/dxvk
     msg2 'exit cleanup done'
   fi
 
