@@ -15,6 +15,7 @@ wine-tkg-git/wine-git/
 wine-tkg-git/wine-mirror-git/
 wine-tkg-git/dxvk/
 wine-tkg-git/d9vk/
+wine-tkg-git/non-makepkg-builds/
 winetricks-tkg-git/winetricks/
 mingw/mingw-w64-*/
 mingw/cloog/

@@ -17,6 +17,26 @@ if [ "$1" == "--nomakepkg" ]; then
   _nomakepkg="true"
 fi
 
+# Set Steam root path
+if [ -d "$HOME/.steam/root" ]; then # typical on Arch
+  _steampath="$HOME/.steam/root"
+elif [ -e "$HOME/.steam/steam.sh" ]; then # typical on Ubuntu
+  _steampath="$HOME/.steam"
+else
+  echo -e "Your Steam install wasn't found! Exiting.."
+  exit
+fi
+
+# Set Steam config file path
+if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]
+  _config_file="$HOME/.local/share/Steam/config/config.vdf"
+elif [ -e "$_steampath/steam/config/config.vdf" ]
+  _config_file="$_steampath/steam/config/config.vdf"
+else
+  echo -e "Your Steam config file path wasn't found! Exiting.."
+  exit
+fi
+
 cat <<'EOF'
 
  ______              __                      __   __
@@ -45,18 +65,17 @@ function steam_is_running {
 function proton_tkg_uninstaller {
   # Never cross the Proton streams!
   i=0
-  for _proton_tkg in "$HOME/.steam/root/compatibilitytools.d"/proton_tkg_*; do
+  for _proton_tkg in "$_steampath/compatibilitytools.d"/proton_tkg_*; do
     if [ -d "$_proton_tkg" ]; then
       _GOTCHA="$_proton_tkg" && ((i+=1))
     fi
   done
 
   if [ -d "$_GOTCHA" ] && [ $i -ge 2 ]; then
-    cd "$HOME/.steam/root/compatibilitytools.d"
+    cd "$_steampath/compatibilitytools.d"
 
     _available_builds=( `ls -d proton_tkg_* | sort -V` )
     _strip_builds="${_available_builds[@]//proton_tkg_/}"
-    _config_file="$HOME/.local/share/Steam/config/config.vdf"
 
     steam_is_running
 
@@ -91,9 +110,9 @@ function proton_tkg_uninstaller {
       proton_tkg_uninstaller
     fi
   elif [ -d "$_GOTCHA" ] && [ $i -eq 1 ]; then
-    echo "This tool requires at least two Proton-tkg builds installed in $HOME/.steam/root/compatibilitytools.d/ and only one was found."
+    echo "This tool requires at least two Proton-tkg builds installed in $_steampath/compatibilitytools.d/ and only one was found."
   else
-    echo "No Proton-tkg installation found in $HOME/.steam/root/compatibilitytools.d/"
+    echo "No Proton-tkg installation found in $_steampath/compatibilitytools.d/"
   fi
 }
 
@@ -323,20 +342,20 @@ else
     steam_is_running
 
     # Create custom compat tools dir if needed
-    mkdir -p "$HOME/.steam/root/compatibilitytools.d"
+    mkdir -p "$_steampath/compatibilitytools.d"
 
     # Nuke same version if exists before copying new build
-    if [ -e "$HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
-      rm -rf "$HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
+    if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
+      rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
     fi
 
     # Get rid of the token
-    rm proton_tkg_token
+    rm -f proton_tkg_token
 
-    mv "proton_tkg_$_protontkg_version" "$HOME/.steam/root/compatibilitytools.d"/ && echo "" &&
+    mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
     echo "####################################################################################################"
     echo ""
-    echo " Proton-tkg build installed to $HOME/.steam/root/compatibilitytools.d/proton_tkg_$_protontkg_version"
+    echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
     echo ""
     echo "####################################################################################################"
     if [ "$_skip_uninstaller" != "true" ]; then
