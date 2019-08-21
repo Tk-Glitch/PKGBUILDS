@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=9
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=22
+pkgrel=23
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,12 +114,13 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-glitched-pds.patch
         0005-v5.2_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
-        #0008-bcachefs.patch
+        0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
         0010-glitched-bmq.patch
         0010-v5.2_bmq099.patch
         0011-ZFS-fix.patch
         0012-v5.2-fsync.patch
         0013-linux-hardened.patch
+        #0014-bcachefs.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '7edb11f988c1fa13c1c5e75fb42a3b73f02cdd97ceb3459fc942803f643f1f13'
@@ -137,6 +138,7 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '12fd54882d5e1462aaac653300117f98c4b708c47b6ac6c205670e6c0e8dcfd0'
             'cf732a0d0b830d974033f6863cc337ba9bc720e0c6ec3d125b53c000c6ecb514'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
+            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
             '0f8d5e313b6689f5df3de0f6a1b9078bdac4f239feb1c596f59d2f7697477632'
             'e5500400f81eaed342b18de1d33445f92ef53e0392ab55d464d0b463e650e1bb'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
@@ -627,6 +629,17 @@ prepare() {
   fi
   if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
+  fi
+
+  # AMD Overdrive flicker fix
+  if [ -z "$_amd_overdrive_flickering_fix" ]; then
+    plain ""
+    plain "Use AMD overdrive flickering fix? *Some* AMD GPUs need that when using multiple monitors."
+    plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_acs_override" == "true" ]; then
+    patch -Np1 -i ../0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
   fi
 
   # bcachefs

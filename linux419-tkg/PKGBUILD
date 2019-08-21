@@ -78,7 +78,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=67
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=94
+pkgrel=95
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -111,6 +111,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0007-bcachefs.patch
         0008-uksm.patch
         0009-linux-hardened.patch
+        0010-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'b2a707698b26f22ff7bd8c39da679dcfde308d12bd1980a63c10da175e86750c'
@@ -130,7 +131,8 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
             'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
             'b58555e0a1dc18a75db0a436e446374bd0c2c45a3e39c86282a006f0862c546a'
-            'babe6aaaab7df5aac831dec886674dcdf83877d031fb629c8ffadc0f20b0d3e9')
+            'babe6aaaab7df5aac831dec886674dcdf83877d031fb629c8ffadc0f20b0d3e9'
+            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -611,19 +613,30 @@ prepare() {
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
 
+  # AMD Overdrive flicker fix
+  if [ -z "$_amd_overdrive_flickering_fix" ]; then
+    plain ""
+    plain "Use AMD overdrive flickering fix? *Some* AMD GPUs need that when using multiple monitors."
+    plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_acs_override" == "true" ]; then
+    patch -Np1 -i ../0010-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
+  fi
+
   # ksm/uksm
   if [ -z "$_ksm_uksm" ]; then
     plain ""
     plain "Use KSM/UKSM? (you'll be prompted about which one to use during kernel config)"
     plain "https://www.kernel.org/doc/Documentation/vm/ksm.txt - https://github.com/dolohow/uksm"
-    read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION8;
+    read -rp "`echo $'\n> 1.NONE\n  2.KSM\n  3.UKSM\nchoice[1-3?]: '`" CONDITION9;
   fi
-  if [ "$CONDITION8" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
+  if [ "$CONDITION9" == "2" ] || [ "$_ksm_uksm" == "KSM" ]; then
     patch -Np1 -i ../0008-uksm.patch
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     echo "CONFIG_KSM_LEGACY=y" >> ./.config
     echo "# CONFIG_UKSM is not set" >> ./.config
-  elif [ "$CONDITION8" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
+  elif [ "$CONDITION9" == "3" ] || [ "$_ksm_uksm" == "UKSM" ]; then
     patch -Np1 -i ../0008-uksm.patch
     sed -i -e 's/# CONFIG_KSM is not set/CONFIG_KSM=y/' ./.config
     echo "# CONFIG_KSM_LEGACY is not set" >> ./.config
@@ -635,9 +648,9 @@ prepare() {
     plain ""
     plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
     plain "https://bcachefs.org/"
-    read -rp "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION10;
   fi
-  if [ "$CONDITION9" == "y" ] || [ "$_bcachefs" == "true" ]; then
+  if [ "$CONDITION10" == "y" ] || [ "$_bcachefs" == "true" ]; then
     patch -Np1 -i ../0007-bcachefs.patch
     echo "CONFIG_BCACHEFS_FS=m" >> ./.config
     echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config

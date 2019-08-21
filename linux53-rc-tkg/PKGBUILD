@@ -80,7 +80,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=rc5
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=10
+pkgrel=11
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -109,6 +109,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0005-v5.3_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
         0007-v5.3-fsync.patch
+        0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
 sha256sums=('7749cc70d241aef1c8965a7da561b82791d8701e91a00ff8d93906eb466955c3'
             'd2df45d77ff5f9d9bc2e44e69cd3727a2ad5a7e1c822bcc1be0c54ac3b6c858b'
@@ -123,7 +124,8 @@ sha256sums=('7749cc70d241aef1c8965a7da561b82791d8701e91a00ff8d93906eb466955c3'
             'b25e0fa6e896f2c95507d859602ee83dd1eccb6cf4317dc12d1a47a28ad1f519'
             'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d')
+            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
+            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -609,6 +611,17 @@ prepare() {
   fi
   if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
+  fi
+
+  # AMD Overdrive flicker fix
+  if [ -z "$_amd_overdrive_flickering_fix" ]; then
+    plain ""
+    plain "Use AMD overdrive flickering fix? *Some* AMD GPUs need that when using multiple monitors."
+    plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_acs_override" == "true" ]; then
+    patch -Np1 -i ../0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
   fi
 
   # bcachefs

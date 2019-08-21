@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.1
 _sub=21
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=34
+pkgrel=35
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -115,7 +115,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-v5.1_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
         0008-bcachefs.patch
-        #0009-uksm-5.1.patch
+        0009-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
         0010-glitched-bmq.patch
         0010-v5.1_bmq096.patch
         0011-ZFS-fix.patch
@@ -138,6 +138,7 @@ sha256sums=('d06a7be6e73f97d1350677ad3bae0ce7daecb79c2c2902aaabe806f7fa94f041'
             '680f2ada99d1f0c1e611b4340140ef2da68530ab2f3bcd95770c68d07a56e0e2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '1123a4c61ebf87daa3e0defb4126454c1e6e131743786474ff851099bc47d198'
+            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
             '5ead892c8398eda1968bdd16a1795431bd7bd3f6c4ad9ba3d5e1a4bae0301346'
             '48be5e7f27d4a0570bd31f37ed1ad35241ff7f427dae5513cab875c7b44aeb08'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
@@ -630,14 +631,25 @@ prepare() {
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   fi
 
+  # AMD Overdrive flicker fix
+  if [ -z "$_amd_overdrive_flickering_fix" ]; then
+    plain ""
+    plain "Use AMD overdrive flickering fix? *Some* AMD GPUs need that when using multiple monitors."
+    plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_acs_override" == "true" ]; then
+    patch -Np1 -i ../0009-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
+  fi
+
   # bcachefs
   if [ -z "$_bcachefs" ]; then
     plain ""
     plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
     plain "https://bcachefs.org/"
-    read -rp "`echo $'    > N/y : '`" CONDITION8;
+    read -rp "`echo $'    > N/y : '`" CONDITION9;
   fi
-  if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
+  if [ "$CONDITION9" == "y" ] || [ "$_bcachefs" == "true" ]; then
     patch -Np1 -i ../0008-bcachefs.patch
     echo "CONFIG_BCACHEFS_FS=m" >> ./.config
     echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
@@ -652,9 +664,9 @@ prepare() {
     plain ""
     plain "Add back missing symbol for AES-NI/AVX support on ZFS"
     plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions.patch"
-    read -rp "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION10;
   fi
-  if [ "$CONDITION9" == "y" ] || [ "$_zfsfix" == "true" ]; then
+  if [ "$CONDITION10" == "y" ] || [ "$_zfsfix" == "true" ]; then
     patch -Np1 -i ../0011-ZFS-fix.patch
   fi
 
