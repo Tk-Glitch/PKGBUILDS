@@ -104,6 +104,8 @@ nonuser_patcher() {
 
 build_wine_tkg() {
 
+  set -e
+
   pkgver=$(pkgver)
 
   ## prepare step
