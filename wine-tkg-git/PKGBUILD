@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.14.r11.g938dddf7
+pkgver=4.14.r12.g74472161
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -234,6 +234,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
 		'raw-input.patch' # Raw input fix by Guy1524
+		'0001-kernelbase-Remove-DECLSPEC_HOTPATCH-from-SetThreadSt.patch' # Native dotnet workaround for 4.13+
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
@@ -343,6 +344,7 @@ md5sums=('SKIP'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
          'b415db953ef35b73c1608bc360356113'
          '4f30f3868d565cc1361d25a983b5cd12'
+         'eba48702691263469da644495f9e1bfd'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '17c64d0e5fa155868c10c6a7b18cf5df'
          '126f11c8ea4bc4bdb8a07f8724712564'

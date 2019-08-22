@@ -557,6 +557,11 @@ EOM
 	  _patchname='childwindow.patch' && _patchmsg="Applied child window for vk patch" && nonuser_patcher
 	fi
 
+	# Workaround for https://bugs.winehq.org/show_bug.cgi?id=47633
+	if [ "$_nativedotnet_fix" == "true" ] && git merge-base --is-ancestor 0116660dd80b38da8201e2156adade67fc2ae823 HEAD; then
+	  _patchname='0001-kernelbase-Remove-DECLSPEC_HOTPATCH-from-SetThreadSt.patch' && _patchmsg="Applied native dotnet workaround (https://bugs.winehq.org/show_bug.cgi?id=47633)" && nonuser_patcher
+	fi
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ "$_steam_fix" == "true" ]; then
