@@ -843,7 +843,8 @@ if __name__ == "__main__":
         #then run
         g_session.run()
         tricksfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/tricks"
-        os.remove(tricksfile_path)
+        if os.path.exists(tricksfile_path):
+            os.remove(tricksfile_path)
     elif sys.argv[1] == "getcompatpath":
         #linux -> windows path
         path = subprocess.check_output([g_proton.wine_bin, "winepath", "-w", sys.argv[2]], env=g_session.env, stderr=g_session.log_file)
