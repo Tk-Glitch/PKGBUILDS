@@ -283,13 +283,13 @@ _describe_other() {
   git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//'
 }
 
-_prepare() {
+_source_cleanup() {
 	if [ "$_NUKR" != "debug" ]; then
 	  if [ "$_use_staging" == "true" ]; then
 	    cd "${srcdir}"/"${_stgsrcdir}"
 
 	    # restore the targetted trees to their git origin state
-	    # for the patches not fail on subsequent aborted builds
+	    # for the patches not to fail on subsequent aborted builds
 	    msg2 'Cleaning wine-staging source code tree...'
 	    git reset --hard HEAD 	# restore tracked files
 	    git clean -xdf 			# delete untracked files
@@ -301,7 +301,9 @@ _prepare() {
 	  git reset --hard HEAD 	# restore tracked files
 	  git clean -xdf 			# delete untracked files
 	fi
+}
 
+_prepare() {
 	# holds extra arguments to staging's patcher script, if applicable
 	local _staging_args=()
 	# grabs userdefined staging args if any

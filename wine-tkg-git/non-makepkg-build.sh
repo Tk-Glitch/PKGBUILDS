@@ -79,21 +79,27 @@ pkgver() {
 
   # Wine source
   cd "$srcdir"
-  git clone "${_winesrctarget}" $_winesrcdir
-
-  if [ -n "$_plain_version" ]; then
-    cd $_winesrcdir && git checkout ${_plain_version}
-    cd "$srcdir"
-  fi
+  git clone "${_winesrctarget}" "$_winesrcdir"
 
   # Wine staging source
   if [ "$_use_staging" == "true" ]; then
-    git clone https://github.com/wine-staging/wine-staging.git $_stgsrcdir
+    git clone https://github.com/wine-staging/wine-staging.git "$_stgsrcdir"
+  fi
 
-    if [ -n "$_staging_version" ]; then
-      cd $_stgsrcdir && git checkout ${_staging_version}
-      cd "$srcdir"
-    fi
+  _source_cleanup
+
+  cd "${srcdir}"/"${_stgsrcdir}"
+  git checkout master
+  git pull
+  if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
+    git checkout "${_staging_version}"
+  fi
+
+  cd "${srcdir}"/"${_winesrcdir}"
+  git checkout master
+  git pull
+  if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ]; then
+    git checkout "${_plain_version}"
   fi
 
 nonuser_patcher() {

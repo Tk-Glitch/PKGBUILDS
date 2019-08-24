@@ -447,7 +447,8 @@ prepare() {
 	  _configure_args+=(--without-mingw)
 	fi
 
-	# prepare step
+	# prepare steps
+	_source_cleanup
 	_prepare
 }
 
