@@ -76,9 +76,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=67
+_sub=68
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=95
+pkgrel=96
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,7 +114,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0010-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            'b2a707698b26f22ff7bd8c39da679dcfde308d12bd1980a63c10da175e86750c'
+            'bd1b62a9daf42326bc1e7a02e1a80312cb233cbc2b49663fa6b618c46f0596ce'
             '00e61adf2b206512b3da168663d8aa415f0c3ee0b0fe487c57837114efe95bed'
             '017a23531e972d74b8e79f27834a48ba94e4b045c4cd1ad38ab782d8244df87c'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
@@ -127,7 +127,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '1d31a99042b5b0ca1e91e6e9164f6b9aeb95c96b5222914898aad7a5fb39acce'
             '224752891520ce200a6f6ec8b4c361a28a88adab249f2aafad4992be189fff51'
             'e6bd562663fe979fb72d3b05cab6c18c5e3e4d67cb87d587a119e28e4f747926'
-            'd8e65a80a28c7860b229475a142c92749b431215020e0a1dd9a58b11adc9782b'
+            'b3b115e5559fbaa6877bc7e8c8d54ea43a708d784ddf2944c1c84ad6ac1ac9a0'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
             'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
             'b58555e0a1dc18a75db0a436e446374bd0c2c45a3e39c86282a006f0862c546a'
