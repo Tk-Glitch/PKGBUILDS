@@ -285,12 +285,12 @@ if [ "$1" == "lutris" ]; then
 
       source "$ROOT/D9VKBUILD/$D9VK_BRANCH/last-HEAD"
 
-      rm -rv "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x64/d3d9.dll
-      rm -rv "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x32/d3d9.dll
-      #mkdir -p "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x64
-      #mkdir -p "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x32
-      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x64/* "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x64
-      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x32/* "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x32
+      rm -rv "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x64/d3d9.dll
+      rm -rv "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x32/d3d9.dll
+      mkdir -p "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x64
+      mkdir -p "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x32
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x64/* "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x64
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x32/* "$HOME"/.local/share/lutris/runtime/d9vk/TkG/x32
 
       echo ""
       echo "###########################################################"
