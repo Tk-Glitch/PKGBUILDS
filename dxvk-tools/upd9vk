@@ -9,6 +9,7 @@
 # BATCH UPDATE WITH : ./upd9vk batch - (Edit PREFIXES_ROOT variable to point to your prefixes dir)
 
 # LUTRIS UPDATE WITH : ./upd9vk lutris - (Put 'TkG' as D9VK version in lutris afterwards to use your fresh build)
+# LUTRIS UPDATE ALTERNATIVE WITH : ./upd9vk lutris-dxvk - (Put 'TkG' as DXVK version in lutris afterwards to use your fresh build - both DXVK and D9VK builds are placed in the same dir with this)
 
 # PROTON-TKG READY WITH : ./upd9vk proton-tkg
 
@@ -272,7 +273,7 @@ if [ "$1" == "batch" ] && [ ! -z "$PREFIXES_ROOT" ]; then
   done
 fi
 
-# Lutris
+# Lutris default
 if [ "$1" == "lutris" ]; then
 
   wineserver -k
@@ -296,6 +297,35 @@ if [ "$1" == "lutris" ]; then
       echo "###########################################################"
       echo ""
       echo "Put 'TkG' as D9VK version in lutris to use your fresh build"
+      echo ""
+      echo "###########################################################"
+
+    fi
+
+fi
+
+# Lutris - in DXVK dir
+if [ "$1" == "lutris-dxvk" ]; then
+
+  wineserver -k
+
+    if [ ! -f ./D9VKBUILD/"$D9VK_BRANCH"/last-HEAD ]; then
+
+      echo "You need to build before you can update ! Run upd9vk build first"
+
+    else
+
+      source "$ROOT/D9VKBUILD/$D9VK_BRANCH/last-HEAD"
+
+      rm -rv "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x64/d3d9.dll
+      rm -rv "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x32/d3d9.dll
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x64/* "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x64
+      cp -rv ./D9VKBUILD/"$D9VK_BRANCH"/"$CURRENT_HEAD"/x32/* "$HOME"/.local/share/lutris/runtime/dxvk/TkG/x32
+
+      echo ""
+      echo "###########################################################"
+      echo ""
+      echo "Put 'TkG' as DXVK version in lutris to use your fresh build"
       echo ""
       echo "###########################################################"
 
