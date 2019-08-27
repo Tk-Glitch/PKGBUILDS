@@ -957,25 +957,32 @@ EOM
 	    fi
 	    # Gamepad additions - from Proton 4.2-5
 	    if [ "$_gamepad_additions" == "true" ]; then
-	      if git merge-base --is-ancestor d2d3959d3d29b3da334b53283b34cafde653b3e8 HEAD; then
+	      cd "${srcdir}"/"${_stgsrcdir}"
+	      if git merge-base --is-ancestor fcfeaf092cf9e8060223744f507395946554fe09 HEAD; then
+	        cd "${srcdir}"/"${_winesrcdir}"
 	        _patchname='proton-gamepad-additions.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
 	      else
-	        cd "${srcdir}"/"${_stgsrcdir}"
-	        if git merge-base --is-ancestor 4413770af102ed80f9c5c19a9148ab32d3dc1a0f HEAD && [ "$_use_staging" == "true" ]; then
-	          cd "${srcdir}"/"${_winesrcdir}"
-	          _patchname='proton-gamepad-additions-d2d3959.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	        cd "${srcdir}"/"${_winesrcdir}"
+	        if git merge-base --is-ancestor d2d3959d3d29b3da334b53283b34cafde653b3e8 HEAD; then
+	          _patchname='proton-gamepad-additions-fcfeaf0.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
 	        else
-	          cd "${srcdir}"/"${_winesrcdir}"
-	          if git merge-base --is-ancestor 9c6ea019358eadcf86159872e2890ffc94960965 HEAD; then
-	            _patchname='proton-gamepad-additions-4413770.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
-	          elif git merge-base --is-ancestor f8a04c7f2e2c77eef663c5bb2109e3dbd51b22e0 HEAD; then
-	            _patchname='proton-gamepad-additions-9c6ea01.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
-	          elif git merge-base --is-ancestor 3d011fcdffe39ae856cbb0915938fe158b60742a HEAD; then
-	            _patchname='proton-gamepad-additions-f8a04c7.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
-	          elif git merge-base --is-ancestor 50b9456e878f57d8c850282d77e74534c57a181e HEAD; then
-	            _patchname='proton-gamepad-additions-3d011fc.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
-	          elif git merge-base --is-ancestor 6a610a325809d47f48bc72f3a757e1a62b193ea8 HEAD; then
-	            _patchname='proton-gamepad-additions-50b9456.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	          cd "${srcdir}"/"${_stgsrcdir}"
+	          if git merge-base --is-ancestor 4413770af102ed80f9c5c19a9148ab32d3dc1a0f HEAD && [ "$_use_staging" == "true" ]; then
+	            cd "${srcdir}"/"${_winesrcdir}"
+	            _patchname='proton-gamepad-additions-d2d3959.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	          else
+	            cd "${srcdir}"/"${_winesrcdir}"
+	            if git merge-base --is-ancestor 9c6ea019358eadcf86159872e2890ffc94960965 HEAD; then
+	              _patchname='proton-gamepad-additions-4413770.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	            elif git merge-base --is-ancestor f8a04c7f2e2c77eef663c5bb2109e3dbd51b22e0 HEAD; then
+	              _patchname='proton-gamepad-additions-9c6ea01.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	            elif git merge-base --is-ancestor 3d011fcdffe39ae856cbb0915938fe158b60742a HEAD; then
+	              _patchname='proton-gamepad-additions-f8a04c7.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	            elif git merge-base --is-ancestor 50b9456e878f57d8c850282d77e74534c57a181e HEAD; then
+	              _patchname='proton-gamepad-additions-3d011fc.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	            elif git merge-base --is-ancestor 6a610a325809d47f48bc72f3a757e1a62b193ea8 HEAD; then
+	              _patchname='proton-gamepad-additions-50b9456.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+                fi
               fi
             fi
           fi
