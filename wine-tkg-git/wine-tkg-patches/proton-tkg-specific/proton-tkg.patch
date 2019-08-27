@@ -2137,3 +2137,590 @@ index e22559912c3..41ec809b727 100644
          *mode = DWRITE_RENDERING_MODE_OUTLINE;
          return S_OK;
      }
+From 00cf415b05e45ec83ab5fd86f2f961df31bb68d4 Mon Sep 17 00:00:00 2001
+From: Zhiyi Zhang <zzhang@codeweavers.com>
+Date: Tue, 13 Aug 2019 12:46:57 +0000
+Subject: [PATCH] msctf: Add ITfContextOwnerCompositionServices stub.
+
+Fix crash at launch for games that use Unreal Engine 4.
+
+Signed-off-by: Zhiyi Zhang <zzhang@codeweavers.com>
+---
+ dlls/msctf/context.c | 92 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 88 insertions(+), 4 deletions(-)
+
+diff --git a/dlls/msctf/context.c b/dlls/msctf/context.c
+index 85e3c5b5b06..63f2bf5455d 100644
+--- a/dlls/msctf/context.c
++++ b/dlls/msctf/context.c
+@@ -41,7 +41,7 @@ typedef struct tagContext {
+     ITfContext ITfContext_iface;
+     ITfSource ITfSource_iface;
+     /* const ITfContextCompositionVtbl *ContextCompositionVtbl; */
+-    /* const ITfContextOwnerCompositionServicesVtbl *ContextOwnerCompositionServicesVtbl; */
++    ITfContextOwnerCompositionServices ITfContextOwnerCompositionServices_iface;
+     /* const ITfContextOwnerServicesVtbl *ContextOwnerServicesVtbl; */
+     ITfInsertAtSelection ITfInsertAtSelection_iface;
+     /* const ITfMouseTrackerVtbl *MouseTrackerVtbl; */
+@@ -89,6 +89,11 @@ static inline Context *impl_from_ITfSource(ITfSource *iface)
+     return CONTAINING_RECORD(iface, Context, ITfSource_iface);
+ }
+ 
++static inline Context *impl_from_ITfContextOwnerCompositionServices(ITfContextOwnerCompositionServices *iface)
++{
++    return CONTAINING_RECORD(iface, Context, ITfContextOwnerCompositionServices_iface);
++}
++
+ static inline Context *impl_from_ITfInsertAtSelection(ITfInsertAtSelection *iface)
+ {
+     return CONTAINING_RECORD(iface, Context, ITfInsertAtSelection_iface);
+@@ -150,6 +155,10 @@ static HRESULT WINAPI Context_QueryInterface(ITfContext *iface, REFIID iid, LPVO
+     {
+         *ppvOut = &This->ITfSource_iface;
+     }
++    else if (IsEqualIID(iid, &IID_ITfContextOwnerCompositionServices))
++    {
++        *ppvOut = &This->ITfContextOwnerCompositionServices_iface;
++    }
+     else if (IsEqualIID(iid, &IID_ITfInsertAtSelection))
+     {
+         *ppvOut = &This->ITfInsertAtSelection_iface;
+@@ -526,6 +535,9 @@ static const ITfContextVtbl ContextVtbl =
+     Context_CreateRangeBackup
+ };
+ 
++/*****************************************************
++ * ITfSource functions
++ *****************************************************/
+ static HRESULT WINAPI ContextSource_QueryInterface(ITfSource *iface, REFIID iid, LPVOID *ppvOut)
+ {
+     Context *This = impl_from_ITfSource(iface);
+@@ -544,9 +556,6 @@ static ULONG WINAPI ContextSource_Release(ITfSource *iface)
+     return ITfContext_Release(&This->ITfContext_iface);
+ }
+ 
+-/*****************************************************
+- * ITfSource functions
+- *****************************************************/
+ static HRESULT WINAPI ContextSource_AdviseSink(ITfSource *iface,
+         REFIID riid, IUnknown *punk, DWORD *pdwCookie)
+ {
+@@ -585,6 +594,80 @@ static const ITfSourceVtbl ContextSourceVtbl =
+     ContextSource_UnadviseSink
+ };
+ 
++/*****************************************************
++ * ITfContextOwnerCompositionServices functions
++ *****************************************************/
++static HRESULT WINAPI ContextOwnerCompositionServices_QueryInterface(ITfContextOwnerCompositionServices *iface,
++        REFIID iid, LPVOID *ppvOut)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    return ITfContext_QueryInterface(&This->ITfContext_iface, iid, ppvOut);
++}
++
++static ULONG WINAPI ContextOwnerCompositionServices_AddRef(ITfContextOwnerCompositionServices *iface)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    return ITfContext_AddRef(&This->ITfContext_iface);
++}
++
++static ULONG WINAPI ContextOwnerCompositionServices_Release(ITfContextOwnerCompositionServices *iface)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    return ITfContext_Release(&This->ITfContext_iface);
++}
++
++static HRESULT WINAPI ContextOwnerCompositionServices_StartComposition(ITfContextOwnerCompositionServices *iface,
++        TfEditCookie ecWrite, ITfRange *pCompositionRange, ITfCompositionSink *pSink, ITfComposition **ppComposition)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    FIXME("STUB:(%p) %#x %p %p %p\n", This, ecWrite, pCompositionRange, pSink, ppComposition);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI ContextOwnerCompositionServices_EnumCompositions(ITfContextOwnerCompositionServices *iface,
++        IEnumITfCompositionView **ppEnum)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    FIXME("STUB:(%p) %p\n", This, ppEnum);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI ContextOwnerCompositionServices_FindComposition(ITfContextOwnerCompositionServices *iface,
++        TfEditCookie ecRead, ITfRange *pTestRange, IEnumITfCompositionView **ppEnum)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    FIXME("STUB:(%p) %#x %p %p\n", This, ecRead, pTestRange, ppEnum);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI ContextOwnerCompositionServices_TakeOwnership(ITfContextOwnerCompositionServices *iface,
++        TfEditCookie ecWrite, ITfCompositionView *pComposition, ITfCompositionSink *pSink, ITfComposition **ppComposition)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    FIXME("STUB:(%p) %#x %p %p %p\n", This, ecWrite, pComposition, pSink, ppComposition);
++    return E_NOTIMPL;
++}
++
++static HRESULT WINAPI ContextOwnerCompositionServices_TerminateComposition(ITfContextOwnerCompositionServices *iface,
++        ITfCompositionView *pComposition)
++{
++    Context *This = impl_from_ITfContextOwnerCompositionServices(iface);
++    FIXME("STUB:(%p) %p\n", This, pComposition);
++    return E_NOTIMPL;
++}
++
++static const ITfContextOwnerCompositionServicesVtbl ContextOwnerCompositionServicesVtbl =
++{
++    ContextOwnerCompositionServices_QueryInterface,
++    ContextOwnerCompositionServices_AddRef,
++    ContextOwnerCompositionServices_Release,
++    ContextOwnerCompositionServices_StartComposition,
++    ContextOwnerCompositionServices_EnumCompositions,
++    ContextOwnerCompositionServices_FindComposition,
++    ContextOwnerCompositionServices_TakeOwnership,
++    ContextOwnerCompositionServices_TerminateComposition
++};
++
+ /*****************************************************
+  * ITfInsertAtSelection functions
+  *****************************************************/
+@@ -981,6 +1064,7 @@ HRESULT Context_Constructor(TfClientId tidOwner, IUnknown *punk, ITfDocumentMgr
+ 
+     This->ITfContext_iface.lpVtbl= &ContextVtbl;
+     This->ITfSource_iface.lpVtbl = &ContextSourceVtbl;
++    This->ITfContextOwnerCompositionServices_iface.lpVtbl = &ContextOwnerCompositionServicesVtbl;
+     This->ITfInsertAtSelection_iface.lpVtbl = &InsertAtSelectionVtbl;
+     This->ITfSourceSingle_iface.lpVtbl = &ContextSourceSingleVtbl;
+     This->ITextStoreACPSink_iface.lpVtbl = &TextStoreACPSinkVtbl;
+From 5c59517008697ce74becddb59a3e6702a963bb49 Mon Sep 17 00:00:00 2001
+From: Zhiyi Zhang <zzhang@codeweavers.com>
+Date: Fri, 16 Aug 2019 09:46:25 +0000
+Subject: [PATCH] msctf: Use list to keep thread managers.
+
+Thread managers were stored in thread local storage,
+which have a major flaw that they can't not be released
+by another thread.
+
+Signed-off-by: Zhiyi Zhang <zzhang@codeweavers.com>
+---
+ dlls/msctf/msctf.c          | 46 +++++++----------------
+ dlls/msctf/msctf_internal.h |  1 -
+ dlls/msctf/threadmgr.c      | 73 ++++++++++++++++++++++++++++++++-----
+ 3 files changed, 76 insertions(+), 44 deletions(-)
+
+diff --git a/dlls/msctf/msctf.c b/dlls/msctf/msctf.c
+index c6e3a2ca597..fd919295c5a 100644
+--- a/dlls/msctf/msctf.c
++++ b/dlls/msctf/msctf.c
+@@ -69,7 +69,6 @@ static UINT array_size;
+ static struct list AtsList = LIST_INIT(AtsList);
+ static UINT activated = 0;
+ 
+-DWORD tlsIndex = 0;
+ TfClientId processId = 0;
+ ITfCompartmentMgr *globalCompartmentMgr = NULL;
+ 
+@@ -397,23 +396,19 @@ HRESULT add_active_textservice(TF_LANGUAGEPROFILE *lp)
+     ActivatedTextService *actsvr;
+     ITfCategoryMgr *catmgr;
+     AtsEntry *entry;
+-    ITfThreadMgrEx *tm = TlsGetValue(tlsIndex);
++    ITfThreadMgr *tm;
+     ITfClientId *clientid;
+ 
+-    if (!tm) return E_UNEXPECTED;
++    if (FAILED(TF_GetThreadMgr(&tm))) return E_UNEXPECTED;
+ 
+     actsvr = HeapAlloc(GetProcessHeap(),0,sizeof(ActivatedTextService));
+-    if (!actsvr) return E_OUTOFMEMORY;
++    if (!actsvr) goto fail;
+ 
+-    ITfThreadMgrEx_QueryInterface(tm, &IID_ITfClientId, (void **)&clientid);
++    ITfThreadMgr_QueryInterface(tm, &IID_ITfClientId, (void **)&clientid);
+     ITfClientId_GetClientId(clientid, &lp->clsid, &actsvr->tid);
+     ITfClientId_Release(clientid);
+ 
+-    if (!actsvr->tid)
+-    {
+-        HeapFree(GetProcessHeap(),0,actsvr);
+-        return E_OUTOFMEMORY;
+-    }
++    if (!actsvr->tid) goto fail;
+ 
+     actsvr->pITfTextInputProcessor = NULL;
+     actsvr->LanguageProfile = *lp;
+@@ -440,20 +435,21 @@ HRESULT add_active_textservice(TF_LANGUAGEPROFILE *lp)
+         deactivate_remove_conflicting_ts(&actsvr->LanguageProfile.catid);
+ 
+     if (activated > 0)
+-        activate_given_ts(actsvr, tm);
++        activate_given_ts(actsvr, (ITfThreadMgrEx *)tm);
+ 
+     entry = HeapAlloc(GetProcessHeap(),0,sizeof(AtsEntry));
+-
+-    if (!entry)
+-    {
+-        HeapFree(GetProcessHeap(),0,actsvr);
+-        return E_OUTOFMEMORY;
+-    }
++    if (!entry) goto fail;
+ 
+     entry->ats = actsvr;
+     list_add_head(&AtsList, &entry->entry);
+ 
++    ITfThreadMgr_Release(tm);
+     return S_OK;
++
++fail:
++    ITfThreadMgr_Release(tm);
++    HeapFree(GetProcessHeap(), 0, actsvr);
++    return E_OUTOFMEMORY;
+ }
+ 
+ BOOL get_active_textservice(REFCLSID rclsid, TF_LANGUAGEPROFILE *profile)
+@@ -560,11 +556,9 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD fdwReason, LPVOID fImpLoad)
+             return FALSE;   /* prefer native version */
+         case DLL_PROCESS_ATTACH:
+             MSCTF_hinstance = hinst;
+-            tlsIndex = TlsAlloc();
+             break;
+         case DLL_PROCESS_DETACH:
+             if (fImpLoad) break;
+-            TlsFree(tlsIndex);
+             break;
+     }
+     return TRUE;
+@@ -622,20 +616,6 @@ HRESULT WINAPI TF_CreateThreadMgr(ITfThreadMgr **pptim)
+     return ThreadMgr_Constructor(NULL,(IUnknown**)pptim);
+ }
+ 
+-/***********************************************************************
+- *              TF_GetThreadMgr (MSCTF.@)
+- */
+-HRESULT WINAPI TF_GetThreadMgr(ITfThreadMgr **pptim)
+-{
+-    TRACE("\n");
+-    *pptim = TlsGetValue(tlsIndex);
+-
+-    if (*pptim)
+-        ITfThreadMgr_AddRef(*pptim);
+-
+-    return S_OK;
+-}
+-
+ /***********************************************************************
+  *              SetInputScope(MSCTF.@)
+  */
+diff --git a/dlls/msctf/msctf_internal.h b/dlls/msctf/msctf_internal.h
+index 584bb1044ed..ace2bee23d9 100644
+--- a/dlls/msctf/msctf_internal.h
++++ b/dlls/msctf/msctf_internal.h
+@@ -35,7 +35,6 @@
+ #define COOKIE_MAGIC_UIELEMENTSINK 0x00a0
+ #define COOKIE_MAGIC_INPUTPROCESSORPROFILEACTIVATIONSINK 0x00b0
+ 
+-extern DWORD tlsIndex DECLSPEC_HIDDEN;
+ extern TfClientId processId DECLSPEC_HIDDEN;
+ extern ITfCompartmentMgr *globalCompartmentMgr DECLSPEC_HIDDEN;
+ 
+diff --git a/dlls/msctf/threadmgr.c b/dlls/msctf/threadmgr.c
+index 2c208fbc04f..2119ea2193b 100644
+--- a/dlls/msctf/threadmgr.c
++++ b/dlls/msctf/threadmgr.c
+@@ -37,6 +37,17 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(msctf);
+ 
++static CRITICAL_SECTION ThreadMgrCs;
++static CRITICAL_SECTION_DEBUG ThreadMgrCsDebug =
++{
++    0, 0, &ThreadMgrCs,
++    {&ThreadMgrCsDebug.ProcessLocksList,
++     &ThreadMgrCsDebug.ProcessLocksList },
++     0, 0, {(DWORD_PTR)(__FILE__ ": ThreadMgrCs")}
++};
++static CRITICAL_SECTION ThreadMgrCs = {&ThreadMgrCsDebug, -1, 0, 0, 0, 0};
++struct list ThreadMgrList = LIST_INIT(ThreadMgrList);
++
+ typedef struct tagPreservedKey
+ {
+     struct list     entry;
+@@ -98,6 +109,9 @@ typedef struct tagACLMulti {
+     struct list     ThreadMgrEventSink;
+     struct list     UIElementSink;
+     struct list     InputProcessorProfileActivationSink;
++
++    DWORD threadId;
++    struct list entry;
+ } ThreadMgr;
+ 
+ typedef struct tagEnumTfDocumentMgr {
+@@ -110,6 +124,11 @@ typedef struct tagEnumTfDocumentMgr {
+ 
+ static HRESULT EnumTfDocumentMgr_Constructor(struct list* head, IEnumTfDocumentMgrs **ppOut);
+ 
++static inline ThreadMgr *impl_from_ITfThreadMgr(ITfThreadMgr *iface)
++{
++    return CONTAINING_RECORD(iface, ThreadMgr, ITfThreadMgrEx_iface);
++}
++
+ static inline ThreadMgr *impl_from_ITfThreadMgrEx(ITfThreadMgrEx *iface)
+ {
+     return CONTAINING_RECORD(iface, ThreadMgr, ITfThreadMgrEx_iface);
+@@ -155,6 +174,35 @@ static inline EnumTfDocumentMgr *impl_from_IEnumTfDocumentMgrs(IEnumTfDocumentMg
+     return CONTAINING_RECORD(iface, EnumTfDocumentMgr, IEnumTfDocumentMgrs_iface);
+ }
+ 
++/***********************************************************************
++ *              TF_GetThreadMgr (MSCTF.@)
++ */
++HRESULT WINAPI TF_GetThreadMgr(ITfThreadMgr **pptim)
++{
++    DWORD id = GetCurrentThreadId();
++    ThreadMgr *cursor;
++
++    TRACE("%p\n", pptim);
++
++    if (!pptim)
++        return E_INVALIDARG;
++
++    EnterCriticalSection(&ThreadMgrCs);
++    LIST_FOR_EACH_ENTRY(cursor, &ThreadMgrList, ThreadMgr, entry)
++    {
++        if (cursor->threadId == id)
++        {
++            ITfThreadMgrEx_AddRef(&cursor->ITfThreadMgrEx_iface);
++            *pptim = (ITfThreadMgr *)&cursor->ITfThreadMgrEx_iface;
++            LeaveCriticalSection(&ThreadMgrCs);
++            return S_OK;
++        }
++    }
++    LeaveCriticalSection(&ThreadMgrCs);
++    *pptim = NULL;
++    return E_FAIL;
++}
++
+ static void ThreadMgr_Destructor(ThreadMgr *This)
+ {
+     struct list *cursor, *cursor2;
+@@ -163,7 +211,9 @@ static void ThreadMgr_Destructor(ThreadMgr *This)
+     if (This->focusHook)
+         UnhookWindowsHookEx(This->focusHook);
+ 
+-    TlsSetValue(tlsIndex,NULL);
++    EnterCriticalSection(&ThreadMgrCs);
++    list_remove(&This->entry);
++    LeaveCriticalSection(&ThreadMgrCs);
+     TRACE("destroying %p\n", This);
+     if (This->focus)
+         ITfDocumentMgr_Release(This->focus);
+@@ -386,17 +436,20 @@ static HRESULT WINAPI ThreadMgr_SetFocus(ITfThreadMgrEx *iface, ITfDocumentMgr *
+ 
+ static LRESULT CALLBACK ThreadFocusHookProc(int nCode, WPARAM wParam, LPARAM lParam)
+ {
++    ITfThreadMgr *ThreadMgr_iface;
+     ThreadMgr *This;
+ 
+-    This = TlsGetValue(tlsIndex);
+-    if (!This)
++    if (FAILED(TF_GetThreadMgr(&ThreadMgr_iface)))
+     {
+         ERR("Hook proc but no ThreadMgr for this thread. Serious Error\n");
+         return 0;
+     }
++
++    This = impl_from_ITfThreadMgr(ThreadMgr_iface);
+     if (!This->focusHook)
+     {
+         ERR("Hook proc but no ThreadMgr focus Hook. Serious Error\n");
++        ITfThreadMgr_Release(ThreadMgr_iface);
+         return 0;
+     }
+ 
+@@ -417,6 +470,7 @@ static LRESULT CALLBACK ThreadFocusHookProc(int nCode, WPARAM wParam, LPARAM lPa
+         }
+     }
+ 
++    ITfThreadMgr_Release(ThreadMgr_iface);
+     return CallNextHookEx(This->focusHook, nCode, wParam, lParam);
+ }
+ 
+@@ -1338,13 +1392,8 @@ HRESULT ThreadMgr_Constructor(IUnknown *pUnkOuter, IUnknown **ppOut)
+         return CLASS_E_NOAGGREGATION;
+ 
+     /* Only 1 ThreadMgr is created per thread */
+-    This = TlsGetValue(tlsIndex);
+-    if (This)
+-    {
+-        ThreadMgr_AddRef(&This->ITfThreadMgrEx_iface);
+-        *ppOut = (IUnknown*)&This->ITfThreadMgrEx_iface;
++    if (SUCCEEDED(TF_GetThreadMgr((ITfThreadMgr **)ppOut)))
+         return S_OK;
+-    }
+ 
+     This = HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sizeof(ThreadMgr));
+     if (This == NULL)
+@@ -1359,7 +1408,6 @@ HRESULT ThreadMgr_Constructor(IUnknown *pUnkOuter, IUnknown **ppOut)
+     This->ITfUIElementMgr_iface.lpVtbl = &ThreadMgrUIElementMgrVtbl;
+     This->ITfSourceSingle_iface.lpVtbl = &SourceSingleVtbl;
+     This->refCount = 1;
+-    TlsSetValue(tlsIndex,This);
+ 
+     CompartmentMgr_Constructor((IUnknown*)&This->ITfThreadMgrEx_iface, &IID_IUnknown, (IUnknown**)&This->CompartmentMgr);
+ 
+@@ -1376,6 +1424,11 @@ HRESULT ThreadMgr_Constructor(IUnknown *pUnkOuter, IUnknown **ppOut)
+     list_init(&This->UIElementSink);
+     list_init(&This->InputProcessorProfileActivationSink);
+ 
++    This->threadId = GetCurrentThreadId();
++    EnterCriticalSection(&ThreadMgrCs);
++    list_add_tail(&ThreadMgrList, &This->entry);
++    LeaveCriticalSection(&ThreadMgrCs);
++
+     TRACE("returning %p\n", This);
+     *ppOut = (IUnknown *)&This->ITfThreadMgrEx_iface;
+     return S_OK;
+From def8df2a0ad8b15325a166b8d262b40bb13535da Mon Sep 17 00:00:00 2001
+From: Zhiyi Zhang <zzhang@codeweavers.com>
+Date: Fri, 16 Aug 2019 13:25:32 +0000
+Subject: [PATCH] msctf: Check TF_GetThreadMgr error in DocumentMgr_Destructor.
+
+Thread managers could be already destroyed when calling DocumentMgr_Destructor.
+
+Signed-off-by: Zhiyi Zhang <zzhang@codeweavers.com>
+---
+ dlls/msctf/documentmgr.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/msctf/documentmgr.c b/dlls/msctf/documentmgr.c
+index dd49cd022fa..e1cb4535b8c 100644
+--- a/dlls/msctf/documentmgr.c
++++ b/dlls/msctf/documentmgr.c
+@@ -80,8 +80,11 @@ static void DocumentMgr_Destructor(DocumentMgr *This)
+     ITfThreadMgr *tm;
+     TRACE("destroying %p\n", This);
+ 
+-    TF_GetThreadMgr(&tm);
+-    ThreadMgr_OnDocumentMgrDestruction(tm, &This->ITfDocumentMgr_iface);
++    if (SUCCEEDED(TF_GetThreadMgr(&tm)))
++    {
++        ThreadMgr_OnDocumentMgrDestruction(tm, &This->ITfDocumentMgr_iface);
++        ITfThreadMgr_Release(tm);
++    }
+ 
+     if (This->contextStack[0])
+         ITfContext_Release(This->contextStack[0]);
+From 57f18487fb073df1adf3fcdb0726175d530aa737 Mon Sep 17 00:00:00 2001
+From: Juuso Alasuutari <juuso.alasuutari@gmail.com>
+Date: Sun, 18 Aug 2019 09:27:13 +0300
+Subject: [PATCH] kernel32: Ensure that the loader lock is released before
+ returning from GetModuleHandleExW().
+
+Signed-off-by: Juuso Alasuutari <juuso.alasuutari@gmail.com>
+Reviewed-by: Richard Yao <ryao@gentoo.org>
+---
+ dlls/kernel32/module.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/dlls/kernel32/module.c b/dlls/kernel32/module.c
+index 9ae687cb840..4289f20d3c2 100644
+--- a/dlls/kernel32/module.c
++++ b/dlls/kernel32/module.c
+@@ -479,6 +479,8 @@ BOOL WINAPI GetModuleHandleExW( DWORD flags, LPCWSTR name, HMODULE *module )
+         UNICODE_STRING wstr;
+         if(steamclient_hmod != NULL && strcasestrW(name, steamclientW)){
+             *module = steamclient_hmod;
++            if (lock)
++                LdrUnlockLoaderLock( 0, magic );
+             return TRUE;
+         }
+         RtlInitUnicodeString( &wstr, name );
+From 6a53a746b78e8197506ea2d43ec1f5273f02f6a5 Mon Sep 17 00:00:00 2001
+From: Richard Yao <ryao@gentoo.org>
+Date: Sun, 18 Aug 2019 00:21:41 -0400
+Subject: [PATCH] advapi32: Add EventWriteString stub.
+
+"Are You Ready for Valve Index?" needs this to work.
+
+Signed-off-by: Richard Yao <ryao@gentoo.org>
+---
+ dlls/advapi32/advapi32.spec                            |  2 +-
+ dlls/advapi32/eventlog.c                               | 10 ++++++++++
+ .../api-ms-win-downlevel-advapi32-l1-1-0.spec          |  2 +-
+ .../api-ms-win-eventing-provider-l1-1-0.spec           |  2 +-
+ dlls/kernelbase/kernelbase.spec                        |  2 +-
+ 5 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/dlls/advapi32/advapi32.spec b/dlls/advapi32/advapi32.spec
+index 06c4f8f6964..1ba13f16ea4 100644
+--- a/dlls/advapi32/advapi32.spec
++++ b/dlls/advapi32/advapi32.spec
+@@ -297,7 +297,7 @@
+ # @ stub EventWriteEndScenario
+ # @ stub EventWriteEx
+ # @ stub EventWriteStartScenario
+-# @ stub EventWriteString
++@ stdcall EventWriteString(int64 long int64 ptr)
+ @ stdcall EventWriteTransfer(int64 ptr ptr ptr long ptr)
+ @ stdcall FileEncryptionStatusA(str ptr)
+ @ stdcall FileEncryptionStatusW(wstr ptr)
+diff --git a/dlls/advapi32/eventlog.c b/dlls/advapi32/eventlog.c
+index 71108c96425..8f19e440acc 100644
+--- a/dlls/advapi32/eventlog.c
++++ b/dlls/advapi32/eventlog.c
+@@ -836,6 +836,16 @@ ULONG WINAPI EventActivityIdControl(ULONG code, GUID *guid)
+     return ERROR_SUCCESS;
+ }
+ 
++/******************************************************************************
++ * EventWriteString [ADVAPI32.@]
++ */
++ULONG WINAPI EventWriteString( REGHANDLE handle, UCHAR level, ULONGLONG keyword, PCWSTR string )
++{
++    FIXME("%s, %u, %s, %s: stub\n", wine_dbgstr_longlong(handle), level,
++          wine_dbgstr_longlong(keyword), debugstr_w(string));
++    return ERROR_SUCCESS;
++}
++
+ /******************************************************************************
+  * EventWriteTransfer [ADVAPI32.@]
+  */
+diff --git a/dlls/api-ms-win-downlevel-advapi32-l1-1-0/api-ms-win-downlevel-advapi32-l1-1-0.spec b/dlls/api-ms-win-downlevel-advapi32-l1-1-0/api-ms-win-downlevel-advapi32-l1-1-0.spec
+index b2dcc17cb3c..579811b7773 100644
+--- a/dlls/api-ms-win-downlevel-advapi32-l1-1-0/api-ms-win-downlevel-advapi32-l1-1-0.spec
++++ b/dlls/api-ms-win-downlevel-advapi32-l1-1-0/api-ms-win-downlevel-advapi32-l1-1-0.spec
+@@ -44,7 +44,7 @@
+ @ stdcall EventRegister(ptr ptr ptr ptr) advapi32.EventRegister
+ @ stdcall EventUnregister(int64) advapi32.EventUnregister
+ @ stdcall EventWrite(int64 ptr long ptr) advapi32.EventWrite
+-@ stub EventWriteString
++@ stdcall EventWriteString(int64 long int64 ptr) advapi32.EventWriteString
+ @ stdcall EventWriteTransfer(int64 ptr ptr ptr long ptr) advapi32.EventWriteTransfer
+ @ stdcall FindFirstFreeAce(ptr ptr) advapi32.FindFirstFreeAce
+ @ stdcall FreeSid(ptr) advapi32.FreeSid
+diff --git a/dlls/api-ms-win-eventing-provider-l1-1-0/api-ms-win-eventing-provider-l1-1-0.spec b/dlls/api-ms-win-eventing-provider-l1-1-0/api-ms-win-eventing-provider-l1-1-0.spec
+index bd4e7a310c4..92d495c9240 100644
+--- a/dlls/api-ms-win-eventing-provider-l1-1-0/api-ms-win-eventing-provider-l1-1-0.spec
++++ b/dlls/api-ms-win-eventing-provider-l1-1-0/api-ms-win-eventing-provider-l1-1-0.spec
+@@ -6,5 +6,5 @@
+ @ stdcall EventUnregister(int64) advapi32.EventUnregister
+ @ stdcall EventWrite(int64 ptr long ptr) advapi32.EventWrite
+ @ stub EventWriteEx
+-@ stub EventWriteString
++@ stdcall EventWriteString(int64 long int64 ptr) advapi32.EventWriteString
+ @ stdcall EventWriteTransfer(int64 ptr ptr ptr long ptr) advapi32.EventWriteTransfer
+diff --git a/dlls/kernelbase/kernelbase.spec b/dlls/kernelbase/kernelbase.spec
+index bd64f5c2422..c3325a7355e 100644
+--- a/dlls/kernelbase/kernelbase.spec
++++ b/dlls/kernelbase/kernelbase.spec
+@@ -335,7 +335,7 @@
+ @ stdcall EventUnregister(int64) advapi32.EventUnregister
+ @ stdcall EventWrite(int64 ptr long ptr) advapi32.EventWrite
+ # @ stub EventWriteEx
+-# @ stub EventWriteString
++@ stdcall EventWriteString(int64 long int64 ptr) advapi32.EventWriteString
+ @ stdcall EventWriteTransfer(int64 ptr ptr ptr long ptr) advapi32.EventWriteTransfer
+ @ stdcall ExitProcess(long) kernel32.ExitProcess
+ @ stdcall ExitThread(long) kernel32.ExitThread
