@@ -229,7 +229,7 @@ fi
 }
 
 # External / Dynamic
-if [ -n "$1" ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ] && [ "$1" != "proton-tkg" ]; then
+if [ -n "$1" ] && [ "$1" != "batch" ] && [ "$1" != "build" ] && [ "$1" != "lutris" ] && [ "$1" != "lutris-dxvk" ] && [ "$1" != "proton-tkg" ]; then
   if [ -d "$1" ]; then
     WINEPREFIX="$1"
     if [ "$2" == "32" ]; then
