@@ -157,7 +157,7 @@ else
     git clean -xdf
     #git pull
     patch -Np1 < "$_nowhere/proton_template/LiberationMono-Regular.patch"
-    make
+    make -j$(nproc)
     cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf "$_nowhere/proton_template/share/fonts"/
     cd "$_nowhere"
 
@@ -192,12 +192,12 @@ else
 
     cd build/lsteamclient.win64
     winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" .
-    make -C "$_nowhere/Proton/build/lsteamclient.win64" && strip lsteamclient.dll.so
+    make -C "$_nowhere/Proton/build/lsteamclient.win64" -j$(nproc) && strip lsteamclient.dll.so
     cd ../..
 
     cd build/lsteamclient.win32
     winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" .
-    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/lsteamclient.win32" && strip lsteamclient.dll.so
+    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/lsteamclient.win32" -j$(nproc) && strip lsteamclient.dll.so
     cd $_nowhere
 
     # Inject lsteamclient libs in our wine-tkg-git build
@@ -217,7 +217,7 @@ else
       fi
 
       winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -lole32 -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
-      make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" && strip steam.exe.so
+      make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" -j$(nproc) && strip steam.exe.so
       cd $_nowhere
 
       # Inject steam helper winelib and libsteam_api lib in our wine-tkg-git build
