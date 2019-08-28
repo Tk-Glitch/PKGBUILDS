@@ -1,0 +1,35 @@
+From 7c1b39cf18481f0d15f3ffb1130da4479032d76a Mon Sep 17 00:00:00 2001
+From: Jason Ekstrand <jason@jlekstrand.net>
+Date: Fri, 26 Jul 2019 17:41:59 -0500
+Subject: [PATCH] isl/formats: R8G8B8_UNORM_SRGB isn't supported on HSW
+
+On Haswell, the format works but it doesn't properly do an sRGB decode.
+It appears to act identically to R8G8B8_UNORM.  Only Vulkan uses this
+format so this only affects Vulkan on HSW.
+
+Cc: mesa-stable@lists.freedesktop.org
+Reviewed-by: Eric Engestrom <eric@engestrom.ch>
+---
+ src/intel/isl/isl_format.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/intel/isl/isl_format.c b/src/intel/isl/isl_format.c
+index b429e7779a4..9847f231923 100644
+--- a/src/intel/isl/isl_format.c
++++ b/src/intel/isl/isl_format.c
+@@ -294,7 +294,11 @@ static const struct surface_format_info format_info[] = {
+    SF( 70,  70,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   BC7_UNORM_SRGB)
+    SF( 70,  70,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   BC6H_UF16)
+    SF(  x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   PLANAR_420_8)
+-   SF( 75,  75,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   R8G8B8_UNORM_SRGB)
++   /* The format enum for R8G8B8_UNORM_SRGB first shows up in the HSW PRM but
++    * empirical testing indicates that it doesn't actually sRGB decode and
++    * acts identical to R8G8B8_UNORM.  It does work on gen8+.
++    */
++   SF( 80,  80,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   R8G8B8_UNORM_SRGB)
+    SF( 80,  80,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   ETC1_RGB8)
+    SF( 80,  80,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   ETC2_RGB8)
+    SF( 80,  80,   x,   x,   x,   x,   x,   x,   x,   x,   x,   x,   EAC_R11)
+-- 
+2.22.0
+
