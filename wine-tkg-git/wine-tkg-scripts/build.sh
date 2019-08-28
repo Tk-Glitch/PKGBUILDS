@@ -86,6 +86,8 @@ _build() {
 	    export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
 	  elif [ -d '/usr/lib/i386-linux-gnu/pkgconfig' ]; then # Ubuntu 18.04/19.04 path
 	    export PKG_CONFIG_PATH='/usr/lib/i386-linux-gnu/pkgconfig'
+	  else
+	    export PKG_CONFIG_PATH='/usr/lib/pkgconfig' # Pretty common path, possibly helpful for OpenSuse
 	  fi
 	  msg2 'Building Wine-32...'
 	  cd "${srcdir}/${pkgname}"-32-build
