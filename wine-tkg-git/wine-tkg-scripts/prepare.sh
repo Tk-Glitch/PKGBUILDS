@@ -919,14 +919,16 @@ EOM
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  if git merge-base --is-ancestor 05d00276c627753487c571c30fddfc56c02ad37e HEAD; then
+	  if git merge-base --is-ancestor 0bebbbaa51c7647389ef9ac886169f6037356460 HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging)" && nonuser_patcher
 	    else
 	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor 09f588ee6909369b541398dd392d3ff77231e6a6 HEAD; then
+	    if git merge-base --is-ancestor 05d00276c627753487c571c30fddfc56c02ad37e HEAD; then
+	      _lastcommit="0bebbba"
+	    elif git merge-base --is-ancestor 09f588ee6909369b541398dd392d3ff77231e6a6 HEAD; then
 	      _lastcommit="05d0027"
 	    elif git merge-base --is-ancestor 0116660dd80b38da8201e2156adade67fc2ae823 HEAD; then
 	      _lastcommit="09f588e"

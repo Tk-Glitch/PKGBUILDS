@@ -5,7 +5,7 @@ pkgver=4.14.r17.g512d0b1d
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=195
+eval pkgrel=196
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -252,11 +252,13 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-0116660.patch' # Proton-tkg (<0116660)
 		'proton-tkg-09f588e.patch' # Proton-tkg (<09f588e)
 		'proton-tkg-05d0027.patch' # Proton-tkg (<05d0027)
+		'proton-tkg-0bebbba.patch' # Proton-tkg (<0bebbba)
 		'proton-tkg.patch' # Proton-tkg
 		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging (<eafb4af)
 		'proton-tkg-staging-0116660.patch' # Proton-tkg-staging (<0116660)
 		'proton-tkg-staging-09f588e.patch' # Proton-tkg-staging (<09f588e)
 		'proton-tkg-staging-05d0027.patch' # Proton-tkg-staging (<05d0027)
+		'proton-tkg-staging-0bebbba.patch' # Proton-tkg-staging (<0bebbba)
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'msvcrt_nativebuiltin-eafb4aff.patch' # Enforce mscvrt Dlls to native then builtin - from Proton (<eafb4aff)
@@ -363,11 +365,13 @@ md5sums=('SKIP'
          '5f4fee214ec0d94decb19309caf8ec6e'
          '333469023e6e55496c4ec28518f87a3f'
          '5af0c5ae73a70bd3215564d95a80a78e'
+         'bb9b7ca5caf73e6ce0498e43aedb6a5d'
          'ce0332f66626399574d79d10642896d2'
          '09274cf0d0b8775afa040f2cdc2a03e0'
          'd20a871566773b7d71c443383ddfb272'
          '3d55df1bc8677b16a41d7e6b555a609a'
          '28b66f6d107082e7dd50a4f842c42bef'
+         'e6d1170eb317f98a63a719769fccccd3'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          '52f11ca72f4ee06bd2a4bc2b0314e631'

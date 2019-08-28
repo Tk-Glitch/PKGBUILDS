@@ -21,7 +21,7 @@ index 016c3022dc..bb496425aa 100644
 @@ -718,12 +718,12 @@
  @ stdcall GetMailslotInfo(long ptr ptr ptr ptr)
  @ stdcall GetMaximumProcessorCount(long)
- # @ stub GetMaximumProcessorGroupCount
+ @ stdcall GetMaximumProcessorGroupCount()
 -@ stdcall -import GetModuleFileNameA(long ptr long)
 -@ stdcall -import GetModuleFileNameW(long ptr long)
 -@ stdcall -import GetModuleHandleA(str)
@@ -1711,9 +1711,9 @@ index f1c883167ed..50b3323ae9f 100644
 --- a/dlls/user32/focus.c
 +++ b/dlls/user32/focus.c
 @@ -156,6 +156,8 @@ static BOOL set_active_window( HWND hwnd, HWND *prev, BOOL mouse, BOOL focus )
-                       (LPARAM)previous );
-         if (GetAncestor( hwnd, GA_PARENT ) == GetDesktopWindow())
-             PostMessageW( GetDesktopWindow(), WM_PARENTNOTIFY, WM_NCACTIVATE, (LPARAM)hwnd );
+ 
+         if (hwnd == GetForegroundWindow() && !IsIconic( hwnd ))
+             USER_Driver->pSetActiveWindow( hwnd );
 +
 +        imm_activate_window( hwnd );
      }
@@ -2137,6 +2137,7 @@ index e22559912c3..41ec809b727 100644
          *mode = DWRITE_RENDERING_MODE_OUTLINE;
          return S_OK;
      }
+
 From 5c59517008697ce74becddb59a3e6702a963bb49 Mon Sep 17 00:00:00 2001
 From: Zhiyi Zhang <zzhang@codeweavers.com>
 Date: Fri, 16 Aug 2019 09:46:25 +0000
@@ -2425,6 +2426,36 @@ index 2c208fbc04f..2119ea2193b 100644
      TRACE("returning %p\n", This);
      *ppOut = (IUnknown *)&This->ITfThreadMgrEx_iface;
      return S_OK;
+From def8df2a0ad8b15325a166b8d262b40bb13535da Mon Sep 17 00:00:00 2001
+From: Zhiyi Zhang <zzhang@codeweavers.com>
+Date: Fri, 16 Aug 2019 13:25:32 +0000
+Subject: [PATCH] msctf: Check TF_GetThreadMgr error in DocumentMgr_Destructor.
+
+Thread managers could be already destroyed when calling DocumentMgr_Destructor.
+
+Signed-off-by: Zhiyi Zhang <zzhang@codeweavers.com>
+---
+ dlls/msctf/documentmgr.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/msctf/documentmgr.c b/dlls/msctf/documentmgr.c
+index dd49cd022fa..e1cb4535b8c 100644
+--- a/dlls/msctf/documentmgr.c
++++ b/dlls/msctf/documentmgr.c
+@@ -80,8 +80,11 @@ static void DocumentMgr_Destructor(DocumentMgr *This)
+     ITfThreadMgr *tm;
+     TRACE("destroying %p\n", This);
+ 
+-    TF_GetThreadMgr(&tm);
+-    ThreadMgr_OnDocumentMgrDestruction(tm, &This->ITfDocumentMgr_iface);
++    if (SUCCEEDED(TF_GetThreadMgr(&tm)))
++    {
++        ThreadMgr_OnDocumentMgrDestruction(tm, &This->ITfDocumentMgr_iface);
++        ITfThreadMgr_Release(tm);
++    }
+ 
+     if (This->contextStack[0])
+         ITfContext_Release(This->contextStack[0]);
 From 57f18487fb073df1adf3fcdb0726175d530aa737 Mon Sep 17 00:00:00 2001
 From: Juuso Alasuutari <juuso.alasuutari@gmail.com>
 Date: Sun, 18 Aug 2019 09:27:13 +0300
