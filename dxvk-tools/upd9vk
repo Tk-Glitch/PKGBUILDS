@@ -41,23 +41,18 @@ cat << 'EOM'
 
 EOM
 
-D9VK_BRANCH=master # D9VK branch to use
-CUSTOM_COMMIT=0 # Set to 1 to enable custom commit checkout
-D9VK_COMMIT= # targetted custom commit
-D9VK_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
-
-PATCHIN=1 # Enables auto-application of all patches present in ./D9VKBUILD/patches - It WILL make your tree dirty if any patch is applied
-DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Always clear source dir and redownload from git - 2: Always ignore source dir removal even if dirty
-
-PREFIXES_ROOT="$HOME"/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
-
-_d3d9_only="true" # Set to false to also build dxgi, d3d10 and d3d11 (DXVK, basically) - You typically don't want that if you only need to build D9VK
+source upd9vk.cfg
 
 ROOT=$PWD
 
 build() {
 mkdir -p D9VKBUILD
 mkdir -p D9VKBUILD/patches
+
+_exit_cleanup() {
+  rm -rf "$ROOT/D9VKBUILD/dxvk-$DXVK_BRANCH"
+  echo -e "\nexit cleanup done"
+}
 
 if [ "$DIRTYIN" != "2" ]; then
   if [ -e "d9vk-$D9VK_BRANCH.d9vkdirty" ] || [ "$DIRTYIN" == "1" ]; then
@@ -96,6 +91,12 @@ if [ -n "$D9VK_COMMIT" ] && [ "$CUSTOM_COMMIT" == "1" ]; then
 fi
 
 GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`
+
+if [ "$_nativeopt" == "true" ]; then
+  mv ../D9VKBUILD/patches/nativeopt.dxvkpatchb ../D9VKBUILD/patches/nativeopt.dxvkpatch 2>/dev/null
+else
+  mv ../D9VKBUILD/patches/nativeopt.dxvkpatch ../D9VKBUILD/patches/nativeopt.dxvkpatchb 2>/dev/null
+fi
 
 if [ "$PATCHIN" == "1" ]; then
   for F in ../D9VKBUILD/patches/*.d9vkrevert; do
@@ -378,4 +379,5 @@ if [ "$1" == "build" ]; then
 
 fi
 
-exit
+trap _exit_cleanup EXIT
+trap _exit_cleanup SIGTERM

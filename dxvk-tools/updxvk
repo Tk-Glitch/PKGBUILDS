@@ -40,21 +40,18 @@ cat << 'EOM'
 
 EOM
 
-DXVK_BRANCH=master # DXVK branch to use
-CUSTOM_COMMIT=0 # Set to 1 to enable custom commit checkout
-DXVK_COMMIT= # targetted custom commit
-DXVK_AUTOUPDATE=1 # Git pull (Sync) with clean source before building
-
-PATCHIN=1 # Enables auto-application of all patches present in ./DXVKBUILD/patches - It WILL make your tree dirty if any patch is applied
-DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Always clear source dir and redownload from git - 2: Always ignore source dir removal even if dirty
-
-PREFIXES_ROOT="$HOME"/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
+source updxvk.cfg
 
 ROOT=$PWD
 
 build() {
 mkdir -p DXVKBUILD
 mkdir -p DXVKBUILD/patches
+
+_exit_cleanup() {
+  rm -rf "$ROOT/DXVKBUILD/dxvk-$DXVK_BRANCH"
+  echo -e "\nexit cleanup done"
+}
 
 if [ "$DIRTYIN" != "2" ]; then
   if [ -e "dxvk-$DXVK_BRANCH.dxvkdirty" ] || [ "$DIRTYIN" == "1" ]; then
@@ -93,6 +90,24 @@ if [ -n "$DXVK_COMMIT" ] && [ "$CUSTOM_COMMIT" == "1" ]; then
 fi
 
 GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`
+
+if [ "$_mangohud" == "true" ]; then
+  mv ../DXVKBUILD/patches/dxvk_mango.dxvkpatchb ../DXVKBUILD/patches/dxvk_mango.dxvkpatch 2>/dev/null
+else
+  mv ../DXVKBUILD/patches/dxvk_mango.dxvkpatch ../DXVKBUILD/patches/dxvk_mango.dxvkpatchb 2>/dev/null
+fi
+
+if [ "$_async" == "true" ]; then
+  mv ../DXVKBUILD/patches/dxvk-async.dxvkpatchb ../DXVKBUILD/patches/dxvk-async.dxvkpatch 2>/dev/null
+else
+  mv ../DXVKBUILD/patches/dxvk-async.dxvkpatch ../DXVKBUILD/patches/dxvk-async.dxvkpatchb 2>/dev/null
+fi
+
+if [ "$_nativeopt" == "true" ]; then
+  mv ../DXVKBUILD/patches/nativeopt.dxvkpatchb ../DXVKBUILD/patches/nativeopt.dxvkpatch 2>/dev/null
+else
+  mv ../DXVKBUILD/patches/nativeopt.dxvkpatch ../DXVKBUILD/patches/nativeopt.dxvkpatchb 2>/dev/null
+fi
 
 if [ "$PATCHIN" == "1" ]; then
   for F in ../DXVKBUILD/patches/*.dxvkrevert; do
@@ -346,4 +361,5 @@ if [ "$1" == "build" ]; then
 
 fi
 
-exit
+trap _exit_cleanup EXIT
+trap _exit_cleanup SIGTERM
