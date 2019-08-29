@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.14.r17.g512d0b1d
+pkgver=4.14.r18.g4aa460b8
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -529,10 +529,10 @@ build() {
 	  fi
 	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	    # make using all available threads
-	    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	    _buildtime64=$( time ( schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) 2>&1 ) 3>&1 1>&2 2>&3 )
 	  else
 	    # make using makepkg settings
-	    schedtool -B -n 1 -e ionice -n 1 make
+	    _buildtime64=$( time ( schedtool -B -n 1 -e ionice -n 1 make 2>&1 ) 3>&1 1>&2 2>&3 )
 	  fi
 	fi
 
@@ -566,10 +566,10 @@ build() {
 	  fi
 	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	    # make using all available threads
-	    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	    _buildtime32=$( time ( schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) 2>&1 ) 3>&1 1>&2 2>&3 )
 	  else
 	    # make using makepkg settings
-	    schedtool -B -n 1 -e ionice -n 1 make
+	    _buildtime32=$( time ( schedtool -B -n 1 -e ionice -n 1 make 2>&1 ) 3>&1 1>&2 2>&3 )
 	  fi
 	fi
 }

@@ -70,10 +70,10 @@ _build() {
 	  fi
 	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	    # make using all available threads
-	    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	    _buildtime64=$( time ( schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) 2>&1 ) 3>&1 1>&2 2>&3 )
 	  else
 	    # make using makepkg settings
-	    schedtool -B -n 1 -e ionice -n 1 make
+	    _buildtime64=$( time ( schedtool -B -n 1 -e ionice -n 1 make 2>&1 ) 3>&1 1>&2 2>&3 )
 	  fi
 	fi
 
@@ -113,10 +113,10 @@ _build() {
 	  fi
 	  if [ "$_LOCAL_OPTIMIZED" == 'true' ]; then
 	    # make using all available threads
-	    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc)
+	    _buildtime32=$( time ( schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) 2>&1 ) 3>&1 1>&2 2>&3 )
 	  else
 	    # make using makepkg settings
-	    schedtool -B -n 1 -e ionice -n 1 make
+	    _buildtime32=$( time ( schedtool -B -n 1 -e ionice -n 1 make 2>&1 ) 3>&1 1>&2 2>&3 )
 	  fi
 	fi
 }

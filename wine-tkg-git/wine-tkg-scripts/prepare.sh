@@ -55,6 +55,13 @@ _exit_cleanup() {
   rm -rf "$_where"/*.conf
   rm -rf "$_where"/*.orig
   rm -rf "$_where"/*.rej
+
+  if [ -n "$_buildtime64" ]; then
+    msg2 "Compilation time for 64-bit wine: \n$_buildtime64\n"
+  fi
+  if [ -n "$_buildtime32" ]; then
+    msg2 "Compilation time for 32-bit wine: \n$_buildtime32\n"
+  fi
 }
 
 _init() {
