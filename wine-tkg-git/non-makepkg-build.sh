@@ -77,30 +77,58 @@ pkgver() {
   find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "$_where" \; # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
   cp "$_where"/wine-tkg-userpatches/*.my* "$_where" 2>/dev/null # copy userpatches inside the PKGBUILD's dir
 
+
+  ## Handle git repos similarly to makepkg to preserve repositories when building both with and without makepkg on Arch
   # Wine source
-  cd "$srcdir"
-  git clone "${_winesrctarget}" "$_winesrcdir"
+  cd "$_where"
+  git clone --mirror "${_winesrctarget}" "$_winesrcdir"
 
   # Wine staging source
   if [ "$_use_staging" == "true" ]; then
-    git clone https://github.com/wine-staging/wine-staging.git "$_stgsrcdir"
+    git clone --mirror https://github.com/wine-staging/wine-staging.git "$_stgsrcdir"
   fi
 
-  _source_cleanup
+  pushd "$srcdir" &>/dev/null
 
-  cd "${srcdir}"/"${_stgsrcdir}"
-  git checkout master
-  git pull
-  if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
-    git checkout "${_staging_version}"
+  # Wine staging update and checkout
+  if [ "$_use_staging" == "true" ]; then
+    cd "$_where"/"${_stgsrcdir}"
+    if [[ "https://github.com/wine-staging/wine-staging.git" != "$(git config --get remote.origin.url)" ]] ; then
+      echo "${_stgsrcdir} is not a clone of ${_stgsrcdir}. Please delete ${_winesrcdir} and src dirs and try again."
+      exit 1
+    fi
+    git fetch --all -p
+    if [ ! -d "${srcdir}/${_stgsrcdir}" ]; then
+      git clone "$_where"/"${_stgsrcdir}" "${srcdir}/${_stgsrcdir}"
+    else
+      git fetch
+    fi
+    cd "${srcdir}"/"${_stgsrcdir}"
+    git checkout --force --no-track -B makepkg origin/HEAD
+    if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
+      git checkout "${_staging_version}"
+    fi
   fi
 
+  # Wine update and checkout
+  cd "$_where"/"${_winesrcdir}"
+  if [[ "${_winesrctarget}" != "$(git config --get remote.origin.url)" ]] ; then
+    echo "${_winesrcdir} is not a clone of ${_winesrcdir}. Please delete ${_winesrcdir} and src dirs and try again."
+    exit 1
+  fi
+  git fetch --all -p
+  if [ ! -d "${srcdir}/${_winesrcdir}" ]; then
+    git clone "$_where"/"${_winesrcdir}" "${srcdir}/${_winesrcdir}"
+  else
+    git fetch
+  fi
   cd "${srcdir}"/"${_winesrcdir}"
-  git checkout master
-  git pull
+  git checkout --force --no-track -B makepkg origin/HEAD
   if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ]; then
     git checkout "${_plain_version}"
   fi
+
+  popd &>/dev/null
 
 nonuser_patcher() {
   if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW1" == "y" ]; then
@@ -124,11 +152,11 @@ build_wine_tkg() {
     _configure_args+=(--without-mingw)
   fi
 
+  _source_cleanup
   _prepare
   ## prepare step end
 
   _build
-
   _package
 }
 
