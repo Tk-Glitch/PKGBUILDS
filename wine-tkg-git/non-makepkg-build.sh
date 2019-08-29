@@ -98,11 +98,7 @@ pkgver() {
       exit 1
     fi
     git fetch --all -p
-    if [ ! -d "${srcdir}/${_stgsrcdir}" ]; then
-      git clone "$_where"/"${_stgsrcdir}" "${srcdir}/${_stgsrcdir}"
-    else
-      git fetch
-    fi
+    rm -rf "${srcdir}/${_stgsrcdir}" && git clone "$_where"/"${_stgsrcdir}" "${srcdir}/${_stgsrcdir}"
     cd "${srcdir}"/"${_stgsrcdir}"
     git checkout --force --no-track -B makepkg origin/HEAD
     if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
@@ -117,11 +113,7 @@ pkgver() {
     exit 1
   fi
   git fetch --all -p
-  if [ ! -d "${srcdir}/${_winesrcdir}" ]; then
-    git clone "$_where"/"${_winesrcdir}" "${srcdir}/${_winesrcdir}"
-  else
-    git fetch
-  fi
+  rm -rf "${srcdir}/${_winesrcdir}" && git clone "$_where"/"${_winesrcdir}" "${srcdir}/${_winesrcdir}"
   cd "${srcdir}"/"${_winesrcdir}"
   git checkout --force --no-track -B makepkg origin/HEAD
   if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ]; then
