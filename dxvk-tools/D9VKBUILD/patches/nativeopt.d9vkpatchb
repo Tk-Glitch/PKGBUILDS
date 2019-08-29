@@ -14,8 +14,8 @@ index 463230e..b8171be 100644
  [properties]
 -c_args=['-msse', '-msse2']
 -cpp_args=['-msse', '-msse2']
-+c_args=['-march=native', '-O2', '-ftree-vectorize', '-ftree-slp-vectorize', '-pipe']
-+cpp_args=['-march=native', '-O2', '-ftree-vectorize', '-ftree-slp-vectorize', '-pipe']
++c_args=['-march=native']
++cpp_args=['-march=native']
  c_link_args = ['-static', '-static-libgcc']
  cpp_link_args = ['-static', '-static-libgcc', '-static-libstdc++', '-Wl,--add-stdcall-alias,--enable-stdcall-fixup']
  
@@ -27,8 +27,8 @@ index d33d2da..a76124c 100644
  exe_wrapper = 'wine'
  
  [properties]
-+c_args=['-march=native', '-O2', '-ftree-vectorize', '-ftree-slp-vectorize', '-pipe']
-+cpp_args=['-march=native', '-O2', '-ftree-vectorize', '-ftree-slp-vectorize', '-pipe']
++c_args=['-march=native']
++cpp_args=['-march=native']
  c_link_args = ['-static', '-static-libgcc']
  cpp_link_args = ['-static', '-static-libgcc', '-static-libstdc++']
  
