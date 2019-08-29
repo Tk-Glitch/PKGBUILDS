@@ -51,6 +51,8 @@ DIRTYIN=1 # 0: Clear source dir only if marked as dirty from patching - 1: Alway
 
 PREFIXES_ROOT="$HOME"/wineprefixes # Path to the root folder containing your wine prefixes for batch installing/updating
 
+_d3d9_only="true" # Set to false to also build dxgi, d3d10 and d3d11 (DXVK, basically) - You typically don't want that if you only need to build D9VK
+
 ROOT=$PWD
 
 build() {
@@ -139,6 +141,12 @@ if pacman -Qq ccache &> /dev/null; then
 else
   echo ""
   echo 'ccache was not found and will not be used'
+fi
+
+if [ "$_d3d9_only" == "true" ]; then
+  sed -i "s|option('enable_dxgi'.*|option('enable_dxgi',  type : 'boolean', value : false, description: 'Build DXGI')|g" meson_options.txt
+  sed -i "s|option('enable_d3d10'.*|option('enable_d3d10', type : 'boolean', value : false, description: 'Build D3D10')|g" meson_options.txt
+  sed -i "s|option('enable_d3d11'.*|option('enable_d3d11', type : 'boolean', value : false, description: 'Build D3D11')|g" meson_options.txt
 fi
 
 echo "#################"
