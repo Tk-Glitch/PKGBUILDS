@@ -156,8 +156,32 @@ build_wine_tkg() {
   _prepare
   ## prepare step end
 
+  _prebuild_common
+
+  local _prefix="$_where/${pkgname}-${pkgver}"
+  local _lib32name="lib32"
+  local _lib64name="lib"
+
+  # configure args
+  if [ -n "$_configure_userargs" ]; then
+    _configure_args+=($_configure_userargs)
+  fi
+
+  # External install
+  if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+    if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
+      _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+    elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+      #_prefix="$_where"
+      _configure_args+=(--without-curses)
+    fi
+  #else
+  #  _configure_args64+=(--libdir="$_prefix/$_lib64name")
+  #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
+  fi
+
   _build
-  _package
+  _package_nomakepkg
 }
 
 build_wine_tkg
