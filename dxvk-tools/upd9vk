@@ -45,14 +45,14 @@ source upd9vk.cfg
 
 ROOT=$PWD
 
+_exit_cleanup() {
+  rm -rf "$ROOT/D9VKBUILD/d9vk-$DXVK_BRANCH"
+  echo -e "\nexit cleanup done"
+}
+
 build() {
 mkdir -p D9VKBUILD
 mkdir -p D9VKBUILD/patches
-
-_exit_cleanup() {
-  rm -rf "$ROOT/D9VKBUILD/dxvk-$DXVK_BRANCH"
-  echo -e "\nexit cleanup done"
-}
 
 if [ "$DIRTYIN" != "2" ]; then
   if [ -e "d9vk-$D9VK_BRANCH.d9vkdirty" ] || [ "$DIRTYIN" == "1" ]; then
@@ -379,5 +379,4 @@ if [ "$1" == "build" ]; then
 
 fi
 
-trap _exit_cleanup EXIT
-trap _exit_cleanup SIGTERM
+trap _exit_cleanup EXIT SIGTERM

@@ -44,14 +44,14 @@ source updxvk.cfg
 
 ROOT=$PWD
 
-build() {
-mkdir -p DXVKBUILD
-mkdir -p DXVKBUILD/patches
-
 _exit_cleanup() {
   rm -rf "$ROOT/DXVKBUILD/dxvk-$DXVK_BRANCH"
   echo -e "\nexit cleanup done"
 }
+
+build() {
+mkdir -p DXVKBUILD
+mkdir -p DXVKBUILD/patches
 
 if [ "$DIRTYIN" != "2" ]; then
   if [ -e "dxvk-$DXVK_BRANCH.dxvkdirty" ] || [ "$DIRTYIN" == "1" ]; then
@@ -361,5 +361,4 @@ if [ "$1" == "build" ]; then
 
 fi
 
-trap _exit_cleanup EXIT
-trap _exit_cleanup SIGTERM
+trap _exit_cleanup EXIT SIGTERM
