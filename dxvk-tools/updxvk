@@ -117,7 +117,7 @@ if [ "$PATCHIN" == "1" ]; then
       echo "REVERTING PATCH ${F}"
       echo ""
       echo "#################"
-      patch -Np1 -R < ${F} && echo "This means that branch $DXVK_BRANCH was altered by patching and will be cleared next time you build" >> ../"$DXVK_BRANCH".dxvkdirty
+      patch -Np1 -R < ${F} && echo "This means that branch $DXVK_BRANCH was altered by patching and will be cleared next time you build" >> ../"$DXVK_BRANCH".dxvkdirty || exit 1
     else
       echo "#################"
       echo ""
@@ -133,7 +133,7 @@ if [ "$PATCHIN" == "1" ]; then
       echo "APPLYING PATCH ${F}"
       echo ""
       echo "#################"
-      patch -Np1 < ${F} && echo "This means that branch $DXVK_BRANCH was altered by patching and will be cleared next time you build" >> ../"$DXVK_BRANCH".dxvkdirty
+      patch -Np1 < ${F} && echo "This means that branch $DXVK_BRANCH was altered by patching and will be cleared next time you build" >> ../"$DXVK_BRANCH".dxvkdirty || exit 1
     else
       echo "#################"
       echo ""
