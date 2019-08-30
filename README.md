@@ -23,7 +23,7 @@ makepkg -si
 That will grab the required dependencies, build, then install the newly created package(s).
 
 
- * For bash scripts, just run them from their respective directory.
+ * For bash scripts, just run them from their respective directory - You might find additional details in the readme dedicated to the tool you want to build.
 
 
  * You can also clone a single folder from the repo (you need to have the `subversion` package installed) but it might break inter-dependencies :

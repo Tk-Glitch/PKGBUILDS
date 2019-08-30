@@ -20,13 +20,15 @@ Wine-staging : https://github.com/wine-staging/wine-staging
 
 Wine esync : https://github.com/zfigura/wine/tree/esync
 
+Wine fsync : https://github.com/zfigura/wine/tree/fsync
+
 Wine-pba (Only working correctly up to 3.18 - Force disabled on newer wine bases due to regressions) : https://github.com/acomminos/wine-pba
 
 Thanks to @Firerat and @bobwya for their rebase work :
 - https://github.com/Firerat/wine-pba
 - https://github.com/bobwya/gentoo-wine-pba
 
-With other patches available such as (but not limited to) :
+With other patches available such as (but not limited to - see [customization.cfg for the full list and details](customization.cfg) ) :
 - CSMT-toggle fixed logic - https://github.com/wine-staging/wine-staging/pull/60/commits/ad474559590a659b3df72ec9965de20c7f51c3a8
 - GLSL-toggle for wined3d
 - Path of Exile DX11 fix
@@ -57,7 +59,7 @@ git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
 
 
-## Build :
+## Building on Arch (and other pacman/makepkg distros) :
 
 From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
 ```
@@ -65,4 +67,13 @@ makepkg -si
 ```
 
 
-Note for Ubuntu users: https://github.com/Tk-Glitch/PKGBUILDS/issues/69#issuecomment-450548800 Thanks to @yuiiio
+## Building on other distros (experimental - see [the comments inside the script for more details](non-makepkg-build.sh) ) :
+
+From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
+```
+./non-makepkg-build.sh
+```
+**Your build will be found in the `PKGBUILD/wine-tkg-git/non-makepkg-builds` dir independently of the chosen configuration**
+
+
+Note for Ubuntu users who want to use docker instead: https://github.com/Tk-Glitch/PKGBUILDS/issues/69#issuecomment-450548800 Thanks to @yuiiio
