@@ -1,18 +1,22 @@
 #!/bin/bash
 
+# Created by: Tk-Glitch <ti3nou at gmail dot com>
+
 # This script replaces the wine-tkg PKGBUILD's function for use outside of makepkg or on non-pacman distros
 
-## On a stock Ubuntu 19.04 install, you'll need the following deps as bare minimum to build default wine-tkg (without Faudio):
+## You can check for missing dependencies by running this script with either `--deps64` argument for 64-bit dependencies or `--deps32` argument for 32-bit dependencies :
+# ./non-makepkg-build.sh --deps64
+# ./non-makepkg-build.sh --deps32
+
+## On a stock Ubuntu 19.04 install, you'll need the following deps as bare minimum to build default wine-tkg (without Faudio/winevulkan):
 # pkg-config (or pkgconf) bison flex schedtool libfreetype6-dev xserver-xorg-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev 
 # For 32-bit support : gcc-multilib g++-multilib libfreetype6-dev:i386 xserver-xorg-dev:i386 libgstreamer1.0-dev:i386 libgstreamer-plugins-base1.0-dev:i386
-#
-# For proton-tkg, the 32-bit dependencies above are required as well as the following additions:
+
+## For proton-tkg, the 32-bit dependencies above are required as well as the following additions:
 # curl fontforge fonttools libsdl2-dev python3-tk
 # !!! _sdl_joy_support="true" (default setting) would require libsdl2-dev:i386 but due to a conflict between libsdl2-dev:i386 and libmirclientcpp-dev (at least on 19.04) you're kinda frogged and should set _sdl_joy_support to "false" to build successfully. You'll lose SDL2 support on 32-bit apps !!!
-#
-## You're on your own to resolve additional dependencies you might want to build with, such as Faudio.
 
-# Created by: Tk-Glitch <ti3nou at gmail dot com>
+## You're on your own to resolve additional dependencies you might want to build with, such as Faudio.
 
 pkgname=wine-tkg-git
 
@@ -41,6 +45,11 @@ pkgver() {
 	# retrieve current wine version - if staging is enabled, staging version will be used instead
 	_describe_wine
 }
+
+  # The dependency "helper" (running configure) doesn't have to go through the initial prompt, so skip it
+  if [ "$1" == "--deps64" ] || [ "$1" == "--deps32" ]; then
+    _DEPSHELPER=1
+  fi
 
   # load functions
   source "$_where"/wine-tkg-scripts/prepare.sh
@@ -176,6 +185,14 @@ build_wine_tkg() {
   _package_nomakepkg
 }
 
-build_wine_tkg
+if [ "$1" == "--deps64" ]; then
+  cd "${srcdir}"/"${_winesrcdir}"
+  ./configure --enable-win64
+elif [ "$1" == "--deps32" ]; then
+  cd "${srcdir}"/"${_winesrcdir}"
+  ./configure
+else
+  build_wine_tkg
+fi
 
 trap _exit_cleanup EXIT

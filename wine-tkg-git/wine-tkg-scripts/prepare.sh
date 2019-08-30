@@ -104,7 +104,7 @@ msg2 ''
     source "$_where"/wine-tkg-profiles/wine-tkg.cfg && source "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg && msg2 "Preset configuration $_LOCAL_PRESET will be used to override customization.cfg values." && msg2 ""
   fi
 
-  if [ "$_NOINITIALPROMPT" == "true" ] || [ -n "$_LOCAL_PRESET" ]; then
+  if [ "$_NOINITIALPROMPT" == "true" ] || [ -n "$_LOCAL_PRESET" ] || [ -n "$_DEPSHELPER" ]; then
     msg2 'Initial prompt skipped. Do you remember what it said? 8)'
   else
     # If the state tracker isn't found, prompt the user with useful stuff.
