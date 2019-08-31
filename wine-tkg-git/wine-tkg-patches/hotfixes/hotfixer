@@ -2,7 +2,7 @@
 
 if [ "$_use_staging" == "true" ]; then
   cd "${srcdir}"/"${_stgsrcdir}"
-  if git merge-base --is-ancestor 744721610400959a9b7191199471f52409bfa8d1 HEAD; then
+  if [ "$_rawinput_fix" == "true" ] && git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD; then
   cd "${srcdir}"/"${_winesrcdir}"
 
   hotfixer() {
