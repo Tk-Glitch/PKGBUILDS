@@ -25,6 +25,9 @@ mingw/mingw-w64-*/
 mingw/cloog/
 mingw/isl/
 mingw/osl/
+mostlyportable-gcc/build/
+mostlyportable-gcc/gcc/
+mostlyportable-gcc/gcc-mostlyportable*
 gst-libav/gst-libav/
 faudio-git/FAudio/
 spirv-tools-git/SPIRV-Headers/

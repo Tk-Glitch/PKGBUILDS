@@ -5,6 +5,18 @@ _prebuild_common() {
 
 	echo "" >> "$_where"/last_build_config.log
 
+	# compiler
+	if [ -n "$_CC" ]; then
+	  export CC=${_CC}
+	else
+	  _CC="gcc"
+	fi
+	if [ -n "$_CXX" ]; then
+	  export CXX=${_CXX}
+	else
+	  _CXX="g++"
+	fi
+
 	# compiler flags
 	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	  export CFLAGS="${_GCC_FLAGS}"
@@ -34,7 +46,8 @@ _build() {
 	  # build wine 64-bit
 	  # (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	  if [[ ! ${_makepkg_options[*]} =~ "ccache" ]] && [ -e /usr/bin/ccache ]; then
-	    export CC="ccache gcc"
+	    export CC="ccache ${_CC}"
+	    export CXX="ccache ${_CXX}"
 	  fi
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache x86_64-w64-mingw32-gcc"
@@ -62,7 +75,8 @@ _build() {
 
 	if [ "$_NOLIB32" != "true" ]; then
 	  if [[ ! ${_makepkg_options[*]} =~ "ccache" ]] && [ -e /usr/bin/ccache ]; then
-	    export CC="ccache gcc"
+	    export CC="ccache ${_CC}"
+	    export CXX="ccache ${_CXX}"
 	  fi
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache i686-w64-mingw32-gcc"
