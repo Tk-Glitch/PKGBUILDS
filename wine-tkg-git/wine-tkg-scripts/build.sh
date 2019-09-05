@@ -5,16 +5,12 @@ _prebuild_common() {
 
 	echo "" >> "$_where"/last_build_config.log
 
-	# compiler
-	if [ -n "$_CC" ]; then
-	  export CC=${_CC}
-	else
-	  _CC="gcc"
+	# Use custom compiler paths if defined
+	if [ -n "${CUSTOM_MINGW_PATH}" ]; then
+	  PATH=${CUSTOM_MINGW_PATH}/bin:${CUSTOM_MINGW_PATH}/lib:${CUSTOM_MINGW_PATH}/include:${PATH}
 	fi
-	if [ -n "$_CXX" ]; then
-	  export CXX=${_CXX}
-	else
-	  _CXX="g++"
+	if [ -n "${CUSTOM_GCC_PATH}" ]; then
+	  PATH=${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}
 	fi
 
 	# compiler flags
@@ -46,8 +42,8 @@ _build() {
 	  # build wine 64-bit
 	  # (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	  if [[ ! ${_makepkg_options[*]} =~ "ccache" ]] && [ -e /usr/bin/ccache ]; then
-	    export CC="ccache ${_CC}"
-	    export CXX="ccache ${_CXX}"
+	    export CC="ccache gcc"
+	    export CXX="ccache g++"
 	  fi
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache x86_64-w64-mingw32-gcc"
@@ -75,8 +71,8 @@ _build() {
 
 	if [ "$_NOLIB32" != "true" ]; then
 	  if [[ ! ${_makepkg_options[*]} =~ "ccache" ]] && [ -e /usr/bin/ccache ]; then
-	    export CC="ccache ${_CC}"
-	    export CXX="ccache ${_CXX}"
+	    export CC="ccache gcc"
+	    export CXX="ccache g++"
 	  fi
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache i686-w64-mingw32-gcc"
