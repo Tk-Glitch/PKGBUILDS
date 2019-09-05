@@ -28,6 +28,7 @@ mingw/osl/
 mostlyportable-gcc/build/
 mostlyportable-gcc/gcc/
 mostlyportable-gcc/gcc-mostlyportable*
+mostlyportable-gcc/mingw-mostlyportable*
 gst-libav/gst-libav/
 faudio-git/FAudio/
 spirv-tools-git/SPIRV-Headers/
