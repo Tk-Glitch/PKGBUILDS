@@ -45,6 +45,14 @@ source upd9vk.cfg
 
 ROOT=$PWD
 
+# Use custom compiler paths if defined
+if [ -n "${CUSTOM_MINGW_PATH}" ]; then
+  PATH=${CUSTOM_MINGW_PATH}/bin:${CUSTOM_MINGW_PATH}/lib:${CUSTOM_MINGW_PATH}/include:${PATH}
+fi
+if [ -n "${CUSTOM_GCC_PATH}" ]; then
+  PATH=${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}
+fi
+
 _exit_cleanup() {
   rm -rf "$ROOT/D9VKBUILD/d9vk-$DXVK_BRANCH"
   echo -e "\nexit cleanup done"
