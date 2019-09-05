@@ -29,6 +29,7 @@ export BUILDDIR= # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
 _where=$PWD
 _dwarf2=true
 _fortran=false
+_win32threads=false
 _cloog_git=false
 _pgp_auto=true
 
@@ -66,6 +67,9 @@ _mingwloop() {
   git clone https://aur.archlinux.org/$_AURPKGNAME.git
   cd $_AURPKGNAME
   rm *.pkg.* # Delete package if exists
+  if [ "$_win32threads" == "true" ]; then
+    sed -i "s/threads=posix/threads=win32/g" PKGBUILD
+  fi
   if [ "$_AURPKGNAME" == "mingw-w64-gcc-base" ] && [ $_dwarf2 == "true" ]; then
     #dwarf2 exceptions
     patch PKGBUILD << 'EOM'
