@@ -767,6 +767,11 @@ prepare() {
 build() {
   cd "${srcdir}/linux-${_basekernel}-${_sub}"
 
+  # Use custom compiler paths if defined
+  if [ -n "${CUSTOM_GCC_PATH}" ]; then
+    PATH=${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}
+  fi
+
   if [ "$_force_all_threads" == "true" ]; then
     _force_all_threads=-j$(nproc)
   else
