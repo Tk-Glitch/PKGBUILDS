@@ -76,9 +76,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=70
+_sub=71
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=98
+pkgrel=99
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,7 +114,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0010-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            '3689c5a8edf59087583b17ad279c6f42d97f622f67d99545b3a6f13c77af28d1'
+            'ed63d8d74551c09b978e8e68a22b125e95a2fbfdcd09abc90c29b3ffb38d5431'
             '00e61adf2b206512b3da168663d8aa415f0c3ee0b0fe487c57837114efe95bed'
             '017a23531e972d74b8e79f27834a48ba94e4b045c4cd1ad38ab782d8244df87c'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
