@@ -44,11 +44,11 @@ While some are already available there without userpatches or lib32 support, the
 
 For the current stable mainline kernel version, you can find per-arch optimized daily builds for PDS and MuQSS variants here : https://repo.kitsuna.net/ - Thanks to LordKitsuna.
 
-**Wanna talk about it? Need help? Feel free to join the Frog Family discord server : https://discord.gg/jRy3Nxk**
+**Wanna talk about it? Need help? Feel free to join the Frogging Family discord server : https://discord.gg/jRy3Nxk**
 
 **If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch**
 
-## Thanks to Oli, Fábio, Bill, Kristoffer, Typhoon, Ole Erik, Stephan and all my anonymous Patrons! Much frog love to you guys <3
+## Thanks to Lutris, Oli, Fábio, Bill, Kristoffer, Typhoon, Ole Erik, Stephan and all my anonymous Patrons and supporters! Much frog love to you guys <3
 
 
 **You can also donate to me via https://www.paypal.me/TkGlitch**
