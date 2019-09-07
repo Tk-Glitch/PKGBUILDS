@@ -847,8 +847,10 @@ EOM
 	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" && nonuser_patcher
 	  fi
 	  cd "${srcdir}"/"${_stgsrcdir}"
-	  if git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD && [ "$_rawinput_fix" == "true" ] || ! git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD; then
+	  if git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD; then
 	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
+	  elif git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD && [ "$_rawinput_fix" == "true" ] || ! git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD; then
+	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
 	  else
 	    cd "${srcdir}"/"${_winesrcdir}"
 	    if git merge-base --is-ancestor de6450135de419ac7e64aee0c0efa27b60bea3e8 HEAD; then
