@@ -163,6 +163,7 @@ find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "
 cp "$_where"/wine-tkg-userpatches/*.my* "$_where" 2>/dev/null # copy userpatches inside the PKGBUILD's dir
 
 source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
+		"$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}"
 		# game specific
 		'poe-fix.patch' # Enable Path of Exile DX11 to work
 		'f4skyrimse-fix-1.patch' # Fo4 & Skyrim SE Script Extender fix 1/2 (merged with 12be24a)
@@ -281,6 +282,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 )
 
 md5sums=('SKIP'
+         'SKIP'
          'a49bc2bb374d5ea5045ada5401cd91a3'
          '16acd00eb3ccc65687850002b818859c'
          '5e3002826a916a16130c567db763dfc5'
@@ -390,12 +392,6 @@ md5sums=('SKIP'
          '561e85803cac59630853afa43391cc58'
          'd8616d47efbe0465cda808abb0e9ac5b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2')
-
-# Wine staging source
-if [ "$_use_staging" == "true" ]; then
-  source+=("$_stgsrcdir"::"git+https://github.com/wine-staging/wine-staging.git${_staging_commit}")
-  md5sums+=('SKIP')
-fi
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
