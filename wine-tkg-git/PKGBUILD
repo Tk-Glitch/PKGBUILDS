@@ -435,7 +435,7 @@ prepare() {
 	touch "${_where}"/BIG_UGLY_FROGMINER
 
 	# Check for mingw-w64-gcc
-	if [ "$_IGNORE_MINGWCHECK" != "true" ] && [ "$_NOMINGW" != "true" ]; then
+	if [ "$_IGNORE_MINGWCHECK" != "true" ] && [ "$_NOMINGW" != "true" ] && [ -z "$CUSTOM_MINGW_PATH" ]; then
 	  if pacman -Qq mingw-w64-gcc &> /dev/null; then
 	    msg2 'mingw-w64-gcc was found and will be used'
 	  else
