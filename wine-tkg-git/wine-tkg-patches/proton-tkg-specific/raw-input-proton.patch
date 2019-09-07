@@ -874,9 +874,9 @@ index 90fd11831bb..472ba77d0a8 100644
          WARN( "XInput2 not supported, refusing to clip to %s\n", wine_dbgstr_rect(clip) );
          DestroyWindow( msg_hwnd );
 @@ -442,7 +469,7 @@ static BOOL grab_clipping_window( const RECT *clip )
- 
      if (!clipping_cursor)
      {
+         ERR("Failed to grab pointer\n");
 -        disable_xinput2();
 +        disable_xinput2_path();
          DestroyWindow( msg_hwnd );
@@ -891,13 +891,14 @@ index 90fd11831bb..472ba77d0a8 100644
          DestroyWindow( hwnd );
      }
      else if (hwnd == GetForegroundWindow())  /* request to clip */
-@@ -1743,16 +1770,20 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1743,17 +1770,21 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  {
      XIRawEvent *event = xev->data;
      const double *values = event->valuators.values;
 +    const double *raw_values = event->raw_values;
      RECT virtual_rect;
      INPUT input;
+     POINT pt;
 +    RAWINPUT raw_input;
      int i;
 -    double dx = 0, dy = 0, val;
@@ -981,8 +982,8 @@ index 90fd11831bb..472ba77d0a8 100644
      }
  
 @@ -1819,10 +1879,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
-         return FALSE;
-     }
+     input.u.mi.dx = pt.x;
+     input.u.mi.dy = pt.y;
  
 -    TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
 +    if (thread_data->xi2_state == xi_extra)
@@ -1353,7 +1354,7 @@ index 65b1b500d00..4d5b0a45ffa 100644
                                      / (y_rel->max - y_rel->min);
  
              raw_input.data.mouse.usFlags = MOUSE_MOVE_RELATIVE;
-@@ -1898,20 +1902,47 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+@@ -1898,26 +1902,53 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
  
      if (broken_rawevents && is_old_motion_event( xev->serial ))
      {
@@ -1361,6 +1362,12 @@ index 65b1b500d00..4d5b0a45ffa 100644
 +        TRACE( "pos %d,%d old serial %lu, ignoring\n", (LONG) dx, (LONG) dy, xev->serial );
          return FALSE;
      }
+ 
+     pt.x = input.u.mi.dx;
+     pt.y = input.u.mi.dy;
+     fs_hack_scale_real_to_user(&pt);
+     input.u.mi.dx = pt.x;
+     input.u.mi.dy = pt.y;
  
 -    if (thread_data->xi2_state == xi_extra)
 +    /* Accumulate the fractional parts so they aren't lost after casting

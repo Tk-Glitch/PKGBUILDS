@@ -898,8 +898,10 @@ EOM
 	  if [ "$_use_staging" == "true" ]; then
 	    if [ "$_proton_fs_hack" == "true" ]; then
 	      cd "${srcdir}"/"${_stgsrcdir}"
-	      if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
+	      if git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD; then
 	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
+	      elif git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
+	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton-7349182.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
 	      fi
 	    fi
 	    cd "${srcdir}"/"${_winesrcdir}"
