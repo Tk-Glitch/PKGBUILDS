@@ -42,7 +42,7 @@ if [ $(pacman -Qs linux-headers | head -c1 | wc -c) -eq 0 ]; then
 fi
 
 # Package type selector
-if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; then
+if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; then
   read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.19.03\n  2.435 series: 435.21\n  3.430 series: 430.40\n  4.418 series: 418.88\n  5.415 series: 415.27\n  6.410 series: 410.104\n  7.396 series: 396.54\n  8.Custom version (396.xx to 435.xx series)\nchoice[1-8?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=435.21' > options
@@ -94,6 +94,16 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ]  && [ ! -e options ]; t
         echo '_dkms="true"' >> options
       fi
   fi
+  if [ -z "$_nvdxvktest" ]; then
+    plain "Do you want to test a potential workaround/fix for DXVK issue #1100?"
+    plain "The patch was suggested by NVIDIA"
+    plain "Please help fixing the problem by giving some feedback (good or bad):"
+    plain "https://github.com/doitsujin/dxvk/issues/1100"
+    read -rp "`echo $'    N/y ? : '`" nvtest;
+    if [ "$nvtest" == "y" ]; then
+      echo '_nvdxvktest="true"' >> options
+    fi
+  fi
 else
   _md5sum='SKIP'
 fi
@@ -139,7 +149,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=62
+pkgrel=63
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -176,6 +186,7 @@ source=($_source_name
         'kernel-5.1.patch' # 5.1 workaround
         'kernel-5.2.patch' # 5.2 workaround
         'kernel-5.3.patch' # 5.3 workaround
+        'GFP_RETRY_MAYFAIL-test.diff' # test for DXVK issue #1100 - https://github.com/doitsujin/dxvk/issues/1100
 )
 
 msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
@@ -193,7 +204,8 @@ md5sums=("$_md5sum"
          '6cff80c311debfdb6b543e575a81820a'
          'a3ce8ebab6506f556f4b222e2372ce87'
          '98b67a671ece0a796f9767793c209c93'
-         '6f9a62ef76ac86f299b0174f44488987')
+         '6f9a62ef76ac86f299b0174f44488987'
+         '559c4f7655a8bf891bd9d5c17563b99e')
 
 if [ $_autoaddpatch == "true" ]; then
   # Auto-add *.patch files from $startdir to source=()
@@ -379,6 +391,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
     done
 
+    # DXVK issue #1100 test
+    if [ "$_nvdxvktest" == "true" ]; then
+      msg2 "Applying GFP_RETRY_MAYFAIL-test.patch for $_kernel..."
+      patch -p2 -i "$srcdir"/GFP_RETRY_MAYFAIL-test.diff
+    fi
+
     cd ..
 
   done
@@ -488,6 +506,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     if [ "$_youngeryetoldstuff" == "1" ]; then
       msg2 "Applying 02-ipmi-vm.diff for dkms..."
       patch -Np1 -i "$srcdir"/02-ipmi-vm.diff
+    fi
+
+    # DXVK issue #1100 test
+    if [ "$_nvdxvktest" == "true" ]; then
+      msg2 "Applying GFP_RETRY_MAYFAIL-test.patch for dkms..."
+      patch -Np1 -i "$srcdir"/GFP_RETRY_MAYFAIL-test.diff
     fi
   fi
 }
