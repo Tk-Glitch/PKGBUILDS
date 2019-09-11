@@ -23,7 +23,7 @@ plain '             `.-:///////:-.`'
 _NUKR="true"
 
 pkgname=('spirv-tools-tkg-git' 'lib32-spirv-tools-tkg-git')
-pkgver=2019.4.r18.g15fc19d0
+pkgver=2019.4.r44.gc0e98070
 pkgrel=1
 pkgdesc='API and commands for processing SPIR-V modules'
 url='https://github.com/KhronosGroup/SPIRV-Tools'
@@ -96,6 +96,7 @@ package_lib32-spirv-tools-tkg-git() {
 
   make DESTDIR="${pkgdir}" install
 
+  rm -rf ${pkgdir}/usr/lib
   rm -rf ${pkgdir}/usr/include
   rm -rf ${pkgdir}/usr/bin
 
