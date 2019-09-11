@@ -81,7 +81,7 @@ index fa43ce3962e7..e7cda4aa8696 100644
  #endif
  
 +	if (p->flags & PF_CAN_BE_PACKED)
-+		attr.sched_flags |= SCHED_FLAG_TASK_PACKING;
++		kattr.sched_flags |= SCHED_FLAG_TASK_PACKING;
 +
  	rcu_read_unlock();
  
