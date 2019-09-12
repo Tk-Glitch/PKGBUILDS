@@ -491,6 +491,7 @@ fi
         --target=x86_64-linux-gnu
         #--enable-libstdcxx-debug
       _makeandinstall || exit 1
+      ln -s gcc ${_dstdir}/bin/cc
     fi
 
     if [ "$_mingwbuild" == "true" ]; then
