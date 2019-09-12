@@ -40,21 +40,19 @@ user_settings = {
     #Enable Winetricks prompt on game launch
 #    "PROTON_WINETRICKS": "1",
 
-    #Use OpenGL-based wined3d for d3d11/d3d10/d3d9 instead of Vulkan-based DXVK & D9VK !!! Won't affect winelib builds !!!
+    #Use OpenGL-based wined3d for d3d11/d3d10/d3d9 instead of Vulkan-based DXVK & D9VK
 #    "PROTON_USE_WINED3D": "1",
 
-    #Use OpenGL-based wined3d for d3d11/10 only (keeping D9VK enabled). Comment out to use vulkan-based DXVK instead.
-    #!!! DXVK winelib replaces wined3d d3d11/d3d10 and needs this option enabled !!!
+    #Use OpenGL-based wined3d for d3d11/10 only (keeping D9VK enabled). Comment out to use Vulkan-based DXVK instead.
 #    "PROTON_USE_WINED3D11": "1",
 
     #Enable custom d3d9 dll usage. This is the option you want to enable to use Gallium 9. Builtin D9VK won't be used with this option enabled.
 #    "PROTON_USE_CUSTOMD3D9": "1",
 
     #Use OpenGL-based wined3d for d3d9 only (keeping DXVK enabled). Comment out to use Vulkan-based D9VK or custom d3d9 dll instead.
-    #!!! D9VK winelib replaces wined3d d3d9 and needs this option enabled !!!
     "PROTON_USE_WINED3D9": "1",
 
-    #Use wine DXGI instead of DXVK's. This is needed to make use of VKD3D when DXVK is enabled. It will prevent the use of DXVK's DXGI functions.
+    #Use Wine DXGI instead of DXVK's. This is needed to make use of VKD3D when DXVK is enabled. It will prevent the use of DXVK's DXGI functions.
 #    "PROTON_USE_WINE_DXGI": "1",
 
     #Disable d3d11 entirely !!!
