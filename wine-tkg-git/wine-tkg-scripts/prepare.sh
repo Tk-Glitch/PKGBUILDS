@@ -574,7 +574,12 @@ EOM
 
 	# Resident Evil 4 hack - https://bugs.winehq.org/show_bug.cgi?id=46336
 	if [ "$_re4_fix" == "true" ]; then
-	  _patchname='resident_evil_4_hack.patch' && _patchmsg="Applied Resident Evil 4 hack" && nonuser_patcher
+	  cd "${srcdir}"/"${_stgsrcdir}"
+	  if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 2e4d0f472736529f59bd92dd3863731cd6bab875 HEAD; then
+	    cd "${srcdir}"/"${_winesrcdir}" && echo "RE4 fix disabled for the selected Wine-staging version" >> "$_where"/last_build_config.log
+	  else
+	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='resident_evil_4_hack.patch' && _patchmsg="Applied Resident Evil 4 hack" && nonuser_patcher
+	  fi
 	fi
 
 	# Child window support for vk - Fixes World of Final Fantasy and others - https://bugs.winehq.org/show_bug.cgi?id=45277
