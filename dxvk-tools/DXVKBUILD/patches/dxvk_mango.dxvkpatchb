@@ -1,204 +1,28 @@
-From 1666e21a22580316ad641101bf93ca633f37c125 Mon Sep 17 00:00:00 2001
-From: FlightlessMango <flightlessmangoyt@gmail.com>
-Date: Mon, 9 Sep 2019 17:03:18 +0200
-Subject: [PATCH 1/4] Added GpuLoad, using the normal StatGpuLoad's string.
+From 2fbe67c3f7eccb281e1312c3534898c2f247b717 Mon Sep 17 00:00:00 2001
+From: telans <telans@protonmail.com>
+Date: Sat, 13 Sep 2019 21:59:12 +0000
+Subject: [PATCH] mangohud
 
 ---
- src/dxvk/hud/dxvk_hud_config.cpp |  1 +
- src/dxvk/hud/dxvk_hud_config.h   |  1 +
- src/dxvk/hud/dxvk_hud_fps.cpp    | 16 ++++++++++++++++
- src/dxvk/hud/dxvk_hud_fps.h      |  5 +++++
- src/dxvk/hud/dxvk_hud_stats.cpp  |  8 +++++---
- src/dxvk/hud/dxvk_hud_stats.h    |  3 +--
- 6 files changed, 29 insertions(+), 5 deletions(-)
+ src/dxvk/dxvk_cpu.h              | 172 +++++++++++++++++++++++++++++++
+ src/dxvk/hud/dxvk_hud.cpp        |  13 ++-
+ src/dxvk/hud/dxvk_hud_config.cpp |   2 +
+ src/dxvk/hud/dxvk_hud_config.h   |   2 +
+ src/dxvk/hud/dxvk_hud_fps.cpp    |  68 ++++++++++--
+ src/dxvk/hud/dxvk_hud_fps.h      |  11 ++
+ src/dxvk/hud/dxvk_hud_stats.cpp  |  11 +-
+ src/dxvk/hud/dxvk_hud_stats.h    |   4 +-
+ 8 files changed, 266 insertions(+), 17 deletions(-)
+ create mode 100644 src/dxvk/dxvk_cpu.h
 
-diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
-index fe1745bd..a1bec809 100644
---- a/src/dxvk/hud/dxvk_hud_config.cpp
-+++ b/src/dxvk/hud/dxvk_hud_config.cpp
-@@ -16,6 +16,7 @@ namespace dxvk::hud {
-     { "version",      HudElement::DxvkVersion       },
-     { "api",          HudElement::DxvkClientApi     },
-     { "compiler",     HudElement::CompilerActivity  },
-+    { "mangogpuload", HudElement::GpuLoad           },
-   }};
-   
-   
-diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
-index 05a1e4b6..31632901 100644
---- a/src/dxvk/hud/dxvk_hud_config.h
-+++ b/src/dxvk/hud/dxvk_hud_config.h
-@@ -22,6 +22,7 @@ namespace dxvk::hud {
-     DxvkVersion       = 8,
-     DxvkClientApi     = 9,
-     CompilerActivity  = 10,
-+    GpuLoad           = 11,
-   };
-   
-   using HudElements = Flags<HudElement>;
-diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
-index f8cb6e7d..973cd8f4 100644
---- a/src/dxvk/hud/dxvk_hud_fps.cpp
-+++ b/src/dxvk/hud/dxvk_hud_fps.cpp
-@@ -1,4 +1,5 @@
- #include "dxvk_hud_fps.h"
-+#include "dxvk_hud_stats.h"
- 
- #include <cmath>
- #include <iomanip>
-@@ -50,6 +51,10 @@ namespace dxvk::hud {
-       position = this->renderFpsText(
-         context, renderer, position);
-     }
-+    if (m_elements.test(HudElement::GpuLoad)) {
-+      position = this->renderGpuText(
-+        context, renderer, position);
-+    }
-     
-     if (m_elements.test(HudElement::Frametimes)) {
-       position = this->renderFrametimeGraph(
-@@ -72,6 +77,17 @@ namespace dxvk::hud {
-     return HudPos { position.x, position.y + 24 };
-   }
-   
-+  HudPos HudFps::renderGpuText(
-+  const Rc<DxvkContext>&  context,
-+        HudRenderer&      renderer,
-+        HudPos            position) {
-+  renderer.drawText(context, 16.0f,
-+    { position.x, position.y },
-+    { 1.0f, 1.0f, 1.0f, 1.0f },
-+    m_gpuLoadString);
-+
-+  return HudPos { position.x, position.y + 24 };
-+}  
-   
-   HudPos HudFps::renderFrametimeGraph(
-     const Rc<DxvkContext>&  context,
-diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
-index c8c4b984..855c892f 100644
---- a/src/dxvk/hud/dxvk_hud_fps.h
-+++ b/src/dxvk/hud/dxvk_hud_fps.h
-@@ -49,6 +49,11 @@ namespace dxvk::hud {
-             HudRenderer&      renderer,
-             HudPos            position);
-     
-+    HudPos renderGpuText(
-+      const Rc<DxvkContext>&  context,
-+            HudRenderer&      renderer,
-+            HudPos            position);
-+    
-     HudPos renderFrametimeGraph(
-       const Rc<DxvkContext>&  context,
-             HudRenderer&      renderer,
-diff --git a/src/dxvk/hud/dxvk_hud_stats.cpp b/src/dxvk/hud/dxvk_hud_stats.cpp
-index 995f186b..a59f4baf 100644
---- a/src/dxvk/hud/dxvk_hud_stats.cpp
-+++ b/src/dxvk/hud/dxvk_hud_stats.cpp
-@@ -1,5 +1,6 @@
- #include "dxvk_hud_stats.h"
- 
-+std::string m_gpuLoadString = "GPU: ";
- namespace dxvk::hud {
-   
-   HudStats::HudStats(HudElements elements)
-@@ -24,7 +25,7 @@ namespace dxvk::hud {
- 
-     // GPU load is a bit more complex than that since
-     // we don't want to update this every frame
--    if (m_elements.test(HudElement::StatGpuLoad))
-+    if (m_elements.test(HudElement::GpuLoad) || m_elements.test(HudElement::StatGpuLoad))
-       this->updateGpuLoad();
-   }
-   
-@@ -71,7 +72,7 @@ namespace dxvk::hud {
-         ? uint64_t(ticks - m_diffGpuIdleTicks)
-         : uint64_t(0);
- 
--      m_gpuLoadString = str::format("GPU: ", (100 * busyTicks) / ticks, "%");
-+      m_gpuLoadString = str::format("GPU:   ", (100 * busyTicks) / ticks, "%");
-     }
-   }
- 
-@@ -224,7 +225,8 @@ namespace dxvk::hud {
-       HudElement::StatPipelines,
-       HudElement::StatMemory,
-       HudElement::StatGpuLoad,
--      HudElement::CompilerActivity);
-+      HudElement::CompilerActivity,
-+      HudElement::GpuLoad);
-   }
-   
- }
-diff --git a/src/dxvk/hud/dxvk_hud_stats.h b/src/dxvk/hud/dxvk_hud_stats.h
-index 227f600c..d41d136f 100644
---- a/src/dxvk/hud/dxvk_hud_stats.h
-+++ b/src/dxvk/hud/dxvk_hud_stats.h
-@@ -7,6 +7,7 @@
- #include "dxvk_hud_config.h"
- #include "dxvk_hud_renderer.h"
- 
-+extern std::string m_gpuLoadString;
- namespace dxvk::hud {
-   
-   /**
-@@ -44,8 +45,6 @@ namespace dxvk::hud {
-     uint64_t m_prevGpuIdleTicks = 0;
-     uint64_t m_diffGpuIdleTicks = 0;
-     
--    std::string m_gpuLoadString = "GPU: ";
--
-     void updateGpuLoad();
-     
-     HudPos printDrawCallStats(
--- 
-2.23.0
-
-
-From 101b176a6cd043771e61a6445e50210084b01260 Mon Sep 17 00:00:00 2001
-From: FlightlessMango <flightlessmangoyt@gmail.com>
-Date: Mon, 9 Sep 2019 17:55:40 +0200
-Subject: [PATCH 2/4] Added CpuLoad
-
----
- src/dxvk/hud/dxvk_hud_config.cpp |   1 +
- src/dxvk/hud/dxvk_hud_config.h   |   1 +
- src/dxvk/hud/dxvk_hud_fps.cpp    | 222 ++++++++++++++++++++++++++++---
- src/dxvk/hud/dxvk_hud_fps.h      |  12 +-
- 4 files changed, 218 insertions(+), 18 deletions(-)
-
-diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
-index a1bec809..11227e67 100644
---- a/src/dxvk/hud/dxvk_hud_config.cpp
-+++ b/src/dxvk/hud/dxvk_hud_config.cpp
-@@ -17,6 +17,7 @@ namespace dxvk::hud {
-     { "api",          HudElement::DxvkClientApi     },
-     { "compiler",     HudElement::CompilerActivity  },
-     { "mangogpuload", HudElement::GpuLoad           },
-+    { "mangocpuload", HudElement::CpuLoad           },
-   }};
-   
-   
-diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
-index 31632901..602333d1 100644
---- a/src/dxvk/hud/dxvk_hud_config.h
-+++ b/src/dxvk/hud/dxvk_hud_config.h
-@@ -23,6 +23,7 @@ namespace dxvk::hud {
-     DxvkClientApi     = 9,
-     CompilerActivity  = 10,
-     GpuLoad           = 11,
-+    CpuLoad           = 12,
-   };
-   
-   using HudElements = Flags<HudElement>;
-diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
-index 973cd8f4..7e9206ee 100644
---- a/src/dxvk/hud/dxvk_hud_fps.cpp
-+++ b/src/dxvk/hud/dxvk_hud_fps.cpp
-@@ -3,6 +3,177 @@
- 
- #include <cmath>
- #include <iomanip>
+diff --git a/src/dxvk/dxvk_cpu.h b/src/dxvk/dxvk_cpu.h
+new file mode 100644
+index 00000000..b2c8736a
+--- /dev/null
++++ b/src/dxvk/dxvk_cpu.h
+@@ -0,0 +1,172 @@
++#include <cmath>
++#include <iomanip>
 +#include <array>
 +#include <vector>
 +#include <algorithm>
@@ -207,7 +31,6 @@ index 973cd8f4..7e9206ee 100644
 +#include <sstream>
 +#include <fstream>
 +using namespace std;
-+
 +
 +const int NUM_CPU_STATES = 10;
 +
@@ -309,31 +132,6 @@ index 973cd8f4..7e9206ee 100644
 +			e.times[S_GUEST_NICE];
 +}
 +
-+
-+void updateCpuStrings(){
-+  for (size_t i = 0; i < arraySize; i++) {
-+    size_t spacing = 10;
-+    string value = to_string(cpuArray[i].value);
-+    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
-+    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
-+    string correction = "";
-+    for (size_t i = 0; i < correctionValue; i++) {
-+          correction.append(" ");
-+        }
-+        stringstream ss;
-+        if (i < 11) {
-+          if (i == 0) {
-+            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
-+          } else {
-+            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
-+          }
-+        } else {
-+          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
-+        }
-+        cpuArray[i].output = ss.str();
-+      }
-+    }
-+
 +void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
 +{
 +	const size_t NUM_ENTRIES = entries1.size();
@@ -370,10 +168,126 @@ index 973cd8f4..7e9206ee 100644
 +
 +	return 0;
 +}
++
++
++void updateCpuStrings(){
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t spacing = 10;
++    string value = to_string(cpuArray[i].value);
++    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
++    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
++    string correction = "";
++    for (size_t i = 0; i < correctionValue; i++) {
++          correction.append(" ");
++        }
++        stringstream ss;
++        if (i < 11) {
++          if (i == 0) {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          } else {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          }
++        } else {
++          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++        }
++        cpuArray[i].output = ss.str();
++      }
++    }
+\ No newline at end of file
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index 4fcd3bd2..4cb9f2dd 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -2,6 +2,8 @@
+ #include <version.h>
+ 
+ #include "dxvk_hud.h"
++float offset_x_float = 0.0;
++float offset_y_float = 0.0;
  
  namespace dxvk::hud {
    
-@@ -30,6 +201,10 @@ namespace dxvk::hud {
+@@ -60,6 +62,14 @@ namespace dxvk::hud {
+   
+   Rc<Hud> Hud::createHud(const Rc<DxvkDevice>& device) {
+     std::string hudElements = env::getEnvVar("DXVK_HUD");
++    std::string offset_x = env::getEnvVar("DXVK_HUD_OFFSET_X");
++    std::string offset_y = env::getEnvVar("DXVK_HUD_OFFSET_Y");
++    
++    if (!offset_x.empty())
++      offset_x_float = stof(offset_x);
++    
++    if (!offset_y.empty())
++      offset_y_float = stof(offset_y);
+ 
+     if (hudElements.empty())
+       hudElements = device->config().hud;
+@@ -84,7 +94,8 @@ namespace dxvk::hud {
+ 
+ 
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+-    HudPos position = { 8.0f, 24.0f };
++
++    HudPos position = { offset_x_float + 8.0f, offset_y_float + 24.0f };
+     
+     if (m_config.elements.test(HudElement::DxvkVersion)) {
+       m_renderer.drawText(ctx, 16.0f,
+diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
+index fe1745bd..11227e67 100644
+--- a/src/dxvk/hud/dxvk_hud_config.cpp
++++ b/src/dxvk/hud/dxvk_hud_config.cpp
+@@ -16,6 +16,8 @@ namespace dxvk::hud {
+     { "version",      HudElement::DxvkVersion       },
+     { "api",          HudElement::DxvkClientApi     },
+     { "compiler",     HudElement::CompilerActivity  },
++    { "mangogpuload", HudElement::GpuLoad           },
++    { "mangocpuload", HudElement::CpuLoad           },
+   }};
+   
+   
+diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
+index 05a1e4b6..602333d1 100644
+--- a/src/dxvk/hud/dxvk_hud_config.h
++++ b/src/dxvk/hud/dxvk_hud_config.h
+@@ -22,6 +22,8 @@ namespace dxvk::hud {
+     DxvkVersion       = 8,
+     DxvkClientApi     = 9,
+     CompilerActivity  = 10,
++    GpuLoad           = 11,
++    CpuLoad           = 12,
+   };
+   
+   using HudElements = Flags<HudElement>;
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index f8cb6e7d..2b5811e8 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -1,7 +1,16 @@
+ #include "dxvk_hud_fps.h"
++#include "dxvk_hud_stats.h"
++#include "../dxvk_cpu.h"
+ 
+ #include <cmath>
+ #include <iomanip>
++using namespace std;
++
++
++void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil) {
++  fstream f(file, f.out | f.app);
++  f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
++}
+ 
+ namespace dxvk::hud {
+   
+@@ -10,7 +19,6 @@ namespace dxvk::hud {
+     m_fpsString ("FPS: "),
+     m_prevFpsUpdate(Clock::now()),
+     m_prevFtgUpdate(Clock::now()) {
+-    
+   }
+   
+   
+@@ -29,11 +37,19 @@ namespace dxvk::hud {
      
      // Update FPS string
      if (elapsedFps.count() >= UpdateInterval) {
@@ -384,30 +298,36 @@ index 973cd8f4..7e9206ee 100644
        const int64_t fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
        m_fpsString = str::format("FPS: ", fps / 10, ".", fps % 10);
        
-@@ -47,14 +222,18 @@ namespace dxvk::hud {
+       m_prevFpsUpdate = now;
+       m_frameCount = 0;
++      char const* logging = getenv("DXVK_LOG_TO_FILE");
++      if (!logging == 0){
++        printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad));
++      }
+     }
+     
+     // Update frametime stuff
+@@ -46,10 +62,18 @@ namespace dxvk::hud {
      const Rc<DxvkContext>&  context,
            HudRenderer&      renderer,
            HudPos            position) {
--    if (m_elements.test(HudElement::Framerate)) {
--      position = this->renderFpsText(
--        context, renderer, position);
--    }
-     if (m_elements.test(HudElement::GpuLoad)) {
-       position = this->renderGpuText(
-         context, renderer, position);
++    if (m_elements.test(HudElement::GpuLoad)) {
++      position = this->renderGpuText(
++        context, renderer, position);
 +      }
 +    if (m_elements.test(HudElement::CpuLoad)) {
 +      position = this->renderCpuText(
 +        context, renderer, position);
-     }
-+    if (m_elements.test(HudElement::Framerate)) {
-+      position = this->renderFpsText(
-+        context, renderer, position);
++    }
+     if (m_elements.test(HudElement::Framerate)) {
+       position = this->renderFpsText(
+         context, renderer, position);
+-    }
 +      }
      
      if (m_elements.test(HudElement::Frametimes)) {
        position = this->renderFrametimeGraph(
-@@ -65,17 +244,6 @@ namespace dxvk::hud {
+@@ -60,18 +84,42 @@ namespace dxvk::hud {
    }
    
    
@@ -415,20 +335,18 @@ index 973cd8f4..7e9206ee 100644
 -    const Rc<DxvkContext>&  context,
 -          HudRenderer&      renderer,
 -          HudPos            position) {
--    renderer.drawText(context, 16.0f,
--      { position.x, position.y },
--      { 1.0f, 1.0f, 1.0f, 1.0f },
--      m_fpsString);
--    
--    return HudPos { position.x, position.y + 24 };
--  }
-   
-   HudPos HudFps::renderGpuText(
-   const Rc<DxvkContext>&  context,
-@@ -88,6 +256,30 @@ namespace dxvk::hud {
- 
-   return HudPos { position.x, position.y + 24 };
- }  
++  
++  HudPos HudFps::renderGpuText(
++  const Rc<DxvkContext>&  context,
++        HudRenderer&      renderer,
++        HudPos            position) {
++  renderer.drawText(context, 16.0f,
++    { position.x, position.y },
++    { 1.0f, 1.0f, 1.0f, 1.0f },
++    m_gpuLoadString);
++
++  return HudPos { position.x, position.y + 24 };
++}  
 +
 +HudPos HudFps::renderCpuText(
 +const Rc<DxvkContext>&  context,
@@ -446,10 +364,14 @@ index 973cd8f4..7e9206ee 100644
 +  const Rc<DxvkContext>&  context,
 +  HudRenderer&      renderer,
 +  HudPos            position) {
-+    renderer.drawText(context, 16.0f,
-+      { position.x, position.y },
-+      { 1.0f, 1.0f, 1.0f, 1.0f },
-+      m_fpsString);
+     renderer.drawText(context, 16.0f,
+       { position.x, position.y },
+       { 1.0f, 1.0f, 1.0f, 1.0f },
+       m_fpsString);
+-    
+-    return HudPos { position.x, position.y + 24 };
+-  }
+-  
 +      
 +      return HudPos { position.x, position.y + 24 };
 +    }
@@ -457,15 +379,13 @@ index 973cd8f4..7e9206ee 100644
    HudPos HudFps::renderFrametimeGraph(
      const Rc<DxvkContext>&  context,
 diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
-index 855c892f..ac89397f 100644
+index c8c4b984..ac89397f 100644
 --- a/src/dxvk/hud/dxvk_hud_fps.h
 +++ b/src/dxvk/hud/dxvk_hud_fps.h
-@@ -43,17 +43,23 @@ namespace dxvk::hud {
+@@ -43,12 +43,23 @@ namespace dxvk::hud {
      
      std::array<float, NumDataPoints>  m_dataPoints  = {};
      uint32_t                          m_dataPointId = 0;
--    
--    HudPos renderFpsText(
 +
 +    HudPos renderGpuText(
 +      const Rc<DxvkContext>&  context,
@@ -473,12 +393,11 @@ index 855c892f..ac89397f 100644
 +      HudPos            position);
 +      
 +    HudPos renderCpuText(
-       const Rc<DxvkContext>&  context,
-             HudRenderer&      renderer,
-             HudPos            position);
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
      
--    HudPos renderGpuText(
-+    HudPos renderFpsText(
+     HudPos renderFpsText(
        const Rc<DxvkContext>&  context,
              HudRenderer&      renderer,
              HudPos            position);
@@ -487,116 +406,70 @@ index 855c892f..ac89397f 100644
      HudPos renderFrametimeGraph(
        const Rc<DxvkContext>&  context,
              HudRenderer&      renderer,
--- 
-2.23.0
-
-
-From 9a5883a2230904ab19b0b2cda7593eebbe4b9b4a Mon Sep 17 00:00:00 2001
-From: FlightlessMango <flightlessmangoyt@gmail.com>
-Date: Mon, 9 Sep 2019 18:22:51 +0200
-Subject: [PATCH 3/4] Added hud offset
-
----
- src/dxvk/hud/dxvk_hud.cpp | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
-index 4fcd3bd2..3f7b0c0b 100644
---- a/src/dxvk/hud/dxvk_hud.cpp
-+++ b/src/dxvk/hud/dxvk_hud.cpp
-@@ -84,7 +84,16 @@ namespace dxvk::hud {
- 
- 
-   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
--    HudPos position = { 8.0f, 24.0f };
-+    std::string offset_x = env::getEnvVar("DXVK_HUD_OFFSET_X");
-+    std::string offset_y = env::getEnvVar("DXVK_HUD_OFFSET_Y");
-+    
-+    if (offset_x.empty())
-+     offset_x = "0";
-+     
-+    if (offset_y.empty())
-+    offset_y = "0";
-+    
-+    HudPos position = { stof(offset_x) + 8.0f, stof(offset_y) + 24.0f };
-     
-     if (m_config.elements.test(HudElement::DxvkVersion)) {
-       m_renderer.drawText(ctx, 16.0f,
--- 
-2.23.0
-
-
-From 98c1a5f9d184866379bba95437f52cff84b3521d Mon Sep 17 00:00:00 2001
-From: FlightlessMango <flightlessmangoyt@gmail.com>
-Date: Thu, 12 Sep 2019 21:37:18 +0200
-Subject: [PATCH 4/4] Added logging for fps/cpuload/gpuload
-
----
- src/dxvk/hud/dxvk_hud_fps.cpp   | 9 +++++++++
- src/dxvk/hud/dxvk_hud_stats.cpp | 3 ++-
- src/dxvk/hud/dxvk_hud_stats.h   | 1 +
- 3 files changed, 12 insertions(+), 1 deletion(-)
-
-diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
-index 7e9206ee..f6fff1bb 100644
---- a/src/dxvk/hud/dxvk_hud_fps.cpp
-+++ b/src/dxvk/hud/dxvk_hud_fps.cpp
-@@ -175,6 +175,11 @@ int getCpuUsage()
- 	return 0;
- }
- 
-+void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil) {
-+  fstream f(file, f.out | f.app);
-+  f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
-+}
-+
- namespace dxvk::hud {
-   
-   HudFps::HudFps(HudElements elements)
-@@ -210,6 +215,10 @@ namespace dxvk::hud {
-       
-       m_prevFpsUpdate = now;
-       m_frameCount = 0;
-+      char const* logging = getenv("DXVK_LOG_TO_FILE");
-+      if (!logging == 0){
-+        printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad));
-+      }
-     }
-     
-     // Update frametime stuff
 diff --git a/src/dxvk/hud/dxvk_hud_stats.cpp b/src/dxvk/hud/dxvk_hud_stats.cpp
-index a59f4baf..be8a5eb7 100644
+index 995f186b..be8a5eb7 100644
 --- a/src/dxvk/hud/dxvk_hud_stats.cpp
 +++ b/src/dxvk/hud/dxvk_hud_stats.cpp
-@@ -1,6 +1,7 @@
+@@ -1,5 +1,7 @@
  #include "dxvk_hud_stats.h"
  
- std::string m_gpuLoadString = "GPU: ";
++std::string m_gpuLoadString = "GPU: ";
 +uint64_t gpuLoad;
  namespace dxvk::hud {
    
    HudStats::HudStats(HudElements elements)
-@@ -71,7 +72,7 @@ namespace dxvk::hud {
+@@ -24,7 +26,7 @@ namespace dxvk::hud {
+ 
+     // GPU load is a bit more complex than that since
+     // we don't want to update this every frame
+-    if (m_elements.test(HudElement::StatGpuLoad))
++    if (m_elements.test(HudElement::GpuLoad) || m_elements.test(HudElement::StatGpuLoad))
+       this->updateGpuLoad();
+   }
+   
+@@ -70,8 +72,8 @@ namespace dxvk::hud {
        uint64_t busyTicks = ticks > m_diffGpuIdleTicks
          ? uint64_t(ticks - m_diffGpuIdleTicks)
          : uint64_t(0);
 -
+-      m_gpuLoadString = str::format("GPU: ", (100 * busyTicks) / ticks, "%");
 +      gpuLoad = 100 * busyTicks / ticks;
-       m_gpuLoadString = str::format("GPU:   ", (100 * busyTicks) / ticks, "%");
++      m_gpuLoadString = str::format("GPU:   ", (100 * busyTicks) / ticks, "%");
      }
    }
+ 
+@@ -224,7 +226,8 @@ namespace dxvk::hud {
+       HudElement::StatPipelines,
+       HudElement::StatMemory,
+       HudElement::StatGpuLoad,
+-      HudElement::CompilerActivity);
++      HudElement::CompilerActivity,
++      HudElement::GpuLoad);
+   }
+   
+ }
 diff --git a/src/dxvk/hud/dxvk_hud_stats.h b/src/dxvk/hud/dxvk_hud_stats.h
-index d41d136f..b7d740f1 100644
+index 227f600c..b7d740f1 100644
 --- a/src/dxvk/hud/dxvk_hud_stats.h
 +++ b/src/dxvk/hud/dxvk_hud_stats.h
-@@ -8,6 +8,7 @@
+@@ -7,6 +7,8 @@
+ #include "dxvk_hud_config.h"
  #include "dxvk_hud_renderer.h"
  
- extern std::string m_gpuLoadString;
++extern std::string m_gpuLoadString;
 +extern uint64_t gpuLoad;
  namespace dxvk::hud {
    
    /**
+@@ -44,8 +46,6 @@ namespace dxvk::hud {
+     uint64_t m_prevGpuIdleTicks = 0;
+     uint64_t m_diffGpuIdleTicks = 0;
+     
+-    std::string m_gpuLoadString = "GPU: ";
+-
+     void updateGpuLoad();
+     
+     HudPos printDrawCallStats(
 -- 
 2.23.0
 
