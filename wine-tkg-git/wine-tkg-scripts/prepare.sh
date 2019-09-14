@@ -1028,6 +1028,9 @@ EOM
 	  if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	    _patchname='proton-vk-bits-4.5.patch' && _patchmsg="Enable Proton vulkan bits for 4.5+" && nonuser_patcher
 	  fi
+	  if [ "$_wined3d_additions" == "true" ] && [ "$_use_staging" == "false" ]; then
+	    _patchname='proton-wined3d-additions.patch' && _patchmsg="Enable Proton non-vr-related wined3d additions" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches

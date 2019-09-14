@@ -281,6 +281,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
 		'raw-input-proton-7349182.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset (<7349182(staging))
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
+		'proton-wined3d-additions.patch' # Proton non-vr-related wined3d additions
 )
 
 md5sums=('SKIP'
@@ -395,7 +396,8 @@ md5sums=('SKIP'
          '561e85803cac59630853afa43391cc58'
          '72d50c442cb34ec7a46998636a63c424'
          'd8616d47efbe0465cda808abb0e9ac5b'
-         '9b74ad2e9c6881f27c7eab0299ecc2c2')
+         '9b74ad2e9c6881f27c7eab0299ecc2c2'
+         'c463c6eb0ee5aaf533270a88bf5e272c')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
