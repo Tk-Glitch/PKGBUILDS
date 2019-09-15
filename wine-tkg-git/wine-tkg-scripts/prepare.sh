@@ -597,6 +597,11 @@ EOM
 	  _patchname='0001-kernelbase-Remove-DECLSPEC_HOTPATCH-from-SetThreadSt.patch' && _patchmsg="Applied native dotnet workaround (https://bugs.winehq.org/show_bug.cgi?id=47633)" && nonuser_patcher
 	fi
 
+	# USVFS (Mod Organizer 2's virtual filesystem) patch
+	if [ "$_usvfs_fix" == "true" ]; then
+	  _patchname='usvfs.patch' && _patchmsg="Applied USVFS (Mod Organizer 2's virtual filesystem) patch" && nonuser_patcher
+	fi
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ "$_steam_fix" == "true" ]; then

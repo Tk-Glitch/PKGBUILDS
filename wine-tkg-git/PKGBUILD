@@ -237,6 +237,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
 		'raw-input.patch' # Raw input fix by Guy1524
 		'0001-kernelbase-Remove-DECLSPEC_HOTPATCH-from-SetThreadSt.patch' # Native dotnet workaround for 4.13+
+		'usvfs.patch' # USVFS (Mod Organizer 2's virtual filesystem) patch
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'raw-valve_proton_fullscreen_hack-staging.patch' # Proton FS hack for staging raw input impl
@@ -354,6 +355,7 @@ md5sums=('SKIP'
          'b415db953ef35b73c1608bc360356113'
          '7c69c5d18212f7a4d9807b3594f2c71e'
          'eba48702691263469da644495f9e1bfd'
+         '566ffc5356fc4713108185f9fd870038'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '17c64d0e5fa155868c10c6a7b18cf5df'
          'fabd0388208fe80256268375b3276091'
