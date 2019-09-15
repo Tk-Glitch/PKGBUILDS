@@ -602,6 +602,11 @@ EOM
 	  _patchname='usvfs.patch' && _patchmsg="Applied USVFS (Mod Organizer 2's virtual filesystem) patch" && nonuser_patcher
 	fi
 
+	# Reverts c6b6935 due to https://bugs.winehq.org/show_bug.cgi?id=47752
+	if [ "$_c6b6935_revert" == "true" ]; then
+	  _patchname='revert-c6b6935.patch' && _patchmsg="Reverted c6b6935 to fix regression affecting performance negatively" && nonuser_patcher
+	fi
+
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
 	if [ "$_steam_fix" == "true" ]; then
