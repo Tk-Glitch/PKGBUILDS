@@ -78,9 +78,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
-_sub=rc8
+_sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=15
+pkgrel=1
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -92,8 +92,7 @@ else
   msg2 'ccache was not found and will not be used'
   options=('!strip')
 fi
-source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
-        #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
+source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         'config.x86_64' # stock Arch config
         'linux53-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
@@ -111,7 +110,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0007-v5.3-fsync.patch
         0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
-sha256sums=('f2438baf7672aa86e5cc8a82beca86af4b4debe4fcce8fa8535f4e955647f906'
+sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'd2df45d77ff5f9d9bc2e44e69cd3727a2ad5a7e1c822bcc1be0c54ac3b6c858b'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
@@ -172,7 +171,7 @@ prepare() {
 
   ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # add upstream patch
   #patch -p1 -i ../patch-"${pkgver}"
@@ -765,7 +764,7 @@ prepare() {
 }
 
 build() {
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # Use custom compiler paths if defined
   if [ -n "${CUSTOM_GCC_PATH}" ]; then
@@ -795,7 +794,7 @@ hackbase() {
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
   install=linux${_basever}-tkg.install
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # get kernel version
   _kernver="$(make LOCALVERSION= kernelrelease)"
@@ -847,7 +846,7 @@ hackheaders() {
   pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
   provides=("linux-headers=${pkgver}" "${pkgbase}-headers=${pkgver}")
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
   local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
 
   install -Dt "${_builddir}" -m644 Makefile .config Module.symvers

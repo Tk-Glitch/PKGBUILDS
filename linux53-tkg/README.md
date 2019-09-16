@@ -1,6 +1,4 @@
-## This is a RC kernel and can't be considered stable. Please use non-RC releases if you don't specifically require features only available in this RC version.
-
-A custom Linux kernel 5.3 rc with specific PDS CPU scheduler related patchset selector (stock CFS and CFS+TurboSched are also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
+A custom Linux kernel 5.3.y with specific PDS CPU scheduler related patchset selector (stock CFS and CFS+TurboSched are also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
 Various personalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
 
