@@ -82,9 +82,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
-_sub=14
+_sub=15
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=29
+pkgrel=30
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -123,7 +123,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0014-bcachefs.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
-            'ee77adddc2daa998fd861efd065976776ee100f06b7dff9be58e84f7b47feb12'
+            '7efc97baaa7d6760df8a10c882c1b8ad4aa06f24d201c79344571c01d1426590'
             'a40c28cca5451478f1bacd5200bdff7e192c2a95685d4fc0b35730aeb29e35f1'
             '20f583a3ff9e7105463f0e7ea639f76375d06f453615c39c59964c89c57624ac'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
