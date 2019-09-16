@@ -49,11 +49,13 @@ fi
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.CFS+TurboSched (experimental)\nchoice[1-3?]: '`" CONDITION;
+  read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.CFS+TurboSched (experimental)\n    4.BMQ\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
     echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "4" ]; then
+    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
@@ -66,6 +68,8 @@ elif [ "$_cpusched" == "cfsturbo" ]; then
   echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
   echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "bmq" ]; then
+  echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
 fi
 
 source "$_where"/cpuschedset
@@ -80,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=1
+pkgrel=2
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -109,6 +113,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0006-add-acs-overrides_iommu.patch
         0007-v5.3-fsync.patch
         0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
+        0009-glitched-bmq.patch
+        0009-v5.3_bmq100.patch
 )
 sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'd2df45d77ff5f9d9bc2e44e69cd3727a2ad5a7e1c822bcc1be0c54ac3b6c858b'
@@ -124,7 +130,9 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
-            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40')
+            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
+            '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
+            '4349ee052909a12f04a9a3e2ede01beafa569eca02458ecb2aebc7a0e4a43cac')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -194,8 +202,8 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0010-v5.3_bmq098.patch
-    patch -Np1 -i ../0010-glitched-bmq.patch
+    patch -Np1 -i ../0009-v5.3_bmq100.patch
+    patch -Np1 -i ../0009-glitched-bmq.patch
   elif [ "${_cpusched}" == "cfsturbo" ]; then
     # CFS+TurboSched
     patch -Np1 -i ../0003-glitched-cfs.patch
