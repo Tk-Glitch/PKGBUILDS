@@ -798,7 +798,11 @@ EOM
 
 	# Fix for LoL 9.10+ crashing - https://bugs.winehq.org/show_bug.cgi?id=47198
 	if [ "$_lol910_fix" == "true" ]; then
-	  _patchname='leagueoflolfix.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
+	  if git merge-base --is-ancestor 944c4e8f760460ca6a260573d87c454052caad2c HEAD; then
+	    _patchname='leagueoflolfix.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
+	  else
+	    _patchname='leagueoflolfix-944c4e8.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
+	  fi
 	fi
 
 	# Fix for Assetto Corsa performance drop when HUD elements are displayed - https://bugs.winehq.org/show_bug.cgi?id=46955
