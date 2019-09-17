@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=15
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=30
+pkgrel=31
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -121,6 +121,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0012-v5.2-fsync.patch
         0013-linux-hardened.patch
         #0014-bcachefs.patch
+        0015-umip-instruction-emulation.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '7efc97baaa7d6760df8a10c882c1b8ad4aa06f24d201c79344571c01d1426590'
@@ -143,7 +144,8 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '08804ef214e61000e6f54f393ddd3313ea9f3934859fdcaa69c78b5f393acdce'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
             '3fc0b0fee9a83bf9e0afe7392351d57fa76e1325b1220a5220575fca6bde111a'
-            'a70f51d8d399cbc37b998dc9111c2b7e584d89bfc1db78b78be34b84b0478921')
+            'a70f51d8d399cbc37b998dc9111c2b7e584d89bfc1db78b78be34b84b0478921'
+            'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -684,6 +686,17 @@ prepare() {
   fi
   if [ "$CONDITION10" == "y" ] || [ "$_fsync" == "true" ]; then
     patch -Np1 -i ../0012-v5.2-fsync.patch
+  fi
+
+  # umip emulation support
+  if [ -z "$_umip_instruction_emulation" ]; then
+    plain ""
+    plain "Enable support for emulation of the SGDT, SIDT, and SMSW instructions for 64-bit processes?"
+    plain "May help with crashing in certain 64-bit Windows games under Wine, on UMIP-enabled systems."
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
+  fi
+  if [ "$CONDITION11" == "y" ] || [ "$_umip_instruction_emulation" == "true" ]; then
+    patch -Np1 -i ../0015-umip-instruction-emulation.patch
   fi
 
   # userpatches
