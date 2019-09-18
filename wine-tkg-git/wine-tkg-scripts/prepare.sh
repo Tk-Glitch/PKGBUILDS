@@ -603,7 +603,7 @@ EOM
 	fi
 
 	# Reverts c6b6935 due to https://bugs.winehq.org/show_bug.cgi?id=47752
-	if [ "$_c6b6935_revert" == "true" ]; then
+	if [ "$_c6b6935_revert" == "true" ] && ! git merge-base --is-ancestor cb703739e5c138e3beffab321b84edb129156000 HEAD; then
 	  _patchname='revert-c6b6935.patch' && _patchmsg="Reverted c6b6935 to fix regression affecting performance negatively" && nonuser_patcher
 	fi
 
