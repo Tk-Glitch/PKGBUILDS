@@ -1,20 +1,56 @@
-From 2fbe67c3f7eccb281e1312c3534898c2f247b717 Mon Sep 17 00:00:00 2001
+From 38f788524037e455767c2d1f812ecac345bf5074 Mon Sep 17 00:00:00 2001
 From: telans <telans@protonmail.com>
-Date: Sat, 13 Sep 2019 21:59:12 +0000
+Date: Thu, 18 Sep 2019 19:34:15 +0000
 Subject: [PATCH] mangohud
 
 ---
+ README.md                        |  26 +++++
  src/dxvk/dxvk_cpu.h              | 172 +++++++++++++++++++++++++++++++
- src/dxvk/hud/dxvk_hud.cpp        |  13 ++-
- src/dxvk/hud/dxvk_hud_config.cpp |   2 +
- src/dxvk/hud/dxvk_hud_config.h   |   2 +
- src/dxvk/hud/dxvk_hud_fps.cpp    |  68 ++++++++++--
- src/dxvk/hud/dxvk_hud_fps.h      |  11 ++
+ src/dxvk/hud/dxvk_hud.cpp        |  76 +++++++++-----
+ src/dxvk/hud/dxvk_hud.h          |   2 +
+ src/dxvk/hud/dxvk_hud_config.cpp |   3 +
+ src/dxvk/hud/dxvk_hud_config.h   |   3 +
+ src/dxvk/hud/dxvk_hud_fps.cpp    | 117 +++++++++++++++++++--
+ src/dxvk/hud/dxvk_hud_fps.h      |  21 ++++
  src/dxvk/hud/dxvk_hud_stats.cpp  |  11 +-
  src/dxvk/hud/dxvk_hud_stats.h    |   4 +-
- 8 files changed, 266 insertions(+), 17 deletions(-)
+ 10 files changed, 392 insertions(+), 43 deletions(-)
  create mode 100644 src/dxvk/dxvk_cpu.h
 
+diff --git a/README.md b/README.md
+index 25d03230..e8a53432 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,29 @@
++# MangoHud Specific
++
++- `DXVK_HUD_OFFSET_X` Set X offset of the DVXK Hud.
++- `DXVK_HUD_OFFSET_Y` Set Y offset of the DVXK Hud.
++- `DXVK_LOG_TO_FILE` Turn on logging and select path/filename (Fps,Cpu load,Gpu load)
++- Logging Gpu load requires either mangogpuload or gpuload hud options
++
++# Hud options
++- `mangogpuload` : Shows current gpu load.
++- `mangocpuload` : Shows current cpu load.
++
++# Keybinds
++- `F2`  : Toggle Logging on/off
++- `F12` : Toggle Hud on/off
++
++# MangoLog file
++
++ When you press F2, a file is created with your chosen name + date/time stamp.
++ this file can be uploaded to https://flightlessmango.com/logs/new to create graphs automatically.
++ you can share the created page with others, just link it.
++ 
++ #### Multiple log files
++ 
++ It's possible to upload multiple files, you can rename them to your preferred names and upload them in a batch.
++ The graphs will then use those names in the data.
++
+ # DXVK
+ 
+ A Vulkan-based translation layer for Direct3D 10/11 which allows running 3D applications on Linux using Wine.
 diff --git a/src/dxvk/dxvk_cpu.h b/src/dxvk/dxvk_cpu.h
 new file mode 100644
 index 00000000..b2c8736a
@@ -195,19 +231,26 @@ index 00000000..b2c8736a
 +    }
 \ No newline at end of file
 diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
-index 4fcd3bd2..4cb9f2dd 100644
+index 4fcd3bd2..d7d95dff 100644
 --- a/src/dxvk/hud/dxvk_hud.cpp
 +++ b/src/dxvk/hud/dxvk_hud.cpp
-@@ -2,6 +2,8 @@
+@@ -1,9 +1,13 @@
+-#include <cstring>
  #include <version.h>
- 
+-
  #include "dxvk_hud.h"
-+float offset_x_float = 0.0;
-+float offset_y_float = 0.0;
++#include <windows.h>
++#include <time.h>
  
  namespace dxvk::hud {
++  float Hud::offset_x_float = 0;
++  float Hud::offset_y_float = 0;
++  bool show_hud = true;
++  time_t lastPress;
    
-@@ -60,6 +62,14 @@ namespace dxvk::hud {
+   Hud::Hud(
+     const Rc<DxvkDevice>& device,
+@@ -60,6 +64,14 @@ namespace dxvk::hud {
    
    Rc<Hud> Hud::createHud(const Rc<DxvkDevice>& device) {
      std::string hudElements = env::getEnvVar("DXVK_HUD");
@@ -222,64 +265,142 @@ index 4fcd3bd2..4cb9f2dd 100644
  
      if (hudElements.empty())
        hudElements = device->config().hud;
-@@ -84,7 +94,8 @@ namespace dxvk::hud {
+@@ -82,33 +94,45 @@ namespace dxvk::hud {
+     m_renderer.beginFrame(ctx, m_uniformData.surfaceSize);
+   }
  
- 
+-
    void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
 -    HudPos position = { 8.0f, 24.0f };
-+
++    if(GetKeyState(VK_F12) & 0x8000)
++    {
++      if (time(0) - lastPress > 0){
++        lastPress = time(0);
++        if (show_hud){
++          show_hud = false;
++        } else {
++          show_hud = true;
++        }
++      }
++    } 
+     
+-    if (m_config.elements.test(HudElement::DxvkVersion)) {
+-      m_renderer.drawText(ctx, 16.0f,
+-        { position.x, position.y },
+-        { 1.0f, 1.0f, 1.0f, 1.0f },
+-        "DXVK " DXVK_VERSION);
+-      position.y += 24.0f;
+-    }
+-
+-    if (m_config.elements.test(HudElement::DxvkClientApi)) {
+-      m_renderer.drawText(ctx, 16.0f,
+-        { position.x, position.y },
+-        { 1.0f, 1.0f, 1.0f, 1.0f },
+-        m_device->clientApi());
+-      position.y += 24.0f;
+-    }
+-
+-    if (m_config.elements.test(HudElement::DeviceInfo)) {
+-      position = m_hudDeviceInfo.render(
+-        ctx, m_renderer, position);
+-    }
 +    HudPos position = { offset_x_float + 8.0f, offset_y_float + 24.0f };
      
-     if (m_config.elements.test(HudElement::DxvkVersion)) {
-       m_renderer.drawText(ctx, 16.0f,
+-    position = m_hudFramerate.render(ctx, m_renderer, position);
+-    position = m_hudStats    .render(ctx, m_renderer, position);
++    if (show_hud){
++      if (m_config.elements.test(HudElement::DxvkVersion)) {
++        m_renderer.drawText(ctx, 16.0f,
++          { position.x, position.y },
++          { 1.0f, 1.0f, 1.0f, 1.0f },
++          "DXVK " DXVK_VERSION);
++        position.y += 24.0f;
++      }
++
++      if (m_config.elements.test(HudElement::DxvkClientApi)) {
++        m_renderer.drawText(ctx, 16.0f,
++          { position.x, position.y },
++          { 1.0f, 1.0f, 1.0f, 1.0f },
++          m_device->clientApi());
++        position.y += 24.0f;
++      }
++
++      if (m_config.elements.test(HudElement::DeviceInfo)) {
++        position = m_hudDeviceInfo.render(
++          ctx, m_renderer, position);
++      }
++      position = m_hudFramerate.render(ctx, m_renderer, position);
++      position = m_hudStats    .render(ctx, m_renderer, position);
++    }
+   }
+   
+   
+diff --git a/src/dxvk/hud/dxvk_hud.h b/src/dxvk/hud/dxvk_hud.h
+index 3b702c3b..71779977 100644
+--- a/src/dxvk/hud/dxvk_hud.h
++++ b/src/dxvk/hud/dxvk_hud.h
+@@ -29,6 +29,8 @@ namespace dxvk::hud {
+   class Hud : public RcObject {
+     
+   public:
++    static float offset_x_float;
++    static float offset_y_float;
+     
+     Hud(
+       const Rc<DxvkDevice>& device,
 diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
-index fe1745bd..11227e67 100644
+index fe1745bd..020a394b 100644
 --- a/src/dxvk/hud/dxvk_hud_config.cpp
 +++ b/src/dxvk/hud/dxvk_hud_config.cpp
-@@ -16,6 +16,8 @@ namespace dxvk::hud {
+@@ -16,6 +16,9 @@ namespace dxvk::hud {
      { "version",      HudElement::DxvkVersion       },
      { "api",          HudElement::DxvkClientApi     },
      { "compiler",     HudElement::CompilerActivity  },
 +    { "mangogpuload", HudElement::GpuLoad           },
 +    { "mangocpuload", HudElement::CpuLoad           },
++    { "mangocpuload", HudElement::Logging           },
    }};
    
    
 diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
-index 05a1e4b6..602333d1 100644
+index 05a1e4b6..5d571663 100644
 --- a/src/dxvk/hud/dxvk_hud_config.h
 +++ b/src/dxvk/hud/dxvk_hud_config.h
-@@ -22,6 +22,8 @@ namespace dxvk::hud {
+@@ -22,6 +22,9 @@ namespace dxvk::hud {
      DxvkVersion       = 8,
      DxvkClientApi     = 9,
      CompilerActivity  = 10,
 +    GpuLoad           = 11,
 +    CpuLoad           = 12,
++    Logging           = 13,
    };
    
    using HudElements = Flags<HudElement>;
 diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
-index f8cb6e7d..2b5811e8 100644
+index f8cb6e7d..42fdf2c5 100644
 --- a/src/dxvk/hud/dxvk_hud_fps.cpp
 +++ b/src/dxvk/hud/dxvk_hud_fps.cpp
-@@ -1,7 +1,16 @@
+@@ -1,7 +1,19 @@
  #include "dxvk_hud_fps.h"
 +#include "dxvk_hud_stats.h"
 +#include "../dxvk_cpu.h"
++#include <time.h>
  
  #include <cmath>
  #include <iomanip>
 +using namespace std;
++time_t now_log = time(0);
++tm *log_time = localtime(&now_log);
 +
-+
-+void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil) {
-+  fstream f(file, f.out | f.app);
++void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil, tm *log_time) {
++  string date = to_string(log_time->tm_year + 1900) + "-" + to_string(1 + log_time->tm_mon) + "-" + to_string(log_time->tm_mday) + "_" + to_string(1 + log_time->tm_hour) + "-" + to_string(1 + log_time->tm_min) + "-" + to_string(1 + log_time->tm_sec);
++  fstream f(file + "_" + date, f.out | f.app);
 +  f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
 +}
  
  namespace dxvk::hud {
    
-@@ -10,7 +19,6 @@ namespace dxvk::hud {
+@@ -10,7 +22,6 @@ namespace dxvk::hud {
      m_fpsString ("FPS: "),
      m_prevFpsUpdate(Clock::now()),
      m_prevFtgUpdate(Clock::now()) {
@@ -287,10 +408,41 @@ index f8cb6e7d..2b5811e8 100644
    }
    
    
-@@ -29,11 +37,19 @@ namespace dxvk::hud {
-     
-     // Update FPS string
+@@ -25,15 +36,50 @@ namespace dxvk::hud {
+     TimePoint now = Clock::now();
+     TimeDiff elapsedFps = std::chrono::duration_cast<TimeDiff>(now - m_prevFpsUpdate);
+     TimeDiff elapsedFtg = std::chrono::duration_cast<TimeDiff>(now - m_prevFtgUpdate);
++    if (startCounting){
++      elapsedF2  = std::chrono::duration_cast<TimeDiff>(now - m_prevF2Press);
++    }
+     m_prevFtgUpdate = now;
+-    
+-    // Update FPS string
++
++    if (elapsedF2.count() > UpdateInterval){
++      startCounting = false;
++    }
++
++    if(GetKeyState(VK_F2) & 0x8000)
++    {
++      if (elapsedF2.count() > UpdateInterval) {
++          if (mango_logging){
++            m_prevF2Press = now;
++            now_log = time(0);
++            log_time = localtime(&now_log);
++            startCounting = true;
++            mango_logging = false;
++          } else {
++            m_prevF2Press = now;
++            now_log = time(0);
++            log_time = localtime(&now_log);
++            startCounting = true;
++            mango_logging = true;
++          }
++      } 
++    }
      if (elapsedFps.count() >= UpdateInterval) {
++    // Update FPS string
 +      coreCounting();
 +      dxvk::thread([this] () { getCpuUsage();});
 +      updateCpuStrings();
@@ -302,12 +454,14 @@ index f8cb6e7d..2b5811e8 100644
        m_frameCount = 0;
 +      char const* logging = getenv("DXVK_LOG_TO_FILE");
 +      if (!logging == 0){
-+        printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad));
++        if (mango_logging){
++          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad), log_time);
++        }
 +      }
      }
      
      // Update frametime stuff
-@@ -46,10 +62,18 @@ namespace dxvk::hud {
+@@ -46,32 +92,81 @@ namespace dxvk::hud {
      const Rc<DxvkContext>&  context,
            HudRenderer&      renderer,
            HudPos            position) {
@@ -327,7 +481,15 @@ index f8cb6e7d..2b5811e8 100644
      
      if (m_elements.test(HudElement::Frametimes)) {
        position = this->renderFrametimeGraph(
-@@ -60,18 +84,42 @@ namespace dxvk::hud {
+         context, renderer, position);
+     }
+     
++    if (mango_logging) {
++      this->renderLogging(context, renderer,
++        { float(renderer.surfaceSize().width) - 250.0f, float(renderer.surfaceSize().height) - 20.0f });
++    }
++    
+     return position;
    }
    
    
@@ -346,7 +508,7 @@ index f8cb6e7d..2b5811e8 100644
 +    m_gpuLoadString);
 +
 +  return HudPos { position.x, position.y + 24 };
-+}  
++}
 +
 +HudPos HudFps::renderCpuText(
 +const Rc<DxvkContext>&  context,
@@ -368,21 +530,44 @@ index f8cb6e7d..2b5811e8 100644
        { position.x, position.y },
        { 1.0f, 1.0f, 1.0f, 1.0f },
        m_fpsString);
--    
--    return HudPos { position.x, position.y + 24 };
--  }
--  
 +      
 +      return HudPos { position.x, position.y + 24 };
 +    }
+     
+-    return HudPos { position.x, position.y + 24 };
+-  }
+-  
++  HudPos HudFps::renderLogging(
++    const Rc<DxvkContext>&  context,
++    HudRenderer&      renderer,
++    HudPos            position) {
++      renderer.drawText(context, 16.0f,
++        { position.x, position.y },
++        { 1.0f, 1.0f, 1.0f, 1.0f },
++        "Currently Logging...");
++        
++        return HudPos { position.x, position.y};
++      }
    
    HudPos HudFps::renderFrametimeGraph(
      const Rc<DxvkContext>&  context,
 diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
-index c8c4b984..ac89397f 100644
+index c8c4b984..51034e19 100644
 --- a/src/dxvk/hud/dxvk_hud_fps.h
 +++ b/src/dxvk/hud/dxvk_hud_fps.h
-@@ -43,12 +43,23 @@ namespace dxvk::hud {
+@@ -36,23 +36,44 @@ namespace dxvk::hud {
+     const HudElements m_elements;
+     
+     std::string m_fpsString;
++    bool mango_logging = false;
++    bool startCounting = false;
++    time_t lastPress = time(0);
+     
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
++    TimePoint m_prevF2Press;
++    TimeDiff  elapsedF2;
+     int64_t   m_frameCount = 0;
      
      std::array<float, NumDataPoints>  m_dataPoints  = {};
      uint32_t                          m_dataPointId = 0;
@@ -406,6 +591,15 @@ index c8c4b984..ac89397f 100644
      HudPos renderFrametimeGraph(
        const Rc<DxvkContext>&  context,
              HudRenderer&      renderer,
+             HudPos            position);
++            
++    HudPos renderLogging(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
+     
+   };
+   
 diff --git a/src/dxvk/hud/dxvk_hud_stats.cpp b/src/dxvk/hud/dxvk_hud_stats.cpp
 index 995f186b..be8a5eb7 100644
 --- a/src/dxvk/hud/dxvk_hud_stats.cpp
