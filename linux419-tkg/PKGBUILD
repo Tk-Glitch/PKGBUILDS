@@ -78,7 +78,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=73
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=102
+pkgrel=103
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -112,6 +112,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0008-uksm.patch
         0009-linux-hardened.patch
         0010-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
+        0011-umip-instruction-emulation.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'b1d43219a90be452e3ede4de002073269ce7e1269832e48a5abaaae99ccb6b81'
@@ -132,7 +133,8 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
             'b58555e0a1dc18a75db0a436e446374bd0c2c45a3e39c86282a006f0862c546a'
             'babe6aaaab7df5aac831dec886674dcdf83877d031fb629c8ffadc0f20b0d3e9'
-            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40')
+            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
+            'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -663,6 +665,17 @@ prepare() {
     echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
     echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
     echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
+  fi
+
+  # umip emulation support
+  if [ -z "$_umip_instruction_emulation" ]; then
+    plain ""
+    plain "Enable support for emulation of the SGDT, SIDT, and SMSW instructions for 64-bit processes?"
+    plain "May help with crashing in certain 64-bit Windows games under Wine, on UMIP-enabled systems."
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
+  fi
+  if [ "$CONDITION11" == "y" ] || [ "$_umip_instruction_emulation" == "true" ]; then
+    patch -Np1 -i ../0011-umip-instruction-emulation.patch
   fi
 
   # userpatches
