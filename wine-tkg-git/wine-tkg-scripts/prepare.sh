@@ -843,10 +843,9 @@ EOM
 	  _patchname='GLSL-toggle.patch' && _patchmsg="Applied GLSL toggle patch" && nonuser_patcher
 	fi
 
-	# Set a custom fake refresh rate for virtual desktop and proton FS hack
+	# Set a custom fake refresh rate for virtual desktop
 	if [ -n "$_fake_refresh_rate" ]; then
 	  sed -i "s/999999/$_fake_refresh_rate/g" "${_where}/virtual_desktop_refreshrate.patch"
-	  sed -i "s/999999/$_fake_refresh_rate/g" "${_where}/proton_FS_hack_refreshrate.patch"
 	  _patchname='virtual_desktop_refreshrate.patch' && _patchmsg="Applied custom fake virtual desktop refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
 	fi
 
