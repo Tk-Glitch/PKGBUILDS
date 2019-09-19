@@ -685,9 +685,9 @@ prepare() {
     plain "Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -rp "`echo $'    > N/y : '`" CONDITION11;
+    read -rp "`echo $'    > N/y : '`" CONDITIONMPDB;
   fi
-  if [ "$CONDITION11" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+  if [ "$CONDITIONMPDB" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
@@ -701,9 +701,9 @@ prepare() {
     else
       for i in "${!fragments[@]}"; do
         while true; do
-          read -r -p 'Found config fragment '"${fragments[$i]#$_where/}"', apply it? [y/N] ' CONDITION11
-          CONDITION11="$(printf '%s' "$CONDITION11" | tr '[:upper:]' '[:lower:]')"
-          case "$CONDITION11" in
+          read -r -p 'Found config fragment '"${fragments[$i]#$_where/}"', apply it? [y/N] ' CONDITIONMPDB
+          CONDITIONMPDB="$(printf '%s' "$CONDITIONMPDB" | tr '[:upper:]' '[:lower:]')"
+          case "$CONDITIONMPDB" in
             y|yes)
               break;;
             n|no|'')
@@ -728,8 +728,8 @@ prepare() {
     plain "to configure the kernel before building it?"
     plain "If you do, make sure your terminal is currently"
     plain "at least 19 lines by 80 columns large or you'll get an error :D"
-    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION12;
-    _menunconfig="$CONDITION12"
+    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITIONMNC;
+    _menunconfig="$CONDITIONMNC"
   fi
   if [ 1 = "$_menunconfig" ]; then
     cp .config .config.orig
@@ -744,9 +744,9 @@ prepare() {
   if [ 1 = "$_menunconfig" ] || [ 2 = "$_menunconfig" ]; then
     if [ -z "${_diffconfig}" ]; then
       while true; do
-        read -r -p 'Generate a config fragment from your changes? [y/N] ' CONDITION13
-        CONDITION13="$(printf '%s' "$CONDITION13" | tr '[:upper:]' '[:lower:]')"
-        case "$CONDITION13" in
+        read -r -p 'Generate a config fragment from your changes? [y/N] ' CONDITIONF
+        CONDITIONF="$(printf '%s' "$CONDITIONF" | tr '[:upper:]' '[:lower:]')"
+        case "$CONDITIONF" in
           y|yes)
             _diffconfig=true
             break;;
