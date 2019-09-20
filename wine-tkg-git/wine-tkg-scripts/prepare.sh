@@ -870,8 +870,10 @@ EOM
 	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" && nonuser_patcher
 	  fi
 	  cd "${srcdir}"/"${_stgsrcdir}"
-	  if git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD; then
+	  if git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD; then
 	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
+	  elif git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD; then
+	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging-c0389b0.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
 	  elif git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD && [ "$_rawinput_fix" == "true" ] || ! git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD; then
 	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
 	  else
@@ -921,7 +923,7 @@ EOM
 	  if [ "$_use_staging" == "true" ]; then
 	    if [ "$_proton_fs_hack" == "true" ]; then
 	      cd "${srcdir}"/"${_stgsrcdir}"
-	      if git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD; then
+	      if git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD && ! git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD; then
 	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
 	      elif git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
 	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton-7349182.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher

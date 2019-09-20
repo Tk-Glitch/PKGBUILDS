@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.16.r0.gc323ef47
+pkgver=4.16.r10.gc0389b04
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=200
+eval pkgrel=201
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -243,6 +243,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'raw-valve_proton_fullscreen_hack-staging.patch' # Proton FS hack for staging raw input impl
+		'raw-valve_proton_fullscreen_hack-staging-c0389b0.patch' # Proton FS hack for staging raw input impl (<c0389b0)
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
 		'valve_proton_fullscreen_hack-staging-938dddf.patch' # Proton FS hack (<938dddf)
 		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
@@ -363,6 +364,7 @@ md5sums=('SKIP'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '17c64d0e5fa155868c10c6a7b18cf5df'
          'fabd0388208fe80256268375b3276091'
+         'e8e74ec3ff3c6e1e1ebfda544dc3c531'
          '126f11c8ea4bc4bdb8a07f8724712564'
          'a21dd4c345c597bc2f9204ea253794d3'
          '46f69d6e2911afdce9a5e446aca3982a'
