@@ -1,0 +1,2259 @@
+From 1666e21a22580316ad641101bf93ca633f37c125 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Mon, 9 Sep 2019 17:03:18 +0200
+Subject: [PATCH 01/19] Added GpuLoad, using the normal StatGpuLoad's string.
+
+---
+ src/dxvk/hud/dxvk_hud_config.cpp |  1 +
+ src/dxvk/hud/dxvk_hud_config.h   |  1 +
+ src/dxvk/hud/dxvk_hud_fps.cpp    | 16 ++++++++++++++++
+ src/dxvk/hud/dxvk_hud_fps.h      |  5 +++++
+ src/dxvk/hud/dxvk_hud_stats.cpp  |  8 +++++---
+ src/dxvk/hud/dxvk_hud_stats.h    |  3 +--
+ 6 files changed, 29 insertions(+), 5 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
+index fe1745bd..a1bec809 100644
+--- a/src/dxvk/hud/dxvk_hud_config.cpp
++++ b/src/dxvk/hud/dxvk_hud_config.cpp
+@@ -16,6 +16,7 @@ namespace dxvk::hud {
+     { "version",      HudElement::DxvkVersion       },
+     { "api",          HudElement::DxvkClientApi     },
+     { "compiler",     HudElement::CompilerActivity  },
++    { "mangogpuload", HudElement::GpuLoad           },
+   }};
+   
+   
+diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
+index 05a1e4b6..31632901 100644
+--- a/src/dxvk/hud/dxvk_hud_config.h
++++ b/src/dxvk/hud/dxvk_hud_config.h
+@@ -22,6 +22,7 @@ namespace dxvk::hud {
+     DxvkVersion       = 8,
+     DxvkClientApi     = 9,
+     CompilerActivity  = 10,
++    GpuLoad           = 11,
+   };
+   
+   using HudElements = Flags<HudElement>;
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index f8cb6e7d..973cd8f4 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -1,4 +1,5 @@
+ #include "dxvk_hud_fps.h"
++#include "dxvk_hud_stats.h"
+ 
+ #include <cmath>
+ #include <iomanip>
+@@ -50,6 +51,10 @@ namespace dxvk::hud {
+       position = this->renderFpsText(
+         context, renderer, position);
+     }
++    if (m_elements.test(HudElement::GpuLoad)) {
++      position = this->renderGpuText(
++        context, renderer, position);
++    }
+     
+     if (m_elements.test(HudElement::Frametimes)) {
+       position = this->renderFrametimeGraph(
+@@ -72,6 +77,17 @@ namespace dxvk::hud {
+     return HudPos { position.x, position.y + 24 };
+   }
+   
++  HudPos HudFps::renderGpuText(
++  const Rc<DxvkContext>&  context,
++        HudRenderer&      renderer,
++        HudPos            position) {
++  renderer.drawText(context, 16.0f,
++    { position.x, position.y },
++    { 1.0f, 1.0f, 1.0f, 1.0f },
++    m_gpuLoadString);
++
++  return HudPos { position.x, position.y + 24 };
++}  
+   
+   HudPos HudFps::renderFrametimeGraph(
+     const Rc<DxvkContext>&  context,
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index c8c4b984..855c892f 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -49,6 +49,11 @@ namespace dxvk::hud {
+             HudRenderer&      renderer,
+             HudPos            position);
+     
++    HudPos renderGpuText(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
++    
+     HudPos renderFrametimeGraph(
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+diff --git a/src/dxvk/hud/dxvk_hud_stats.cpp b/src/dxvk/hud/dxvk_hud_stats.cpp
+index 995f186b..a59f4baf 100644
+--- a/src/dxvk/hud/dxvk_hud_stats.cpp
++++ b/src/dxvk/hud/dxvk_hud_stats.cpp
+@@ -1,5 +1,6 @@
+ #include "dxvk_hud_stats.h"
+ 
++std::string m_gpuLoadString = "GPU: ";
+ namespace dxvk::hud {
+   
+   HudStats::HudStats(HudElements elements)
+@@ -24,7 +25,7 @@ namespace dxvk::hud {
+ 
+     // GPU load is a bit more complex than that since
+     // we don't want to update this every frame
+-    if (m_elements.test(HudElement::StatGpuLoad))
++    if (m_elements.test(HudElement::GpuLoad) || m_elements.test(HudElement::StatGpuLoad))
+       this->updateGpuLoad();
+   }
+   
+@@ -71,7 +72,7 @@ namespace dxvk::hud {
+         ? uint64_t(ticks - m_diffGpuIdleTicks)
+         : uint64_t(0);
+ 
+-      m_gpuLoadString = str::format("GPU: ", (100 * busyTicks) / ticks, "%");
++      m_gpuLoadString = str::format("GPU:   ", (100 * busyTicks) / ticks, "%");
+     }
+   }
+ 
+@@ -224,7 +225,8 @@ namespace dxvk::hud {
+       HudElement::StatPipelines,
+       HudElement::StatMemory,
+       HudElement::StatGpuLoad,
+-      HudElement::CompilerActivity);
++      HudElement::CompilerActivity,
++      HudElement::GpuLoad);
+   }
+   
+ }
+diff --git a/src/dxvk/hud/dxvk_hud_stats.h b/src/dxvk/hud/dxvk_hud_stats.h
+index 227f600c..d41d136f 100644
+--- a/src/dxvk/hud/dxvk_hud_stats.h
++++ b/src/dxvk/hud/dxvk_hud_stats.h
+@@ -7,6 +7,7 @@
+ #include "dxvk_hud_config.h"
+ #include "dxvk_hud_renderer.h"
+ 
++extern std::string m_gpuLoadString;
+ namespace dxvk::hud {
+   
+   /**
+@@ -44,8 +45,6 @@ namespace dxvk::hud {
+     uint64_t m_prevGpuIdleTicks = 0;
+     uint64_t m_diffGpuIdleTicks = 0;
+     
+-    std::string m_gpuLoadString = "GPU: ";
+-
+     void updateGpuLoad();
+     
+     HudPos printDrawCallStats(
+
+From 101b176a6cd043771e61a6445e50210084b01260 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Mon, 9 Sep 2019 17:55:40 +0200
+Subject: [PATCH 02/19] Added CpuLoad
+
+---
+ src/dxvk/hud/dxvk_hud_config.cpp |   1 +
+ src/dxvk/hud/dxvk_hud_config.h   |   1 +
+ src/dxvk/hud/dxvk_hud_fps.cpp    | 222 ++++++++++++++++++++++++++++---
+ src/dxvk/hud/dxvk_hud_fps.h      |  12 +-
+ 4 files changed, 218 insertions(+), 18 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
+index a1bec809..11227e67 100644
+--- a/src/dxvk/hud/dxvk_hud_config.cpp
++++ b/src/dxvk/hud/dxvk_hud_config.cpp
+@@ -17,6 +17,7 @@ namespace dxvk::hud {
+     { "api",          HudElement::DxvkClientApi     },
+     { "compiler",     HudElement::CompilerActivity  },
+     { "mangogpuload", HudElement::GpuLoad           },
++    { "mangocpuload", HudElement::CpuLoad           },
+   }};
+   
+   
+diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
+index 31632901..602333d1 100644
+--- a/src/dxvk/hud/dxvk_hud_config.h
++++ b/src/dxvk/hud/dxvk_hud_config.h
+@@ -23,6 +23,7 @@ namespace dxvk::hud {
+     DxvkClientApi     = 9,
+     CompilerActivity  = 10,
+     GpuLoad           = 11,
++    CpuLoad           = 12,
+   };
+   
+   using HudElements = Flags<HudElement>;
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 973cd8f4..7e9206ee 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -3,6 +3,177 @@
+ 
+ #include <cmath>
+ #include <iomanip>
++#include <array>
++#include <vector>
++#include <algorithm>
++#include <iterator>
++#include <thread>
++#include <sstream>
++#include <fstream>
++using namespace std;
++
++
++const int NUM_CPU_STATES = 10;
++
++struct Cpus{
++  size_t num;
++  string name;
++  float value;
++  string output;
++};
++
++size_t numCpuCores = dxvk::thread::hardware_concurrency();
++size_t arraySize = numCpuCores + 1;
++std::vector<Cpus> cpuArray;
++
++void coreCounting(){
++  cpuArray.push_back({0, "CPU:"});
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t offset = i;
++    stringstream ss;
++    ss << "CPU" << offset << ":";
++    string cpuNameString = ss.str();
++    cpuArray.push_back({i+1 , cpuNameString});
++  }
++}
++
++std::string m_cpuUtilizationString;
++
++enum CPUStates
++{
++	S_USER = 0,
++	S_NICE,
++	S_SYSTEM,
++	S_IDLE,
++	S_IOWAIT,
++	S_IRQ,
++	S_SOFTIRQ,
++	S_STEAL,
++	S_GUEST,
++	S_GUEST_NICE
++};
++
++typedef struct CPUData
++{
++	std::string cpu;
++	size_t times[NUM_CPU_STATES];
++} CPUData;
++
++void ReadStatsCPU(std::vector<CPUData> & entries)
++{
++	std::ifstream fileStat("/proc/stat");
++
++	std::string line;
++
++	const std::string STR_CPU("cpu");
++	const std::size_t LEN_STR_CPU = STR_CPU.size();
++	const std::string STR_TOT("tot");
++
++	while(std::getline(fileStat, line))
++	{
++		// cpu stats line found
++		if(!line.compare(0, LEN_STR_CPU, STR_CPU))
++		{
++			std::istringstream ss(line);
++
++			// store entry
++			entries.emplace_back(CPUData());
++			CPUData & entry = entries.back();
++
++			// read cpu label
++			ss >> entry.cpu;
++
++			if(entry.cpu.size() > LEN_STR_CPU)
++				entry.cpu.erase(0, LEN_STR_CPU);
++			else
++				entry.cpu = STR_TOT;
++
++			// read times
++			for(int i = 0; i < NUM_CPU_STATES; ++i)
++				ss >> entry.times[i];
++		}
++	}
++}
++
++size_t GetIdleTime(const CPUData & e)
++{
++	return	e.times[S_IDLE] +
++			e.times[S_IOWAIT];
++}
++
++size_t GetActiveTime(const CPUData & e)
++{
++	return	e.times[S_USER] +
++			e.times[S_NICE] +
++			e.times[S_SYSTEM] +
++			e.times[S_IRQ] +
++			e.times[S_SOFTIRQ] +
++			e.times[S_STEAL] +
++			e.times[S_GUEST] +
++			e.times[S_GUEST_NICE];
++}
++
++
++void updateCpuStrings(){
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t spacing = 10;
++    string value = to_string(cpuArray[i].value);
++    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
++    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
++    string correction = "";
++    for (size_t i = 0; i < correctionValue; i++) {
++          correction.append(" ");
++        }
++        stringstream ss;
++        if (i < 11) {
++          if (i == 0) {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          } else {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          }
++        } else {
++          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++        }
++        cpuArray[i].output = ss.str();
++      }
++    }
++
++void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
++{
++	const size_t NUM_ENTRIES = entries1.size();
++
++	for(size_t i = 0; i < NUM_ENTRIES; ++i)
++	{
++		const CPUData & e1 = entries1[i];
++		const CPUData & e2 = entries2[i];
++
++		const float ACTIVE_TIME	= static_cast<float>(GetActiveTime(e2) - GetActiveTime(e1));
++		const float IDLE_TIME	= static_cast<float>(GetIdleTime(e2) - GetIdleTime(e1));
++		const float TOTAL_TIME	= ACTIVE_TIME + IDLE_TIME;
++
++    cpuArray[i].value = (truncf(100.f * ACTIVE_TIME / TOTAL_TIME) * 10 / 10);
++	}
++}
++
++int getCpuUsage()
++{
++	std::vector<CPUData> entries1;
++	std::vector<CPUData> entries2;
++
++	// snapshot 1
++	ReadStatsCPU(entries1);
++
++	// 100ms pause
++	std::this_thread::sleep_for(std::chrono::milliseconds(100));
++
++	// snapshot 2
++	ReadStatsCPU(entries2);
++
++	// print output
++	PrintStats(entries1, entries2);
++
++	return 0;
++}
+ 
+ namespace dxvk::hud {
+   
+@@ -30,6 +201,10 @@ namespace dxvk::hud {
+     
+     // Update FPS string
+     if (elapsedFps.count() >= UpdateInterval) {
++      coreCounting();
++      dxvk::thread([this] () { getCpuUsage();});
++      updateCpuStrings();
++      m_cpuUtilizationString = str::format(cpuArray[0].output);
+       const int64_t fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
+       m_fpsString = str::format("FPS: ", fps / 10, ".", fps % 10);
+       
+@@ -47,14 +222,18 @@ namespace dxvk::hud {
+     const Rc<DxvkContext>&  context,
+           HudRenderer&      renderer,
+           HudPos            position) {
+-    if (m_elements.test(HudElement::Framerate)) {
+-      position = this->renderFpsText(
+-        context, renderer, position);
+-    }
+     if (m_elements.test(HudElement::GpuLoad)) {
+       position = this->renderGpuText(
+         context, renderer, position);
++      }
++    if (m_elements.test(HudElement::CpuLoad)) {
++      position = this->renderCpuText(
++        context, renderer, position);
+     }
++    if (m_elements.test(HudElement::Framerate)) {
++      position = this->renderFpsText(
++        context, renderer, position);
++      }
+     
+     if (m_elements.test(HudElement::Frametimes)) {
+       position = this->renderFrametimeGraph(
+@@ -65,17 +244,6 @@ namespace dxvk::hud {
+   }
+   
+   
+-  HudPos HudFps::renderFpsText(
+-    const Rc<DxvkContext>&  context,
+-          HudRenderer&      renderer,
+-          HudPos            position) {
+-    renderer.drawText(context, 16.0f,
+-      { position.x, position.y },
+-      { 1.0f, 1.0f, 1.0f, 1.0f },
+-      m_fpsString);
+-    
+-    return HudPos { position.x, position.y + 24 };
+-  }
+   
+   HudPos HudFps::renderGpuText(
+   const Rc<DxvkContext>&  context,
+@@ -88,6 +256,30 @@ namespace dxvk::hud {
+ 
+   return HudPos { position.x, position.y + 24 };
+ }  
++
++HudPos HudFps::renderCpuText(
++const Rc<DxvkContext>&  context,
++      HudRenderer&      renderer,
++      HudPos            position) {
++renderer.drawText(context, 16.0f,
++  { position.x, position.y },
++  { 1.0f, 1.0f, 1.0f, 1.0f },
++  m_cpuUtilizationString);
++
++return HudPos { position.x, position.y + 24 };
++}  
++
++HudPos HudFps::renderFpsText(
++  const Rc<DxvkContext>&  context,
++  HudRenderer&      renderer,
++  HudPos            position) {
++    renderer.drawText(context, 16.0f,
++      { position.x, position.y },
++      { 1.0f, 1.0f, 1.0f, 1.0f },
++      m_fpsString);
++      
++      return HudPos { position.x, position.y + 24 };
++    }
+   
+   HudPos HudFps::renderFrametimeGraph(
+     const Rc<DxvkContext>&  context,
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index 855c892f..ac89397f 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -43,17 +43,23 @@ namespace dxvk::hud {
+     
+     std::array<float, NumDataPoints>  m_dataPoints  = {};
+     uint32_t                          m_dataPointId = 0;
+-    
+-    HudPos renderFpsText(
++
++    HudPos renderGpuText(
++      const Rc<DxvkContext>&  context,
++      HudRenderer&      renderer,
++      HudPos            position);
++      
++    HudPos renderCpuText(
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+             HudPos            position);
+     
+-    HudPos renderGpuText(
++    HudPos renderFpsText(
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+             HudPos            position);
+     
++    
+     HudPos renderFrametimeGraph(
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+
+From 9a5883a2230904ab19b0b2cda7593eebbe4b9b4a Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Mon, 9 Sep 2019 18:22:51 +0200
+Subject: [PATCH 03/19] Added hud offset
+
+---
+ src/dxvk/hud/dxvk_hud.cpp | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index 4fcd3bd2..3f7b0c0b 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -84,7 +84,16 @@ namespace dxvk::hud {
+ 
+ 
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+-    HudPos position = { 8.0f, 24.0f };
++    std::string offset_x = env::getEnvVar("DXVK_HUD_OFFSET_X");
++    std::string offset_y = env::getEnvVar("DXVK_HUD_OFFSET_Y");
++    
++    if (offset_x.empty())
++     offset_x = "0";
++     
++    if (offset_y.empty())
++    offset_y = "0";
++    
++    HudPos position = { stof(offset_x) + 8.0f, stof(offset_y) + 24.0f };
+     
+     if (m_config.elements.test(HudElement::DxvkVersion)) {
+       m_renderer.drawText(ctx, 16.0f,
+
+From 98c1a5f9d184866379bba95437f52cff84b3521d Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Thu, 12 Sep 2019 21:37:18 +0200
+Subject: [PATCH 04/19] Added logging for fps/cpuload/gpuload
+
+---
+ src/dxvk/hud/dxvk_hud_fps.cpp   | 9 +++++++++
+ src/dxvk/hud/dxvk_hud_stats.cpp | 3 ++-
+ src/dxvk/hud/dxvk_hud_stats.h   | 1 +
+ 3 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 7e9206ee..f6fff1bb 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -175,6 +175,11 @@ int getCpuUsage()
+ 	return 0;
+ }
+ 
++void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil) {
++  fstream f(file, f.out | f.app);
++  f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
++}
++
+ namespace dxvk::hud {
+   
+   HudFps::HudFps(HudElements elements)
+@@ -210,6 +215,10 @@ namespace dxvk::hud {
+       
+       m_prevFpsUpdate = now;
+       m_frameCount = 0;
++      char const* logging = getenv("DXVK_LOG_TO_FILE");
++      if (!logging == 0){
++        printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad));
++      }
+     }
+     
+     // Update frametime stuff
+diff --git a/src/dxvk/hud/dxvk_hud_stats.cpp b/src/dxvk/hud/dxvk_hud_stats.cpp
+index a59f4baf..be8a5eb7 100644
+--- a/src/dxvk/hud/dxvk_hud_stats.cpp
++++ b/src/dxvk/hud/dxvk_hud_stats.cpp
+@@ -1,6 +1,7 @@
+ #include "dxvk_hud_stats.h"
+ 
+ std::string m_gpuLoadString = "GPU: ";
++uint64_t gpuLoad;
+ namespace dxvk::hud {
+   
+   HudStats::HudStats(HudElements elements)
+@@ -71,7 +72,7 @@ namespace dxvk::hud {
+       uint64_t busyTicks = ticks > m_diffGpuIdleTicks
+         ? uint64_t(ticks - m_diffGpuIdleTicks)
+         : uint64_t(0);
+-
++      gpuLoad = 100 * busyTicks / ticks;
+       m_gpuLoadString = str::format("GPU:   ", (100 * busyTicks) / ticks, "%");
+     }
+   }
+diff --git a/src/dxvk/hud/dxvk_hud_stats.h b/src/dxvk/hud/dxvk_hud_stats.h
+index d41d136f..b7d740f1 100644
+--- a/src/dxvk/hud/dxvk_hud_stats.h
++++ b/src/dxvk/hud/dxvk_hud_stats.h
+@@ -8,6 +8,7 @@
+ #include "dxvk_hud_renderer.h"
+ 
+ extern std::string m_gpuLoadString;
++extern uint64_t gpuLoad;
+ namespace dxvk::hud {
+   
+   /**
+
+From d8b8f6f63a7b8cb3dcadf768110927d05002f80e Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Fri, 13 Sep 2019 10:19:59 +0200
+Subject: [PATCH 05/19] Added mangohud readme
+
+---
+ README.md | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/README.md b/README.md
+index 25d03230..569df655 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,14 @@
++# MangoHud Specific
++
++- `DXVK_HUD_OFFSET_X` Set X offset of the DVXK Hud.
++- `DXVK_HUD_OFFSET_Y` Set Y offset of the DVXK Hud.
++- `DXVK_LOG_TO_FILE` Turn on logging and select path/filename (Fps,Cpu load,Gpu load)
++- Logging Gpu load requires either mangogpuload or gpuload hud options
++
++# Hud options
++- `mangogpuload` : Shows current gpu load.
++- `mangocpuload` : Shows current cpu load.
++
+ # DXVK
+ 
+ A Vulkan-based translation layer for Direct3D 10/11 which allows running 3D applications on Linux using Wine.
+
+From ecd9dbbb95f3d7a2d043801b3c3745c8c1caaef3 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Fri, 13 Sep 2019 11:23:19 +0200
+Subject: [PATCH 06/19] Created a header file for cpuload to unclutter
+ dxvk_hud_fps
+
+---
+ src/dxvk/dxvk_cpu.h           | 172 ++++++++++++++++++++++++++++++++++
+ src/dxvk/hud/dxvk_hud_fps.cpp | 171 +--------------------------------
+ 2 files changed, 173 insertions(+), 170 deletions(-)
+ create mode 100644 src/dxvk/dxvk_cpu.h
+
+diff --git a/src/dxvk/dxvk_cpu.h b/src/dxvk/dxvk_cpu.h
+new file mode 100644
+index 00000000..b2c8736a
+--- /dev/null
++++ b/src/dxvk/dxvk_cpu.h
+@@ -0,0 +1,172 @@
++#include <cmath>
++#include <iomanip>
++#include <array>
++#include <vector>
++#include <algorithm>
++#include <iterator>
++#include <thread>
++#include <sstream>
++#include <fstream>
++using namespace std;
++
++const int NUM_CPU_STATES = 10;
++
++struct Cpus{
++  size_t num;
++  string name;
++  float value;
++  string output;
++};
++
++size_t numCpuCores = dxvk::thread::hardware_concurrency();
++size_t arraySize = numCpuCores + 1;
++std::vector<Cpus> cpuArray;
++
++void coreCounting(){
++  cpuArray.push_back({0, "CPU:"});
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t offset = i;
++    stringstream ss;
++    ss << "CPU" << offset << ":";
++    string cpuNameString = ss.str();
++    cpuArray.push_back({i+1 , cpuNameString});
++  }
++}
++
++std::string m_cpuUtilizationString;
++
++enum CPUStates
++{
++	S_USER = 0,
++	S_NICE,
++	S_SYSTEM,
++	S_IDLE,
++	S_IOWAIT,
++	S_IRQ,
++	S_SOFTIRQ,
++	S_STEAL,
++	S_GUEST,
++	S_GUEST_NICE
++};
++
++typedef struct CPUData
++{
++	std::string cpu;
++	size_t times[NUM_CPU_STATES];
++} CPUData;
++
++void ReadStatsCPU(std::vector<CPUData> & entries)
++{
++	std::ifstream fileStat("/proc/stat");
++
++	std::string line;
++
++	const std::string STR_CPU("cpu");
++	const std::size_t LEN_STR_CPU = STR_CPU.size();
++	const std::string STR_TOT("tot");
++
++	while(std::getline(fileStat, line))
++	{
++		// cpu stats line found
++		if(!line.compare(0, LEN_STR_CPU, STR_CPU))
++		{
++			std::istringstream ss(line);
++
++			// store entry
++			entries.emplace_back(CPUData());
++			CPUData & entry = entries.back();
++
++			// read cpu label
++			ss >> entry.cpu;
++
++			if(entry.cpu.size() > LEN_STR_CPU)
++				entry.cpu.erase(0, LEN_STR_CPU);
++			else
++				entry.cpu = STR_TOT;
++
++			// read times
++			for(int i = 0; i < NUM_CPU_STATES; ++i)
++				ss >> entry.times[i];
++		}
++	}
++}
++
++size_t GetIdleTime(const CPUData & e)
++{
++	return	e.times[S_IDLE] +
++			e.times[S_IOWAIT];
++}
++
++size_t GetActiveTime(const CPUData & e)
++{
++	return	e.times[S_USER] +
++			e.times[S_NICE] +
++			e.times[S_SYSTEM] +
++			e.times[S_IRQ] +
++			e.times[S_SOFTIRQ] +
++			e.times[S_STEAL] +
++			e.times[S_GUEST] +
++			e.times[S_GUEST_NICE];
++}
++
++void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
++{
++	const size_t NUM_ENTRIES = entries1.size();
++
++	for(size_t i = 0; i < NUM_ENTRIES; ++i)
++	{
++		const CPUData & e1 = entries1[i];
++		const CPUData & e2 = entries2[i];
++
++		const float ACTIVE_TIME	= static_cast<float>(GetActiveTime(e2) - GetActiveTime(e1));
++		const float IDLE_TIME	= static_cast<float>(GetIdleTime(e2) - GetIdleTime(e1));
++		const float TOTAL_TIME	= ACTIVE_TIME + IDLE_TIME;
++
++    cpuArray[i].value = (truncf(100.f * ACTIVE_TIME / TOTAL_TIME) * 10 / 10);
++	}
++}
++
++int getCpuUsage()
++{
++	std::vector<CPUData> entries1;
++	std::vector<CPUData> entries2;
++
++	// snapshot 1
++	ReadStatsCPU(entries1);
++
++	// 100ms pause
++	std::this_thread::sleep_for(std::chrono::milliseconds(100));
++
++	// snapshot 2
++	ReadStatsCPU(entries2);
++
++	// print output
++	PrintStats(entries1, entries2);
++
++	return 0;
++}
++
++
++void updateCpuStrings(){
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t spacing = 10;
++    string value = to_string(cpuArray[i].value);
++    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
++    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
++    string correction = "";
++    for (size_t i = 0; i < correctionValue; i++) {
++          correction.append(" ");
++        }
++        stringstream ss;
++        if (i < 11) {
++          if (i == 0) {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          } else {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          }
++        } else {
++          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++        }
++        cpuArray[i].output = ss.str();
++      }
++    }
+\ No newline at end of file
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index f6fff1bb..2b5811e8 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -1,180 +1,12 @@
+ #include "dxvk_hud_fps.h"
+ #include "dxvk_hud_stats.h"
++#include "../dxvk_cpu.h"
+ 
+ #include <cmath>
+ #include <iomanip>
+-#include <array>
+-#include <vector>
+-#include <algorithm>
+-#include <iterator>
+-#include <thread>
+-#include <sstream>
+-#include <fstream>
+ using namespace std;
+ 
+ 
+-const int NUM_CPU_STATES = 10;
+-
+-struct Cpus{
+-  size_t num;
+-  string name;
+-  float value;
+-  string output;
+-};
+-
+-size_t numCpuCores = dxvk::thread::hardware_concurrency();
+-size_t arraySize = numCpuCores + 1;
+-std::vector<Cpus> cpuArray;
+-
+-void coreCounting(){
+-  cpuArray.push_back({0, "CPU:"});
+-  for (size_t i = 0; i < arraySize; i++) {
+-    size_t offset = i;
+-    stringstream ss;
+-    ss << "CPU" << offset << ":";
+-    string cpuNameString = ss.str();
+-    cpuArray.push_back({i+1 , cpuNameString});
+-  }
+-}
+-
+-std::string m_cpuUtilizationString;
+-
+-enum CPUStates
+-{
+-	S_USER = 0,
+-	S_NICE,
+-	S_SYSTEM,
+-	S_IDLE,
+-	S_IOWAIT,
+-	S_IRQ,
+-	S_SOFTIRQ,
+-	S_STEAL,
+-	S_GUEST,
+-	S_GUEST_NICE
+-};
+-
+-typedef struct CPUData
+-{
+-	std::string cpu;
+-	size_t times[NUM_CPU_STATES];
+-} CPUData;
+-
+-void ReadStatsCPU(std::vector<CPUData> & entries)
+-{
+-	std::ifstream fileStat("/proc/stat");
+-
+-	std::string line;
+-
+-	const std::string STR_CPU("cpu");
+-	const std::size_t LEN_STR_CPU = STR_CPU.size();
+-	const std::string STR_TOT("tot");
+-
+-	while(std::getline(fileStat, line))
+-	{
+-		// cpu stats line found
+-		if(!line.compare(0, LEN_STR_CPU, STR_CPU))
+-		{
+-			std::istringstream ss(line);
+-
+-			// store entry
+-			entries.emplace_back(CPUData());
+-			CPUData & entry = entries.back();
+-
+-			// read cpu label
+-			ss >> entry.cpu;
+-
+-			if(entry.cpu.size() > LEN_STR_CPU)
+-				entry.cpu.erase(0, LEN_STR_CPU);
+-			else
+-				entry.cpu = STR_TOT;
+-
+-			// read times
+-			for(int i = 0; i < NUM_CPU_STATES; ++i)
+-				ss >> entry.times[i];
+-		}
+-	}
+-}
+-
+-size_t GetIdleTime(const CPUData & e)
+-{
+-	return	e.times[S_IDLE] +
+-			e.times[S_IOWAIT];
+-}
+-
+-size_t GetActiveTime(const CPUData & e)
+-{
+-	return	e.times[S_USER] +
+-			e.times[S_NICE] +
+-			e.times[S_SYSTEM] +
+-			e.times[S_IRQ] +
+-			e.times[S_SOFTIRQ] +
+-			e.times[S_STEAL] +
+-			e.times[S_GUEST] +
+-			e.times[S_GUEST_NICE];
+-}
+-
+-
+-void updateCpuStrings(){
+-  for (size_t i = 0; i < arraySize; i++) {
+-    size_t spacing = 10;
+-    string value = to_string(cpuArray[i].value);
+-    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
+-    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
+-    string correction = "";
+-    for (size_t i = 0; i < correctionValue; i++) {
+-          correction.append(" ");
+-        }
+-        stringstream ss;
+-        if (i < 11) {
+-          if (i == 0) {
+-            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
+-          } else {
+-            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
+-          }
+-        } else {
+-          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
+-        }
+-        cpuArray[i].output = ss.str();
+-      }
+-    }
+-
+-void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
+-{
+-	const size_t NUM_ENTRIES = entries1.size();
+-
+-	for(size_t i = 0; i < NUM_ENTRIES; ++i)
+-	{
+-		const CPUData & e1 = entries1[i];
+-		const CPUData & e2 = entries2[i];
+-
+-		const float ACTIVE_TIME	= static_cast<float>(GetActiveTime(e2) - GetActiveTime(e1));
+-		const float IDLE_TIME	= static_cast<float>(GetIdleTime(e2) - GetIdleTime(e1));
+-		const float TOTAL_TIME	= ACTIVE_TIME + IDLE_TIME;
+-
+-    cpuArray[i].value = (truncf(100.f * ACTIVE_TIME / TOTAL_TIME) * 10 / 10);
+-	}
+-}
+-
+-int getCpuUsage()
+-{
+-	std::vector<CPUData> entries1;
+-	std::vector<CPUData> entries2;
+-
+-	// snapshot 1
+-	ReadStatsCPU(entries1);
+-
+-	// 100ms pause
+-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+-
+-	// snapshot 2
+-	ReadStatsCPU(entries2);
+-
+-	// print output
+-	PrintStats(entries1, entries2);
+-
+-	return 0;
+-}
+-
+ void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil) {
+   fstream f(file, f.out | f.app);
+   f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
+@@ -187,7 +19,6 @@ namespace dxvk::hud {
+     m_fpsString ("FPS: "),
+     m_prevFpsUpdate(Clock::now()),
+     m_prevFtgUpdate(Clock::now()) {
+-    
+   }
+   
+   
+
+From dd5692d56fca3f8dd2e6982b0479f21c3a83043c Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Fri, 13 Sep 2019 13:17:00 +0200
+Subject: [PATCH 07/19] Getting and parsing hud offset on createHud instead
+
+---
+ src/dxvk/hud/dxvk_hud.cpp | 22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index 3f7b0c0b..4cb9f2dd 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -2,6 +2,8 @@
+ #include <version.h>
+ 
+ #include "dxvk_hud.h"
++float offset_x_float = 0.0;
++float offset_y_float = 0.0;
+ 
+ namespace dxvk::hud {
+   
+@@ -60,6 +62,14 @@ namespace dxvk::hud {
+   
+   Rc<Hud> Hud::createHud(const Rc<DxvkDevice>& device) {
+     std::string hudElements = env::getEnvVar("DXVK_HUD");
++    std::string offset_x = env::getEnvVar("DXVK_HUD_OFFSET_X");
++    std::string offset_y = env::getEnvVar("DXVK_HUD_OFFSET_Y");
++    
++    if (!offset_x.empty())
++      offset_x_float = stof(offset_x);
++    
++    if (!offset_y.empty())
++      offset_y_float = stof(offset_y);
+ 
+     if (hudElements.empty())
+       hudElements = device->config().hud;
+@@ -84,16 +94,8 @@ namespace dxvk::hud {
+ 
+ 
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+-    std::string offset_x = env::getEnvVar("DXVK_HUD_OFFSET_X");
+-    std::string offset_y = env::getEnvVar("DXVK_HUD_OFFSET_Y");
+-    
+-    if (offset_x.empty())
+-     offset_x = "0";
+-     
+-    if (offset_y.empty())
+-    offset_y = "0";
+-    
+-    HudPos position = { stof(offset_x) + 8.0f, stof(offset_y) + 24.0f };
++
++    HudPos position = { offset_x_float + 8.0f, offset_y_float + 24.0f };
+     
+     if (m_config.elements.test(HudElement::DxvkVersion)) {
+       m_renderer.drawText(ctx, 16.0f,
+
+From d7483e94a7222c08dd5c257e3e1b5a9fcc861a4f Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Wed, 18 Sep 2019 16:19:39 +0200
+Subject: [PATCH 08/19] Keybind F12 toggle Hud on/off
+
+---
+ src/dxvk/hud/dxvk_hud.cpp | 70 +++++++++++++++++++++++----------------
+ src/dxvk/hud/dxvk_hud.h   |  2 ++
+ 2 files changed, 44 insertions(+), 28 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index 4cb9f2dd..79ee6690 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -1,11 +1,13 @@
+-#include <cstring>
+ #include <version.h>
+-
+ #include "dxvk_hud.h"
+-float offset_x_float = 0.0;
+-float offset_y_float = 0.0;
++#include <windows.h>
++#include <time.h>
+ 
+ namespace dxvk::hud {
++  float Hud::offset_x_float = 0;
++  float Hud::offset_y_float = 0;
++  bool show_hud = true;
++  time_t lastPress;
+   
+   Hud::Hud(
+     const Rc<DxvkDevice>& device,
+@@ -92,34 +94,46 @@ namespace dxvk::hud {
+     m_renderer.beginFrame(ctx, m_uniformData.surfaceSize);
+   }
+ 
+-
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+-
++    if(GetKeyState(VK_F12) & 0x8000)
++    {
++      if (time(0) - lastPress > 0){
++        lastPress = time(0);
++        std::cout << "pressed F12" << std::endl;
++        if (show_hud){
++          show_hud = false;
++        } else {
++          show_hud = true;
++        }
++      }
++    } 
++    
+     HudPos position = { offset_x_float + 8.0f, offset_y_float + 24.0f };
+     
+-    if (m_config.elements.test(HudElement::DxvkVersion)) {
+-      m_renderer.drawText(ctx, 16.0f,
+-        { position.x, position.y },
+-        { 1.0f, 1.0f, 1.0f, 1.0f },
+-        "DXVK " DXVK_VERSION);
+-      position.y += 24.0f;
++    if (show_hud){
++      if (m_config.elements.test(HudElement::DxvkVersion)) {
++        m_renderer.drawText(ctx, 16.0f,
++          { position.x, position.y },
++          { 1.0f, 1.0f, 1.0f, 1.0f },
++          "DXVK " DXVK_VERSION);
++        position.y += 24.0f;
++      }
++
++      if (m_config.elements.test(HudElement::DxvkClientApi)) {
++        m_renderer.drawText(ctx, 16.0f,
++          { position.x, position.y },
++          { 1.0f, 1.0f, 1.0f, 1.0f },
++          m_device->clientApi());
++        position.y += 24.0f;
++      }
++
++      if (m_config.elements.test(HudElement::DeviceInfo)) {
++        position = m_hudDeviceInfo.render(
++          ctx, m_renderer, position);
++      }
++      position = m_hudFramerate.render(ctx, m_renderer, position);
++      position = m_hudStats    .render(ctx, m_renderer, position);
+     }
+-
+-    if (m_config.elements.test(HudElement::DxvkClientApi)) {
+-      m_renderer.drawText(ctx, 16.0f,
+-        { position.x, position.y },
+-        { 1.0f, 1.0f, 1.0f, 1.0f },
+-        m_device->clientApi());
+-      position.y += 24.0f;
+-    }
+-
+-    if (m_config.elements.test(HudElement::DeviceInfo)) {
+-      position = m_hudDeviceInfo.render(
+-        ctx, m_renderer, position);
+-    }
+-    
+-    position = m_hudFramerate.render(ctx, m_renderer, position);
+-    position = m_hudStats    .render(ctx, m_renderer, position);
+   }
+   
+   
+diff --git a/src/dxvk/hud/dxvk_hud.h b/src/dxvk/hud/dxvk_hud.h
+index 3b702c3b..71779977 100644
+--- a/src/dxvk/hud/dxvk_hud.h
++++ b/src/dxvk/hud/dxvk_hud.h
+@@ -29,6 +29,8 @@ namespace dxvk::hud {
+   class Hud : public RcObject {
+     
+   public:
++    static float offset_x_float;
++    static float offset_y_float;
+     
+     Hud(
+       const Rc<DxvkDevice>& device,
+
+From 17e116eab3472a4201aa6614cd3e132d42971cf8 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Wed, 18 Sep 2019 16:19:51 +0200
+Subject: [PATCH 09/19] Keybind F2 toggle logging on/off
+
+---
+ src/dxvk/hud/dxvk_hud_config.cpp |  1 +
+ src/dxvk/hud/dxvk_hud_config.h   |  1 +
+ src/dxvk/hud/dxvk_hud_fps.cpp    | 61 ++++++++++++++++++++++++++++----
+ src/dxvk/hud/dxvk_hud_fps.h      | 10 ++++++
+ 4 files changed, 66 insertions(+), 7 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_config.cpp b/src/dxvk/hud/dxvk_hud_config.cpp
+index 11227e67..020a394b 100644
+--- a/src/dxvk/hud/dxvk_hud_config.cpp
++++ b/src/dxvk/hud/dxvk_hud_config.cpp
+@@ -18,6 +18,7 @@ namespace dxvk::hud {
+     { "compiler",     HudElement::CompilerActivity  },
+     { "mangogpuload", HudElement::GpuLoad           },
+     { "mangocpuload", HudElement::CpuLoad           },
++    { "mangocpuload", HudElement::Logging           },
+   }};
+   
+   
+diff --git a/src/dxvk/hud/dxvk_hud_config.h b/src/dxvk/hud/dxvk_hud_config.h
+index 602333d1..5d571663 100644
+--- a/src/dxvk/hud/dxvk_hud_config.h
++++ b/src/dxvk/hud/dxvk_hud_config.h
+@@ -24,6 +24,7 @@ namespace dxvk::hud {
+     CompilerActivity  = 10,
+     GpuLoad           = 11,
+     CpuLoad           = 12,
++    Logging           = 13,
+   };
+   
+   using HudElements = Flags<HudElement>;
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 2b5811e8..42fdf2c5 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -1,14 +1,17 @@
+ #include "dxvk_hud_fps.h"
+ #include "dxvk_hud_stats.h"
+ #include "../dxvk_cpu.h"
++#include <time.h>
+ 
+ #include <cmath>
+ #include <iomanip>
+ using namespace std;
++time_t now_log = time(0);
++tm *log_time = localtime(&now_log);
+ 
+-
+-void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil) {
+-  fstream f(file, f.out | f.app);
++void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil, tm *log_time) {
++  string date = to_string(log_time->tm_year + 1900) + "-" + to_string(1 + log_time->tm_mon) + "-" + to_string(log_time->tm_mday) + "_" + to_string(1 + log_time->tm_hour) + "-" + to_string(1 + log_time->tm_min) + "-" + to_string(1 + log_time->tm_sec);
++  fstream f(file + "_" + date, f.out | f.app);
+   f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
+ }
+ 
+@@ -33,10 +36,35 @@ namespace dxvk::hud {
+     TimePoint now = Clock::now();
+     TimeDiff elapsedFps = std::chrono::duration_cast<TimeDiff>(now - m_prevFpsUpdate);
+     TimeDiff elapsedFtg = std::chrono::duration_cast<TimeDiff>(now - m_prevFtgUpdate);
++    if (startCounting){
++      elapsedF2  = std::chrono::duration_cast<TimeDiff>(now - m_prevF2Press);
++    }
+     m_prevFtgUpdate = now;
+-    
+-    // Update FPS string
++
++    if (elapsedF2.count() > UpdateInterval){
++      startCounting = false;
++    }
++
++    if(GetKeyState(VK_F2) & 0x8000)
++    {
++      if (elapsedF2.count() > UpdateInterval) {
++          if (mango_logging){
++            m_prevF2Press = now;
++            now_log = time(0);
++            log_time = localtime(&now_log);
++            startCounting = true;
++            mango_logging = false;
++          } else {
++            m_prevF2Press = now;
++            now_log = time(0);
++            log_time = localtime(&now_log);
++            startCounting = true;
++            mango_logging = true;
++          }
++      } 
++    }
+     if (elapsedFps.count() >= UpdateInterval) {
++    // Update FPS string
+       coreCounting();
+       dxvk::thread([this] () { getCpuUsage();});
+       updateCpuStrings();
+@@ -48,7 +76,9 @@ namespace dxvk::hud {
+       m_frameCount = 0;
+       char const* logging = getenv("DXVK_LOG_TO_FILE");
+       if (!logging == 0){
+-        printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad));
++        if (mango_logging){
++          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad), log_time);
++        }
+       }
+     }
+     
+@@ -80,6 +110,11 @@ namespace dxvk::hud {
+         context, renderer, position);
+     }
+     
++    if (mango_logging) {
++      this->renderLogging(context, renderer,
++        { float(renderer.surfaceSize().width) - 250.0f, float(renderer.surfaceSize().height) - 20.0f });
++    }
++    
+     return position;
+   }
+   
+@@ -95,7 +130,7 @@ namespace dxvk::hud {
+     m_gpuLoadString);
+ 
+   return HudPos { position.x, position.y + 24 };
+-}  
++}
+ 
+ HudPos HudFps::renderCpuText(
+ const Rc<DxvkContext>&  context,
+@@ -120,6 +155,18 @@ HudPos HudFps::renderFpsText(
+       
+       return HudPos { position.x, position.y + 24 };
+     }
++    
++  HudPos HudFps::renderLogging(
++    const Rc<DxvkContext>&  context,
++    HudRenderer&      renderer,
++    HudPos            position) {
++      renderer.drawText(context, 16.0f,
++        { position.x, position.y },
++        { 1.0f, 1.0f, 1.0f, 1.0f },
++        "Currently Logging...");
++        
++        return HudPos { position.x, position.y};
++      }
+   
+   HudPos HudFps::renderFrametimeGraph(
+     const Rc<DxvkContext>&  context,
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index ac89397f..51034e19 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -36,9 +36,14 @@ namespace dxvk::hud {
+     const HudElements m_elements;
+     
+     std::string m_fpsString;
++    bool mango_logging = false;
++    bool startCounting = false;
++    time_t lastPress = time(0);
+     
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
++    TimePoint m_prevF2Press;
++    TimeDiff  elapsedF2;
+     int64_t   m_frameCount = 0;
+     
+     std::array<float, NumDataPoints>  m_dataPoints  = {};
+@@ -64,6 +69,11 @@ namespace dxvk::hud {
+       const Rc<DxvkContext>&  context,
+             HudRenderer&      renderer,
+             HudPos            position);
++            
++    HudPos renderLogging(
++      const Rc<DxvkContext>&  context,
++            HudRenderer&      renderer,
++            HudPos            position);
+     
+   };
+   
+
+From a942d3315ecddf888955152b8c98afd7691d17b7 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Wed, 18 Sep 2019 16:43:37 +0200
+Subject: [PATCH 10/19] Updated readme to reflect new keybinds and website
+ functionality
+
+---
+ README.md | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/README.md b/README.md
+index 569df655..e8a53432 100644
+--- a/README.md
++++ b/README.md
+@@ -9,6 +9,21 @@
+ - `mangogpuload` : Shows current gpu load.
+ - `mangocpuload` : Shows current cpu load.
+ 
++# Keybinds
++- `F2`  : Toggle Logging on/off
++- `F12` : Toggle Hud on/off
++
++# MangoLog file
++
++ When you press F2, a file is created with your chosen name + date/time stamp.
++ this file can be uploaded to https://flightlessmango.com/logs/new to create graphs automatically.
++ you can share the created page with others, just link it.
++ 
++ #### Multiple log files
++ 
++ It's possible to upload multiple files, you can rename them to your preferred names and upload them in a batch.
++ The graphs will then use those names in the data.
++
+ # DXVK
+ 
+ A Vulkan-based translation layer for Direct3D 10/11 which allows running 3D applications on Linux using Wine.
+
+From c949d66f8ce154c88f881056fc6867554d4e5577 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Wed, 18 Sep 2019 17:52:28 +0200
+Subject: [PATCH 11/19] Removed debugging line
+
+---
+ src/dxvk/hud/dxvk_hud.cpp | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index 79ee6690..d7d95dff 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -99,7 +99,6 @@ namespace dxvk::hud {
+     {
+       if (time(0) - lastPress > 0){
+         lastPress = time(0);
+-        std::cout << "pressed F12" << std::endl;
+         if (show_hud){
+           show_hud = false;
+         } else {
+
+From 0e9f8725fe4c69855b18242975af99b68827b6ae Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Thu, 19 Sep 2019 12:08:45 +0200
+Subject: [PATCH 12/19] Fixed issue causing logging keybind to not work in
+ certain games
+
+---
+ src/dxvk/hud/dxvk_hud_fps.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 42fdf2c5..9e91bc09 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -47,7 +47,7 @@ namespace dxvk::hud {
+ 
+     if(GetKeyState(VK_F2) & 0x8000)
+     {
+-      if (elapsedF2.count() > UpdateInterval) {
++      if (elapsedF2.count() > UpdateInterval || elapsedF2.count() == 0) {
+           if (mango_logging){
+             m_prevF2Press = now;
+             now_log = time(0);
+
+From 06aaebbcae63ea7a44a4dd9155492f9c9cd16209 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Thu, 19 Sep 2019 18:07:41 +0200
+Subject: [PATCH 13/19] Fixed keybinds in Proton by switching to
+ GetAsyncKeyState().
+
+---
+ src/dxvk/hud/dxvk_hud.cpp     | 2 +-
+ src/dxvk/hud/dxvk_hud_fps.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index d7d95dff..a0bcc987 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -95,7 +95,7 @@ namespace dxvk::hud {
+   }
+ 
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+-    if(GetKeyState(VK_F12) & 0x8000)
++    if(GetAsyncKeyState(VK_F12) & 0x8000)
+     {
+       if (time(0) - lastPress > 0){
+         lastPress = time(0);
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 9e91bc09..7e285122 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -45,7 +45,7 @@ namespace dxvk::hud {
+       startCounting = false;
+     }
+ 
+-    if(GetKeyState(VK_F2) & 0x8000)
++    if(GetAsyncKeyState(VK_F2) & 0x8000)
+     {
+       if (elapsedF2.count() > UpdateInterval || elapsedF2.count() == 0) {
+           if (mango_logging){
+
+From 0ddd70a7e2473d1fc774364eddc4e4e7d5a7de16 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Thu, 19 Sep 2019 18:18:14 +0200
+Subject: [PATCH 14/19] Stop Logging message from showing if no log file is
+ specified
+
+---
+ src/dxvk/hud/dxvk_hud_fps.cpp | 4 ++--
+ src/dxvk/hud/dxvk_hud_fps.h   | 1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 7e285122..ef2a91b2 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -74,7 +74,7 @@ namespace dxvk::hud {
+       
+       m_prevFpsUpdate = now;
+       m_frameCount = 0;
+-      char const* logging = getenv("DXVK_LOG_TO_FILE");
++      logging = getenv("DXVK_LOG_TO_FILE");
+       if (!logging == 0){
+         if (mango_logging){
+           printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad), log_time);
+@@ -110,7 +110,7 @@ namespace dxvk::hud {
+         context, renderer, position);
+     }
+     
+-    if (mango_logging) {
++    if (mango_logging && !logging == 0) {
+       this->renderLogging(context, renderer,
+         { float(renderer.surfaceSize().width) - 250.0f, float(renderer.surfaceSize().height) - 20.0f });
+     }
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index 51034e19..2cbc69ef 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -39,6 +39,7 @@ namespace dxvk::hud {
+     bool mango_logging = false;
+     bool startCounting = false;
+     time_t lastPress = time(0);
++    char const* logging;
+     
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
+
+From 1bdd5fe09f9f2d389482a9d5105fcf9a0ff586c8 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Thu, 19 Sep 2019 23:23:35 +0200
+Subject: [PATCH 15/19] Removed redundant code in dxvk_hud_fps
+
+---
+ src/dxvk/hud/dxvk_hud_fps.cpp | 12 +-----------
+ src/dxvk/hud/dxvk_hud_fps.h   |  1 -
+ 2 files changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index ef2a91b2..74ec7076 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -36,29 +36,19 @@ namespace dxvk::hud {
+     TimePoint now = Clock::now();
+     TimeDiff elapsedFps = std::chrono::duration_cast<TimeDiff>(now - m_prevFpsUpdate);
+     TimeDiff elapsedFtg = std::chrono::duration_cast<TimeDiff>(now - m_prevFtgUpdate);
+-    if (startCounting){
+-      elapsedF2  = std::chrono::duration_cast<TimeDiff>(now - m_prevF2Press);
+-    }
+     m_prevFtgUpdate = now;
+ 
+-    if (elapsedF2.count() > UpdateInterval){
+-      startCounting = false;
+-    }
+-
+     if(GetAsyncKeyState(VK_F2) & 0x8000)
+     {
++      elapsedF2 = std::chrono::duration_cast<TimeDiff>(now - m_prevF2Press);
+       if (elapsedF2.count() > UpdateInterval || elapsedF2.count() == 0) {
+           if (mango_logging){
+             m_prevF2Press = now;
+-            now_log = time(0);
+-            log_time = localtime(&now_log);
+-            startCounting = true;
+             mango_logging = false;
+           } else {
+             m_prevF2Press = now;
+             now_log = time(0);
+             log_time = localtime(&now_log);
+-            startCounting = true;
+             mango_logging = true;
+           }
+       } 
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index 2cbc69ef..5bca3d93 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -37,7 +37,6 @@ namespace dxvk::hud {
+     
+     std::string m_fpsString;
+     bool mango_logging = false;
+-    bool startCounting = false;
+     time_t lastPress = time(0);
+     char const* logging;
+     
+
+From cb2bf8309273969c6fce9c621c317cf9de0982ee Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Fri, 20 Sep 2019 13:49:38 +0200
+Subject: [PATCH 16/19] Better check for lastPress on F12
+
+---
+ src/dxvk/hud/dxvk_hud.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud.cpp b/src/dxvk/hud/dxvk_hud.cpp
+index a0bcc987..b6e23c4c 100644
+--- a/src/dxvk/hud/dxvk_hud.cpp
++++ b/src/dxvk/hud/dxvk_hud.cpp
+@@ -7,7 +7,7 @@ namespace dxvk::hud {
+   float Hud::offset_x_float = 0;
+   float Hud::offset_y_float = 0;
+   bool show_hud = true;
+-  time_t lastPress;
++  int lastPress;
+   
+   Hud::Hud(
+     const Rc<DxvkDevice>& device,
+@@ -97,8 +97,8 @@ namespace dxvk::hud {
+   void Hud::renderHudElements(const Rc<DxvkContext>& ctx) {
+     if(GetAsyncKeyState(VK_F12) & 0x8000)
+     {
+-      if (time(0) - lastPress > 0){
+-        lastPress = time(0);
++      if (GetTickCount() - lastPress > 500){
++        lastPress = GetTickCount();
+         if (show_hud){
+           show_hud = false;
+         } else {
+
+From 85bdf5048cdfd76cf214fc9db51609398b769119 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Fri, 20 Sep 2019 18:22:02 +0200
+Subject: [PATCH 17/19] Less messy and windows friendly cpu usage fetching.
+
+---
+ src/dxvk/dxvk_cpu.h           | 181 ++++------------------------------
+ src/dxvk/hud/dxvk_hud_fps.cpp |   8 +-
+ src/dxvk/hud/dxvk_hud_fps.h   |   4 +-
+ 3 files changed, 24 insertions(+), 169 deletions(-)
+
+diff --git a/src/dxvk/dxvk_cpu.h b/src/dxvk/dxvk_cpu.h
+index b2c8736a..5d4470af 100644
+--- a/src/dxvk/dxvk_cpu.h
++++ b/src/dxvk/dxvk_cpu.h
+@@ -1,172 +1,27 @@
+-#include <cmath>
+-#include <iomanip>
+-#include <array>
+-#include <vector>
+-#include <algorithm>
+-#include <iterator>
+-#include <thread>
+-#include <sstream>
+-#include <fstream>
+-using namespace std;
++#include <windows.h>
+ 
+-const int NUM_CPU_STATES = 10;
+-
+-struct Cpus{
+-  size_t num;
+-  string name;
+-  float value;
+-  string output;
+-};
+-
+-size_t numCpuCores = dxvk::thread::hardware_concurrency();
+-size_t arraySize = numCpuCores + 1;
+-std::vector<Cpus> cpuArray;
+-
+-void coreCounting(){
+-  cpuArray.push_back({0, "CPU:"});
+-  for (size_t i = 0; i < arraySize; i++) {
+-    size_t offset = i;
+-    stringstream ss;
+-    ss << "CPU" << offset << ":";
+-    string cpuNameString = ss.str();
+-    cpuArray.push_back({i+1 , cpuNameString});
+-  }
+-}
+-
+-std::string m_cpuUtilizationString;
+-
+-enum CPUStates
+-{
+-	S_USER = 0,
+-	S_NICE,
+-	S_SYSTEM,
+-	S_IDLE,
+-	S_IOWAIT,
+-	S_IRQ,
+-	S_SOFTIRQ,
+-	S_STEAL,
+-	S_GUEST,
+-	S_GUEST_NICE
+-};
+-
+-typedef struct CPUData
++static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
+ {
+-	std::string cpu;
+-	size_t times[NUM_CPU_STATES];
+-} CPUData;
++   static unsigned long long _previousTotalTicks = 0;
++   static unsigned long long _previousIdleTicks = 0;
+ 
+-void ReadStatsCPU(std::vector<CPUData> & entries)
+-{
+-	std::ifstream fileStat("/proc/stat");
++   unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
++   unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
+ 
+-	std::string line;
++   float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
+ 
+-	const std::string STR_CPU("cpu");
+-	const std::size_t LEN_STR_CPU = STR_CPU.size();
+-	const std::string STR_TOT("tot");
+-
+-	while(std::getline(fileStat, line))
+-	{
+-		// cpu stats line found
+-		if(!line.compare(0, LEN_STR_CPU, STR_CPU))
+-		{
+-			std::istringstream ss(line);
+-
+-			// store entry
+-			entries.emplace_back(CPUData());
+-			CPUData & entry = entries.back();
+-
+-			// read cpu label
+-			ss >> entry.cpu;
+-
+-			if(entry.cpu.size() > LEN_STR_CPU)
+-				entry.cpu.erase(0, LEN_STR_CPU);
+-			else
+-				entry.cpu = STR_TOT;
+-
+-			// read times
+-			for(int i = 0; i < NUM_CPU_STATES; ++i)
+-				ss >> entry.times[i];
+-		}
+-	}
++   _previousTotalTicks = totalTicks;
++   _previousIdleTicks  = idleTicks;
++   return ret;
+ }
+ 
+-size_t GetIdleTime(const CPUData & e)
+-{
+-	return	e.times[S_IDLE] +
+-			e.times[S_IOWAIT];
+-}
++static unsigned long long FileTimeToInt64(const FILETIME & ft) {return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);}
+ 
+-size_t GetActiveTime(const CPUData & e)
++// Returns 1.0f for "CPU fully pinned", 0.0f for "CPU idle", or somewhere in between
++// You'll need to call this at regular intervals, since it measures the load between
++// the previous call and the current one.  Returns -1.0 on error.
++float GetCPULoad()
+ {
+-	return	e.times[S_USER] +
+-			e.times[S_NICE] +
+-			e.times[S_SYSTEM] +
+-			e.times[S_IRQ] +
+-			e.times[S_SOFTIRQ] +
+-			e.times[S_STEAL] +
+-			e.times[S_GUEST] +
+-			e.times[S_GUEST_NICE];
+-}
+-
+-void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
+-{
+-	const size_t NUM_ENTRIES = entries1.size();
+-
+-	for(size_t i = 0; i < NUM_ENTRIES; ++i)
+-	{
+-		const CPUData & e1 = entries1[i];
+-		const CPUData & e2 = entries2[i];
+-
+-		const float ACTIVE_TIME	= static_cast<float>(GetActiveTime(e2) - GetActiveTime(e1));
+-		const float IDLE_TIME	= static_cast<float>(GetIdleTime(e2) - GetIdleTime(e1));
+-		const float TOTAL_TIME	= ACTIVE_TIME + IDLE_TIME;
+-
+-    cpuArray[i].value = (truncf(100.f * ACTIVE_TIME / TOTAL_TIME) * 10 / 10);
+-	}
+-}
+-
+-int getCpuUsage()
+-{
+-	std::vector<CPUData> entries1;
+-	std::vector<CPUData> entries2;
+-
+-	// snapshot 1
+-	ReadStatsCPU(entries1);
+-
+-	// 100ms pause
+-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+-
+-	// snapshot 2
+-	ReadStatsCPU(entries2);
+-
+-	// print output
+-	PrintStats(entries1, entries2);
+-
+-	return 0;
+-}
+-
+-
+-void updateCpuStrings(){
+-  for (size_t i = 0; i < arraySize; i++) {
+-    size_t spacing = 10;
+-    string value = to_string(cpuArray[i].value);
+-    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
+-    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
+-    string correction = "";
+-    for (size_t i = 0; i < correctionValue; i++) {
+-          correction.append(" ");
+-        }
+-        stringstream ss;
+-        if (i < 11) {
+-          if (i == 0) {
+-            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
+-          } else {
+-            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
+-          }
+-        } else {
+-          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
+-        }
+-        cpuArray[i].output = ss.str();
+-      }
+-    }
+\ No newline at end of file
++   FILETIME idleTime, kernelTime, userTime;
++   return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
++}
+\ No newline at end of file
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 74ec7076..8a5e01c4 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -55,10 +55,8 @@ namespace dxvk::hud {
+     }
+     if (elapsedFps.count() >= UpdateInterval) {
+     // Update FPS string
+-      coreCounting();
+-      dxvk::thread([this] () { getCpuUsage();});
+-      updateCpuStrings();
+-      m_cpuUtilizationString = str::format(cpuArray[0].output);
++      int cpuLoad = int(GetCPULoad() * 100);
++      m_cpuUtilizationString = str::format("CPU:   ", cpuLoad, "%");
+       const int64_t fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
+       m_fpsString = str::format("FPS: ", fps / 10, ".", fps % 10);
+       
+@@ -67,7 +65,7 @@ namespace dxvk::hud {
+       logging = getenv("DXVK_LOG_TO_FILE");
+       if (!logging == 0){
+         if (mango_logging){
+-          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad), log_time);
++          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuLoad), to_string(gpuLoad), log_time);
+         }
+       }
+     }
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index 5bca3d93..76feb4c1 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -36,9 +36,11 @@ namespace dxvk::hud {
+     const HudElements m_elements;
+     
+     std::string m_fpsString;
++    std::string m_cpuUtilizationString;
+     bool mango_logging = false;
+     time_t lastPress = time(0);
+-    char const* logging;
++    char const* logging = getenv("DXVK_LOG_TO_FILE");
++    int64_t fps;
+     
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
+
+From e760d8f0ab75d7ecf2b9816e6c940184ed0f0cec Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Fri, 20 Sep 2019 21:38:45 +0200
+Subject: [PATCH 18/19] Revert "Less messy and windows friendly cpu usage
+ fetching"
+
+This reverts commit 85bdf5048cdfd76cf214fc9db51609398b769119.
+---
+ src/dxvk/dxvk_cpu.h           | 181 ++++++++++++++++++++++++++++++----
+ src/dxvk/hud/dxvk_hud_fps.cpp |   8 +-
+ src/dxvk/hud/dxvk_hud_fps.h   |   4 +-
+ 3 files changed, 169 insertions(+), 24 deletions(-)
+
+diff --git a/src/dxvk/dxvk_cpu.h b/src/dxvk/dxvk_cpu.h
+index 5d4470af..b2c8736a 100644
+--- a/src/dxvk/dxvk_cpu.h
++++ b/src/dxvk/dxvk_cpu.h
+@@ -1,27 +1,172 @@
+-#include <windows.h>
++#include <cmath>
++#include <iomanip>
++#include <array>
++#include <vector>
++#include <algorithm>
++#include <iterator>
++#include <thread>
++#include <sstream>
++#include <fstream>
++using namespace std;
+ 
+-static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
++const int NUM_CPU_STATES = 10;
++
++struct Cpus{
++  size_t num;
++  string name;
++  float value;
++  string output;
++};
++
++size_t numCpuCores = dxvk::thread::hardware_concurrency();
++size_t arraySize = numCpuCores + 1;
++std::vector<Cpus> cpuArray;
++
++void coreCounting(){
++  cpuArray.push_back({0, "CPU:"});
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t offset = i;
++    stringstream ss;
++    ss << "CPU" << offset << ":";
++    string cpuNameString = ss.str();
++    cpuArray.push_back({i+1 , cpuNameString});
++  }
++}
++
++std::string m_cpuUtilizationString;
++
++enum CPUStates
++{
++	S_USER = 0,
++	S_NICE,
++	S_SYSTEM,
++	S_IDLE,
++	S_IOWAIT,
++	S_IRQ,
++	S_SOFTIRQ,
++	S_STEAL,
++	S_GUEST,
++	S_GUEST_NICE
++};
++
++typedef struct CPUData
+ {
+-   static unsigned long long _previousTotalTicks = 0;
+-   static unsigned long long _previousIdleTicks = 0;
++	std::string cpu;
++	size_t times[NUM_CPU_STATES];
++} CPUData;
+ 
+-   unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
+-   unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
++void ReadStatsCPU(std::vector<CPUData> & entries)
++{
++	std::ifstream fileStat("/proc/stat");
+ 
+-   float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
++	std::string line;
+ 
+-   _previousTotalTicks = totalTicks;
+-   _previousIdleTicks  = idleTicks;
+-   return ret;
++	const std::string STR_CPU("cpu");
++	const std::size_t LEN_STR_CPU = STR_CPU.size();
++	const std::string STR_TOT("tot");
++
++	while(std::getline(fileStat, line))
++	{
++		// cpu stats line found
++		if(!line.compare(0, LEN_STR_CPU, STR_CPU))
++		{
++			std::istringstream ss(line);
++
++			// store entry
++			entries.emplace_back(CPUData());
++			CPUData & entry = entries.back();
++
++			// read cpu label
++			ss >> entry.cpu;
++
++			if(entry.cpu.size() > LEN_STR_CPU)
++				entry.cpu.erase(0, LEN_STR_CPU);
++			else
++				entry.cpu = STR_TOT;
++
++			// read times
++			for(int i = 0; i < NUM_CPU_STATES; ++i)
++				ss >> entry.times[i];
++		}
++	}
+ }
+ 
+-static unsigned long long FileTimeToInt64(const FILETIME & ft) {return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);}
++size_t GetIdleTime(const CPUData & e)
++{
++	return	e.times[S_IDLE] +
++			e.times[S_IOWAIT];
++}
+ 
+-// Returns 1.0f for "CPU fully pinned", 0.0f for "CPU idle", or somewhere in between
+-// You'll need to call this at regular intervals, since it measures the load between
+-// the previous call and the current one.  Returns -1.0 on error.
+-float GetCPULoad()
++size_t GetActiveTime(const CPUData & e)
+ {
+-   FILETIME idleTime, kernelTime, userTime;
+-   return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
+-}
+\ No newline at end of file
++	return	e.times[S_USER] +
++			e.times[S_NICE] +
++			e.times[S_SYSTEM] +
++			e.times[S_IRQ] +
++			e.times[S_SOFTIRQ] +
++			e.times[S_STEAL] +
++			e.times[S_GUEST] +
++			e.times[S_GUEST_NICE];
++}
++
++void PrintStats(const std::vector<CPUData> & entries1, const std::vector<CPUData> & entries2)
++{
++	const size_t NUM_ENTRIES = entries1.size();
++
++	for(size_t i = 0; i < NUM_ENTRIES; ++i)
++	{
++		const CPUData & e1 = entries1[i];
++		const CPUData & e2 = entries2[i];
++
++		const float ACTIVE_TIME	= static_cast<float>(GetActiveTime(e2) - GetActiveTime(e1));
++		const float IDLE_TIME	= static_cast<float>(GetIdleTime(e2) - GetIdleTime(e1));
++		const float TOTAL_TIME	= ACTIVE_TIME + IDLE_TIME;
++
++    cpuArray[i].value = (truncf(100.f * ACTIVE_TIME / TOTAL_TIME) * 10 / 10);
++	}
++}
++
++int getCpuUsage()
++{
++	std::vector<CPUData> entries1;
++	std::vector<CPUData> entries2;
++
++	// snapshot 1
++	ReadStatsCPU(entries1);
++
++	// 100ms pause
++	std::this_thread::sleep_for(std::chrono::milliseconds(100));
++
++	// snapshot 2
++	ReadStatsCPU(entries2);
++
++	// print output
++	PrintStats(entries1, entries2);
++
++	return 0;
++}
++
++
++void updateCpuStrings(){
++  for (size_t i = 0; i < arraySize; i++) {
++    size_t spacing = 10;
++    string value = to_string(cpuArray[i].value);
++    value.erase( value.find_last_not_of('0') + 1, std::string::npos );
++    size_t correctionValue = (spacing - cpuArray[i].name.length()) - value.length();
++    string correction = "";
++    for (size_t i = 0; i < correctionValue; i++) {
++          correction.append(" ");
++        }
++        stringstream ss;
++        if (i < 11) {
++          if (i == 0) {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          } else {
++            ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++          }
++        } else {
++          ss << cpuArray[i].name << correction << cpuArray[i].value << "%";
++        }
++        cpuArray[i].output = ss.str();
++      }
++    }
+\ No newline at end of file
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 8a5e01c4..74ec7076 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -55,8 +55,10 @@ namespace dxvk::hud {
+     }
+     if (elapsedFps.count() >= UpdateInterval) {
+     // Update FPS string
+-      int cpuLoad = int(GetCPULoad() * 100);
+-      m_cpuUtilizationString = str::format("CPU:   ", cpuLoad, "%");
++      coreCounting();
++      dxvk::thread([this] () { getCpuUsage();});
++      updateCpuStrings();
++      m_cpuUtilizationString = str::format(cpuArray[0].output);
+       const int64_t fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
+       m_fpsString = str::format("FPS: ", fps / 10, ".", fps % 10);
+       
+@@ -65,7 +67,7 @@ namespace dxvk::hud {
+       logging = getenv("DXVK_LOG_TO_FILE");
+       if (!logging == 0){
+         if (mango_logging){
+-          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuLoad), to_string(gpuLoad), log_time);
++          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad), log_time);
+         }
+       }
+     }
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index 76feb4c1..5bca3d93 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -36,11 +36,9 @@ namespace dxvk::hud {
+     const HudElements m_elements;
+     
+     std::string m_fpsString;
+-    std::string m_cpuUtilizationString;
+     bool mango_logging = false;
+     time_t lastPress = time(0);
+-    char const* logging = getenv("DXVK_LOG_TO_FILE");
+-    int64_t fps;
++    char const* logging;
+     
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
+
+From 7d84795863d38533e039cf9b6652840d43b94da0 Mon Sep 17 00:00:00 2001
+From: FlightlessMango <flightlessmangoyt@gmail.com>
+Date: Sun, 22 Sep 2019 02:40:17 +0200
+Subject: [PATCH 19/19] Increased logging interval and made logging less
+ expensive
+
+---
+ src/dxvk/hud/dxvk_hud_fps.cpp | 34 +++++++++++++++++++---------------
+ src/dxvk/hud/dxvk_hud_fps.h   |  9 ++++++---
+ 2 files changed, 25 insertions(+), 18 deletions(-)
+
+diff --git a/src/dxvk/hud/dxvk_hud_fps.cpp b/src/dxvk/hud/dxvk_hud_fps.cpp
+index 74ec7076..af05c8d5 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.cpp
++++ b/src/dxvk/hud/dxvk_hud_fps.cpp
+@@ -8,12 +8,7 @@
+ using namespace std;
+ time_t now_log = time(0);
+ tm *log_time = localtime(&now_log);
+-
+-void printToLog(std::string file, string m_fpsString, string cpuUtil, string gpuUtil, tm *log_time) {
+-  string date = to_string(log_time->tm_year + 1900) + "-" + to_string(1 + log_time->tm_mon) + "-" + to_string(log_time->tm_mday) + "_" + to_string(1 + log_time->tm_hour) + "-" + to_string(1 + log_time->tm_min) + "-" + to_string(1 + log_time->tm_sec);
+-  fstream f(file + "_" + date, f.out | f.app);
+-  f << m_fpsString << "," << cpuUtil << "," << gpuUtil << endl;
+-}
++fstream f;
+ 
+ namespace dxvk::hud {
+   
+@@ -21,7 +16,8 @@ namespace dxvk::hud {
+   : m_elements  (elements),
+     m_fpsString ("FPS: "),
+     m_prevFpsUpdate(Clock::now()),
+-    m_prevFtgUpdate(Clock::now()) {
++    m_prevFtgUpdate(Clock::now()),
++    m_prevLogUpdate(Clock::now()) {
+   }
+   
+   
+@@ -36,6 +32,7 @@ namespace dxvk::hud {
+     TimePoint now = Clock::now();
+     TimeDiff elapsedFps = std::chrono::duration_cast<TimeDiff>(now - m_prevFpsUpdate);
+     TimeDiff elapsedFtg = std::chrono::duration_cast<TimeDiff>(now - m_prevFtgUpdate);
++    TimeDiff elapsedLog = std::chrono::duration_cast<TimeDiff>(now - m_prevLogUpdate);
+     m_prevFtgUpdate = now;
+ 
+     if(GetAsyncKeyState(VK_F2) & 0x8000)
+@@ -45,31 +42,38 @@ namespace dxvk::hud {
+           if (mango_logging){
+             m_prevF2Press = now;
+             mango_logging = false;
++            f.close();
+           } else {
+             m_prevF2Press = now;
+             now_log = time(0);
+             log_time = localtime(&now_log);
+             mango_logging = true;
++            string date = to_string(log_time->tm_year + 1900) + "-" + to_string(1 + log_time->tm_mon) + "-" + to_string(log_time->tm_mday) + "_" + to_string(1 + log_time->tm_hour) + "-" + to_string(1 + log_time->tm_min) + "-" + to_string(1 + log_time->tm_sec);
++            f.open(logging + "_" + date, f.out | f.app);
+           }
+       } 
+     }
++    
++    if (elapsedLog.count() >= LogUpdateInterval) {
++      fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
++      if (!logging.empty()){
++        if (mango_logging){
++          f << str::format(fps / 10, ".", fps % 10) << "," << str::format(cpuArray[0].value) << "," << to_string(gpuLoad) << endl;
++        }
++      }
++      m_prevLogUpdate = now;
++    }
++    
+     if (elapsedFps.count() >= UpdateInterval) {
+     // Update FPS string
+       coreCounting();
+       dxvk::thread([this] () { getCpuUsage();});
+       updateCpuStrings();
+       m_cpuUtilizationString = str::format(cpuArray[0].output);
+-      const int64_t fps = (10'000'000ll * m_frameCount) / elapsedFps.count();
+       m_fpsString = str::format("FPS: ", fps / 10, ".", fps % 10);
+       
+       m_prevFpsUpdate = now;
+       m_frameCount = 0;
+-      logging = getenv("DXVK_LOG_TO_FILE");
+-      if (!logging == 0){
+-        if (mango_logging){
+-          printToLog(logging, str::format(fps / 10, ".", fps % 10), str::format(cpuArray[0].value), to_string(gpuLoad), log_time);
+-        }
+-      }
+     }
+     
+     // Update frametime stuff
+@@ -100,7 +104,7 @@ namespace dxvk::hud {
+         context, renderer, position);
+     }
+     
+-    if (mango_logging && !logging == 0) {
++    if (mango_logging && !logging.empty()) {
+       this->renderLogging(context, renderer,
+         { float(renderer.surfaceSize().width) - 250.0f, float(renderer.surfaceSize().height) - 20.0f });
+     }
+diff --git a/src/dxvk/hud/dxvk_hud_fps.h b/src/dxvk/hud/dxvk_hud_fps.h
+index 5bca3d93..4a8c81aa 100644
+--- a/src/dxvk/hud/dxvk_hud_fps.h
++++ b/src/dxvk/hud/dxvk_hud_fps.h
+@@ -17,8 +17,9 @@ namespace dxvk::hud {
+     using TimeDiff  = std::chrono::microseconds;
+     using TimePoint = typename Clock::time_point;
+     
+-    constexpr static uint32_t NumDataPoints  = 300;
+-    constexpr static int64_t  UpdateInterval = 500'000;
++    constexpr static uint32_t NumDataPoints     = 300;
++    constexpr static int64_t  UpdateInterval    = 500'000;
++    constexpr static int64_t  LogUpdateInterval = 100'000;
+   public:
+     
+     HudFps(HudElements elements);
+@@ -38,10 +39,12 @@ namespace dxvk::hud {
+     std::string m_fpsString;
+     bool mango_logging = false;
+     time_t lastPress = time(0);
+-    char const* logging;
++    std::string logging = getenv("DXVK_LOG_TO_FILE");
++    int64_t fps;
+     
+     TimePoint m_prevFpsUpdate;
+     TimePoint m_prevFtgUpdate;
++    TimePoint m_prevLogUpdate;
+     TimePoint m_prevF2Press;
+     TimeDiff  elapsedF2;
+     int64_t   m_frameCount = 0;

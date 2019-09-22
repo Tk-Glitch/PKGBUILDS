@@ -100,9 +100,14 @@ fi
 GIT_HEAD=$(git rev-parse HEAD)-`date '+%Y-%m-%d-%H:%M:%S'`
 
 if [ "$_mangohud" == "true" ]; then
-  mv ../DXVKBUILD/patches/dxvk_mango.dxvkpatchb ../DXVKBUILD/patches/dxvk_mango.dxvkpatch 2>/dev/null
+  if [ "$_mangohud_latest" == "true" ]; then
+    wget -O ../DXVKBUILD/patches/dxvk_mangohud.dxvkpatchb https://github.com/doitsujin/dxvk/compare/master...flightlessmango:mangohud.patch
+  else
+    wget -O ../DXVKBUILD/patches/dxvk_mangohud.dxvkpatchb https://raw.githubusercontent.com/Tk-Glitch/PKGBUILDS/master/dxvk-tools/DXVKBUILD/patches/dxvk_mango.dxvkpatchb
+  fi
+  mv ../DXVKBUILD/patches/dxvk_mangohud.dxvkpatchb ../DXVKBUILD/patches/dxvk_mangohud.dxvkpatch 2>/dev/null
 else
-  mv ../DXVKBUILD/patches/dxvk_mango.dxvkpatch ../DXVKBUILD/patches/dxvk_mango.dxvkpatchb 2>/dev/null
+  mv ../DXVKBUILD/patches/dxvk_mangohud.dxvkpatch ../DXVKBUILD/patches/dxvk_mangohud.dxvkpatchb 2>/dev/null
 fi
 
 if [ "$_async" == "true" ]; then
