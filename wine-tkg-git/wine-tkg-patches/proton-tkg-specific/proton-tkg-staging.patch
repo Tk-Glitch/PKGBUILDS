@@ -2451,3 +2451,382 @@ index 9ae687cb840..4289f20d3c2 100644
              return TRUE;
          }
          RtlInitUnicodeString( &wstr, name );
+
+From 0f74b0512e39345625c97c3d9d81f4bc5038c47d Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 23 Sep 2019 12:58:57 -0500
+Subject: [PATCH] msvcrt: Implement %T in strftime
+
+---
+ dlls/msvcrt/time.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/dlls/msvcrt/time.c b/dlls/msvcrt/time.c
+index e6493b09aff..a9f4cb368fb 100644
+--- a/dlls/msvcrt/time.c
++++ b/dlls/msvcrt/time.c
+@@ -1193,6 +1193,16 @@ static MSVCRT_size_t strftime_helper(char *str, MSVCRT_size_t max, const char *f
+             if(!strftime_int(str, &ret, max, mstm->tm_sec, alternate ? 0 : 2, 0, 59))
+                 return 0;
+             break;
++        case 'T':
++            if(!strftime_int(str, &ret, max, mstm->tm_hour, alternate ? 0 : 2, 0, 23))
++                return 0;
++            str[ret++] = ':';
++            if(!strftime_int(str, &ret, max, mstm->tm_min, alternate ? 0 : 2, 0, 59))
++                return 0;
++            str[ret++] = ':';
++            if(!strftime_int(str, &ret, max, mstm->tm_sec, alternate ? 0 : 2, 0, 59))
++                return 0;
++            break;
+         case 'w':
+             if(!strftime_int(str, &ret, max, mstm->tm_wday, 0, 0, 6))
+                 return 0;
+From ed04e35d3f7af02267fb4e21578b3ccb27703836 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 23 Sep 2019 13:29:16 -0500
+Subject: [PATCH] dxdiag: Dump to stdout if no filename is given
+
+---
+ programs/dxdiag/main.c   |  8 +++++++-
+ programs/dxdiag/output.c | 10 +++++++---
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/programs/dxdiag/main.c b/programs/dxdiag/main.c
+index 4533236f0f5..353e9f50fb9 100644
+--- a/programs/dxdiag/main.c
++++ b/programs/dxdiag/main.c
+@@ -71,7 +71,13 @@ static BOOL process_file_name(const WCHAR *cmdline, enum output_type output_type
+         endptr = cmdline + lstrlenW(cmdline);
+ 
+     len = endptr - cmdline;
+-    if (len == 0 || len >= filename_len)
++    if (len == 0)
++    {
++        *filename = 0;
++        return TRUE;
++    }
++
++    if (len >= filename_len)
+         return FALSE;
+ 
+     memcpy(filename, cmdline, len * sizeof(WCHAR));
+diff --git a/programs/dxdiag/output.c b/programs/dxdiag/output.c
+index 50240fb2860..f0f6a6da0c3 100644
+--- a/programs/dxdiag/output.c
++++ b/programs/dxdiag/output.c
+@@ -169,8 +169,12 @@ static BOOL output_text_information(struct dxdiag_information *dxdiag_info, cons
+ 
+     fill_system_text_output_table(dxdiag_info, output_table[0].fields);
+ 
+-    hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
+-                        NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++    if (filename && *filename)
++        hFile = CreateFileW(filename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE,
++                            NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++    else
++        hFile = GetStdHandle(STD_OUTPUT_HANDLE);
++
+     if (hFile == INVALID_HANDLE_VALUE)
+     {
+         WINE_ERR("File creation failed, last error %u\n", GetLastError());
+@@ -227,7 +231,7 @@ static HRESULT save_xml_document(IXMLDOMDocument *xmldoc, const WCHAR *filename)
+     VARIANT destVar;
+     HRESULT hr;
+ 
+-    if (!bstr)
++    if (!bstr || !filename || !*filename)
+         return E_OUTOFMEMORY;
+ 
+     V_VT(&destVar) = VT_BSTR;
+From e485252dfad51a7e463643d56fe138129597e4b6 Mon Sep 17 00:00:00 2001
+From: Brendan Shanks <bshanks@codeweavers.com>
+Date: Mon, 23 Sep 2019 08:56:04 -0500
+Subject: [PATCH] ntdll: Always add a tail to heap allocations.
+
+Fixes the Rockstar Games Launcher installer (and possibly other
+NSIS-based installers) from crashing due to passing a too-small buffer
+to GetWindowInfo().
+---
+ dlls/ntdll/heap.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/dlls/ntdll/heap.c b/dlls/ntdll/heap.c
+index 6344157f384..6fefe5d6d80 100644
+--- a/dlls/ntdll/heap.c
++++ b/dlls/ntdll/heap.c
+@@ -118,9 +118,8 @@ C_ASSERT( sizeof(ARENA_LARGE) % LARGE_ALIGNMENT == 0 );
+ #define HEAP_MIN_SHRINK_SIZE  (HEAP_MIN_DATA_SIZE+sizeof(ARENA_FREE))
+ /* minimum size to start allocating large blocks */
+ #define HEAP_MIN_LARGE_BLOCK_SIZE  0x7f000
+-/* extra size to add at the end of block for tail checking */
+-#define HEAP_TAIL_EXTRA_SIZE(flags) \
+-    ((flags & HEAP_TAIL_CHECKING_ENABLED) || RUNNING_ON_VALGRIND ? ALIGNMENT : 0)
++/* extra size to add at the end of block to mitigate overruns and allow tail checking */
++#define HEAP_TAIL_EXTRA_SIZE ALIGNMENT
+ 
+ /* size of the blocks on the free lists */
+ #define HEAP_FREELIST_SIZE(index) \
+@@ -800,7 +799,7 @@ static void HEAP_ShrinkBlock(SUBHEAP *subheap, ARENA_INUSE *pArena, SIZE_T size)
+ static void *allocate_large_block( HEAP *heap, DWORD flags, SIZE_T size )
+ {
+     ARENA_LARGE *arena;
+-    SIZE_T block_size = sizeof(*arena) + ROUND_SIZE(size) + HEAP_TAIL_EXTRA_SIZE(flags);
++    SIZE_T block_size = sizeof(*arena) + ROUND_SIZE(size) + HEAP_TAIL_EXTRA_SIZE;
+     LPVOID address = NULL;
+ 
+     if (block_size < size) return NULL;  /* overflow */
+@@ -1814,7 +1813,7 @@ void * WINAPI DECLSPEC_HOTPATCH RtlAllocateHeap( HANDLE heap, ULONG flags, SIZE_
+     if (!heapPtr) return NULL;
+     flags &= HEAP_GENERATE_EXCEPTIONS | HEAP_NO_SERIALIZE | HEAP_ZERO_MEMORY;
+     flags |= heapPtr->flags;
+-    rounded_size = ROUND_SIZE(size) + HEAP_TAIL_EXTRA_SIZE( flags );
++    rounded_size = ROUND_SIZE(size) + HEAP_TAIL_EXTRA_SIZE;
+     if (rounded_size < size)  /* overflow */
+     {
+         if (flags & HEAP_GENERATE_EXCEPTIONS) RtlRaiseStatus( STATUS_NO_MEMORY );
+@@ -1968,7 +1967,7 @@ PVOID WINAPI RtlReAllocateHeap( HANDLE heap, ULONG flags, PVOID ptr, SIZE_T size
+     flags |= heapPtr->flags;
+     if (!(flags & HEAP_NO_SERIALIZE)) RtlEnterCriticalSection( &heapPtr->critSection );
+ 
+-    rounded_size = ROUND_SIZE(size) + HEAP_TAIL_EXTRA_SIZE(flags);
++    rounded_size = ROUND_SIZE(size) + HEAP_TAIL_EXTRA_SIZE;
+     if (rounded_size < size) goto oom;  /* overflow */
+     if (rounded_size < HEAP_MIN_DATA_SIZE) rounded_size = HEAP_MIN_DATA_SIZE;
+ From 08a1b1024f9376309ae6bcbc902aa36478184b6d Mon Sep 17 00:00:00 2001
+From: Brendan Shanks <bshanks@codeweavers.com>
+Date: Mon, 23 Sep 2019 08:39:39 -0700
+Subject: [PATCH] d2d1: Make ShaderResourceView optional when creating bitmap.
+
+Fixes Rockstar Games Launcher when using DXVK.
+
+Original patch by Robin Kertels <robin.kertels@gmail.com>
+
+Signed-off-by: Brendan Shanks <bshanks@codeweavers.com>
+---
+ dlls/d2d1/bitmap.c           | 67 +++++++++++++-----------------------
+ dlls/d2d1/d2d1_private.h     |  1 +
+ dlls/d2d1/dc_render_target.c |  5 +--
+ 3 files changed, 26 insertions(+), 47 deletions(-)
+
+diff --git a/dlls/d2d1/bitmap.c b/dlls/d2d1/bitmap.c
+index 39e81192f77..b24e9e4cc78 100644
+--- a/dlls/d2d1/bitmap.c
++++ b/dlls/d2d1/bitmap.c
+@@ -66,11 +66,13 @@ static ULONG STDMETHODCALLTYPE d2d_bitmap_Release(ID2D1Bitmap1 *iface)
+ 
+     if (!refcount)
+     {
+-        ID3D10ShaderResourceView_Release(bitmap->view);
+         if (bitmap->rtv)
+             ID3D10RenderTargetView_Release(bitmap->rtv);
+         if (bitmap->surface)
+             IDXGISurface_Release(bitmap->surface);
++        if (bitmap->view)
++            ID3D10ShaderResourceView_Release(bitmap->view);
++        ID3D10Resource_Release(bitmap->texture);
+         ID2D1Factory_Release(bitmap->factory);
+         heap_free(bitmap);
+     }
+@@ -149,7 +151,6 @@ static HRESULT STDMETHODCALLTYPE d2d_bitmap_CopyFromMemory(ID2D1Bitmap1 *iface,
+ {
+     struct d2d_bitmap *bitmap = impl_from_ID2D1Bitmap1(iface);
+     ID3D10Device *device;
+-    ID3D10Resource *dst;
+     D3D10_BOX box;
+ 
+     TRACE("iface %p, dst_rect %p, src_data %p, pitch %u.\n", iface, dst_rect, src_data, pitch);
+@@ -164,11 +165,9 @@ static HRESULT STDMETHODCALLTYPE d2d_bitmap_CopyFromMemory(ID2D1Bitmap1 *iface,
+         box.back = 1;
+     }
+ 
+-    ID3D10ShaderResourceView_GetResource(bitmap->view, &dst);
+-    ID3D10ShaderResourceView_GetDevice(bitmap->view, &device);
+-    ID3D10Device_UpdateSubresource(device, dst, 0, dst_rect ? &box : NULL, src_data, pitch, 0);
++    ID3D10Resource_GetDevice(bitmap->texture, &device);
++    ID3D10Device_UpdateSubresource(device, bitmap->texture, 0, dst_rect ? &box : NULL, src_data, pitch, 0);
+     ID3D10Device_Release(device);
+-    ID3D10Resource_Release(dst);
+ 
+     return S_OK;
+ }
+@@ -271,36 +270,37 @@ static BOOL format_supported(const D2D1_PIXEL_FORMAT *format)
+ }
+ 
+ static void d2d_bitmap_init(struct d2d_bitmap *bitmap, struct d2d_device_context *context,
+-        ID3D10ShaderResourceView *view, D2D1_SIZE_U size, const D2D1_BITMAP_PROPERTIES1 *desc)
++        ID3D10Resource *texture, D2D1_SIZE_U size, const D2D1_BITMAP_PROPERTIES1 *desc)
+ {
+-    ID3D10Resource *resource;
+     ID3D10Device *d3d_device;
+     HRESULT hr;
+ 
+     bitmap->ID2D1Bitmap1_iface.lpVtbl = &d2d_bitmap_vtbl;
+     bitmap->refcount = 1;
+     ID2D1Factory_AddRef(bitmap->factory = context->factory);
+-    ID3D10ShaderResourceView_AddRef(bitmap->view = view);
++    ID3D10Resource_AddRef(bitmap->texture = texture);
+     bitmap->pixel_size = size;
+     bitmap->format = desc->pixelFormat;
+     bitmap->dpi_x = desc->dpiX;
+     bitmap->dpi_y = desc->dpiY;
+     bitmap->options = desc->bitmapOptions;
+ 
+-    ID3D10ShaderResourceView_GetResource(bitmap->view, &resource);
+-
+     if (d2d_device_context_is_dxgi_target(context))
+-        ID3D10Resource_QueryInterface(resource, &IID_IDXGISurface, (void **)&bitmap->surface);
++        ID3D10Resource_QueryInterface(texture, &IID_IDXGISurface, (void **)&bitmap->surface);
+ 
++    ID3D10Resource_GetDevice(texture, &d3d_device);
+     if (bitmap->options & D2D1_BITMAP_OPTIONS_TARGET)
+     {
+-        ID3D10Resource_GetDevice(resource, &d3d_device);
+-        if (FAILED(hr = ID3D10Device_CreateRenderTargetView(d3d_device, resource, NULL, &bitmap->rtv)))
++        if (FAILED(hr = ID3D10Device_CreateRenderTargetView(d3d_device, texture, NULL, &bitmap->rtv)))
+             WARN("Failed to create rtv, hr %#x.\n", hr);
+-        ID3D10Device_Release(d3d_device);
+     }
+ 
+-    ID3D10Resource_Release(resource);
++    if (!(bitmap->options & D2D1_BITMAP_OPTIONS_CANNOT_DRAW))
++    {
++      if (FAILED(hr = ID3D10Device_CreateShaderResourceView(d3d_device, texture, NULL, &bitmap->view)))
++          WARN("Failed to create view, hr %#x.\n", hr);
++    }
++    ID3D10Device_Release(d3d_device);
+ 
+     if (bitmap->dpi_x == 0.0f && bitmap->dpi_y == 0.0f)
+     {
+@@ -314,7 +314,6 @@ HRESULT d2d_bitmap_create(struct d2d_device_context *context, D2D1_SIZE_U size,
+ {
+     D3D10_SUBRESOURCE_DATA resource_data;
+     D3D10_TEXTURE2D_DESC texture_desc;
+-    ID3D10ShaderResourceView *view;
+     ID3D10Texture2D *texture;
+     HRESULT hr;
+ 
+@@ -355,21 +354,12 @@ HRESULT d2d_bitmap_create(struct d2d_device_context *context, D2D1_SIZE_U size,
+         return hr;
+     }
+ 
+-    hr = ID3D10Device_CreateShaderResourceView(context->d3d_device, (ID3D10Resource *)texture, NULL, &view);
+-    ID3D10Texture2D_Release(texture);
+-    if (FAILED(hr))
+-    {
+-        ERR("Failed to create view, hr %#x.\n", hr);
+-        return hr;
+-    }
+-
+     if ((*bitmap = heap_alloc_zero(sizeof(**bitmap))))
+     {
+-        d2d_bitmap_init(*bitmap, context, view, size, desc);
++        d2d_bitmap_init(*bitmap, context, (ID3D10Resource *)texture, size, desc);
+         TRACE("Created bitmap %p.\n", *bitmap);
+     }
+-
+-    ID3D10ShaderResourceView_Release(view);
++    ID3D10Texture2D_Release(texture);
+ 
+     return *bitmap ? S_OK : E_OUTOFMEMORY;
+ }
+@@ -391,7 +381,7 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+             goto failed;
+         }
+ 
+-        ID3D10ShaderResourceView_GetDevice(src_impl->view, &device);
++        ID3D10Resource_GetDevice(src_impl->texture, &device);
+         ID3D10Device_Release(device);
+         if (device != context->d3d_device)
+         {
+@@ -423,7 +413,7 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+             goto failed;
+         }
+ 
+-        d2d_bitmap_init(*bitmap, context, src_impl->view, src_impl->pixel_size, desc);
++        d2d_bitmap_init(*bitmap, context, src_impl->texture, src_impl->pixel_size, desc);
+         TRACE("Created bitmap %p.\n", *bitmap);
+ 
+     failed:
+@@ -432,7 +422,6 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+ 
+     if (IsEqualGUID(iid, &IID_IDXGISurface) || IsEqualGUID(iid, &IID_IDXGISurface1))
+     {
+-        ID3D10ShaderResourceView *view;
+         DXGI_SURFACE_DESC surface_desc;
+         IDXGISurface *surface = data;
+         ID3D10Resource *resource;
+@@ -454,17 +443,9 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+             return D2DERR_UNSUPPORTED_OPERATION;
+         }
+ 
+-        hr = ID3D10Device_CreateShaderResourceView(context->d3d_device, resource, NULL, &view);
+-        ID3D10Resource_Release(resource);
+-        if (FAILED(hr))
+-        {
+-            WARN("Failed to create shader resource view, hr %#x.\n", hr);
+-            return hr;
+-        }
+-
+         if (!(*bitmap = heap_alloc_zero(sizeof(**bitmap))))
+         {
+-            ID3D10ShaderResourceView_Release(view);
++            ID3D10Resource_Release(resource);
+             return E_OUTOFMEMORY;
+         }
+ 
+@@ -472,7 +453,7 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+         if (FAILED(hr = IDXGISurface_GetDesc(surface, &surface_desc)))
+         {
+             WARN("Failed to get surface desc, hr %#x.\n", hr);
+-            ID3D10ShaderResourceView_Release(view);
++            ID3D10Resource_Release(resource);
+             return hr;
+         }
+ 
+@@ -499,8 +480,8 @@ HRESULT d2d_bitmap_create_shared(struct d2d_device_context *context, REFIID iid,
+         pixel_size.width = surface_desc.Width;
+         pixel_size.height = surface_desc.Height;
+ 
+-        d2d_bitmap_init(*bitmap, context, view, pixel_size, &d);
+-        ID3D10ShaderResourceView_Release(view);
++        d2d_bitmap_init(*bitmap, context, resource, pixel_size, &d);
++        ID3D10Resource_Release(resource);
+         TRACE("Created bitmap %p.\n", *bitmap);
+ 
+         return S_OK;
+diff --git a/dlls/d2d1/d2d1_private.h b/dlls/d2d1/d2d1_private.h
+index b07893ae18c..e377a731f83 100644
+--- a/dlls/d2d1/d2d1_private.h
++++ b/dlls/d2d1/d2d1_private.h
+@@ -349,6 +349,7 @@ struct d2d_bitmap
+     ID3D10ShaderResourceView *view;
+     ID3D10RenderTargetView *rtv;
+     IDXGISurface *surface;
++    ID3D10Resource *texture;
+     D2D1_SIZE_U pixel_size;
+     D2D1_PIXEL_FORMAT format;
+     float dpi_x;
+diff --git a/dlls/d2d1/dc_render_target.c b/dlls/d2d1/dc_render_target.c
+index 310c5412967..eb76bd1ac9a 100644
+--- a/dlls/d2d1/dc_render_target.c
++++ b/dlls/d2d1/dc_render_target.c
+@@ -687,7 +687,6 @@ static HRESULT STDMETHODCALLTYPE d2d_dc_render_target_BindDC(ID2D1DCRenderTarget
+     struct d2d_bitmap *bitmap_impl;
+     IDXGISurface1 *dxgi_surface;
+     ID2D1DeviceContext *context;
+-    ID3D10Resource *resource;
+     D2D1_SIZE_U bitmap_size;
+     ID2D1Bitmap *bitmap;
+     HRESULT hr;
+@@ -716,9 +715,7 @@ static HRESULT STDMETHODCALLTYPE d2d_dc_render_target_BindDC(ID2D1DCRenderTarget
+     }
+ 
+     bitmap_impl = unsafe_impl_from_ID2D1Bitmap(bitmap);
+-    ID3D10ShaderResourceView_GetResource(bitmap_impl->view, &resource);
+-    ID3D10Resource_QueryInterface(resource, &IID_IDXGISurface1, (void **)&dxgi_surface);
+-    ID3D10Resource_Release(resource);
++    ID3D10Resource_QueryInterface(bitmap_impl->texture, &IID_IDXGISurface1, (void **)&dxgi_surface);
+ 
+     ID2D1DeviceContext_SetTarget(context, (ID2D1Image *)bitmap);
+     ID2D1Bitmap_Release(bitmap);
