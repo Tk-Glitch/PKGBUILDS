@@ -3587,3 +3587,58 @@ index 219f7743826..581e47a25aa 100644
      }
  
      if (newDevice->sdldev->has_ff)
+
+From 33c20bdf86ab69ff34773d914f99eab5e88fe723 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Mon, 16 Sep 2019 14:32:02 -0500
+Subject: [PATCH] dinput: Fix devices with too many objects
+
+---
+ dlls/dinput/joystick_sdl.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/dlls/dinput/joystick_sdl.c b/dlls/dinput/joystick_sdl.c
+index 581e47a25aa..cac7be30593 100644
+--- a/dlls/dinput/joystick_sdl.c
++++ b/dlls/dinput/joystick_sdl.c
+@@ -659,7 +659,11 @@ static BOOL enum_device_state_ds4_13button(JoystickImpl *This, struct device_sta
+ /* straight 1:1 mapping of SDL items and dinput items */
+ static BOOL enum_device_state_standard(JoystickImpl *This, struct device_state_item *st, int idx)
+ {
+-    if(idx < This->sdldev->n_buttons)
++    DWORD n_buttons, n_axes, n_hats;
++
++    n_buttons = This->generic.devcaps.dwButtons ? This->generic.devcaps.dwButtons : This->sdldev->n_buttons;
++
++    if(idx < n_buttons)
+     {
+         st->type = ITEM_TYPE_BUTTON;
+         st->id = idx;
+@@ -667,9 +671,11 @@ static BOOL enum_device_state_standard(JoystickImpl *This, struct device_state_i
+         return TRUE;
+     }
+ 
+-    idx -= This->sdldev->n_buttons;
++    idx -= n_buttons;
+ 
+-    if(idx < This->sdldev->n_axes)
++    n_axes = This->generic.devcaps.dwAxes ? This->generic.devcaps.dwAxes : This->sdldev->n_axes;
++
++    if(idx < n_axes)
+     {
+         st->type = ITEM_TYPE_AXIS;
+         st->id = idx;
+@@ -677,9 +683,11 @@ static BOOL enum_device_state_standard(JoystickImpl *This, struct device_state_i
+         return TRUE;
+     }
+ 
+-    idx -= This->sdldev->n_axes;
++    idx -= n_axes;
++
++    n_hats = This->generic.devcaps.dwPOVs ? This->generic.devcaps.dwPOVs : This->sdldev->n_hats;
+ 
+-    if(idx < This->sdldev->n_hats)
++    if(idx < n_hats)
+     {
+         st->type = ITEM_TYPE_HAT;
+         st->id = idx;
