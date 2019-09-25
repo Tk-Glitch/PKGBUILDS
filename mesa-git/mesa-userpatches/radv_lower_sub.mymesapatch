@@ -1,0 +1,184 @@
+From 86989c48c2dece1421b6b12f8e29cbae96693000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Daniel=20Sch=C3=BCrmann?=
+ <daniel.schuermann@campus.tu-berlin.de>
+Date: Fri, 29 Mar 2019 12:52:03 +0100
+Subject: [PATCH 1/2] nir: allow for isub and fsub in loop_analyze
+
+---
+ src/compiler/nir/nir_loop_analyze.c | 61 ++++++++++++-----------------
+ 1 file changed, 24 insertions(+), 37 deletions(-)
+
+diff --git a/src/compiler/nir/nir_loop_analyze.c b/src/compiler/nir/nir_loop_analyze.c
+index c2473421215..39a7470b169 100644
+--- a/src/compiler/nir/nir_loop_analyze.c
++++ b/src/compiler/nir/nir_loop_analyze.c
+@@ -658,7 +658,7 @@ get_iteration(nir_op cond_op, nir_const_value initial, nir_const_value step,
+ 
+ static bool
+ will_break_on_first_iteration(nir_const_value step,
+-                              nir_alu_type induction_base_type,
++                              nir_op add_op,
+                               unsigned trip_offset,
+                               nir_op cond_op, unsigned bit_size,
+                               nir_const_value initial,
+@@ -666,23 +666,9 @@ will_break_on_first_iteration(nir_const_value step,
+                               bool limit_rhs, bool invert_cond,
+                               unsigned execution_mode)
+ {
+-   if (trip_offset == 1) {
+-      nir_op add_op;
+-      switch (induction_base_type) {
+-      case nir_type_float:
+-         add_op = nir_op_fadd;
+-         break;
+-      case nir_type_int:
+-      case nir_type_uint:
+-         add_op = nir_op_iadd;
+-         break;
+-      default:
+-         unreachable("Unhandled induction variable base type!");
+-      }
+-
++   if (trip_offset == 1)
+       initial = eval_const_binop(add_op, bit_size, initial, step,
+                                  execution_mode);
+-   }
+ 
+    nir_const_value *src[2];
+    src[limit_rhs ? 0 : 1] = &initial;
+@@ -698,26 +684,23 @@ will_break_on_first_iteration(nir_const_value step,
+ static bool
+ test_iterations(int32_t iter_int, nir_const_value step,
+                 nir_const_value limit, nir_op cond_op, unsigned bit_size,
+-                nir_alu_type induction_base_type,
+-                nir_const_value initial, bool limit_rhs, bool invert_cond,
+-                unsigned execution_mode)
++                nir_op add_op, nir_const_value initial,
++                bool limit_rhs, bool invert_cond, unsigned execution_mode)
+ {
+    assert(nir_op_infos[cond_op].num_inputs == 2);
+ 
+    nir_const_value iter_src;
+    nir_op mul_op;
+-   nir_op add_op;
+-   switch (induction_base_type) {
+-   case nir_type_float:
++   switch (add_op) {
++   case nir_op_fadd:
++   case nir_op_fsub:
+       iter_src = nir_const_value_for_float(iter_int, bit_size);
+       mul_op = nir_op_fmul;
+-      add_op = nir_op_fadd;
+       break;
+-   case nir_type_int:
+-   case nir_type_uint:
++   case nir_op_iadd:
++   case nir_op_isub:
+       iter_src = nir_const_value_for_int(iter_int, bit_size);
+       mul_op = nir_op_imul;
+-      add_op = nir_op_iadd;
+       break;
+    default:
+       unreachable("Unhandled induction variable base type!");
+@@ -731,7 +714,7 @@ test_iterations(int32_t iter_int, nir_const_value step,
+ 
+    /* Add the initial value to the accumulated induction variable total */
+    nir_const_value add_result =
+-      eval_const_binop(add_op, bit_size, mul_result, initial, execution_mode);
++      eval_const_binop(add_op, bit_size, initial, mul_result, execution_mode);
+ 
+    nir_const_value *src[2];
+    src[limit_rhs ? 0 : 1] = &add_result;
+@@ -750,9 +733,6 @@ calculate_iterations(nir_const_value initial, nir_const_value step,
+                      nir_ssa_scalar cond, nir_op alu_op, bool limit_rhs,
+                      bool invert_cond, unsigned execution_mode)
+ {
+-   /* nir_op_isub should have been lowered away by this point */
+-   assert(alu->op != nir_op_isub);
+-
+    /* Make sure the alu type for our induction variable is compatible with the
+     * conditional alus input type. If its not something has gone really wrong.
+     */
+@@ -766,8 +746,9 @@ calculate_iterations(nir_const_value initial, nir_const_value step,
+              induction_base_type);
+    }
+ 
+-   /* Check for nsupported alu operations */
+-   if (alu->op != nir_op_iadd && alu->op != nir_op_fadd)
++   /* Check for unsupported alu operations */
++   if (alu->op != nir_op_iadd && alu->op != nir_op_isub &&
++       alu->op != nir_op_fadd && alu->op != nir_op_fsub)
+       return -1;
+ 
+    /* do-while loops can increment the starting value before the condition is
+@@ -796,13 +777,18 @@ calculate_iterations(nir_const_value initial, nir_const_value step,
+     * however if the loop condition is false on the first iteration
+     * get_iteration's assumption is broken. Handle such loops first.
+     */
+-   if (will_break_on_first_iteration(step, induction_base_type, trip_offset,
++   if (will_break_on_first_iteration(step, alu->op, trip_offset,
+                                      alu_op, bit_size, initial,
+                                      limit, limit_rhs, invert_cond,
+                                      execution_mode)) {
+       return 0;
+    }
+ 
++   if (alu->op == nir_op_isub)
++      step = eval_const_unop(nir_op_ineg, bit_size, step, execution_mode);
++   else if (alu->op == nir_op_fsub)
++      step = eval_const_unop(nir_op_fneg, bit_size, step, execution_mode);
++
+    int iter_int = get_iteration(alu_op, initial, step, limit, bit_size,
+                                 execution_mode);
+ 
+@@ -824,9 +810,8 @@ calculate_iterations(nir_const_value initial, nir_const_value step,
+    for (int bias = -1; bias <= 1; bias++) {
+       const int iter_bias = iter_int + bias;
+ 
+-      if (test_iterations(iter_bias, step, limit, alu_op, bit_size,
+-                          induction_base_type, initial,
+-                          limit_rhs, invert_cond, execution_mode)) {
++      if (test_iterations(iter_bias, step, limit, alu_op, bit_size, alu->op,
++                          initial, limit_rhs, invert_cond, execution_mode)) {
+          return iter_bias > 0 ? iter_bias - trip_offset : iter_bias;
+       }
+    }
+@@ -1064,7 +1049,9 @@ find_trip_count(loop_info_state *state, unsigned execution_mode)
+       memset(&step_val, 0, sizeof(step_val));
+       UNUSED bool found_step_value = false;
+       assert(nir_op_infos[ind_var->alu->op].num_inputs == 2);
+-      for (unsigned i = 0; i < 2; i++) {
++      bool is_sub = ind_var->alu->op == nir_op_isub ||
++                    ind_var->alu->op == nir_op_fsub;
++      for (unsigned i = is_sub ? 1 : 0; i < 2; i++) {
+          nir_ssa_scalar alu_src = nir_ssa_scalar_chase_alu_src(alu_s, i);
+          if (nir_ssa_scalar_is_const(alu_src)) {
+             found_step_value = true;
+-- 
+2.23.0
+
+
+From e864e190f0a352fa653e260d2bf8954e1674fc0a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Daniel=20Sch=C3=BCrmann?= <daniel@schuermann.dev>
+Date: Thu, 19 Sep 2019 13:05:28 +0200
+Subject: [PATCH 2/2] radv/aco: disable lower_sub
+
+---
+ src/amd/vulkan/radv_shader.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/amd/vulkan/radv_shader.c b/src/amd/vulkan/radv_shader.c
+index c213b83557a..ea5eee0ad84 100644
+--- a/src/amd/vulkan/radv_shader.c
++++ b/src/amd/vulkan/radv_shader.c
+@@ -92,7 +92,6 @@ static const struct nir_shader_compiler_options nir_options_aco = {
+ 	.lower_fdiv = true,
+ 	.lower_bitfield_insert_to_bitfield_select = true,
+ 	.lower_bitfield_extract = true,
+-	.lower_sub = true, /* TODO: set this to false once !1236 is merged */
+ 	.lower_pack_snorm_2x16 = true,
+ 	.lower_pack_snorm_4x8 = true,
+ 	.lower_pack_unorm_2x16 = true,
+-- 
+2.23.0
+

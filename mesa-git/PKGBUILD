@@ -61,17 +61,6 @@ options=(${_makepkg_options[@]})
 url="https://www.mesa3d.org"
 license=('custom')
 
-# ACO or regular tree
-if [ "$_aco" == "true" ]; then
-  _sourceurl='mesa-aco::git+https://github.com/daniel-schuermann/mesa'
-  _mesa_srcdir="mesa-aco"
-  echo "Using ACO tree" > "$_where"/last_build_config.log
-else
-  _sourceurl='mesa::git://anongit.freedesktop.org/mesa/mesa'
-  _mesa_srcdir="mesa"
-  echo "Using regular mesa tree" > "$_where"/last_build_config.log
-fi
-
 source=("$_sourceurl"
         'LICENSE'
         'llvm32.native'
