@@ -966,7 +966,7 @@ EOM
 	fi
 
 	# Nvidia hate - Prevents building of nvapi/nvapi64, nvcuda, nvcuvid and nvencodeapi/nvencodeapi64 libs
-	if [ "$_nvidia_hate" == "true" ]; then
+	if [ "$_nvidia_hate" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  _patchname='nvidia-hate.patch' && _patchmsg="Hatin' on novideo" && nonuser_patcher
 	fi
 
