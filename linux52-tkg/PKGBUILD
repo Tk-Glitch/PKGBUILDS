@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.2
 _sub=17
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=33
+pkgrel=34
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -120,7 +120,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0011-ZFS-fix.patch
         0012-v5.2-fsync.patch
         0013-linux-hardened.patch
-        #0014-bcachefs.patch
+        0014-bcachefs.patch
         0015-umip-instruction-emulation.patch
 )
 sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
@@ -145,6 +145,7 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
             '3fc0b0fee9a83bf9e0afe7392351d57fa76e1325b1220a5220575fca6bde111a'
             'a70f51d8d399cbc37b998dc9111c2b7e584d89bfc1db78b78be34b84b0478921'
+            '1ebe2de7537d8290956c8c93025049f16a84f09c475e744a7aa6584b675c67b5'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
 
 user_patcher() {
@@ -240,6 +241,7 @@ prepare() {
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
   # Set some -tkg defaults
+  echo "# CONFIG_DYNAMIC_FAULT is not set" >> ./.config
   sed -i -e 's/CONFIG_DEFAULT_FQ_CODEL=y/# CONFIG_DEFAULT_FQ_CODEL is not set/' ./.config
   echo "CONFIG_DEFAULT_CAKE=y" >> ./.config
   echo "CONFIG_NR_TTY_DEVICES=63" >> ./.config
@@ -650,30 +652,30 @@ prepare() {
   fi
 
   # bcachefs
-#  if [ -z "$_bcachefs" ]; then
-#    plain ""
-#    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
-#    plain "https://bcachefs.org/"
-#    read -rp "`echo $'    > N/y : '`" CONDITION8;
-#  fi
-#  if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
-#    patch -Np1 -i ../0008-bcachefs.patch
-#    echo "CONFIG_BCACHEFS_FS=m" >> ./.config
-#    echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
-#    echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
-#    echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
-#    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
-#    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
-#  fi
+  if [ -z "$_bcachefs" ]; then
+    plain ""
+    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
+    plain "https://bcachefs.org/"
+    read -rp "`echo $'    > N/y : '`" CONDITION9;
+  fi
+  if [ "$CONDITION9" == "y" ] || [ "$_bcachefs" == "true" ]; then
+    patch -Np1 -i ../0014-bcachefs.patch
+    echo "CONFIG_BCACHEFS_FS=m" >> ./.config
+    echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
+    echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
+    echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
+    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
+    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
+  fi
 
   # ZFS fix
   if [ -z "$_zfsfix" ]; then
     plain ""
     plain "Add back missing symbol for AES-NI/AVX support on ZFS"
     plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions.patch"
-    read -rp "`echo $'    > N/y : '`" CONDITION9;
+    read -rp "`echo $'    > N/y : '`" CONDITION10;
   fi
-  if [ "$CONDITION9" == "y" ] || [ "$_zfsfix" == "true" ]; then
+  if [ "$CONDITION10" == "y" ] || [ "$_zfsfix" == "true" ]; then
     patch -Np1 -i ../0011-ZFS-fix.patch
   fi
 
@@ -682,9 +684,9 @@ prepare() {
     plain ""
     plain "Enable support for fsync, an experimental replacement for esync in Valve Proton 4.11+"
     plain "https://steamcommunity.com/games/221410/announcements/detail/2957094910196249305"
-    read -rp "`echo $'    > N/y : '`" CONDITION10;
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
   fi
-  if [ "$CONDITION10" == "y" ] || [ "$_fsync" == "true" ]; then
+  if [ "$CONDITION11" == "y" ] || [ "$_fsync" == "true" ]; then
     patch -Np1 -i ../0012-v5.2-fsync.patch
   fi
 
@@ -693,9 +695,9 @@ prepare() {
     plain ""
     plain "Enable support for emulation of the SGDT, SIDT, and SMSW instructions for 64-bit processes?"
     plain "May help with crashing in certain 64-bit Windows games under Wine, on UMIP-enabled systems."
-    read -rp "`echo $'    > N/y : '`" CONDITION11;
+    read -rp "`echo $'    > N/y : '`" CONDITION12;
   fi
-  if [ "$CONDITION11" == "y" ] || [ "$_umip_instruction_emulation" == "true" ]; then
+  if [ "$CONDITION12" == "y" ] || [ "$_umip_instruction_emulation" == "true" ]; then
     patch -Np1 -i ../0015-umip-instruction-emulation.patch
   fi
 
