@@ -409,6 +409,19 @@ _prepare() {
 	  read -rp "Do you want to run configure? You need to run it at least once to populate your build dirs!"$'\n> N/y : ' _DEBUGANSW3;
 	fi
 
+	# XRandR display device handler breaks FS hack, so let's get rid of it for now
+	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  if git merge-base --is-ancestor ffd4caa5f0e401cf973078fbbd54e4950d408792 HEAD; then
+	    git revert -n --no-edit ffd4caa5f0e401cf973078fbbd54e4950d408792 && echo "Reverted ffd4caa to unbreak FS hack" >> "$_where"/last_build_config.log
+	  fi
+	  if git merge-base --is-ancestor 22795243b2d21e1a667215f54c3a15634735749c HEAD; then
+	    git revert -n --no-edit 22795243b2d21e1a667215f54c3a15634735749c && echo "Reverted 2279524 to unbreak FS hack" >> "$_where"/last_build_config.log
+	  fi
+	  if git merge-base --is-ancestor be54adcffc249a44cb52c24320a7ad3db758ba54 HEAD; then
+	    git revert -n --no-edit be54adcffc249a44cb52c24320a7ad3db758ba54 && echo "Reverted be54adc to unbreak FS hack" >> "$_where"/last_build_config.log
+	  fi
+	fi
+
 	# Update winevulkan
 	if [ "$_update_winevulkan" == "true" ] && ! git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && git merge-base --is-ancestor eb39d3dbcac7a8d9c17211ab358cda4b7e07708a HEAD; then
 	  _patchname='winevulkan-1.1.103.patch' && _patchmsg="Applied winevulkan 1.1.103 patch" && nonuser_patcher
