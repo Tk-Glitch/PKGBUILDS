@@ -282,7 +282,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-gamepad-additions.patch' # Proton 4.11-3 xinput hacks and other gamepad additions
 		'proton-vk-bits-4.5.patch' # Proton vk bits for 4.5+
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
-		'proton_FS_hack_refreshrate.patch' # Add custom fake refreshrate to proton_FS_hack
 		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
 		'raw-input-proton-7349182.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset (<7349182(staging))
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
@@ -403,7 +402,6 @@ md5sums=('SKIP'
          '61b9cc750f380ad03ff730da82810806'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
-         '561e85803cac59630853afa43391cc58'
          '72d50c442cb34ec7a46998636a63c424'
          'd8616d47efbe0465cda808abb0e9ac5b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'

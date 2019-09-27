@@ -902,9 +902,7 @@ EOM
 	      fi
 	    fi
 	  fi
-	  if [ -n "$_fake_refresh_rate" ]; then
-	    _patchname='proton_FS_hack_refreshrate.patch' && _patchmsg="Applied custom fake proton FS hack refresh rate ($_fake_refresh_rate Hz) patch" && nonuser_patcher
-	  else
+	  if [ -z "$_fake_refresh_rate" ]; then
 	    _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack" && nonuser_patcher
 	  fi
 	fi
