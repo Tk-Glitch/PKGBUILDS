@@ -2552,36 +2552,6 @@ index 9ae687cb840..4289f20d3c2 100644
          }
          RtlInitUnicodeString( &wstr, name );
 
-From 0f74b0512e39345625c97c3d9d81f4bc5038c47d Mon Sep 17 00:00:00 2001
-From: Andrew Eikum <aeikum@codeweavers.com>
-Date: Mon, 23 Sep 2019 12:58:57 -0500
-Subject: [PATCH] msvcrt: Implement %T in strftime
-
----
- dlls/msvcrt/time.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/dlls/msvcrt/time.c b/dlls/msvcrt/time.c
-index e6493b09aff..a9f4cb368fb 100644
---- a/dlls/msvcrt/time.c
-+++ b/dlls/msvcrt/time.c
-@@ -1193,6 +1193,16 @@ static MSVCRT_size_t strftime_helper(char *str, MSVCRT_size_t max, const char *f
-             if(!strftime_int(str, &ret, max, mstm->tm_sec, alternate ? 0 : 2, 0, 59))
-                 return 0;
-             break;
-+        case 'T':
-+            if(!strftime_int(str, &ret, max, mstm->tm_hour, alternate ? 0 : 2, 0, 23))
-+                return 0;
-+            str[ret++] = ':';
-+            if(!strftime_int(str, &ret, max, mstm->tm_min, alternate ? 0 : 2, 0, 59))
-+                return 0;
-+            str[ret++] = ':';
-+            if(!strftime_int(str, &ret, max, mstm->tm_sec, alternate ? 0 : 2, 0, 59))
-+                return 0;
-+            break;
-         case 'w':
-             if(!strftime_int(str, &ret, max, mstm->tm_wday, 0, 0, 6))
-                 return 0;
 From ed04e35d3f7af02267fb4e21578b3ccb27703836 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Mon, 23 Sep 2019 13:29:16 -0500
