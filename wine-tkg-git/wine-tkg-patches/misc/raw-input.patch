@@ -1103,7 +1103,7 @@ index 472ba77d0a8..65b1b500d00 100644
 +        if (valuators[i]->type == XIScrollClass)
 +        {
 +            if (scroll_class->scroll_type == XIScrollTypeVertical)
-+                thread_data->xi2_wheel_multiplier = WHEEL_DELTA / scroll_class->increment;
++                thread_data->xi2_wheel_multiplier = -WHEEL_DELTA / scroll_class->increment;
 +        }
          if (valuators[i]->type != XIValuatorClass) continue;
          if (class->label == x11drv_atom( Rel_X ) ||
