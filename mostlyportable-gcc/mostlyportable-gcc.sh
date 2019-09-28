@@ -214,14 +214,14 @@ fi
       ${_commonconfig}
     _makeandinstall || exit 1
 
-    # libelf
-    cd ${_nowhere}/build/libelf-${_libelf}
-    ./configure \
-      --prefix=${_dstdir} \
-      ${_commonconfig}
-    _makeandinstall || exit 1
-
     if [ "$_mingwbuild" == "true" ]; then
+      # libelf
+      cd ${_nowhere}/build/libelf-${_libelf}
+      ./configure \
+        --prefix=${_dstdir} \
+        ${_commonconfig}
+      _makeandinstall || exit 1
+
       # osl
       cd ${_nowhere}/build/osl-${_osl}
       ./configure \
@@ -448,7 +448,6 @@ fi
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
       ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
-        --disable-shared \
         --disable-bootstrap \
         --enable-languages=c,c++,lto \
         --with-gcc-major-version-only \
@@ -480,11 +479,10 @@ fi
         --prefix=${_dstdir} \
         --with-tune=generic \
         --without-cuda-driver \
-        --with-isl \
+        --with-isl=${_dstdir} \
         --with-gmp=${_dstdir} \
         --with-mpfr=${_dstdir} \
         --with-mpc=${_dstdir} \
-        --with-libelf=${_dstdir} \
         --enable-offload-targets=nvptx-none,hsa \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
@@ -492,6 +490,36 @@ fi
         #--enable-libstdcxx-debug
       _makeandinstall || exit 1
       ln -s gcc ${_dstdir}/bin/cc
+
+      #libgcc
+      cd ${_nowhere}/build/gcc_build
+      make -C x86_64-linux-gnu/libgcc install
+      make -C x86_64-linux-gnu/32/libgcc install
+      make -C libcpp install
+      make -C gcc install-po
+      make -C x86_64-linux-gnu/libgcc install-shared
+      make -C x86_64-linux-gnu/32/libgcc install-shared
+      rm -f ${_dstdir}/lib/gcc/x86_64-linux-gnu/${_gcc_version}/libgcc_eh.a
+      rm -f ${_dstdir}/lib/gcc/x86_64-linux-gnu/${_gcc_version}/32/libgcc_eh.a
+      for lib in libatomic \
+           libgomp \
+           libitm \
+           libquadmath \
+           libsanitizer/{a,l,ub,t}san \
+           libstdc++-v3/src \
+           libvtv; do
+        make -C x86_64-linux-gnu/$lib DESTDIR=${_dstdir} install-toolexeclibLTLIBRARIES
+      done
+      for lib in libatomic \
+           libgomp \
+           libitm \
+           libquadmath \
+           libsanitizer/{a,l,ub}san \
+           libstdc++-v3/src \
+           libvtv; do
+        make -C x86_64-linux-gnu/32/$lib DESTDIR=${_dstdir} install-toolexeclibLTLIBRARIES
+      done
+      make -C x86_64-linux-gnu/libstdc++-v3/po install
     fi
 
     if [ "$_mingwbuild" == "true" ]; then
