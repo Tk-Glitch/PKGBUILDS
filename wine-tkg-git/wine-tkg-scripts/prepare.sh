@@ -512,10 +512,13 @@ EOM
 	fi
 
 	# raw input fix by Guy1524 - part one
-	if [ "$_rawinput_fix" == "true" ] && [ "$_use_staging" == "true" ]; then
+	if [ "$_rawinput_fix" == "true" ] && [ "$_use_staging" == "true" ] || [ "$_rawinput_fix" == "false" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
 	    _staging_args+=(-W winex11-mouse-movements)
+	  fi
+	  if [ "$_rawinput_fix" != "staging" ] && git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD; then
+	    _staging_args+=(-W user32-rawinput)
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
 	  for _f in "$_where"/valve_proton_fullscreen_hack-staging-*.patch ; do
@@ -876,6 +879,25 @@ EOM
 	  fi
 	fi
 
+	# raw input fix by Guy1524 - part two
+	if [ "$_rawinput_fix" == "true" ] && [ "$_rawinput_fix" != "staging" ] && git merge-base --is-ancestor 4da1c4370be6515bf64c185e6b55a305247c754b HEAD; then
+	  if [ "$_use_staging" == "true" ]; then
+	    if [ "$_proton_fs_hack" == "true" ]; then
+	      cd "${srcdir}"/"${_stgsrcdir}"
+	      if git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD; then
+	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input.patch' && _patchmsg="Applied raw input fix (overriding staging)" && nonuser_patcher
+	      elif git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD && ! git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD; then
+	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
+	      elif git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
+	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton-7349182.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
+	      fi
+	    fi
+	    cd "${srcdir}"/"${_winesrcdir}"
+	  else
+	    _patchname='raw-input.patch' && _patchmsg="Applied raw input fix (mainline)" && nonuser_patcher
+	  fi
+	fi
+
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
@@ -939,23 +961,6 @@ EOM
 	    _patchname='winevulkan-1.1.113-proton.patch' && _patchmsg="Applied winevulkan 1.1.113 patch (proton edition)" && nonuser_patcher
 	  else
 	    _patchname='winevulkan-1.1.113.patch' && _patchmsg="Applied winevulkan 1.1.113 patch" && nonuser_patcher
-	  fi
-	fi
-
-	# raw input fix by Guy1524 - part two
-	if [ "$_rawinput_fix" == "true" ] && git merge-base --is-ancestor 4da1c4370be6515bf64c185e6b55a305247c754b HEAD; then
-	  if [ "$_use_staging" == "true" ]; then
-	    if [ "$_proton_fs_hack" == "true" ]; then
-	      cd "${srcdir}"/"${_stgsrcdir}"
-	      if git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD && ! git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD; then
-	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
-	      elif git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
-	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input-proton-7349182.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
-	      fi
-	    fi
-	    cd "${srcdir}"/"${_winesrcdir}"
-	  else
-	    _patchname='raw-input.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
 	  fi
 	fi
 
