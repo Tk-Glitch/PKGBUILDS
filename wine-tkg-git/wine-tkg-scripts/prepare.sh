@@ -880,7 +880,20 @@ EOM
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
 	    _FS_bypass_compositor="true"
-	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (force enabled because Proton fullscreen hack is enabled and needs it)" && nonuser_patcher
+	    for _f in "$_where"/FS_bypass_compositor.patch ; do
+	      patch ${_f} << 'EOM'
+@@ -34,7 +34,7 @@ if ((style & WS_MAXIMIZE) && (style & WS_CAPTION) == WS_CAPTION)
+              new_state |= (1 << NET_WM_STATE_MAXIMIZED);
+          else if (!(style & WS_MINIMIZE))
+ +	{
+-+            net_wm_bypass_compositor = 1;
+++            net_wm_bypass_compositor = 0;
+              new_state |= (1 << NET_WM_STATE_FULLSCREEN);
+ +	}
+      }
+EOM
+        done
+	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (in a disabled state)" && nonuser_patcher
 	  fi
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD; then
