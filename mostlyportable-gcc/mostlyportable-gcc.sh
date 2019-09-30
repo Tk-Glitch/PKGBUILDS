@@ -528,6 +528,11 @@ fi
       _tgtname="gcc-mostlyportable"
     fi
 
+    # Remove previous build based on the same version if present
+    if [ -d ${_nowhere}/${_tgtname}-${_gcc_version}${_gcc_sub} ]; then
+      rm -rf ${_nowhere}/${_tgtname}-${_gcc_version}${_gcc_sub}
+    fi
+
     mv ${_dstdir} ${_nowhere}/${_tgtname}-${_gcc_version}${_gcc_sub} && echo -e "\n\n## Your portable ${_tgtname} build can be found at ${_nowhere}/${_tgtname}-${_gcc_version}${_gcc_sub} and can be moved anywhere.\n\n"
     echo -e "## Depending on your needs, either add bin/lib/include dirs of your build to PATH or\nset CC to the bin/*tool* path to use to build your program\n(example: CC=${_nowhere}/${_tgtname}-${_gcc_version}${_gcc_sub}/bin/gcc)\n"
   }
