@@ -926,9 +926,7 @@ EOM
 	  else
 	    _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
 	  fi
-	  if [ -z "$_fake_refresh_rate" ]; then
-	    _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack" && nonuser_patcher
-	  fi
+	  _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack" && nonuser_patcher
 	fi
 
 	# Update winevulkan
