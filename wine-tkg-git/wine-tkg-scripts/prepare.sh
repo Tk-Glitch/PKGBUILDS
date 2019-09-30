@@ -479,22 +479,6 @@ _prepare() {
 	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
 	    _staging_args+=(-W winex11.drv-mouse-coorrds)
 	  fi
-	  if git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD && [ "$_rawinput_fix" != "true" ]; then
-	    #_staging_args+=(-W winex11-mouse-movements)
-	    for _f in "$_where"/valve_proton_fullscreen_hack-staging-*.patch ; do
-	      patch ${_f} << 'EOM'
-@@ -2577,7 +2577,7 @@ index 1209a250b0..077c18ac10 100644
- +    input.u.mi.dx = pt.x;
- +    input.u.mi.dy = pt.y;
- +
--     TRACE( "pos %d,%d (event %f,%f, accum %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy, x_rel->accum, y_rel->accum );
-+     TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
-  
-      input.type = INPUT_MOUSE;
- diff --git a/dlls/winex11.drv/opengl.c b/dlls/winex11.drv/opengl.c
-EOM
-        done
-	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
@@ -512,15 +496,14 @@ EOM
 	fi
 
 	# raw input fix by Guy1524 - part one
+	cd "${srcdir}"/"${_stgsrcdir}"
 	if [ "$_rawinput_fix" != "staging" ] && [ "$_use_staging" == "true" ] ; then
-	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
 	    _staging_args+=(-W winex11-mouse-movements)
 	  fi
 	  if git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD; then
 	    _staging_args+=(-W user32-rawinput)
 	  fi
-	  cd "${srcdir}"/"${_winesrcdir}"
     fi
     if [ "$_rawinput_fix" != "false" ] && [ "$_use_staging" == "true" ] ; then
 	  for _f in "$_where"/valve_proton_fullscreen_hack-staging-*.patch ; do
@@ -537,6 +520,7 @@ EOM
 EOM
       done
     fi
+	cd "${srcdir}"/"${_winesrcdir}"
 
 	# Patch to allow Path of Exile to run with DirectX11
 	# https://bugs.winehq.org/show_bug.cgi?id=42695
