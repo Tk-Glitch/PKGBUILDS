@@ -235,6 +235,11 @@ prepare() {
   # Remove previous builds
   [ -d "$_pkg" ] && rm -rf $_pkg
 
+  # Use custom compiler paths if defined
+  if [ -n "${CUSTOM_GCC_PATH}" ]; then
+    PATH=${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}
+  fi
+
   # Extract
   msg2 "Self-Extracting $_pkg.run..."
   sh $_pkg.run -x

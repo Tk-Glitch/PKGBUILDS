@@ -19,3 +19,7 @@ Regular drivers : https://www.nvidia.com/object/unix.html
 # Optimus users :
 - A great tool exists for you and works with these nvidia-all packages: https://github.com/Askannz/optimus-manager
 - 435.17 beta has introduced PRIME render offload support. You can learn more about the needed setup here: http://us.download.nvidia.com/XFree86/Linux-x86_64/435.17/README/primerenderoffload.html
+
+# Mostlyportable-gcc users :
+- For non-dkms nvidia-all packages, setting your `CUSTOM_GCC_PATH` in .cfg is enough.
+- For dkms nvidia-all packages, you'll need to make DKMS aware of your mostlyportable-gcc build. See: https://github.com/Tk-Glitch/PKGBUILDS/issues/334#issuecomment-537197636
