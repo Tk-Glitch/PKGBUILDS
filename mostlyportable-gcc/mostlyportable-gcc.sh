@@ -139,18 +139,22 @@ fi
     if [ ! -e mpc-${_mpc}.tar.gz ]; then
       wget -c ftp://ftp.gnu.org/gnu/mpc/mpc-${_mpc}.tar.gz
     fi
-    if [ ! -e libelf-${_libelf}.tar.gz ]; then
-      wget -c https://fossies.org/linux/misc/old/libelf-${_libelf}.tar.gz
+    if [ ! -e elfutils-${_libelf}.tar.bz2 ]; then
+      wget -c https://sourceware.org/elfutils/ftp/${_libelf}/elfutils-${_libelf}.tar.bz2
     fi
     if [ ! -e isl-${_isl}.tar.gz ]; then
       wget -c http://isl.gforge.inria.fr/isl-${_isl}.tar.gz
+    fi
+    if [ ! -e binutils-${_binutils}.tar.gz ]; then
+      wget -c https://ftp.gnu.org/gnu/binutils/binutils-${_binutils}.tar.gz
     fi
 
     chmod a+x gmp-${_gmp}.tar.* && tar -xvJf gmp-${_gmp}.tar.* >/dev/null 2>&1
     chmod a+x mpfr-${_mpfr}.tar.* && tar -xvJf mpfr-${_mpfr}.tar.* >/dev/null 2>&1
     chmod a+x mpc-${_mpc}.tar.* && tar -xvf mpc-${_mpc}.tar.* >/dev/null 2>&1
-    chmod a+x libelf-${_libelf}.tar.* && tar -xvf libelf-${_libelf}.tar.* >/dev/null 2>&1
+    chmod a+x elfutils-${_libelf}.tar.* && tar -xvf elfutils-${_libelf}.tar.* >/dev/null 2>&1
     chmod a+x isl-${_isl}.tar.* && tar -xvf isl-${_isl}.tar.* >/dev/null 2>&1
+    chmod a+x binutils-${_binutils}.tar.* && tar -xvf binutils-${_binutils}.tar.* >/dev/null 2>&1
 
     if [ "$_mingwbuild" == "true" ]; then
       if [ ! -e osl-${_osl}.tar.gz ]; then
@@ -159,21 +163,17 @@ fi
       if [ ! -e cloog-${_cloog}.tar.gz ]; then
         wget -c https://github.com/periscop/cloog/releases/download/cloog-${_cloog}/cloog-${_cloog}.tar.gz
       fi
-      if [ ! -e binutils-${_binutils}.tar.gz ]; then
-        wget -c https://ftp.gnu.org/gnu/binutils/binutils-${_binutils}.tar.gz
-      fi
       if [ ! -e mingw-w64-v${_mingw}.tar.bz2 ]; then
         wget -c https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${_mingw}.tar.bz2
       fi
 
       chmod a+x osl-${_osl}.tar.* && tar -xvf osl-${_osl}.tar.* >/dev/null 2>&1
       chmod a+x cloog-${_cloog}.tar.* && tar -xvf cloog-${_cloog}.tar.* >/dev/null 2>&1
-      chmod a+x binutils-${_binutils}.tar.* && tar -xvf binutils-${_binutils}.tar.* >/dev/null 2>&1
       chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
-
-      # Make the process use our tools as they get built
-      PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}
     fi
+
+    # Make the process use our tools as they get built
+    PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}
 
     # user patches
     _userpatch_target="gcc"
@@ -189,6 +189,15 @@ fi
 
     _commonconfig="--disable-shared --enable-static"
     _targets="i686-w64-mingw32 x86_64-w64-mingw32"
+
+    # libelf
+    cd ${_nowhere}/build/elfutils-${_libelf}
+    ./configure \
+      --prefix=${_dstdir} \
+      --program-prefix="eu-" \
+      --enable-deterministic-archives \
+      ${_commonconfig}
+    _makeandinstall || exit 1
 
     # gmp
     cd ${_nowhere}/build/gmp-${_gmp}
@@ -214,23 +223,6 @@ fi
       ${_commonconfig}
     _makeandinstall || exit 1
 
-    if [ "$_mingwbuild" == "true" ]; then
-      # libelf
-      cd ${_nowhere}/build/libelf-${_libelf}
-      ./configure \
-        --prefix=${_dstdir} \
-        ${_commonconfig}
-      _makeandinstall || exit 1
-
-      # osl
-      cd ${_nowhere}/build/osl-${_osl}
-      ./configure \
-        --with-gmp=${_dstdir} \
-        --prefix=${_dstdir} \
-        ${_commonconfig}
-      _makeandinstall || exit 1
-    fi
-
     # isl
     cd ${_nowhere}/build/isl-${_isl}
     ./configure \
@@ -239,6 +231,14 @@ fi
     _makeandinstall || exit 1
 
     if [ "$_mingwbuild" == "true" ]; then
+      # osl
+      cd ${_nowhere}/build/osl-${_osl}
+      ./configure \
+        --with-gmp=${_dstdir} \
+        --prefix=${_dstdir} \
+        ${_commonconfig}
+      _makeandinstall || exit 1
+
       # cloog
       cd ${_nowhere}/build/cloog-${_cloog}
       ./configure \
@@ -417,7 +417,7 @@ fi
           --with-gmp=${_dstdir} \
           --with-mpfr=${_dstdir} \
           --with-mpc=${_dstdir} \
-          --with-libelf=${_dstdir} \
+          --with-elfutils=${_dstdir} \
           --prefix=${_dstdir} \
           ${_exceptions_args} \
           ${_fortran_args} \
@@ -439,11 +439,42 @@ fi
         mkdir -p ${_dstdir}/${_target}/bin/
         mv ${_dstdir}/${_target}/lib/*.dll ${_dstdir}/${_target}/bin/ || true
       done
-      strip ${_dstdir}/bin/*
+      for _binaries in ${_dstdir}/bin/*; do
+        if [[ "$_binaries" != *"eu"* ]]; then
+          strip $_binaries
+        fi
+      done
       # remove unnecessary files
       rm -r ${_dstdir}/share
       rm ${_dstdir}/lib/libcc1.*
     else
+      # binutils
+      cd ${_nowhere}/build/binutils-${_binutils}
+      # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
+      sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
+      mkdir -p ${_nowhere}/build/binutils-build && cd ${_nowhere}/build/binutils-build
+      ${_nowhere}/build/binutils-${_binutils}/configure \
+        --prefix=${_dstdir} \
+        --with-lib-path=${_dstdir}/lib \
+        --enable-deterministic-archives \
+        --enable-gold \
+        --enable-ld=default \
+        --enable-lto \
+        --enable-plugins \
+        --enable-relro \
+        --enable-targets=x86_64-pep \
+        --enable-threads \
+        --disable-gdb \
+        --disable-werror \
+        --with-pic \
+        --with-system-zlib \
+        ${_commonconfig}
+        make -j$(nproc) configure-host
+        make -j$(nproc) tooldir=${_dstdir}
+        make -j$(nproc) prefix=${_dstdir} tooldir=${_dstdir} install
+        # Remove unwanted files
+        rm -f ${_dstdir}/share/man/man1/{dlltool,nlmconv,windres,windmc}*
+
       # gcc
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
       ${_nowhere}/build/gcc/configure \
@@ -483,6 +514,7 @@ fi
         --with-gmp=${_dstdir} \
         --with-mpfr=${_dstdir} \
         --with-mpc=${_dstdir} \
+        --with-elfutils=${_dstdir} \
         --enable-offload-targets=nvptx-none,hsa \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
@@ -508,7 +540,7 @@ fi
            libsanitizer/{a,l,ub,t}san \
            libstdc++-v3/src \
            libvtv; do
-        make -C x86_64-linux-gnu/$lib DESTDIR=${_dstdir} install-toolexeclibLTLIBRARIES
+        make -C x86_64-linux-gnu/$lib install-toolexeclibLTLIBRARIES
       done
       for lib in libatomic \
            libgomp \
@@ -517,7 +549,7 @@ fi
            libsanitizer/{a,l,ub}san \
            libstdc++-v3/src \
            libvtv; do
-        make -C x86_64-linux-gnu/32/$lib DESTDIR=${_dstdir} install-toolexeclibLTLIBRARIES
+        make -C x86_64-linux-gnu/32/$lib install-toolexeclibLTLIBRARIES
       done
       make -C x86_64-linux-gnu/libstdc++-v3/po install
     fi
