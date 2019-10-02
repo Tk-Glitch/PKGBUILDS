@@ -149,7 +149,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=64
+pkgrel=65
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -186,6 +186,7 @@ source=($_source_name
         'kernel-5.1.patch' # 5.1 workaround
         'kernel-5.2.patch' # 5.2 workaround
         'kernel-5.3.patch' # 5.3 workaround
+        'kernel-5.4.patch' # 5.4 workaround
         'GFP_RETRY_MAYFAIL-test.diff' # test for DXVK issue #1100 - https://github.com/doitsujin/dxvk/issues/1100
 )
 
@@ -205,6 +206,7 @@ md5sums=("$_md5sum"
          'a3ce8ebab6506f556f4b222e2372ce87'
          '98b67a671ece0a796f9767793c209c93'
          '6f9a62ef76ac86f299b0174f44488987'
+         '97298693767cd1223792e7505da7ac26'
          '559c4f7655a8bf891bd9d5c17563b99e')
 
 if [ $_autoaddpatch == "true" ]; then
@@ -354,6 +356,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       _whitelist53=( 396* 410* 415* 418* )
     fi
 
+    # 5.4
+    if (( $(vercmp "$_kernel" "5.4") >= 0 )); then
+      _kernel54="1"
+      _whitelist54=( 396* 410* 415* 418* 430* 435* )
+    fi
+
     # Loop patches (linux-4.15.patch, lol.patch, ...)
     for _p in $(printf -- '%s\n' ${source[@]} | grep .patch); do  # https://stackoverflow.com/a/21058239/1821548
       # Patch version (4.15, "", ...)
@@ -379,6 +387,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
       if [ "$_patch" == "5.3" ]; then
         _whitelist=(${_whitelist53[@]})
+      fi
+      if [ "$_patch" == "5.4" ]; then
+        _whitelist=(${_whitelist54[@]})
       fi
 
       patchy=0
@@ -500,6 +511,20 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         patch -Np1 -i "$srcdir"/kernel-5.3.patch
       else
         msg2 "Skipping kernel-5.3.patch as it doesn't apply to this driver version..."
+      fi
+    fi
+
+    # 5.4
+    if [ "$_kernel54" == "1" ]; then
+      patchy=0
+      for yup in "${_whitelist54[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
+        msg2 "Applying kernel-5.4.patch for dkms..."
+        patch -Np1 -i "$srcdir"/kernel-5.4.patch
+      else
+        msg2 "Skipping kernel-5.4.patch as it doesn't apply to this driver version..."
       fi
     fi
 
