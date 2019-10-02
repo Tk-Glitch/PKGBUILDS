@@ -497,11 +497,14 @@ _prepare() {
 
 	# raw input fix by Guy1524 - part one
 	cd "${srcdir}"/"${_stgsrcdir}"
+	if git merge-base --is-ancestor 5b066d6aed7fd90c0be0a2a156b0e5c6cbb44bba HEAD && [ "$_rawinput_fix" == "staging" ]; then
+	  _rawinput_fix="true"
+	fi
 	if [ "$_rawinput_fix" != "staging" ] && [ "$_use_staging" == "true" ] ; then
 	  if ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
 	    _staging_args+=(-W winex11-mouse-movements)
 	  fi
-	  if git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD; then
+	  if git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD && ! git merge-base --is-ancestor 5b066d6aed7fd90c0be0a2a156b0e5c6cbb44bba HEAD; then
 	    _staging_args+=(-W user32-rawinput)
 	  fi
     fi
