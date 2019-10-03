@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.17.r2.g3d5bb83e
+pkgver=4.17.r6.gcf04b8d6
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=206
+eval pkgrel=207
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -206,6 +206,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# fsync
 		'fsync-mainline.patch' # Fsync patchset, introduced with Proton 4.11-1
+		'fsync-staging-cf04b8d.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<cf04b8d)
 		'fsync-staging.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition
 		'fsync-staging-no_alloc_handle.patch' # Add no_alloc_handle object method to fsync for staging
 		# pba
@@ -330,6 +331,7 @@ md5sums=('SKIP'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '78bac45e2d8c9466ca74c3c6a37bf248'
          'dcb0d65c67f87779af974f0899851308'
+         'ed9467125c3771a0307acc9aeb9e95ee'
          'ff418685a55dbe3d4a14dfd1c9cde41c'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
@@ -364,7 +366,7 @@ md5sums=('SKIP'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '17c64d0e5fa155868c10c6a7b18cf5df'
          '2dab489ea8770576652302efaa525141'
-         '5c58e179f8001cddbf05871a2483f131'
+         'c851397222b5275bfee1bc01702ad17b'
          '126f11c8ea4bc4bdb8a07f8724712564'
          'a21dd4c345c597bc2f9204ea253794d3'
          '46f69d6e2911afdce9a5e446aca3982a'
