@@ -257,6 +257,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'valve_proton_fullscreen_hack-staging-legacy.patch' # Proton FS hack for <=3.16 masochists
 		'valve_proton_fullscreen_hack_realmodes.patch' # Real modes listing in FS hack
 		'winevulkan-1.1.113-proton.patch' # Update winevulkan - Proton edition
+		'proton-tkg-8d25965.patch' # Proton-tkg (<8d25965)
 		'proton-tkg-619bd16.patch' # Proton-tkg (<619bd16)
 		'proton-tkg-eafb4af.patch' # Proton-tkg (<eafb4af)
 		'proton-tkg-0116660.patch' # Proton-tkg (<0116660)
@@ -264,6 +265,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-05d0027.patch' # Proton-tkg (<05d0027)
 		'proton-tkg-0bebbba.patch' # Proton-tkg (<0bebbba)
 		'proton-tkg.patch' # Proton-tkg
+		'proton-tkg-staging-8d25965.patch' # Proton-tkg-staging (<8d25965)
 		'proton-tkg-staging-619bd16.patch' # Proton-tkg-staging (<619bd16)
 		'proton-tkg-staging-eafb4af.patch' # Proton-tkg-staging (<eafb4af)
 		'proton-tkg-staging-0116660.patch' # Proton-tkg-staging (<0116660)
@@ -381,20 +383,22 @@ md5sums=('SKIP'
          '962fa3a5a4c5fd57b9f4715ed587fbe6'
          '4df9cd990a78606d3cd0dc0673bb141f'
          '15995e43af57b18bf7b45cc2d5af4f2d'
+         '6f7cc6eb54f700d57006897e8c50a6a3'
          '0fecb4c7b114adaf4ea631b484939f59'
          'cd0cb1517cdde6fa60296ea452816ee9'
          '7ef6961b9a54d93ba970a2af827bb969'
          '5f4fee214ec0d94decb19309caf8ec6e'
          '333469023e6e55496c4ec28518f87a3f'
          '5af0c5ae73a70bd3215564d95a80a78e'
-         '6f7cc6eb54f700d57006897e8c50a6a3'
+         'eb20b87b4b113e5e1ccc181fad1df11d'
+         'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
          'ce0332f66626399574d79d10642896d2'
          '09274cf0d0b8775afa040f2cdc2a03e0'
          'd20a871566773b7d71c443383ddfb272'
          '3d55df1bc8677b16a41d7e6b555a609a'
          '28b66f6d107082e7dd50a4f842c42bef'
-         'fbc02256e0e85668be75e0275637d6c1'
+         '91b3a4cf8db2467c31c73c6ccb773497'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
          '52f11ca72f4ee06bd2a4bc2b0314e631'

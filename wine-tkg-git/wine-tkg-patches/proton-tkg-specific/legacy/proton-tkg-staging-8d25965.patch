@@ -1,634 +1,15 @@
-From 171675e5015b0946ea755d7d2c4182f4cfa5358a Mon Sep 17 00:00:00 2001
+From ea7454188b454ab164133982ac818b084b696647 Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
-Date: Sat, 5 Oct 2019 01:33:26 +0200
-Subject: Revert kernel32: Move SearchPath functions to kernelbase.
-
-This reverts commit 8d25965e12717b266f2fc74bb10d915234d16772
-
-diff --git a/dlls/kernel32/kernel32.spec b/dlls/kernel32/kernel32.spec
-index 23c25b7acd..1786c876fa 100644
---- a/dlls/kernel32/kernel32.spec
-+++ b/dlls/kernel32/kernel32.spec
-@@ -1324,8 +1324,8 @@
- @ stdcall -i386 -private -norelay SUnMapLS_IP_EBP_8() krnl386.exe16.SUnMapLS_IP_EBP_8
- @ stdcall -import ScrollConsoleScreenBufferA(long ptr ptr ptr ptr)
- @ stdcall -import ScrollConsoleScreenBufferW(long ptr ptr ptr ptr)
--@ stdcall -import SearchPathA(str str str long ptr ptr)
--@ stdcall -import SearchPathW(wstr wstr wstr long ptr ptr)
-+@ stdcall SearchPathA(str str str long ptr ptr)
-+@ stdcall SearchPathW(wstr wstr wstr long ptr ptr)
- @ stdcall SetCPGlobal(long)
- @ stdcall SetCalendarInfoA(long long long str)
- @ stdcall SetCalendarInfoW(long long long wstr)
-diff --git a/dlls/kernel32/path.c b/dlls/kernel32/path.c
-index bbe0fe268f..b580e36756 100644
---- a/dlls/kernel32/path.c
-+++ b/dlls/kernel32/path.c
-@@ -254,6 +254,300 @@ DWORD WINAPI GetShortPathNameA( LPCSTR longpath, LPSTR shortpath, DWORD shortlen
-     return copy_filename_WtoA( shortpathW, shortpath, shortlen );
- }
- 
-+/***********************************************************************
-+ *           contains_pathW
-+ *
-+ * Check if the file name contains a path; helper for SearchPathW.
-+ * A relative path is not considered a path unless it starts with ./ or ../
-+ */
-+static inline BOOL contains_pathW (LPCWSTR name)
-+{
-+    if (RtlDetermineDosPathNameType_U( name ) != RELATIVE_PATH) return TRUE;
-+    if (name[0] != '.') return FALSE;
-+    if (name[1] == '/' || name[1] == '\\') return TRUE;
-+    return (name[1] == '.' && (name[2] == '/' || name[2] == '\\'));
-+}
-+
-+/***********************************************************************
-+ *	find_actctx_dllpath
-+ *
-+ * Find the path (if any) of the dll from the activation context.
-+ * Returned path doesn't include a name.
-+ */
-+static NTSTATUS find_actctx_dllpath(const WCHAR *libname, WCHAR **path)
-+{
-+    static const WCHAR winsxsW[] = {'\\','w','i','n','s','x','s','\\'};
-+    static const WCHAR dotManifestW[] = {'.','m','a','n','i','f','e','s','t',0};
-+
-+    ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION *info;
-+    ACTCTX_SECTION_KEYED_DATA data;
-+    UNICODE_STRING nameW;
-+    NTSTATUS status;
-+    SIZE_T needed, size = 1024;
-+    WCHAR *p;
-+
-+    RtlInitUnicodeString( &nameW, libname );
-+    data.cbSize = sizeof(data);
-+    status = RtlFindActivationContextSectionString( FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX, NULL,
-+                                                    ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION,
-+                                                    &nameW, &data );
-+    if (status != STATUS_SUCCESS) return status;
-+
-+    for (;;)
-+    {
-+        if (!(info = HeapAlloc( GetProcessHeap(), 0, size )))
-+        {
-+            status = STATUS_NO_MEMORY;
-+            goto done;
-+        }
-+        status = RtlQueryInformationActivationContext( 0, data.hActCtx, &data.ulAssemblyRosterIndex,
-+                                                       AssemblyDetailedInformationInActivationContext,
-+                                                       info, size, &needed );
-+        if (status == STATUS_SUCCESS) break;
-+        if (status != STATUS_BUFFER_TOO_SMALL) goto done;
-+        HeapFree( GetProcessHeap(), 0, info );
-+        size = needed;
-+        /* restart with larger buffer */
-+    }
-+
-+    if (!info->lpAssemblyManifestPath || !info->lpAssemblyDirectoryName)
-+    {
-+        status = STATUS_SXS_KEY_NOT_FOUND;
-+        goto done;
-+    }
-+
-+    if ((p = strrchrW( info->lpAssemblyManifestPath, '\\' )))
-+    {
-+        DWORD dirlen = info->ulAssemblyDirectoryNameLength / sizeof(WCHAR);
-+
-+        p++;
-+        if (strncmpiW( p, info->lpAssemblyDirectoryName, dirlen ) || strcmpiW( p + dirlen, dotManifestW ))
-+        {
-+            /* manifest name does not match directory name, so it's not a global
-+             * windows/winsxs manifest; use the manifest directory name instead */
-+            dirlen = p - info->lpAssemblyManifestPath;
-+            needed = (dirlen + 1) * sizeof(WCHAR);
-+            if (!(*path = p = HeapAlloc( GetProcessHeap(), 0, needed )))
-+            {
-+                status = STATUS_NO_MEMORY;
-+                goto done;
-+            }
-+            memcpy( p, info->lpAssemblyManifestPath, dirlen * sizeof(WCHAR) );
-+            *(p + dirlen) = 0;
-+            goto done;
-+        }
-+    }
-+
-+    needed = (strlenW( DIR_Windows ) * sizeof(WCHAR) +
-+              sizeof(winsxsW) + info->ulAssemblyDirectoryNameLength + 2*sizeof(WCHAR));
-+
-+    if (!(*path = p = HeapAlloc( GetProcessHeap(), 0, needed )))
-+    {
-+        status = STATUS_NO_MEMORY;
-+        goto done;
-+    }
-+    strcpyW( p, DIR_Windows );
-+    p += strlenW(p);
-+    memcpy( p, winsxsW, sizeof(winsxsW) );
-+    p += ARRAY_SIZE( winsxsW );
-+    memcpy( p, info->lpAssemblyDirectoryName, info->ulAssemblyDirectoryNameLength );
-+    p += info->ulAssemblyDirectoryNameLength / sizeof(WCHAR);
-+    *p++ = '\\';
-+    *p = 0;
-+done:
-+    HeapFree( GetProcessHeap(), 0, info );
-+    RtlReleaseActivationContext( data.hActCtx );
-+    return status;
-+}
-+
-+/***********************************************************************
-+ * SearchPathW [KERNEL32.@]
-+ *
-+ * Searches for a specified file in the search path.
-+ *
-+ * PARAMS
-+ *    path	[I] Path to search (NULL means default)
-+ *    name	[I] Filename to search for.
-+ *    ext	[I] File extension to append to file name. The first
-+ *		    character must be a period. This parameter is
-+ *                  specified only if the filename given does not
-+ *                  contain an extension.
-+ *    buflen	[I] size of buffer, in characters
-+ *    buffer	[O] buffer for found filename
-+ *    lastpart  [O] address of pointer to last used character in
-+ *                  buffer (the final '\')
-+ *
-+ * RETURNS
-+ *    Success: length of string copied into buffer, not including
-+ *             terminating null character. If the filename found is
-+ *             longer than the length of the buffer, the length of the
-+ *             filename is returned.
-+ *    Failure: Zero
-+ *
-+ * NOTES
-+ *    If the file is not found, calls SetLastError(ERROR_FILE_NOT_FOUND)
-+ *    (tested on NT 4.0)
-+ */
-+DWORD WINAPI SearchPathW( LPCWSTR path, LPCWSTR name, LPCWSTR ext, DWORD buflen,
-+                          LPWSTR buffer, LPWSTR *lastpart )
-+{
-+    DWORD ret = 0;
-+
-+    if (!name || !name[0])
-+    {
-+        SetLastError(ERROR_INVALID_PARAMETER);
-+        return 0;
-+    }
-+
-+    /* If the name contains an explicit path, ignore the path */
-+
-+    if (contains_pathW(name))
-+    {
-+        /* try first without extension */
-+        if (RtlDoesFileExists_U( name ))
-+            return GetFullPathNameW( name, buflen, buffer, lastpart );
-+
-+        if (ext)
-+        {
-+            LPCWSTR p = strrchrW( name, '.' );
-+            if (p && !strchrW( p, '/' ) && !strchrW( p, '\\' ))
-+                ext = NULL;  /* Ignore the specified extension */
-+        }
-+
-+        /* Allocate a buffer for the file name and extension */
-+        if (ext)
-+        {
-+            LPWSTR tmp;
-+            DWORD len = strlenW(name) + strlenW(ext);
-+
-+            if (!(tmp = HeapAlloc( GetProcessHeap(), 0, (len + 1) * sizeof(WCHAR) )))
-+            {
-+                SetLastError( ERROR_OUTOFMEMORY );
-+                return 0;
-+            }
-+            strcpyW( tmp, name );
-+            strcatW( tmp, ext );
-+            if (RtlDoesFileExists_U( tmp ))
-+                ret = GetFullPathNameW( tmp, buflen, buffer, lastpart );
-+            HeapFree( GetProcessHeap(), 0, tmp );
-+        }
-+    }
-+    else if (path && path[0])  /* search in the specified path */
-+    {
-+        ret = RtlDosSearchPath_U( path, name, ext, buflen * sizeof(WCHAR),
-+                                  buffer, lastpart ) / sizeof(WCHAR);
-+    }
-+    else  /* search in active context and default path */
-+    {
-+        WCHAR *dll_path = NULL, *search = NULL;
-+        DWORD req_len, name_len;
-+
-+        req_len = name_len = strlenW(name);
-+
-+        if (strchrW( name, '.' )) ext = NULL;
-+        if (ext)
-+        {
-+            DWORD ext_len = strlenW(ext);
-+
-+            req_len += ext_len;
-+            name_len += ext_len;
-+
-+            search = HeapAlloc( GetProcessHeap(), 0, (name_len + ext_len + 1) * sizeof(WCHAR) );
-+            if (!search)
-+            {
-+                SetLastError( ERROR_OUTOFMEMORY );
-+                return 0;
-+            }
-+            strcpyW( search, name );
-+            strcatW( search, ext );
-+            name = search;
-+
-+            /* now that we have combined name we don't need extension any more */
-+        }
-+
-+        /* When file is found with activation context no attempt is made
-+          to check if it's really exist, path is returned only basing on context info. */
-+        if (find_actctx_dllpath( name, &dll_path ) == STATUS_SUCCESS)
-+        {
-+            DWORD path_len;
-+
-+            path_len = strlenW(dll_path);
-+            req_len += path_len;
-+
-+            if (lastpart) *lastpart = NULL;
-+
-+            /* count null termination char too */
-+            if (req_len + 1 <= buflen)
-+            {
-+                memcpy( buffer, dll_path, path_len * sizeof(WCHAR) );
-+                memcpy( &buffer[path_len], name, name_len * sizeof(WCHAR) );
-+                buffer[req_len] = 0;
-+                if (lastpart) *lastpart = buffer + path_len;
-+                ret = req_len;
-+            }
-+            else
-+                ret = req_len + 1;
-+
-+            HeapFree( GetProcessHeap(), 0, dll_path );
-+        }
-+        else if (!RtlGetSearchPath( &dll_path ))
-+        {
-+            ret = RtlDosSearchPath_U( dll_path, name, NULL, buflen * sizeof(WCHAR),
-+                                      buffer, lastpart ) / sizeof(WCHAR);
-+            RtlReleasePath( dll_path );
-+        }
-+        HeapFree( GetProcessHeap(), 0, search );
-+    }
-+
-+    if (!ret) SetLastError( ERROR_FILE_NOT_FOUND );
-+    else TRACE( "found %s\n", debugstr_w(buffer) );
-+    return ret;
-+}
-+
-+
-+/***********************************************************************
-+ *           SearchPathA   (KERNEL32.@)
-+ *
-+ * See SearchPathW.
-+ */
-+DWORD WINAPI SearchPathA( LPCSTR path, LPCSTR name, LPCSTR ext,
-+                          DWORD buflen, LPSTR buffer, LPSTR *lastpart )
-+{
-+    WCHAR *pathW = NULL, *nameW, *extW = NULL;
-+    WCHAR bufferW[MAX_PATH];
-+    DWORD ret;
-+
-+    if (!name)
-+    {
-+        SetLastError(ERROR_INVALID_PARAMETER);
-+        return 0;
-+    }
-+
-+    if (!(nameW = FILE_name_AtoW( name, FALSE ))) return 0;
-+    if (path && !(pathW = FILE_name_AtoW( path, TRUE ))) return 0;
-+    
-+    if (ext && !(extW = FILE_name_AtoW( ext, TRUE )))
-+    {
-+        HeapFree( GetProcessHeap(), 0, pathW );
-+        return 0;
-+    }
-+
-+    ret = SearchPathW(pathW, nameW, extW, MAX_PATH, bufferW, NULL);
-+
-+    HeapFree( GetProcessHeap(), 0, pathW );
-+    HeapFree( GetProcessHeap(), 0, extW );
-+
-+    if (!ret) return 0;
-+    if (ret > MAX_PATH)
-+    {
-+        SetLastError(ERROR_FILENAME_EXCED_RANGE);
-+        return 0;
-+    }
-+    ret = copy_filename_WtoA( bufferW, buffer, buflen );
-+    if (buflen > ret && lastpart)
-+        *lastpart = strrchr(buffer, '\\') + 1;
-+    return ret;
-+}
- 
- static BOOL is_same_file(HANDLE h1, HANDLE h2)
- {
-diff --git a/dlls/kernelbase/file.c b/dlls/kernelbase/file.c
-index af21687aa3..7a6f843f43 100644
---- a/dlls/kernelbase/file.c
-+++ b/dlls/kernelbase/file.c
-@@ -63,137 +63,6 @@ static void WINAPI read_write_apc( void *apc_user, PIO_STATUS_BLOCK io, ULONG re
-  ***********************************************************************/
- 
- 
--/***********************************************************************
-- *	contains_path
-- *
-- * Check if the file name contains a path; helper for SearchPathW.
-- * A relative path is not considered a path unless it starts with ./ or ../
-- */
--static inline BOOL contains_path( const WCHAR *name )
--{
--    if (RtlDetermineDosPathNameType_U( name ) != RELATIVE_PATH) return TRUE;
--    if (name[0] != '.') return FALSE;
--    if (name[1] == '/' || name[1] == '\\') return TRUE;
--    return (name[1] == '.' && (name[2] == '/' || name[2] == '\\'));
--}
--
--
--/***********************************************************************
-- *	append_ext
-- */
--static WCHAR *append_ext( const WCHAR *name, const WCHAR *ext )
--{
--    const WCHAR *p;
--    WCHAR *ret;
--    DWORD len;
--
--    if (!ext) return NULL;
--    p = wcsrchr( name, '.' );
--    if (p && !wcschr( p, '/' ) && !wcschr( p, '\\' )) return NULL;
--
--    len = lstrlenW( name ) + lstrlenW( ext );
--    if ((ret = RtlAllocateHeap( GetProcessHeap(), 0, (len + 1) * sizeof(WCHAR) )))
--    {
--        lstrcpyW( ret, name );
--        lstrcatW( ret, ext );
--    }
--    return ret;
--}
--
--
--/***********************************************************************
-- *	find_actctx_dllpath
-- *
-- * Find the path (if any) of the dll from the activation context.
-- * Returned path doesn't include a name.
-- */
--static NTSTATUS find_actctx_dllpath( const WCHAR *name, WCHAR **path )
--{
--    static const WCHAR winsxsW[] = {'\\','w','i','n','s','x','s','\\'};
--    static const WCHAR dotManifestW[] = {'.','m','a','n','i','f','e','s','t',0};
--
--    ACTIVATION_CONTEXT_ASSEMBLY_DETAILED_INFORMATION *info;
--    ACTCTX_SECTION_KEYED_DATA data;
--    UNICODE_STRING nameW;
--    NTSTATUS status;
--    SIZE_T needed, size = 1024;
--    WCHAR *p;
--
--    RtlInitUnicodeString( &nameW, name );
--    data.cbSize = sizeof(data);
--    status = RtlFindActivationContextSectionString( FIND_ACTCTX_SECTION_KEY_RETURN_HACTCTX, NULL,
--                                                    ACTIVATION_CONTEXT_SECTION_DLL_REDIRECTION,
--                                                    &nameW, &data );
--    if (status != STATUS_SUCCESS) return status;
--
--    for (;;)
--    {
--        if (!(info = RtlAllocateHeap( GetProcessHeap(), 0, size )))
--        {
--            status = STATUS_NO_MEMORY;
--            goto done;
--        }
--        status = RtlQueryInformationActivationContext( 0, data.hActCtx, &data.ulAssemblyRosterIndex,
--                                                       AssemblyDetailedInformationInActivationContext,
--                                                       info, size, &needed );
--        if (status == STATUS_SUCCESS) break;
--        if (status != STATUS_BUFFER_TOO_SMALL) goto done;
--        RtlFreeHeap( GetProcessHeap(), 0, info );
--        size = needed;
--        /* restart with larger buffer */
--    }
--
--    if (!info->lpAssemblyManifestPath || !info->lpAssemblyDirectoryName)
--    {
--        status = STATUS_SXS_KEY_NOT_FOUND;
--        goto done;
--    }
--
--    if ((p = wcsrchr( info->lpAssemblyManifestPath, '\\' )))
--    {
--        DWORD dirlen = info->ulAssemblyDirectoryNameLength / sizeof(WCHAR);
--
--        p++;
--        if (wcsnicmp( p, info->lpAssemblyDirectoryName, dirlen ) || wcsicmp( p + dirlen, dotManifestW ))
--        {
--            /* manifest name does not match directory name, so it's not a global
--             * windows/winsxs manifest; use the manifest directory name instead */
--            dirlen = p - info->lpAssemblyManifestPath;
--            needed = (dirlen + 1) * sizeof(WCHAR);
--            if (!(*path = p = HeapAlloc( GetProcessHeap(), 0, needed )))
--            {
--                status = STATUS_NO_MEMORY;
--                goto done;
--            }
--            memcpy( p, info->lpAssemblyManifestPath, dirlen * sizeof(WCHAR) );
--            *(p + dirlen) = 0;
--            goto done;
--        }
--    }
--
--    needed = (lstrlenW( windows_dir ) * sizeof(WCHAR) +
--              sizeof(winsxsW) + info->ulAssemblyDirectoryNameLength + 2*sizeof(WCHAR));
--
--    if (!(*path = p = RtlAllocateHeap( GetProcessHeap(), 0, needed )))
--    {
--        status = STATUS_NO_MEMORY;
--        goto done;
--    }
--    lstrcpyW( p, windows_dir );
--    p += lstrlenW(p);
--    memcpy( p, winsxsW, sizeof(winsxsW) );
--    p += ARRAY_SIZE( winsxsW );
--    memcpy( p, info->lpAssemblyDirectoryName, info->ulAssemblyDirectoryNameLength );
--    p += info->ulAssemblyDirectoryNameLength / sizeof(WCHAR);
--    *p++ = '\\';
--    *p = 0;
--done:
--    RtlFreeHeap( GetProcessHeap(), 0, info );
--    RtlReleaseActivationContext( data.hActCtx );
--    return status;
--}
--
--
- /***********************************************************************
-  *           copy_filename_WtoA
-  *
-@@ -1452,119 +1321,6 @@ BOOL WINAPI DECLSPEC_HOTPATCH NeedCurrentDirectoryForExePathW( LPCWSTR name )
- }
- 
- 
--/***********************************************************************
-- *	SearchPathA   (kernelbase.@)
-- */
--DWORD WINAPI DECLSPEC_HOTPATCH SearchPathA( LPCSTR path, LPCSTR name, LPCSTR ext,
--                                            DWORD buflen, LPSTR buffer, LPSTR *lastpart )
--{
--    WCHAR *pathW = NULL, *nameW, *extW = NULL;
--    WCHAR bufferW[MAX_PATH];
--    DWORD ret;
--
--    if (!name)
--    {
--        SetLastError( ERROR_INVALID_PARAMETER );
--        return 0;
--    }
--
--    if (!(nameW = file_name_AtoW( name, FALSE ))) return 0;
--    if (path && !(pathW = file_name_AtoW( path, TRUE ))) return 0;
--    if (ext && !(extW = file_name_AtoW( ext, TRUE )))
--    {
--        RtlFreeHeap( GetProcessHeap(), 0, pathW );
--        return 0;
--    }
--
--    ret = SearchPathW( pathW, nameW, extW, MAX_PATH, bufferW, NULL );
--
--    RtlFreeHeap( GetProcessHeap(), 0, pathW );
--    RtlFreeHeap( GetProcessHeap(), 0, extW );
--
--    if (!ret) return 0;
--    if (ret > MAX_PATH)
--    {
--        SetLastError( ERROR_FILENAME_EXCED_RANGE );
--        return 0;
--    }
--    ret = copy_filename_WtoA( bufferW, buffer, buflen );
--    if (buflen > ret && lastpart) *lastpart = strrchr(buffer, '\\') + 1;
--    return ret;
--}
--
--
--/***********************************************************************
-- *	SearchPathW   (kernelbase.@)
-- */
--DWORD WINAPI DECLSPEC_HOTPATCH SearchPathW( LPCWSTR path, LPCWSTR name, LPCWSTR ext, DWORD buflen,
--                                            LPWSTR buffer, LPWSTR *lastpart )
--{
--    DWORD ret = 0;
--    WCHAR *name_ext;
--
--    if (!name || !name[0])
--    {
--        SetLastError( ERROR_INVALID_PARAMETER );
--        return 0;
--    }
--
--    /* If the name contains an explicit path, ignore the path */
--
--    if (contains_path( name ))
--    {
--        /* try first without extension */
--        if (RtlDoesFileExists_U( name )) return GetFullPathNameW( name, buflen, buffer, lastpart );
--
--        if ((name_ext = append_ext( name, ext )))
--        {
--            if (RtlDoesFileExists_U( name_ext ))
--                ret = GetFullPathNameW( name_ext, buflen, buffer, lastpart );
--            RtlFreeHeap( GetProcessHeap(), 0, name_ext );
--        }
--    }
--    else if (path && path[0])  /* search in the specified path */
--    {
--        ret = RtlDosSearchPath_U( path, name, ext, buflen * sizeof(WCHAR),
--                                  buffer, lastpart ) / sizeof(WCHAR);
--    }
--    else  /* search in active context and default path */
--    {
--        WCHAR *dll_path = NULL, *name_ext = append_ext( name, ext );
--
--        if (name_ext) name = name_ext;
--
--        /* When file is found with activation context no attempt is made
--          to check if it's really exist, path is returned only basing on context info. */
--        if (find_actctx_dllpath( name, &dll_path ) == STATUS_SUCCESS)
--        {
--            ret = lstrlenW( dll_path ) + lstrlenW( name ) + 1;
--
--            /* count null termination char too */
--            if (ret <= buflen)
--            {
--                lstrcpyW( buffer, dll_path );
--                lstrcatW( buffer, name );
--                if (lastpart) *lastpart = buffer + lstrlenW( dll_path );
--                ret--;
--            }
--            else if (lastpart) *lastpart = NULL;
--            RtlFreeHeap( GetProcessHeap(), 0, dll_path );
--        }
--        else if (!RtlGetSearchPath( &dll_path ))
--        {
--            ret = RtlDosSearchPath_U( dll_path, name, NULL, buflen * sizeof(WCHAR),
--                                      buffer, lastpart ) / sizeof(WCHAR);
--            RtlReleasePath( dll_path );
--        }
--        RtlFreeHeap( GetProcessHeap(), 0, name_ext );
--    }
--
--    if (!ret) SetLastError( ERROR_FILE_NOT_FOUND );
--    else TRACE( "found %s\n", debugstr_w(buffer) );
--    return ret;
--}
--
--
- /***********************************************************************
-  *	SetCurrentDirectoryA   (kernelbase.@)
-  */
-diff --git a/dlls/kernelbase/kernelbase.spec b/dlls/kernelbase/kernelbase.spec
-index c1fa479525..f80f6097dc 100644
---- a/dlls/kernelbase/kernelbase.spec
-+++ b/dlls/kernelbase/kernelbase.spec
-@@ -1385,8 +1385,8 @@
- # @ stub SaveStateRootFolderPath
- @ stdcall ScrollConsoleScreenBufferA(long ptr ptr ptr ptr)
- @ stdcall ScrollConsoleScreenBufferW(long ptr ptr ptr ptr)
--@ stdcall SearchPathA(str str str long ptr ptr)
--@ stdcall SearchPathW(wstr wstr wstr long ptr ptr)
-+@ stdcall SearchPathA(str str str long ptr ptr) kernel32.SearchPathA
-+@ stdcall SearchPathW(wstr wstr wstr long ptr ptr) kernel32.SearchPathW
- @ stdcall SetAclInformation(ptr ptr long long)
- # @ stub SetCachedSigningLevel
- @ stdcall SetCalendarInfoW(long long long wstr) kernel32.SetCalendarInfoW
-diff --git a/dlls/kernelbase/loader.c b/dlls/kernelbase/loader.c
-index 5b70dfd874..4a3e0f4722 100644
---- a/dlls/kernelbase/loader.c
-+++ b/dlls/kernelbase/loader.c
-@@ -92,7 +92,7 @@ static BOOL load_library_as_datafile( LPCWSTR load_path, DWORD flags, LPCWSTR na
- 
-     if (flags & LOAD_LIBRARY_AS_IMAGE_RESOURCE) protect |= SEC_IMAGE;
- 
--    if (SearchPathW( NULL, name, dotDLL, ARRAY_SIZE( filenameW ), filenameW, NULL ))
-+    if (SearchPathW( load_path, name, dotDLL, ARRAY_SIZE( filenameW ), filenameW, NULL ))
-     {
-         file = CreateFileW( filenameW, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_DELETE,
-                             NULL, OPEN_EXISTING, 0, 0 );
-
-
-From 1b7c0d2233456e8e8b67746bef60262a8354bc25 Mon Sep 17 00:00:00 2001
-From: Tk-Glitch <ti3nou@gmail.com>
-Date: Fri, 4 Oct 2019 03:17:51 +0200
+Date: Fri, 4 Oct 2019 03:13:09 +0200
 Subject: Revert c5dc41e980b311a9d49122c6e3e33a1c4483c660,
  a5d45e9ae5a6a88f859c1ca1f05b4c93a0817103,
  619bd16e7a7486ca72cde1df01791629efb61341 Conflicting with our proton meta
  patchset
 
-Mainline edition
+Staging edition
 
 diff --git a/dlls/kernel32/kernel32.spec b/dlls/kernel32/kernel32.spec
-index 6cf7feb0d7..f522429b76 100644
+index 73cb8260cf..e051ac0e7a 100644
 --- a/dlls/kernel32/kernel32.spec
 +++ b/dlls/kernel32/kernel32.spec
 @@ -140,7 +140,7 @@
@@ -1375,13 +756,14 @@ index b7f19ffe36..131c2f9621 100644
   *           GetProcAddress   		(KERNEL32.@)
   *
 diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
-index 28fad7e61b..0eab7ec9e5 100644
+index 2e96a24324..610ce1deb0 100644
 --- a/dlls/kernel32/process.c
 +++ b/dlls/kernel32/process.c
-@@ -439,18 +439,11 @@ static HANDLE open_exe_file( const WCHAR *name, BOOL *is_64bit )
+@@ -442,22 +442,11 @@ static HANDLE open_exe_file( const WCHAR *name, BOOL *is_64bit )
   */
  static BOOL find_exe_file( const WCHAR *name, WCHAR *buffer, int buflen, HANDLE *handle )
  {
+-    WCHAR cur_dir[MAX_PATH];
 -    WCHAR *load_path;
 -    BOOL ret;
 -
@@ -1390,7 +772,10 @@ index 28fad7e61b..0eab7ec9e5 100644
 -    TRACE("looking for %s in %s\n", debugstr_w(name), debugstr_w(load_path) );
 +    TRACE("looking for %s\n", debugstr_w(name) );
  
--    ret = (SearchPathW( load_path, name, exeW, buflen, buffer, NULL ) ||
+-    ret = (NeedCurrentDirectoryForExePathW( name ) && GetCurrentDirectoryW( MAX_PATH, cur_dir) &&
+-           SearchPathW( cur_dir, name, exeW, buflen, buffer, NULL )) ||
+-           /* not found in the working directory, try the system search path */
+-           (SearchPathW( load_path, name, exeW, buflen, buffer, NULL ) ||
 -           /* no builtin found, try native without extension in case it is a Unix app */
 -           SearchPathW( load_path, name, NULL, buflen, buffer, NULL ));
 -    RtlReleasePath( load_path );
@@ -1401,7 +786,7 @@ index 28fad7e61b..0eab7ec9e5 100644
  
      TRACE( "Trying native exe %s\n", debugstr_w(buffer) );
      *handle = CreateFileW( buffer, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_DELETE,
-@@ -1390,7 +1383,6 @@ void * CDECL __wine_kernel_init(void)
+@@ -1404,7 +1393,6 @@ void * CDECL __wine_kernel_init(void)
      RTL_USER_PROCESS_PARAMETERS *params = peb->ProcessParameters;
      HANDLE boot_events[2];
      BOOL got_environment = TRUE;
@@ -1409,7 +794,7 @@ index 28fad7e61b..0eab7ec9e5 100644
  
      /* Initialize everything */
  
-@@ -1429,14 +1421,12 @@ void * CDECL __wine_kernel_init(void)
+@@ -1443,14 +1431,12 @@ void * CDECL __wine_kernel_init(void)
      {
          BOOL is_64bit;
  
@@ -1425,7 +810,7 @@ index 28fad7e61b..0eab7ec9e5 100644
          update_library_argv0( main_exe_name );
          if (!build_command_line( __wine_main_wargv )) goto error;
          start_wineboot( boot_events );
-@@ -1449,8 +1439,8 @@ void * CDECL __wine_kernel_init(void)
+@@ -1463,8 +1449,8 @@ void * CDECL __wine_kernel_init(void)
      TRACE( "starting process name=%s argv[0]=%s\n",
             debugstr_w(main_exe_name), debugstr_w(__wine_main_wargv[0]) );
  
@@ -1437,7 +822,7 @@ index 28fad7e61b..0eab7ec9e5 100644
      if (boot_events[0])
      {
 diff --git a/dlls/kernel32/tests/path.c b/dlls/kernel32/tests/path.c
-index 71577793b0..876ca743bc 100644
+index 11b5ea35f0..976993c922 100644
 --- a/dlls/kernel32/tests/path.c
 +++ b/dlls/kernel32/tests/path.c
 @@ -73,15 +73,10 @@ static DWORD (WINAPI *pGetLongPathNameW)(LPWSTR,LPWSTR,DWORD);
@@ -1459,7 +844,7 @@ index 71577793b0..876ca743bc 100644
  
  static BOOL   (WINAPI *pActivateActCtx)(HANDLE,ULONG_PTR*);
  static HANDLE (WINAPI *pCreateActCtxW)(PCACTCTXW);
-@@ -2206,10 +2201,7 @@ static void init_pointers(void)
+@@ -2209,10 +2204,7 @@ static void init_pointers(void)
      MAKEFUNC(NeedCurrentDirectoryForExePathA);
      MAKEFUNC(NeedCurrentDirectoryForExePathW);
      MAKEFUNC(SetSearchPathMode);
@@ -1471,16 +856,16 @@ index 71577793b0..876ca743bc 100644
      MAKEFUNC(ActivateActCtx);
      MAKEFUNC(CreateActCtxW);
      MAKEFUNC(DeactivateActCtx);
-@@ -2218,8 +2210,6 @@ static void init_pointers(void)
-     MAKEFUNC(CheckNameLegalDOS8Dot3W);
-     MAKEFUNC(CheckNameLegalDOS8Dot3A);
+@@ -2223,8 +2215,6 @@ static void init_pointers(void)
+     MAKEFUNC(CreateSymbolicLinkW);
+ 
      mod = GetModuleHandleA("ntdll.dll");
 -    MAKEFUNC(LdrGetDllPath);
 -    MAKEFUNC(RtlGetExePath);
      MAKEFUNC(RtlGetSearchPath);
      MAKEFUNC(RtlReleasePath);
- #undef MAKEFUNC
-@@ -2480,23 +2470,12 @@ static void test_SetSearchPathMode(void)
+ 
+@@ -2486,23 +2476,12 @@ static void test_SetSearchPathMode(void)
  
  static const WCHAR pathW[] = {'P','A','T','H',0};
  
@@ -1505,7 +890,7 @@ index 71577793b0..876ca743bc 100644
      GetSystemDirectoryW( p, buffer + size - p );
      p = buffer + lstrlenW(buffer);
      *p++ = ';';
-@@ -2506,7 +2485,7 @@ static void build_search_path( WCHAR *buffer, UINT size, const WCHAR *dlldir, BO
+@@ -2512,7 +2491,7 @@ static void build_search_path( WCHAR *buffer, UINT size, const WCHAR *dlldir, BO
      GetWindowsDirectoryW( p, buffer + size - p );
      p = buffer + lstrlenW(buffer);
      *p++ = ';';
@@ -1514,7 +899,7 @@ index 71577793b0..876ca743bc 100644
      {
          *p++ = '.';
          *p++ = ';';
-@@ -2522,7 +2501,7 @@ static BOOL path_equal( const WCHAR *path1, const WCHAR *path2 )
+@@ -2528,7 +2507,7 @@ static BOOL path_equal( const WCHAR *path1, const WCHAR *path2 )
          if (*path1 && *path1 != '\\' && *path1 != ';') return FALSE;
          while (*path1 && (*path1 == '\\' || *path1 == ';')) path1++;
          while (*path2 && (*path2 == '\\' || *path2 == ';')) path2++;
@@ -1523,7 +908,7 @@ index 71577793b0..876ca743bc 100644
      }
  }
  
-@@ -2530,7 +2509,7 @@ static void test_RtlGetSearchPath(void)
+@@ -2536,7 +2515,7 @@ static void test_RtlGetSearchPath(void)
  {
      NTSTATUS ret;
      WCHAR *path;
@@ -1532,7 +917,7 @@ index 71577793b0..876ca743bc 100644
  
      if (!pRtlGetSearchPath)
      {
-@@ -2539,10 +2518,8 @@ static void test_RtlGetSearchPath(void)
+@@ -2545,10 +2524,8 @@ static void test_RtlGetSearchPath(void)
      }
  
      GetEnvironmentVariableW( pathW, old_path, ARRAY_SIZE(old_path) );
@@ -1544,7 +929,7 @@ index 71577793b0..876ca743bc 100644
      path = (WCHAR *)0xdeadbeef;
      ret = pRtlGetSearchPath( &path );
      ok( !ret, "RtlGetSearchPath failed %x\n", ret );
-@@ -2550,195 +2527,23 @@ static void test_RtlGetSearchPath(void)
+@@ -2556,195 +2533,23 @@ static void test_RtlGetSearchPath(void)
      pRtlReleasePath( path );
  
      SetEnvironmentVariableA( "PATH", "foo" );
@@ -1745,12 +1130,13 @@ index 71577793b0..876ca743bc 100644
      }
  
      SetEnvironmentVariableW( pathW, old_path );
-@@ -2779,6 +2584,4 @@ START_TEST(path)
+@@ -2874,7 +2679,5 @@ START_TEST(path)
      test_CheckNameLegalDOS8Dot3();
      test_SetSearchPathMode();
      test_RtlGetSearchPath();
 -    test_RtlGetExePath();
 -    test_LdrGetDllPath();
+     test_CreateSymbolicLink();
  }
 diff --git a/dlls/kernelbase/kernelbase.spec b/dlls/kernelbase/kernelbase.spec
 index b64a1fc1ae..7d86399af5 100644
@@ -2181,10 +1567,10 @@ index 4a3e0f4722..de46cc8c10 100644
   * Resources
   ***********************************************************************/
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 610c62a3af..52a95877d2 100644
+index de304d8cd5..8d435f7862 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
-@@ -72,25 +72,13 @@ const WCHAR system_dir[] = {'C',':','\\','w','i','n','d','o','w','s','\\',
+@@ -73,9 +73,7 @@ const WCHAR system_dir[] = {'C',':','\\','w','i','n','d','o','w','s','\\',
  static const WCHAR system_path[] =
      {'C',':','\\','w','i','n','d','o','w','s','\\','s','y','s','t','e','m','3','2',';',
       'C',':','\\','w','i','n','d','o','w','s','\\','s','y','s','t','e','m',';',
@@ -2193,7 +1579,9 @@ index 610c62a3af..52a95877d2 100644
 -static const WCHAR dotW[] = {'.',0};
 +     'C',':','\\','w','i','n','d','o','w','s',';',0};
  
- static BOOL imports_fixup_done = FALSE;  /* set once the imports have been fixed up, before attaching them */
+ #define IS_OPTION_TRUE(ch) ((ch) == 'y' || (ch) == 'Y' || (ch) == 't' || (ch) == 'T' || (ch) == '1')
+ 
+@@ -84,17 +82,7 @@ static BOOL imports_fixup_done = FALSE;  /* set once the imports have been fixed
  static BOOL process_detaching = FALSE;  /* set on process detach to avoid deadlocks with thread detach */
  static int free_lib_count;   /* recursion depth of LdrUnloadDll calls */
  static ULONG path_safe_mode;  /* path mode set by RtlSetSearchPathMode */
@@ -2209,9 +1597,9 @@ index 610c62a3af..52a95877d2 100644
 -
 -static struct list dll_dir_list = LIST_INIT( dll_dir_list );  /* extra dirs from LdrAddDllDirectory */
  
- struct ldr_notification
- {
-@@ -2090,54 +2078,25 @@ static BOOL is_valid_binary( HMODULE module, const pe_image_info_t *info )
+ static BOOL hide_wine_exports = FALSE;  /* try to hide ntdll wine exports from applications */
+ 
+@@ -2249,54 +2237,25 @@ static BOOL is_valid_binary( HMODULE module, const pe_image_info_t *info )
  }
  
  
@@ -2273,7 +1661,7 @@ index 610c62a3af..52a95877d2 100644
          len += (mod_end - module) + 1;
      }
  
-@@ -2148,18 +2107,18 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
+@@ -2307,18 +2266,18 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
      if (RtlQueryEnvironmentVariable_U( NULL, &name, &value ) == STATUS_BUFFER_TOO_SMALL)
          path_len = value.Length;
  
@@ -2303,7 +1691,7 @@ index 610c62a3af..52a95877d2 100644
      value.MaximumLength = path_len;
  
      while (RtlQueryEnvironmentVariable_U( NULL, &name, &value ) == STATUS_BUFFER_TOO_SMALL)
-@@ -2183,69 +2142,6 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
+@@ -2342,69 +2301,6 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
  }
  
  
@@ -2373,7 +1761,7 @@ index 610c62a3af..52a95877d2 100644
  /***********************************************************************
   *	open_dll_file
   *
-@@ -3926,7 +3822,6 @@ static void load_global_options(void)
+@@ -4143,7 +4039,6 @@ static void load_global_options(void)
                                       'S','e','s','s','i','o','n',' ','M','a','n','a','g','e','r',0};
      static const WCHAR globalflagW[] = {'G','l','o','b','a','l','F','l','a','g',0};
      static const WCHAR safesearchW[] = {'S','a','f','e','P','r','o','c','e','s','s','S','e','a','r','c','h','M','o','d','e',0};
@@ -2381,7 +1769,7 @@ index 610c62a3af..52a95877d2 100644
      static const WCHAR critsectW[] = {'C','r','i','t','i','c','a','l','S','e','c','t','i','o','n','T','i','m','e','o','u','t',0};
      static const WCHAR heapresW[] = {'H','e','a','p','S','e','g','m','e','n','t','R','e','s','e','r','v','e',0};
      static const WCHAR heapcommitW[] = {'H','e','a','p','S','e','g','m','e','n','t','C','o','m','m','i','t',0};
-@@ -3950,7 +3845,6 @@ static void load_global_options(void)
+@@ -4167,7 +4062,6 @@ static void load_global_options(void)
  
      query_dword_option( hkey, globalflagW, &NtCurrentTeb()->Peb->NtGlobalFlag );
      query_dword_option( hkey, safesearchW, &path_safe_mode );
@@ -2389,7 +1777,7 @@ index 610c62a3af..52a95877d2 100644
  
      if (!query_dword_option( hkey, critsectW, &value ))
          NtCurrentTeb()->Peb->CriticalSectionTimeout.QuadPart = (ULONGLONG)value * -10000000;
-@@ -4103,124 +3997,6 @@ NTSTATUS WINAPI LdrSetDllDirectory( const UNICODE_STRING *dir )
+@@ -4320,124 +4214,6 @@ NTSTATUS WINAPI LdrSetDllDirectory( const UNICODE_STRING *dir )
  }
  
  
@@ -2514,7 +1902,7 @@ index 610c62a3af..52a95877d2 100644
  /*************************************************************************
   *		RtlSetSearchPathMode (NTDLL.@)
   */
-@@ -4253,38 +4029,13 @@ NTSTATUS WINAPI RtlSetSearchPathMode( ULONG flags )
+@@ -4470,38 +4246,13 @@ NTSTATUS WINAPI RtlSetSearchPathMode( ULONG flags )
  }
  
  
@@ -2556,7 +1944,7 @@ index 610c62a3af..52a95877d2 100644
  
  
 diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
-index fd51312e8a..fe183a6074 100644
+index 1881571b41..00332c7a20 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
 @@ -71,7 +71,6 @@
@@ -2599,10 +1987,10 @@ index fd51312e8a..fe183a6074 100644
  @ stdcall RtlGetFrame()
  @ stdcall RtlGetFullPathName_U(wstr long ptr ptr)
 diff --git a/include/winternl.h b/include/winternl.h
-index 16df963770..cb0172c366 100644
+index e542d3cc90..0eb1fdd162 100644
 --- a/include/winternl.h
 +++ b/include/winternl.h
-@@ -2309,7 +2309,6 @@ NTSYSAPI NTSTATUS  WINAPI DbgUiIssueRemoteBreakin(HANDLE);
+@@ -2421,7 +2421,6 @@ NTSYSAPI NTSTATUS  WINAPI DbgUiIssueRemoteBreakin(HANDLE);
  NTSYSAPI void      WINAPI DbgUiRemoteBreakin(void*);
  NTSYSAPI void      WINAPI DbgUserBreakPoint(void);
  NTSYSAPI NTSTATUS  WINAPI LdrAccessResource(HMODULE,const IMAGE_RESOURCE_DATA_ENTRY*,void**,PULONG);
@@ -2610,7 +1998,7 @@ index 16df963770..cb0172c366 100644
  NTSYSAPI NTSTATUS  WINAPI LdrAddRefDll(ULONG,HMODULE);
  NTSYSAPI NTSTATUS  WINAPI LdrDisableThreadCalloutsForDll(HMODULE);
  NTSYSAPI NTSTATUS  WINAPI LdrFindEntryForAddress(const void*, PLDR_MODULE*);
-@@ -2317,15 +2316,12 @@ NTSYSAPI NTSTATUS  WINAPI LdrFindResourceDirectory_U(HMODULE,const LDR_RESOURCE_
+@@ -2429,15 +2428,12 @@ NTSYSAPI NTSTATUS  WINAPI LdrFindResourceDirectory_U(HMODULE,const LDR_RESOURCE_
  NTSYSAPI NTSTATUS  WINAPI LdrFindResource_U(HMODULE,const LDR_RESOURCE_INFO*,ULONG,const IMAGE_RESOURCE_DATA_ENTRY**);
  NTSYSAPI NTSTATUS  WINAPI LdrGetDllDirectory(UNICODE_STRING*);
  NTSYSAPI NTSTATUS  WINAPI LdrGetDllHandle(LPCWSTR, ULONG, const UNICODE_STRING*, HMODULE*);
@@ -2626,7 +2014,7 @@ index 16df963770..cb0172c366 100644
  NTSYSAPI NTSTATUS  WINAPI LdrSetDllDirectory(const UNICODE_STRING*);
  NTSYSAPI void      WINAPI LdrShutdownProcess(void);
  NTSYSAPI void      WINAPI LdrShutdownThread(void);
-@@ -2724,7 +2720,6 @@ NTSYSAPI NTSTATUS  WINAPI RtlGetControlSecurityDescriptor(PSECURITY_DESCRIPTOR,
+@@ -2837,7 +2833,6 @@ NTSYSAPI NTSTATUS  WINAPI RtlGetControlSecurityDescriptor(PSECURITY_DESCRIPTOR,
  NTSYSAPI ULONG     WINAPI RtlGetCurrentDirectory_U(ULONG, LPWSTR);
  NTSYSAPI PEB *     WINAPI RtlGetCurrentPeb(void);
  NTSYSAPI NTSTATUS  WINAPI RtlGetDaclSecurityDescriptor(PSECURITY_DESCRIPTOR,PBOOLEAN,PACL *,PBOOLEAN);
@@ -2759,7 +2147,7 @@ index 016c3022dc..bb496425aa 100644
 @@ -718,12 +718,12 @@
  @ stdcall GetMailslotInfo(long ptr ptr ptr ptr)
  @ stdcall GetMaximumProcessorCount(long)
- # @ stub GetMaximumProcessorGroupCount
+ @ stdcall GetMaximumProcessorGroupCount()
 -@ stdcall -import GetModuleFileNameA(long ptr long)
 -@ stdcall -import GetModuleFileNameW(long ptr long)
 -@ stdcall -import GetModuleHandleA(str)
@@ -4449,9 +3837,9 @@ index f1c883167ed..50b3323ae9f 100644
 --- a/dlls/user32/focus.c
 +++ b/dlls/user32/focus.c
 @@ -156,6 +156,8 @@ static BOOL set_active_window( HWND hwnd, HWND *prev, BOOL mouse, BOOL focus )
-                       (LPARAM)previous );
-         if (GetAncestor( hwnd, GA_PARENT ) == GetDesktopWindow())
-             PostMessageW( GetDesktopWindow(), WM_PARENTNOTIFY, WM_NCACTIVATE, (LPARAM)hwnd );
+ 
+         if (hwnd == GetForegroundWindow() && !IsIconic( hwnd ))
+             USER_Driver->pSetActiveWindow( hwnd );
 +
 +        imm_activate_window( hwnd );
      }
@@ -4875,6 +4263,7 @@ index e22559912c3..41ec809b727 100644
          *mode = DWRITE_RENDERING_MODE_OUTLINE;
          return S_OK;
      }
+
 From 5c59517008697ce74becddb59a3e6702a963bb49 Mon Sep 17 00:00:00 2001
 From: Zhiyi Zhang <zzhang@codeweavers.com>
 Date: Fri, 16 Aug 2019 09:46:25 +0000
