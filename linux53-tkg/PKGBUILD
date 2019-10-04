@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=7
+pkgrel=8
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -115,7 +115,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0007-v5.3-fsync.patch
         0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
         0009-glitched-bmq.patch
-        0009-v5.3_bmq100.patch
+        0009-bmq_v5.3.1.patch
         0010-umip-instruction-emulation.patch
 )
 sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
@@ -135,7 +135,7 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
-            '4349ee052909a12f04a9a3e2ede01beafa569eca02458ecb2aebc7a0e4a43cac'
+            '39698ac22f8e9cc1513ebd3351817bb15f792b74b5ba03594c59182b7d5e1909'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
 
 user_patcher() {
@@ -206,7 +206,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0009-v5.3_bmq100.patch
+    patch -Np1 -i ../0009-bmq_v5.3.1.patch
     patch -Np1 -i ../0009-glitched-bmq.patch
   elif [ "${_cpusched}" == "cfsturbo" ]; then
     # CFS+TurboSched
