@@ -5,7 +5,7 @@ pkgver=4.17.r7.g042a633c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=207
+eval pkgrel=208
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -187,6 +187,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'leagueoflolfix-944c4e8.patch' # LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32) (<944c4e8)
 		'overwatch-mfstub.patch' # Overwatch mf crash workaround
 		'assettocorsa_hud_perf.patch' # Fix for Assetto Corsa performance drop when HUD elements are displayed
+		'mk11.patch' # Fix for Mortal Kombat 11
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -315,6 +316,7 @@ md5sums=('SKIP'
          'a38deffe982282b3dea92e7bd48dc725'
          'cf308e18ad3724e4872280ec35e25338'
          '8a6d9ad92d3becae6bd9dbb05d7d6f48'
+         '846bc9a840b5f2527855c17378b1718c'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'
          '374ffc1d29488dd3fdac7d01f55964d4'
