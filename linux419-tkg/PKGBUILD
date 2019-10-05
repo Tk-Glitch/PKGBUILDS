@@ -76,9 +76,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=76
+_sub=77
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=106
+pkgrel=107
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -115,7 +115,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0011-umip-instruction-emulation.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            'eade564136310b38596ed33ebffb69f73d5d4c2c5885b9d0aa933ba214889d08'
+            'de3473cf607e2ca144e51b4a70ba81667bbd05eaf08252469e90fa43dab8064f'
             '00e61adf2b206512b3da168663d8aa415f0c3ee0b0fe487c57837114efe95bed'
             '017a23531e972d74b8e79f27834a48ba94e4b045c4cd1ad38ab782d8244df87c'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
@@ -130,7 +130,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'd05bfdbab33b52cc753c1e6c0305eec030a31f3fb07274707d6a7d93fb0f77be'
             'b3b115e5559fbaa6877bc7e8c8d54ea43a708d784ddf2944c1c84ad6ac1ac9a0'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
-            'b1ab517fbd0a085ca1cd2e20271bb2665729b10772a463b7b252e1679f8da6cb'
+            '1201a9328d6c09629b11cd47bca9a596430826334817e7d0b1326df673f72da9'
             'b58555e0a1dc18a75db0a436e446374bd0c2c45a3e39c86282a006f0862c546a'
             'babe6aaaab7df5aac831dec886674dcdf83877d031fb629c8ffadc0f20b0d3e9'
             '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
