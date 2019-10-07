@@ -78,7 +78,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
-_sub=rc1
+_sub=rc2
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -111,7 +111,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0007-v5.4-fsync.patch
         0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
-sha256sums=('69fe1a33748cae6581cce2b85783485b807c77f1227d69acfd6aac44c40330a9'
+sha256sums=('4c7089427e042f32498f9158ab4e7a892feaf6d74325ffac268c37cfc339d636'
             '67c347ddaedbe693f4a06c787bc624a57c2e0752b465b2fda0ae2f1b6223d64f'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
