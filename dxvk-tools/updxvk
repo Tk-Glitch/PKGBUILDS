@@ -123,7 +123,7 @@ else
 fi
 
 # Community patches
-if [ -n $_community_patches ]; then
+if [ -n "$_community_patches" ]; then
   _community_patches=($_community_patches)
   for _p in ${_community_patches[@]}; do
    ln -s $ROOT/../community-patches/dxvk/$_p $ROOT/DXVKBUILD/patches/

@@ -137,7 +137,7 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
 
 # Community patches
-if [ -n $_community_patches ]; then
+if [ -n "$_community_patches" ]; then
   _community_patches=($_community_patches)
   for _p in ${_community_patches[@]}; do
     ln -s "$_where"/../community-patches/linux53-tkg/$_p "$_where"/

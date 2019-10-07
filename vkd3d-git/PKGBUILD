@@ -49,7 +49,7 @@ source=("$_vkd3dsrcdir"::"git+https://source.winehq.org/git/vkd3d.git${_vkd3d_co
 makedepends=(${makedepends[@]} ${depends[@]})
 
 # Community patches
-if [ -n $_community_patches ]; then
+if [ -n "$_community_patches" ]; then
   _community_patches=($_community_patches)
   for _p in ${_community_patches[@]}; do
    ln -s "$_where"/../community-patches/vkd3d-git/$_p "$_where"/
