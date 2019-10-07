@@ -114,7 +114,6 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-glitched-pds.patch
         0005-v5.2_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
-        0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
         0010-glitched-bmq.patch
         0010-v5.2_bmq099.patch
         0011-ZFS-fix.patch
@@ -139,7 +138,6 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             '703059b0b74ccc0cc839bba41f204a654be383072f8a880cce7eb5ac4a8f116d'
             '58688428781ec2b466e9f00922c54c2cffb55cd171d54e2603926f0b609b8f21'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
-            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40'
             'aa59d966f69a93832b801cd596df5e00b89a71a791902c0396d6f2d3f3d8bad7'
             '08804ef214e61000e6f54f393ddd3313ea9f3934859fdcaa69c78b5f393acdce'
             'dc4f939085d2dc6e6ebdbedaeb8f296b8dc1dc335f2e485ce94b02e43054c642'
@@ -147,6 +145,14 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             'a70f51d8d399cbc37b998dc9111c2b7e584d89bfc1db78b78be34b84b0478921'
             'd73217d735df7933f86c7495b4c469014dc7c1d531899e3ab591cdabfdf9648c'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
+
+# Community patches
+if [ -n $_community_patches ]; then
+  _community_patches=($_community_patches)
+  for _p in ${_community_patches[@]}; do
+    ln -s "$_where"/../community-patches/linux52-tkg/$_p "$_where"/
+  done
+fi
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -638,17 +644,6 @@ prepare() {
   fi
   if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
     patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
-  fi
-
-  # AMD Overdrive flicker fix
-  if [ -z "$_amd_overdrive_flickering_fix" ]; then
-    plain ""
-    plain "Use AMD overdrive flickering fix? *Some* AMD GPUs need that when using multiple monitors."
-    plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
-    read -rp "`echo $'    > N/y : '`" CONDITION8;
-  fi
-  if [ "$CONDITION8" == "y" ] || [ "$_amd_overdrive_flickering_fix" == "true" ]; then
-    patch -Np1 -i ../0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
   fi
 
   # bcachefs

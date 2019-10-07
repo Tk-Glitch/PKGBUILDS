@@ -1,0 +1,2063 @@
+diff --git a/README.md b/README.md
+index 25d03230..3e40f3a0 100644
+--- a/README.md
++++ b/README.md
+@@ -105,14 +105,3 @@ The following environment variables can be used for **debugging** purposes.
+ - `DXVK_LOG_LEVEL=none|error|warn|info|debug` Controls message logging.
+ - `DXVK_LOG_PATH=/some/directory` Changes path where log files are stored.
+ - `DXVK_CONFIG_FILE=/xxx/dxvk.conf` Sets path to the configuration file.
+-
+-## Troubleshooting
+-DXVK requires threading support from your mingw-w64 build environment. If you
+-are missing this, you may see "error: 'mutex' is not a member of 'std'". On
+-Debian and Ubuntu, this can usually be resolved by using the posix alternate, which
+-supports threading. For example, choose the posix alternate from these
+-commands (use i686 for 32-bit):
+-```
+-update-alternatives --config x86_64-w64-mingw32-gcc
+-update-alternatives --config x86_64-w64-mingw32-g++
+-```
+diff --git a/build-win32.txt b/build-win32.txt
+index 97ec8a35..fd142937 100644
+--- a/build-win32.txt
++++ b/build-win32.txt
+@@ -5,8 +5,8 @@ ar = 'i686-w64-mingw32-ar'
+ strip = 'i686-w64-mingw32-strip'
+ 
+ [properties]
+-c_args=['-msse', '-msse2']
+-cpp_args=['-msse', '-msse2']
++c_args=['-msse', '-msse2', '-D_WIN32_WINNT=0x0601']
++cpp_args=['-msse', '-msse2', '-D_WIN32_WINNT=0x0601']
+ c_link_args = ['-static', '-static-libgcc']
+ cpp_link_args = ['-static', '-static-libgcc', '-static-libstdc++']
+ needs_exe_wrapper = true
+diff --git a/build-win64.txt b/build-win64.txt
+index 2a7fbee3..eef37256 100644
+--- a/build-win64.txt
++++ b/build-win64.txt
+@@ -5,6 +5,8 @@ ar = 'x86_64-w64-mingw32-ar'
+ strip = 'x86_64-w64-mingw32-strip'
+ 
+ [properties]
++c_args=['-D_WIN32_WINNT=0x0601']
++cpp_args=['-D_WIN32_WINNT=0x0601']
+ c_link_args = ['-static', '-static-libgcc']
+ cpp_link_args = ['-static', '-static-libgcc', '-static-libstdc++']
+ needs_exe_wrapper = true
+diff --git a/include/condition_variable.h b/include/condition_variable.h
+new file mode 100644
+index 00000000..2d9cb31c
+--- /dev/null
++++ b/include/condition_variable.h
+@@ -0,0 +1,10 @@
++#ifndef DXVK_CONDITION_VARIABLE_H_
++#define DXVK_CONDITION_VARIABLE_H_
++
++#include <condition_variable>
++#if !defined(_GLIBCXX_HAS_GTHREADS) && defined(__MINGW32__)
++#include <dxvk_mingw_private.h>
++#include <mingw.condition_variable.h>
++#endif
++
++#endif /* DXVK_CONDITION_VARIABLE_H_ */
+diff --git a/include/dxvk_mingw_private.h b/include/dxvk_mingw_private.h
+new file mode 100644
+index 00000000..d4d33101
+--- /dev/null
++++ b/include/dxvk_mingw_private.h
+@@ -0,0 +1,9 @@
++#ifndef DXVK_MINGW_PRIVATE_H_
++#define DXVK_MINGW_PRIVATE_H_
++
++/* Disable debug code */
++#ifndef STDMUTEX_RECURSION_CHECKS
++#define STDMUTEX_RECURSION_CHECKS 0
++#endif /* STDMUTEX_RECURSION_CHECKS */
++
++#endif /* DXVK_MINGW_PRIVATE_H_ */
+diff --git a/include/mingw.condition_variable.h b/include/mingw.condition_variable.h
+new file mode 100644
+index 00000000..e8ccbd3a
+--- /dev/null
++++ b/include/mingw.condition_variable.h
+@@ -0,0 +1,555 @@
++/**
++* @file condition_variable.h
++* @brief std::condition_variable implementation for MinGW
++*
++* (c) 2013-2016 by Mega Limited, Auckland, New Zealand
++* @author Alexander Vassilev
++*
++* @copyright Simplified (2-clause) BSD License.
++* You should have received a copy of the license along with this
++* program.
++*
++* This code is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++* @note
++* This file may become part of the mingw-w64 runtime package. If/when this happens,
++* the appropriate license will be added, i.e. this code will become dual-licensed,
++* and the current BSD 2-clause license will stay.
++*/
++
++#ifndef MINGW_CONDITIONAL_VARIABLE_H
++#define MINGW_CONDITIONAL_VARIABLE_H
++
++#if !defined(__cplusplus) || (__cplusplus < 201103L)
++#error A C++11 compiler is required!
++#endif
++//  Use the standard classes for std::, if available.
++#include <condition_variable>
++
++#include <cassert>
++#include <chrono>
++#include <system_error>
++
++#include <sdkddkver.h>  //  Detect Windows version.
++#if (WINVER < _WIN32_WINNT_VISTA)
++#include <atomic>
++#include <windef.h>
++#include <winbase.h>  //  For CreateSemaphore
++#include <handleapi.h>
++#endif
++#include <synchapi.h>
++
++#include "mingw.mutex.h"
++#include "mingw.shared_mutex.h"
++
++#if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0501)
++#error To use the MinGW-std-threads library, you will need to define the macro _WIN32_WINNT to be 0x0501 (Windows XP) or higher.
++#endif
++
++namespace mingw_stdthread
++{
++#if defined(__MINGW32__ ) && !defined(_GLIBCXX_HAS_GTHREADS)
++enum class cv_status { no_timeout, timeout };
++#else
++using std::cv_status;
++#endif
++namespace xp
++{
++//    Include the XP-compatible condition_variable classes only if actually
++//  compiling for XP. The XP-compatible classes are slower than the newer
++//  versions, and depend on features not compatible with Windows Phone 8.
++#if (WINVER < _WIN32_WINNT_VISTA)
++class condition_variable_any
++{
++    recursive_mutex mMutex {};
++    std::atomic<int> mNumWaiters {0};
++    HANDLE mSemaphore;
++    HANDLE mWakeEvent {};
++public:
++    using native_handle_type = HANDLE;
++    native_handle_type native_handle()
++    {
++        return mSemaphore;
++    }
++    condition_variable_any(const condition_variable_any&) = delete;
++    condition_variable_any& operator=(const condition_variable_any&) = delete;
++    condition_variable_any()
++        :   mSemaphore(CreateSemaphoreA(NULL, 0, 0xFFFF, NULL))
++    {
++        if (mSemaphore == NULL)
++            throw std::system_error(GetLastError(), std::generic_category());
++        mWakeEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
++        if (mWakeEvent == NULL)
++        {
++            CloseHandle(mSemaphore);
++            throw std::system_error(GetLastError(), std::generic_category());
++        }
++    }
++    ~condition_variable_any()
++    {
++        CloseHandle(mWakeEvent);
++        CloseHandle(mSemaphore);
++    }
++private:
++    template <class M>
++    bool wait_impl(M& lock, DWORD timeout)
++    {
++        {
++            lock_guard<recursive_mutex> guard(mMutex);
++            mNumWaiters++;
++        }
++        lock.unlock();
++        DWORD ret = WaitForSingleObject(mSemaphore, timeout);
++
++        mNumWaiters--;
++        SetEvent(mWakeEvent);
++        lock.lock();
++        if (ret == WAIT_OBJECT_0)
++            return true;
++        else if (ret == WAIT_TIMEOUT)
++            return false;
++//2 possible cases:
++//1)The point in notify_all() where we determine the count to
++//increment the semaphore with has not been reached yet:
++//we just need to decrement mNumWaiters, but setting the event does not hurt
++//
++//2)Semaphore has just been released with mNumWaiters just before
++//we decremented it. This means that the semaphore count
++//after all waiters finish won't be 0 - because not all waiters
++//woke up by acquiring the semaphore - we woke up by a timeout.
++//The notify_all() must handle this gracefully
++//
++        else
++        {
++            using namespace std;
++            throw system_error(make_error_code(errc::protocol_error));
++        }
++    }
++public:
++    template <class M>
++    void wait(M& lock)
++    {
++        wait_impl(lock, INFINITE);
++    }
++    template <class M, class Predicate>
++    void wait(M& lock, Predicate pred)
++    {
++        while(!pred())
++        {
++            wait(lock);
++        };
++    }
++
++    void notify_all() noexcept
++    {
++        lock_guard<recursive_mutex> lock(mMutex); //block any further wait requests until all current waiters are unblocked
++        if (mNumWaiters.load() <= 0)
++            return;
++
++        ReleaseSemaphore(mSemaphore, mNumWaiters, NULL);
++        while(mNumWaiters > 0)
++        {
++            auto ret = WaitForSingleObject(mWakeEvent, 1000);
++            if (ret == WAIT_FAILED || ret == WAIT_ABANDONED)
++                std::terminate();
++        }
++        assert(mNumWaiters == 0);
++//in case some of the waiters timed out just after we released the
++//semaphore by mNumWaiters, it won't be zero now, because not all waiters
++//woke up by acquiring the semaphore. So we must zero the semaphore before
++//we accept waiters for the next event
++//See _wait_impl for details
++        while(WaitForSingleObject(mSemaphore, 0) == WAIT_OBJECT_0);
++    }
++    void notify_one() noexcept
++    {
++        lock_guard<recursive_mutex> lock(mMutex);
++        int targetWaiters = mNumWaiters.load() - 1;
++        if (targetWaiters <= -1)
++            return;
++        ReleaseSemaphore(mSemaphore, 1, NULL);
++        while(mNumWaiters > targetWaiters)
++        {
++            auto ret = WaitForSingleObject(mWakeEvent, 1000);
++            if (ret == WAIT_FAILED || ret == WAIT_ABANDONED)
++                std::terminate();
++        }
++        assert(mNumWaiters == targetWaiters);
++    }
++    template <class M, class Rep, class Period>
++    cv_status wait_for(M& lock,
++                       const std::chrono::duration<Rep, Period>& rel_time)
++    {
++        using namespace std::chrono;
++        auto timeout = duration_cast<milliseconds>(rel_time).count();
++        DWORD waittime = (timeout < INFINITE) ? ((timeout < 0) ? 0 : static_cast<DWORD>(timeout)) : (INFINITE - 1);
++        bool ret = wait_impl(lock, waittime) || (timeout >= INFINITE);
++        return ret?cv_status::no_timeout:cv_status::timeout;
++    }
++
++    template <class M, class Rep, class Period, class Predicate>
++    bool wait_for(M& lock,
++                  const std::chrono::duration<Rep, Period>& rel_time, Predicate pred)
++    {
++        return wait_until(lock, std::chrono::steady_clock::now()+rel_time, pred);
++    }
++    template <class M, class Clock, class Duration>
++    cv_status wait_until (M& lock,
++                          const std::chrono::time_point<Clock,Duration>& abs_time)
++    {
++        return wait_for(lock, abs_time - Clock::now());
++    }
++    template <class M, class Clock, class Duration, class Predicate>
++    bool wait_until (M& lock,
++                     const std::chrono::time_point<Clock, Duration>& abs_time,
++                     Predicate pred)
++    {
++        while (!pred())
++        {
++            if (wait_until(lock, abs_time) == cv_status::timeout)
++            {
++                return pred();
++            }
++        }
++        return true;
++    }
++};
++class condition_variable: condition_variable_any
++{
++    using base = condition_variable_any;
++public:
++    using base::native_handle_type;
++    using base::native_handle;
++    using base::base;
++    using base::notify_all;
++    using base::notify_one;
++    void wait(unique_lock<mutex> &lock)
++    {
++        base::wait(lock);
++    }
++    template <class Predicate>
++    void wait(unique_lock<mutex>& lock, Predicate pred)
++    {
++        base::wait(lock, pred);
++    }
++    template <class Rep, class Period>
++    cv_status wait_for(unique_lock<mutex>& lock, const std::chrono::duration<Rep, Period>& rel_time)
++    {
++        return base::wait_for(lock, rel_time);
++    }
++    template <class Rep, class Period, class Predicate>
++    bool wait_for(unique_lock<mutex>& lock, const std::chrono::duration<Rep, Period>& rel_time, Predicate pred)
++    {
++        return base::wait_for(lock, rel_time, pred);
++    }
++    template <class Clock, class Duration>
++    cv_status wait_until (unique_lock<mutex>& lock, const std::chrono::time_point<Clock,Duration>& abs_time)
++    {
++        return base::wait_until(lock, abs_time);
++    }
++    template <class Clock, class Duration, class Predicate>
++    bool wait_until (unique_lock<mutex>& lock, const std::chrono::time_point<Clock, Duration>& abs_time, Predicate pred)
++    {
++        return base::wait_until(lock, abs_time, pred);
++    }
++};
++#endif  //  Compiling for XP
++} //  Namespace mingw_stdthread::xp
++
++#if (WINVER >= _WIN32_WINNT_VISTA)
++namespace vista
++{
++//  If compiling for Vista or higher, use the native condition variable.
++class condition_variable
++{
++    static constexpr DWORD kInfinite = 0xffffffffl;
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
++    CONDITION_VARIABLE cvariable_ = CONDITION_VARIABLE_INIT;
++#pragma GCC diagnostic pop
++
++    friend class condition_variable_any;
++
++#if STDMUTEX_RECURSION_CHECKS
++    template<typename MTX>
++    inline static void before_wait (MTX * pmutex)
++    {
++        pmutex->mOwnerThread.checkSetOwnerBeforeUnlock();
++    }
++    template<typename MTX>
++    inline static void after_wait (MTX * pmutex)
++    {
++        pmutex->mOwnerThread.setOwnerAfterLock(GetCurrentThreadId());
++    }
++#else
++    inline static void before_wait (void *) { }
++    inline static void after_wait (void *) { }
++#endif
++
++    bool wait_impl (unique_lock<xp::mutex> & lock, DWORD time)
++    {
++        using mutex_handle_type = typename xp::mutex::native_handle_type;
++        static_assert(std::is_same<mutex_handle_type, PCRITICAL_SECTION>::value,
++                      "Native Win32 condition variable requires std::mutex to \
++use native Win32 critical section objects.");
++        xp::mutex * pmutex = lock.release();
++        before_wait(pmutex);
++        BOOL success = SleepConditionVariableCS(&cvariable_,
++                                                pmutex->native_handle(),
++                                                time);
++        after_wait(pmutex);
++        lock = unique_lock<xp::mutex>(*pmutex, adopt_lock);
++        return success;
++    }
++
++    bool wait_unique (windows7::mutex * pmutex, DWORD time)
++    {
++        before_wait(pmutex);
++        BOOL success = SleepConditionVariableSRW( native_handle(),
++                                                  pmutex->native_handle(),
++                                                  time,
++//    CONDITION_VARIABLE_LOCKMODE_SHARED has a value not specified by
++//  Microsoft's Dev Center, but is known to be (convertible to) a ULONG. To
++//  ensure that the value passed to this function is not equal to Microsoft's
++//  constant, we can either use a static_assert, or simply generate an
++//  appropriate value.
++                                           !CONDITION_VARIABLE_LOCKMODE_SHARED);
++        after_wait(pmutex);
++        return success;
++    }
++    bool wait_impl (unique_lock<windows7::mutex> & lock, DWORD time)
++    {
++        windows7::mutex * pmutex = lock.release();
++        bool success = wait_unique(pmutex, time);
++        lock = unique_lock<windows7::mutex>(*pmutex, adopt_lock);
++        return success;
++    }
++public:
++    using native_handle_type = PCONDITION_VARIABLE;
++    native_handle_type native_handle (void)
++    {
++        return &cvariable_;
++    }
++
++    condition_variable (void) = default;
++    ~condition_variable (void) = default;
++
++    condition_variable (const condition_variable &) = delete;
++    condition_variable & operator= (const condition_variable &) = delete;
++
++    void notify_one (void) noexcept
++    {
++        WakeConditionVariable(&cvariable_);
++    }
++
++    void notify_all (void) noexcept
++    {
++        WakeAllConditionVariable(&cvariable_);
++    }
++
++    void wait (unique_lock<mutex> & lock)
++    {
++        wait_impl(lock, kInfinite);
++    }
++
++    template<class Predicate>
++    void wait (unique_lock<mutex> & lock, Predicate pred)
++    {
++        while (!pred())
++            wait(lock);
++    }
++
++    template <class Rep, class Period>
++    cv_status wait_for(unique_lock<mutex>& lock,
++                       const std::chrono::duration<Rep, Period>& rel_time)
++    {
++        using namespace std::chrono;
++        auto timeout = duration_cast<milliseconds>(rel_time).count();
++        DWORD waittime = (timeout < kInfinite) ? ((timeout < 0) ? 0 : static_cast<DWORD>(timeout)) : (kInfinite - 1);
++        bool result = wait_impl(lock, waittime) || (timeout >= kInfinite);
++        return result ? cv_status::no_timeout : cv_status::timeout;
++    }
++
++    template <class Rep, class Period, class Predicate>
++    bool wait_for(unique_lock<mutex>& lock,
++                  const std::chrono::duration<Rep, Period>& rel_time,
++                  Predicate pred)
++    {
++        return wait_until(lock,
++                          std::chrono::steady_clock::now() + rel_time,
++                          std::move(pred));
++    }
++    template <class Clock, class Duration>
++    cv_status wait_until (unique_lock<mutex>& lock,
++                          const std::chrono::time_point<Clock,Duration>& abs_time)
++    {
++        return wait_for(lock, abs_time - Clock::now());
++    }
++    template <class Clock, class Duration, class Predicate>
++    bool wait_until  (unique_lock<mutex>& lock,
++                      const std::chrono::time_point<Clock, Duration>& abs_time,
++                      Predicate pred)
++    {
++        while (!pred())
++        {
++            if (wait_until(lock, abs_time) == cv_status::timeout)
++            {
++                return pred();
++            }
++        }
++        return true;
++    }
++};
++
++class condition_variable_any
++{
++    static constexpr DWORD kInfinite = 0xffffffffl;
++    using native_shared_mutex = windows7::shared_mutex;
++
++    condition_variable internal_cv_ {};
++//    When available, the SRW-based mutexes should be faster than the
++//  CriticalSection-based mutexes. Only try_lock will be unavailable in Vista,
++//  and try_lock is not used by condition_variable_any.
++    windows7::mutex internal_mutex_ {};
++
++    template<class L>
++    bool wait_impl (L & lock, DWORD time)
++    {
++        unique_lock<decltype(internal_mutex_)> internal_lock(internal_mutex_);
++        lock.unlock();
++        bool success = internal_cv_.wait_impl(internal_lock, time);
++        lock.lock();
++        return success;
++    }
++//    If the lock happens to be called on a native Windows mutex, skip any extra
++//  contention.
++    inline bool wait_impl (unique_lock<mutex> & lock, DWORD time)
++    {
++        return internal_cv_.wait_impl(lock, time);
++    }
++//    Some shared_mutex functionality is available even in Vista, but it's not
++//  until Windows 7 that a full implementation is natively possible. The class
++//  itself is defined, with missing features, at the Vista feature level.
++    bool wait_impl (unique_lock<native_shared_mutex> & lock, DWORD time)
++    {
++        native_shared_mutex * pmutex = lock.release();
++        bool success = internal_cv_.wait_unique(pmutex, time);
++        lock = unique_lock<native_shared_mutex>(*pmutex, adopt_lock);
++        return success;
++    }
++    bool wait_impl (shared_lock<native_shared_mutex> & lock, DWORD time)
++    {
++        native_shared_mutex * pmutex = lock.release();
++        BOOL success = SleepConditionVariableSRW(native_handle(),
++                       pmutex->native_handle(), time,
++                       CONDITION_VARIABLE_LOCKMODE_SHARED);
++        lock = shared_lock<native_shared_mutex>(*pmutex, adopt_lock);
++        return success;
++    }
++public:
++    using native_handle_type = typename condition_variable::native_handle_type;
++
++    native_handle_type native_handle (void)
++    {
++        return internal_cv_.native_handle();
++    }
++
++    void notify_one (void) noexcept
++    {
++        internal_cv_.notify_one();
++    }
++
++    void notify_all (void) noexcept
++    {
++        internal_cv_.notify_all();
++    }
++
++    condition_variable_any (void) = default;
++    ~condition_variable_any (void) = default;
++
++    template<class L>
++    void wait (L & lock)
++    {
++        wait_impl(lock, kInfinite);
++    }
++
++    template<class L, class Predicate>
++    void wait (L & lock, Predicate pred)
++    {
++        while (!pred())
++            wait(lock);
++    }
++
++    template <class L, class Rep, class Period>
++    cv_status wait_for(L& lock, const std::chrono::duration<Rep,Period>& period)
++    {
++        using namespace std::chrono;
++        auto timeout = duration_cast<milliseconds>(period).count();
++        DWORD waittime = (timeout < kInfinite) ? ((timeout < 0) ? 0 : static_cast<DWORD>(timeout)) : (kInfinite - 1);
++        bool result = wait_impl(lock, waittime) || (timeout >= kInfinite);
++        return result ? cv_status::no_timeout : cv_status::timeout;
++    }
++
++    template <class L, class Rep, class Period, class Predicate>
++    bool wait_for(L& lock, const std::chrono::duration<Rep, Period>& period,
++                  Predicate pred)
++    {
++        return wait_until(lock, std::chrono::steady_clock::now() + period,
++                          std::move(pred));
++    }
++    template <class L, class Clock, class Duration>
++    cv_status wait_until (L& lock,
++                          const std::chrono::time_point<Clock,Duration>& abs_time)
++    {
++        return wait_for(lock, abs_time - Clock::now());
++    }
++    template <class L, class Clock, class Duration, class Predicate>
++    bool wait_until  (L& lock,
++                      const std::chrono::time_point<Clock, Duration>& abs_time,
++                      Predicate pred)
++    {
++        while (!pred())
++        {
++            if (wait_until(lock, abs_time) == cv_status::timeout)
++            {
++                return pred();
++            }
++        }
++        return true;
++    }
++};
++} //  Namespace vista
++#endif
++#if WINVER < 0x0600
++using xp::condition_variable;
++using xp::condition_variable_any;
++#else
++using vista::condition_variable;
++using vista::condition_variable_any;
++#endif
++} //  Namespace mingw_stdthread
++
++//  Push objects into std, but only if they are not already there.
++namespace std
++{
++//    Because of quirks of the compiler, the common "using namespace std;"
++//  directive would flatten the namespaces and introduce ambiguity where there
++//  was none. Direct specification (std::), however, would be unaffected.
++//    Take the safe option, and include only in the presence of MinGW's win32
++//  implementation.
++#if defined(__MINGW32__ ) && !defined(_GLIBCXX_HAS_GTHREADS)
++using mingw_stdthread::cv_status;
++using mingw_stdthread::condition_variable;
++using mingw_stdthread::condition_variable_any;
++#elif !defined(MINGW_STDTHREAD_REDUNDANCY_WARNING)  //  Skip repetition
++#define MINGW_STDTHREAD_REDUNDANCY_WARNING
++#pragma message "This version of MinGW seems to include a win32 port of\
++ pthreads, and probably already has C++11 std threading classes implemented,\
++ based on pthreads. These classes, found in namespace std, are not overridden\
++ by the mingw-std-thread library. If you would still like to use this\
++ implementation (as it is more lightweight), use the classes provided in\
++ namespace mingw_stdthread."
++#endif
++}
++#endif // MINGW_CONDITIONAL_VARIABLE_H
+diff --git a/include/mingw.invoke.h b/include/mingw.invoke.h
+new file mode 100644
+index 00000000..71a6e506
+--- /dev/null
++++ b/include/mingw.invoke.h
+@@ -0,0 +1,109 @@
++/// \file mingw.invoke.h
++/// \brief Lightweight `invoke` implementation, for C++11 and C++14.
++///
++/// (c) 2018-2019 by Nathaniel J. McClatchey, San Jose, CA, United States
++/// \author Nathaniel J. McClatchey, PhD
++///
++/// \copyright Simplified (2-clause) BSD License.
++///
++/// \note This file may become part of the mingw-w64 runtime package. If/when
++/// this happens, the appropriate license will be added, i.e. this code will
++/// become dual-licensed, and the current BSD 2-clause license will stay.
++
++#ifndef MINGW_INVOKE_H_
++#define MINGW_INVOKE_H_
++
++#include <type_traits>  //  For std::result_of, etc.
++#include <utility>      //  For std::forward
++#include <functional>   //  For std::reference_wrapper
++
++namespace mingw_stdthread
++{
++namespace detail
++{
++//  For compatibility, implement std::invoke for C++11 and C++14
++#if __cplusplus < 201703L
++  template<bool PMemFunc, bool PMemData>
++  struct Invoker
++  {
++    template<class F, class... Args>
++    inline static typename std::result_of<F(Args...)>::type invoke (F&& f, Args&&... args)
++    {
++      return std::forward<F>(f)(std::forward<Args>(args)...);
++    }
++  };
++  template<bool>
++  struct InvokerHelper;
++
++  template<>
++  struct InvokerHelper<false>
++  {
++    template<class T1>
++    inline static auto get (T1&& t1) -> decltype(*std::forward<T1>(t1))
++    {
++      return *std::forward<T1>(t1);
++    }
++
++    template<class T1>
++    inline static auto get (const std::reference_wrapper<T1>& t1) -> decltype(t1.get())
++    {
++      return t1.get();
++    }
++  };
++
++  template<>
++  struct InvokerHelper<true>
++  {
++    template<class T1>
++    inline static auto get (T1&& t1) -> decltype(std::forward<T1>(t1))
++    {
++      return std::forward<T1>(t1);
++    }
++  };
++
++  template<>
++  struct Invoker<true, false>
++  {
++    template<class T, class F, class T1, class... Args>
++    inline static auto invoke (F T::* f, T1&& t1, Args&&... args) ->\
++      decltype((InvokerHelper<std::is_base_of<T,typename std::decay<T1>::type>::value>::get(std::forward<T1>(t1)).*f)(std::forward<Args>(args)...))
++    {
++      return (InvokerHelper<std::is_base_of<T,typename std::decay<T1>::type>::value>::get(std::forward<T1>(t1)).*f)(std::forward<Args>(args)...);
++    }
++  };
++
++  template<>
++  struct Invoker<false, true>
++  {
++    template<class T, class F, class T1, class... Args>
++    inline static auto invoke (F T::* f, T1&& t1, Args&&... args) ->\
++      decltype(InvokerHelper<std::is_base_of<T,typename std::decay<T1>::type>::value>::get(t1).*f)
++    {
++      return InvokerHelper<std::is_base_of<T,typename std::decay<T1>::type>::value>::get(t1).*f;
++    }
++  };
++
++  template<class F, class... Args>
++  struct InvokeResult
++  {
++    typedef Invoker<std::is_member_function_pointer<typename std::remove_reference<F>::type>::value,
++                    std::is_member_object_pointer<typename std::remove_reference<F>::type>::value &&
++                    (sizeof...(Args) == 1)> invoker;
++    inline static auto invoke (F&& f, Args&&... args) -> decltype(invoker::invoke(std::forward<F>(f), std::forward<Args>(args)...))
++    {
++      return invoker::invoke(std::forward<F>(f), std::forward<Args>(args)...);
++    };
++  };
++
++  template<class F, class...Args>
++  auto invoke (F&& f, Args&&... args) -> decltype(InvokeResult<F, Args...>::invoke(std::forward<F>(f), std::forward<Args>(args)...))
++  {
++    return InvokeResult<F, Args...>::invoke(std::forward<F>(f), std::forward<Args>(args)...);
++  }
++#else
++    using std::invoke;
++#endif
++} //  Namespace "detail"
++} //  Namespace "mingw_stdthread"
++
++#endif
+diff --git a/include/mingw.mutex.h b/include/mingw.mutex.h
+new file mode 100644
+index 00000000..5548f168
+--- /dev/null
++++ b/include/mingw.mutex.h
+@@ -0,0 +1,484 @@
++/**
++* @file mingw.mutex.h
++* @brief std::mutex et al implementation for MinGW
++** (c) 2013-2016 by Mega Limited, Auckland, New Zealand
++* @author Alexander Vassilev
++*
++* @copyright Simplified (2-clause) BSD License.
++* You should have received a copy of the license along with this
++* program.
++*
++* This code is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++* @note
++* This file may become part of the mingw-w64 runtime package. If/when this happens,
++* the appropriate license will be added, i.e. this code will become dual-licensed,
++* and the current BSD 2-clause license will stay.
++*/
++
++#ifndef WIN32STDMUTEX_H
++#define WIN32STDMUTEX_H
++
++#if !defined(__cplusplus) || (__cplusplus < 201103L)
++#error A C++11 compiler is required!
++#endif
++// Recursion checks on non-recursive locks have some performance penalty, and
++// the C++ standard does not mandate them. The user might want to explicitly
++// enable or disable such checks. If the user has no preference, enable such
++// checks in debug builds, but not in release builds.
++#ifdef STDMUTEX_RECURSION_CHECKS
++#elif defined(NDEBUG)
++#define STDMUTEX_RECURSION_CHECKS 0
++#else
++#define STDMUTEX_RECURSION_CHECKS 1
++#endif
++
++#include <chrono>
++#include <system_error>
++#include <atomic>
++#include <mutex> //need for call_once()
++
++#if STDMUTEX_RECURSION_CHECKS || !defined(NDEBUG)
++#include <cstdio>
++#endif
++
++
++#include <sdkddkver.h>  //  Detect Windows version.
++#if STDMUTEX_RECURSION_CHECKS
++#include <processthreadsapi.h>  //  For GetCurrentThreadId
++#endif
++#include <synchapi.h> //  For InitializeCriticalSection, etc.
++#include <errhandlingapi.h> //  For GetLastError
++#include <handleapi.h>
++
++//  Need for the implementation of invoke
++#include "mingw.invoke.h"
++
++#if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0501)
++#error To use the MinGW-std-threads library, you will need to define the macro _WIN32_WINNT to be 0x0501 (Windows XP) or higher.
++#endif
++
++namespace mingw_stdthread
++{
++//    The _NonRecursive class has mechanisms that do not play nice with direct
++//  manipulation of the native handle. This forward declaration is part of
++//  a friend class declaration.
++#if STDMUTEX_RECURSION_CHECKS
++namespace vista
++{
++class condition_variable;
++}
++#endif
++//    To make this namespace equivalent to the thread-related subset of std,
++//  pull in the classes and class templates supplied by std but not by this
++//  implementation.
++using std::lock_guard;
++using std::unique_lock;
++using std::adopt_lock_t;
++using std::defer_lock_t;
++using std::try_to_lock_t;
++using std::adopt_lock;
++using std::defer_lock;
++using std::try_to_lock;
++
++class recursive_mutex
++{
++    CRITICAL_SECTION mHandle;
++public:
++    typedef LPCRITICAL_SECTION native_handle_type;
++    native_handle_type native_handle() {return &mHandle;}
++    recursive_mutex() noexcept : mHandle()
++    {
++        InitializeCriticalSection(&mHandle);
++    }
++    recursive_mutex (const recursive_mutex&) = delete;
++    recursive_mutex& operator=(const recursive_mutex&) = delete;
++    ~recursive_mutex() noexcept
++    {
++        DeleteCriticalSection(&mHandle);
++    }
++    void lock()
++    {
++        EnterCriticalSection(&mHandle);
++    }
++    void unlock()
++    {
++        LeaveCriticalSection(&mHandle);
++    }
++    bool try_lock()
++    {
++        return (TryEnterCriticalSection(&mHandle)!=0);
++    }
++};
++
++#if STDMUTEX_RECURSION_CHECKS
++struct _OwnerThread
++{
++//    If this is to be read before locking, then the owner-thread variable must
++//  be atomic to prevent a torn read from spuriously causing errors.
++    std::atomic<DWORD> mOwnerThread;
++    constexpr _OwnerThread () noexcept : mOwnerThread(0) {}
++    static void on_deadlock (void)
++    {
++        using namespace std;
++        fprintf(stderr, "FATAL: Recursive locking of non-recursive mutex\
++ detected. Throwing system exception\n");
++        fflush(stderr);
++        throw system_error(make_error_code(errc::resource_deadlock_would_occur));
++    }
++    DWORD checkOwnerBeforeLock() const
++    {
++        DWORD self = GetCurrentThreadId();
++        if (mOwnerThread.load(std::memory_order_relaxed) == self)
++            on_deadlock();
++        return self;
++    }
++    void setOwnerAfterLock(DWORD id)
++    {
++        mOwnerThread.store(id, std::memory_order_relaxed);
++    }
++    void checkSetOwnerBeforeUnlock()
++    {
++        DWORD self = GetCurrentThreadId();
++        if (mOwnerThread.load(std::memory_order_relaxed) != self)
++            on_deadlock();
++        mOwnerThread.store(0, std::memory_order_relaxed);
++    }
++};
++#endif
++
++//    Though the Slim Reader-Writer (SRW) locks used here are not complete until
++//  Windows 7, implementing partial functionality in Vista will simplify the
++//  interaction with condition variables.
++#if defined(_WIN32) && (WINVER >= _WIN32_WINNT_VISTA)
++namespace windows7
++{
++class mutex
++{
++    SRWLOCK mHandle;
++//  Track locking thread for error checking.
++#if STDMUTEX_RECURSION_CHECKS
++    friend class vista::condition_variable;
++    _OwnerThread mOwnerThread {};
++#endif
++public:
++    typedef PSRWLOCK native_handle_type;
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
++    constexpr mutex () noexcept : mHandle(SRWLOCK_INIT) { }
++#pragma GCC diagnostic pop
++    mutex (const mutex&) = delete;
++    mutex & operator= (const mutex&) = delete;
++    void lock (void)
++    {
++//  Note: Undefined behavior if called recursively.
++#if STDMUTEX_RECURSION_CHECKS
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++#endif
++        AcquireSRWLockExclusive(&mHandle);
++#if STDMUTEX_RECURSION_CHECKS
++        mOwnerThread.setOwnerAfterLock(self);
++#endif
++    }
++    void unlock (void)
++    {
++#if STDMUTEX_RECURSION_CHECKS
++        mOwnerThread.checkSetOwnerBeforeUnlock();
++#endif
++        ReleaseSRWLockExclusive(&mHandle);
++    }
++//  TryAcquireSRW functions are a Windows 7 feature.
++#if (WINVER >= _WIN32_WINNT_WIN7)
++    bool try_lock (void)
++    {
++#if STDMUTEX_RECURSION_CHECKS
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++#endif
++        BOOL ret = TryAcquireSRWLockExclusive(&mHandle);
++#if STDMUTEX_RECURSION_CHECKS
++        if (ret)
++            mOwnerThread.setOwnerAfterLock(self);
++#endif
++        return ret;
++    }
++#endif
++    native_handle_type native_handle (void)
++    {
++        return &mHandle;
++    }
++};
++} //  Namespace windows7
++#endif  //  Compiling for Vista
++namespace xp
++{
++class mutex
++{
++    CRITICAL_SECTION mHandle;
++    std::atomic_uchar mState;
++//  Track locking thread for error checking.
++#if STDMUTEX_RECURSION_CHECKS
++    friend class vista::condition_variable;
++    _OwnerThread mOwnerThread {};
++#endif
++public:
++    typedef PCRITICAL_SECTION native_handle_type;
++    constexpr mutex () noexcept : mHandle(), mState(2) { }
++    mutex (const mutex&) = delete;
++    mutex & operator= (const mutex&) = delete;
++    ~mutex() noexcept
++    {
++//    Undefined behavior if the mutex is held (locked) by any thread.
++//    Undefined behavior if a thread terminates while holding ownership of the
++//  mutex.
++        DeleteCriticalSection(&mHandle);
++    }
++    void lock (void)
++    {
++        unsigned char state = mState.load(std::memory_order_acquire);
++        while (state) {
++            if ((state == 2) && mState.compare_exchange_weak(state, 1, std::memory_order_acquire))
++            {
++                InitializeCriticalSection(&mHandle);
++                mState.store(0, std::memory_order_release);
++                break;
++            }
++            if (state == 1)
++            {
++                Sleep(0);
++                state = mState.load(std::memory_order_acquire);
++            }
++        }
++#if STDMUTEX_RECURSION_CHECKS
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++#endif
++        EnterCriticalSection(&mHandle);
++#if STDMUTEX_RECURSION_CHECKS
++        mOwnerThread.setOwnerAfterLock(self);
++#endif
++    }
++    void unlock (void)
++    {
++#if STDMUTEX_RECURSION_CHECKS
++        mOwnerThread.checkSetOwnerBeforeUnlock();
++#endif
++        LeaveCriticalSection(&mHandle);
++    }
++    bool try_lock (void)
++    {
++        unsigned char state = mState.load(std::memory_order_acquire);
++        if ((state == 2) && mState.compare_exchange_strong(state, 1, std::memory_order_acquire))
++        {
++            InitializeCriticalSection(&mHandle);
++            mState.store(0, std::memory_order_release);
++        }
++        if (state == 1)
++            return false;
++#if STDMUTEX_RECURSION_CHECKS
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++#endif
++        BOOL ret = TryEnterCriticalSection(&mHandle);
++#if STDMUTEX_RECURSION_CHECKS
++        if (ret)
++            mOwnerThread.setOwnerAfterLock(self);
++#endif
++        return ret;
++    }
++    native_handle_type native_handle (void)
++    {
++        return &mHandle;
++    }
++};
++} //  Namespace "xp"
++#if (WINVER >= _WIN32_WINNT_WIN7)
++using windows7::mutex;
++#else
++using xp::mutex;
++#endif
++
++class recursive_timed_mutex
++{
++    static constexpr DWORD kWaitAbandoned = 0x00000080l;
++    static constexpr DWORD kWaitObject0 = 0x00000000l;
++    static constexpr DWORD kInfinite = 0xffffffffl;
++    inline bool try_lock_internal (DWORD ms) noexcept
++    {
++        DWORD ret = WaitForSingleObject(mHandle, ms);
++#ifndef NDEBUG
++        if (ret == kWaitAbandoned)
++        {
++            using namespace std;
++            fprintf(stderr, "FATAL: Thread terminated while holding a mutex.");
++            terminate();
++        }
++#endif
++        return (ret == kWaitObject0) || (ret == kWaitAbandoned);
++    }
++protected:
++    HANDLE mHandle;
++//    Track locking thread for error checking of non-recursive timed_mutex. For
++//  standard compliance, this must be defined in same class and at the same
++//  access-control level as every other variable in the timed_mutex.
++#if STDMUTEX_RECURSION_CHECKS
++    friend class vista::condition_variable;
++    _OwnerThread mOwnerThread {};
++#endif
++public:
++    typedef HANDLE native_handle_type;
++    native_handle_type native_handle() const {return mHandle;}
++    recursive_timed_mutex(const recursive_timed_mutex&) = delete;
++    recursive_timed_mutex& operator=(const recursive_timed_mutex&) = delete;
++    recursive_timed_mutex(): mHandle(CreateMutex(NULL, FALSE, NULL)) {}
++    ~recursive_timed_mutex()
++    {
++        CloseHandle(mHandle);
++    }
++    void lock()
++    {
++        DWORD ret = WaitForSingleObject(mHandle, kInfinite);
++//    If (ret == WAIT_ABANDONED), then the thread that held ownership was
++//  terminated. Behavior is undefined, but Windows will pass ownership to this
++//  thread.
++#ifndef NDEBUG
++        if (ret == kWaitAbandoned)
++        {
++            using namespace std;
++            fprintf(stderr, "FATAL: Thread terminated while holding a mutex.");
++            terminate();
++        }
++#endif
++        if ((ret != kWaitObject0) && (ret != kWaitAbandoned))
++        {
++            throw std::system_error(GetLastError(), std::system_category());
++        }
++    }
++    void unlock()
++    {
++        if (!ReleaseMutex(mHandle))
++            throw std::system_error(GetLastError(), std::system_category());
++    }
++    bool try_lock()
++    {
++        return try_lock_internal(0);
++    }
++    template <class Rep, class Period>
++    bool try_lock_for(const std::chrono::duration<Rep,Period>& dur)
++    {
++        using namespace std::chrono;
++        auto timeout = duration_cast<milliseconds>(dur).count();
++        while (timeout > 0)
++        {
++          constexpr auto kMaxStep = static_cast<decltype(timeout)>(kInfinite-1);
++          auto step = (timeout < kMaxStep) ? timeout : kMaxStep;
++          if (try_lock_internal(static_cast<DWORD>(step)))
++            return true;
++          timeout -= step;
++        }
++        return false;
++    }
++    template <class Clock, class Duration>
++    bool try_lock_until(const std::chrono::time_point<Clock,Duration>& timeout_time)
++    {
++        return try_lock_for(timeout_time - Clock::now());
++    }
++};
++
++//  Override if, and only if, it is necessary for error-checking.
++#if STDMUTEX_RECURSION_CHECKS
++class timed_mutex: recursive_timed_mutex
++{
++public:
++    timed_mutex(const timed_mutex&) = delete;
++    timed_mutex& operator=(const timed_mutex&) = delete;
++    void lock()
++    {
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++        recursive_timed_mutex::lock();
++        mOwnerThread.setOwnerAfterLock(self);
++    }
++    void unlock()
++    {
++        mOwnerThread.checkSetOwnerBeforeUnlock();
++        recursive_timed_mutex::unlock();
++    }
++    template <class Rep, class Period>
++    bool try_lock_for(const std::chrono::duration<Rep,Period>& dur)
++    {
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++        bool ret = recursive_timed_mutex::try_lock_for(dur);
++        if (ret)
++            mOwnerThread.setOwnerAfterLock(self);
++        return ret;
++    }
++    template <class Clock, class Duration>
++    bool try_lock_until(const std::chrono::time_point<Clock,Duration>& timeout_time)
++    {
++        return try_lock_for(timeout_time - Clock::now());
++    }
++    bool try_lock ()
++    {
++        return try_lock_for(std::chrono::milliseconds(0));
++    }
++};
++#else
++typedef recursive_timed_mutex timed_mutex;
++#endif
++
++class once_flag
++{
++//    When available, the SRW-based mutexes should be faster than the
++//  CriticalSection-based mutexes. Only try_lock will be unavailable in Vista,
++//  and try_lock is not used by once_flag.
++#if (_WIN32_WINNT == _WIN32_WINNT_VISTA)
++    windows7::mutex mMutex;
++#else
++    mutex mMutex;
++#endif
++    std::atomic_bool mHasRun;
++    once_flag(const once_flag&) = delete;
++    once_flag& operator=(const once_flag&) = delete;
++    template<class Callable, class... Args>
++    friend void call_once(once_flag& once, Callable&& f, Args&&... args);
++public:
++    constexpr once_flag() noexcept: mMutex(), mHasRun(false) {}
++};
++
++template<class Callable, class... Args>
++void call_once(once_flag& flag, Callable&& func, Args&&... args)
++{
++    if (flag.mHasRun.load(std::memory_order_acquire))
++        return;
++    lock_guard<decltype(flag.mMutex)> lock(flag.mMutex);
++    if (flag.mHasRun.load(std::memory_order_acquire))
++        return;
++    detail::invoke(std::forward<Callable>(func),std::forward<Args>(args)...);
++    flag.mHasRun.store(true, std::memory_order_release);
++}
++} //  Namespace mingw_stdthread
++
++//  Push objects into std, but only if they are not already there.
++namespace std
++{
++//    Because of quirks of the compiler, the common "using namespace std;"
++//  directive would flatten the namespaces and introduce ambiguity where there
++//  was none. Direct specification (std::), however, would be unaffected.
++//    Take the safe option, and include only in the presence of MinGW's win32
++//  implementation.
++#if defined(__MINGW32__ ) && !defined(_GLIBCXX_HAS_GTHREADS)
++using mingw_stdthread::recursive_mutex;
++using mingw_stdthread::mutex;
++using mingw_stdthread::recursive_timed_mutex;
++using mingw_stdthread::timed_mutex;
++using mingw_stdthread::once_flag;
++using mingw_stdthread::call_once;
++#elif !defined(MINGW_STDTHREAD_REDUNDANCY_WARNING)  //  Skip repetition
++#define MINGW_STDTHREAD_REDUNDANCY_WARNING
++#pragma message "This version of MinGW seems to include a win32 port of\
++ pthreads, and probably already has C++11 std threading classes implemented,\
++ based on pthreads. These classes, found in namespace std, are not overridden\
++ by the mingw-std-thread library. If you would still like to use this\
++ implementation (as it is more lightweight), use the classes provided in\
++ namespace mingw_stdthread."
++#endif
++}
++#endif // WIN32STDMUTEX_H
+diff --git a/include/mingw.shared_mutex.h b/include/mingw.shared_mutex.h
+new file mode 100644
+index 00000000..e498de97
+--- /dev/null
++++ b/include/mingw.shared_mutex.h
+@@ -0,0 +1,496 @@
++/// \file mingw.shared_mutex.h
++/// \brief Standard-compliant shared_mutex for MinGW
++///
++/// (c) 2017 by Nathaniel J. McClatchey, Athens OH, United States
++/// \author Nathaniel J. McClatchey
++///
++/// \copyright Simplified (2-clause) BSD License.
++///
++/// \note This file may become part of the mingw-w64 runtime package. If/when
++/// this happens, the appropriate license will be added, i.e. this code will
++/// become dual-licensed, and the current BSD 2-clause license will stay.
++/// \note Target Windows version is determined by WINVER, which is determined in
++/// <windows.h> from _WIN32_WINNT, which can itself be set by the user.
++
++//  Notes on the namespaces:
++//  - The implementation can be accessed directly in the namespace
++//    mingw_stdthread.
++//  - Objects will be brought into namespace std by a using directive. This
++//    will cause objects declared in std (such as MinGW's implementation) to
++//    hide this implementation's definitions.
++//  - To avoid poluting the namespace with implementation details, all objects
++//    to be pushed into std will be placed in mingw_stdthread::visible.
++//  The end result is that if MinGW supplies an object, it is automatically
++//  used. If MinGW does not supply an object, this implementation's version will
++//  instead be used.
++
++#ifndef MINGW_SHARED_MUTEX_H_
++#define MINGW_SHARED_MUTEX_H_
++
++#if !defined(__cplusplus) || (__cplusplus < 201103L)
++#error A C++11 compiler is required!
++#endif
++
++#include <cassert>
++//  For descriptive errors.
++#include <system_error>
++//    Implementing a shared_mutex without OS support will require atomic read-
++//  modify-write capacity.
++#include <atomic>
++//  For timing in shared_lock and shared_timed_mutex.
++#include <chrono>
++#include <limits>
++
++//    Use MinGW's shared_lock class template, if it's available. Requires C++14.
++//  If unavailable (eg. because this library is being used in C++11), then an
++//  implementation of shared_lock is provided by this header.
++#if (__cplusplus >= 201402L)
++#include <shared_mutex>
++#endif
++
++//  For defer_lock_t, adopt_lock_t, and try_to_lock_t
++#include "mingw.mutex.h"
++//  For this_thread::yield.
++//#include "mingw.thread.h"
++
++//  Might be able to use native Slim Reader-Writer (SRW) locks.
++#ifdef _WIN32
++#include <sdkddkver.h>  //  Detect Windows version.
++#include <synchapi.h>
++#endif
++
++namespace mingw_stdthread
++{
++//  Define a portable atomics-based shared_mutex
++namespace portable
++{
++class shared_mutex
++{
++    typedef uint_fast16_t counter_type;
++    std::atomic<counter_type> mCounter {0};
++    static constexpr counter_type kWriteBit = 1 << (std::numeric_limits<counter_type>::digits - 1);
++
++#if STDMUTEX_RECURSION_CHECKS
++//  Runtime checker for verifying owner threads. Note: Exclusive mode only.
++    _OwnerThread mOwnerThread {};
++#endif
++public:
++    typedef shared_mutex * native_handle_type;
++
++    shared_mutex () = default;
++
++//  No form of copying or moving should be allowed.
++    shared_mutex (const shared_mutex&) = delete;
++    shared_mutex & operator= (const shared_mutex&) = delete;
++
++    ~shared_mutex ()
++    {
++//  Terminate if someone tries to destroy an owned mutex.
++        assert(mCounter.load(std::memory_order_relaxed) == 0);
++    }
++
++    void lock_shared (void)
++    {
++        counter_type expected = mCounter.load(std::memory_order_relaxed);
++        do
++        {
++//  Delay if writing or if too many readers are attempting to read.
++            if (expected >= kWriteBit - 1)
++            {
++                using namespace std;
++                expected = mCounter.load(std::memory_order_relaxed);
++                continue;
++            }
++            if (mCounter.compare_exchange_weak(expected,
++                                               static_cast<counter_type>(expected + 1),
++                                               std::memory_order_acquire,
++                                               std::memory_order_relaxed))
++                break;
++        }
++        while (true);
++    }
++
++    bool try_lock_shared (void)
++    {
++        counter_type expected = mCounter.load(std::memory_order_relaxed) & static_cast<counter_type>(~kWriteBit);
++        if (expected + 1 == kWriteBit)
++            return false;
++        else
++            return mCounter.compare_exchange_strong( expected,
++                                                    static_cast<counter_type>(expected + 1),
++                                                    std::memory_order_acquire,
++                                                    std::memory_order_relaxed);
++    }
++
++    void unlock_shared (void)
++    {
++        using namespace std;
++#ifndef NDEBUG
++        if (!(mCounter.fetch_sub(1, memory_order_release) & static_cast<counter_type>(~kWriteBit)))
++            throw system_error(make_error_code(errc::operation_not_permitted));
++#else
++        mCounter.fetch_sub(1, memory_order_release);
++#endif
++    }
++
++//  Behavior is undefined if a lock was previously acquired.
++    void lock (void)
++    {
++#if STDMUTEX_RECURSION_CHECKS
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++#endif
++        using namespace std;
++//  Might be able to use relaxed memory order...
++//  Wait for the write-lock to be unlocked, then claim the write slot.
++        counter_type current;
++        while ((current = mCounter.fetch_or(kWriteBit, std::memory_order_acquire)) & kWriteBit);
++            //this_thread::yield();
++//  Wait for readers to finish up.
++        while (current != kWriteBit)
++        {
++            //this_thread::yield();
++            current = mCounter.load(std::memory_order_acquire);
++        }
++#if STDMUTEX_RECURSION_CHECKS
++        mOwnerThread.setOwnerAfterLock(self);
++#endif
++    }
++
++    bool try_lock (void)
++    {
++#if STDMUTEX_RECURSION_CHECKS
++        DWORD self = mOwnerThread.checkOwnerBeforeLock();
++#endif
++        counter_type expected = 0;
++        bool ret = mCounter.compare_exchange_strong(expected, kWriteBit,
++                                                    std::memory_order_acquire,
++                                                    std::memory_order_relaxed);
++#if STDMUTEX_RECURSION_CHECKS
++        if (ret)
++            mOwnerThread.setOwnerAfterLock(self);
++#endif
++        return ret;
++    }
++
++    void unlock (void)
++    {
++#if STDMUTEX_RECURSION_CHECKS
++        mOwnerThread.checkSetOwnerBeforeUnlock();
++#endif
++        using namespace std;
++#ifndef NDEBUG
++        if (mCounter.load(memory_order_relaxed) != kWriteBit)
++            throw system_error(make_error_code(errc::operation_not_permitted));
++#endif
++        mCounter.store(0, memory_order_release);
++    }
++
++    native_handle_type native_handle (void)
++    {
++        return this;
++    }
++};
++
++} //  Namespace portable
++
++//    The native shared_mutex implementation primarily uses features of Windows
++//  Vista, but the features used for try_lock and try_lock_shared were not
++//  introduced until Windows 7. To allow limited use while compiling for Vista,
++//  I define the class without try_* functions in that case.
++//    Only fully-featured implementations will be placed into namespace std.
++#if defined(_WIN32) && (WINVER >= _WIN32_WINNT_VISTA)
++namespace vista
++{
++class condition_variable_any;
++}
++
++namespace windows7
++{
++//  We already #include "mingw.mutex.h". May as well reduce redundancy.
++class shared_mutex : windows7::mutex
++{
++//    Allow condition_variable_any (and only condition_variable_any) to treat a
++//  shared_mutex as its base class.
++    friend class vista::condition_variable_any;
++public:
++    using windows7::mutex::native_handle_type;
++    using windows7::mutex::lock;
++    using windows7::mutex::unlock;
++    using windows7::mutex::native_handle;
++
++    void lock_shared (void)
++    {
++        AcquireSRWLockShared(native_handle());
++    }
++
++    void unlock_shared (void)
++    {
++        ReleaseSRWLockShared(native_handle());
++    }
++
++//  TryAcquireSRW functions are a Windows 7 feature.
++#if (WINVER >= _WIN32_WINNT_WIN7)
++    bool try_lock_shared (void)
++    {
++        return TryAcquireSRWLockShared(native_handle()) != 0;
++    }
++
++    using windows7::mutex::try_lock;
++#endif
++};
++
++} //  Namespace windows7
++#endif  //  Compiling for Vista
++#if (defined(_WIN32) && (WINVER >= _WIN32_WINNT_WIN7))
++using windows7::shared_mutex;
++#else
++using portable::shared_mutex;
++#endif
++
++class shared_timed_mutex : shared_mutex
++{
++    typedef shared_mutex Base;
++public:
++    using Base::lock;
++    using Base::try_lock;
++    using Base::unlock;
++    using Base::lock_shared;
++    using Base::try_lock_shared;
++    using Base::unlock_shared;
++
++    template< class Clock, class Duration >
++    bool try_lock_until ( const std::chrono::time_point<Clock,Duration>& cutoff )
++    {
++        do
++        {
++            if (try_lock())
++                return true;
++        }
++        while (std::chrono::steady_clock::now() < cutoff);
++        return false;
++    }
++
++    template< class Rep, class Period >
++    bool try_lock_for (const std::chrono::duration<Rep,Period>& rel_time)
++    {
++        return try_lock_until(std::chrono::steady_clock::now() + rel_time);
++    }
++
++    template< class Clock, class Duration >
++    bool try_lock_shared_until ( const std::chrono::time_point<Clock,Duration>& cutoff )
++    {
++        do
++        {
++            if (try_lock_shared())
++                return true;
++        }
++        while (std::chrono::steady_clock::now() < cutoff);
++        return false;
++    }
++
++    template< class Rep, class Period >
++    bool try_lock_shared_for (const std::chrono::duration<Rep,Period>& rel_time)
++    {
++        return try_lock_shared_until(std::chrono::steady_clock::now() + rel_time);
++    }
++};
++
++#if __cplusplus >= 201402L
++using std::shared_lock;
++#else
++//    If not supplied by shared_mutex (eg. because C++14 is not supported), I
++//  supply the various helper classes that the header should have defined.
++template<class Mutex>
++class shared_lock
++{
++    Mutex * mMutex;
++    bool mOwns;
++//  Reduce code redundancy
++    void verify_lockable (void)
++    {
++        using namespace std;
++        if (mMutex == nullptr)
++            throw system_error(make_error_code(errc::operation_not_permitted));
++        if (mOwns)
++            throw system_error(make_error_code(errc::resource_deadlock_would_occur));
++    }
++public:
++    typedef Mutex mutex_type;
++
++    shared_lock (void) noexcept
++        : mMutex(nullptr), mOwns(false)
++    {
++    }
++
++    shared_lock (shared_lock<Mutex> && other) noexcept
++        : mMutex(other.mutex_), mOwns(other.owns_)
++    {
++        other.mMutex = nullptr;
++        other.mOwns = false;
++    }
++
++    explicit shared_lock (mutex_type & m)
++        : mMutex(&m), mOwns(true)
++    {
++        mMutex->lock_shared();
++    }
++
++    shared_lock (mutex_type & m, defer_lock_t) noexcept
++        : mMutex(&m), mOwns(false)
++    {
++    }
++
++    shared_lock (mutex_type & m, adopt_lock_t)
++        : mMutex(&m), mOwns(true)
++    {
++    }
++
++    shared_lock (mutex_type & m, try_to_lock_t)
++        : mMutex(&m), mOwns(m.try_lock_shared())
++    {
++    }
++
++    template< class Rep, class Period >
++    shared_lock( mutex_type& m, const std::chrono::duration<Rep,Period>& timeout_duration )
++        : mMutex(&m), mOwns(m.try_lock_shared_for(timeout_duration))
++    {
++    }
++
++    template< class Clock, class Duration >
++    shared_lock( mutex_type& m, const std::chrono::time_point<Clock,Duration>& timeout_time )
++        : mMutex(&m), mOwns(m.try_lock_shared_until(timeout_time))
++    {
++    }
++
++    shared_lock& operator= (shared_lock<Mutex> && other) noexcept
++    {
++        if (&other != this)
++        {
++            if (mOwns)
++                mMutex->unlock_shared();
++            mMutex = other.mMutex;
++            mOwns = other.mOwns;
++            other.mMutex = nullptr;
++            other.mOwns = false;
++        }
++        return *this;
++    }
++
++
++    ~shared_lock (void)
++    {
++        if (mOwns)
++            mMutex->unlock_shared();
++    }
++
++    shared_lock (const shared_lock<Mutex> &) = delete;
++    shared_lock& operator= (const shared_lock<Mutex> &) = delete;
++
++//  Shared locking
++    void lock (void)
++    {
++        verify_lockable();
++        mMutex->lock_shared();
++        mOwns = true;
++    }
++
++    bool try_lock (void)
++    {
++        verify_lockable();
++        mOwns = mMutex->try_lock_shared();
++        return mOwns;
++    }
++
++    template< class Clock, class Duration >
++    bool try_lock_until( const std::chrono::time_point<Clock,Duration>& cutoff )
++    {
++        verify_lockable();
++        do
++        {
++            mOwns = mMutex->try_lock_shared();
++            if (mOwns)
++                return mOwns;
++        }
++        while (std::chrono::steady_clock::now() < cutoff);
++        return false;
++    }
++
++    template< class Rep, class Period >
++    bool try_lock_for (const std::chrono::duration<Rep,Period>& rel_time)
++    {
++        return try_lock_until(std::chrono::steady_clock::now() + rel_time);
++    }
++
++    void unlock (void)
++    {
++        using namespace std;
++        if (!mOwns)
++            throw system_error(make_error_code(errc::operation_not_permitted));
++        mMutex->unlock_shared();
++        mOwns = false;
++    }
++
++//  Modifiers
++    void swap (shared_lock<Mutex> & other) noexcept
++    {
++        using namespace std;
++        swap(mMutex, other.mMutex);
++        swap(mOwns, other.mOwns);
++    }
++
++    mutex_type * release (void) noexcept
++    {
++        mutex_type * ptr = mMutex;
++        mMutex = nullptr;
++        mOwns = false;
++        return ptr;
++    }
++//  Observers
++    mutex_type * mutex (void) const noexcept
++    {
++        return mMutex;
++    }
++
++    bool owns_lock (void) const noexcept
++    {
++        return mOwns;
++    }
++
++    explicit operator bool () const noexcept
++    {
++        return owns_lock();
++    }
++};
++
++template< class Mutex >
++void swap( shared_lock<Mutex>& lhs, shared_lock<Mutex>& rhs ) noexcept
++{
++    lhs.swap(rhs);
++}
++#endif  //  C++11
++} //  Namespace mingw_stdthread
++
++namespace std
++{
++//    Because of quirks of the compiler, the common "using namespace std;"
++//  directive would flatten the namespaces and introduce ambiguity where there
++//  was none. Direct specification (std::), however, would be unaffected.
++//    Take the safe option, and include only in the presence of MinGW's win32
++//  implementation.
++#if (__cplusplus < 201703L) || (defined(__MINGW32__ ) && !defined(_GLIBCXX_HAS_GTHREADS))
++using mingw_stdthread::shared_mutex;
++#endif
++#if (__cplusplus < 201402L) || (defined(__MINGW32__ ) && !defined(_GLIBCXX_HAS_GTHREADS))
++using mingw_stdthread::shared_timed_mutex;
++using mingw_stdthread::shared_lock;
++#elif !defined(MINGW_STDTHREAD_REDUNDANCY_WARNING)  //  Skip repetition
++#define MINGW_STDTHREAD_REDUNDANCY_WARNING
++#pragma message "This version of MinGW seems to include a win32 port of\
++ pthreads, and probably already has C++ std threading classes implemented,\
++ based on pthreads. These classes, found in namespace std, are not overridden\
++ by the mingw-std-thread library. If you would still like to use this\
++ implementation (as it is more lightweight), use the classes provided in\
++ namespace mingw_stdthread."
++#endif
++} //  Namespace std
++#endif // MINGW_SHARED_MUTEX_H_
+diff --git a/include/mutex.h b/include/mutex.h
+new file mode 100644
+index 00000000..c140ec47
+--- /dev/null
++++ b/include/mutex.h
+@@ -0,0 +1,10 @@
++#ifndef DXVK_MUTEX_H_
++#define DXVK_MUTEX_H_
++
++#include <mutex>
++#if !defined(_GLIBCXX_HAS_GTHREADS) && defined(__MINGW32__)
++#include <dxvk_mingw_private.h>
++#include <mingw.mutex.h>
++#endif
++
++#endif /* DXVK_MUTEX_H_ */
+diff --git a/src/d3d11/d3d11_device.h b/src/d3d11/d3d11_device.h
+index ab227696..781397e6 100644
+--- a/src/d3d11/d3d11_device.h
++++ b/src/d3d11/d3d11_device.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <vector>
+ 
+ #include "../dxbc/dxbc_options.h"
+diff --git a/src/d3d11/d3d11_shader.h b/src/d3d11/d3d11_shader.h
+index 6c3c5eba..31680b32 100644
+--- a/src/d3d11/d3d11_shader.h
++++ b/src/d3d11/d3d11_shader.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "../dxbc/dxbc_module.h"
+diff --git a/src/dxgi/dxgi_adapter.h b/src/dxgi/dxgi_adapter.h
+index d450a1e5..11e58025 100644
+--- a/src/dxgi/dxgi_adapter.h
++++ b/src/dxgi/dxgi_adapter.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "dxgi_format.h"
+diff --git a/src/dxgi/dxgi_monitor.h b/src/dxgi/dxgi_monitor.h
+index ef9d89c9..96f91638 100644
+--- a/src/dxgi/dxgi_monitor.h
++++ b/src/dxgi/dxgi_monitor.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "dxgi_interfaces.h"
+diff --git a/src/dxgi/dxgi_swapchain.h b/src/dxgi/dxgi_swapchain.h
+index cca94587..f58829f5 100644
+--- a/src/dxgi/dxgi_swapchain.h
++++ b/src/dxgi/dxgi_swapchain.h
+@@ -1,7 +1,7 @@
+ #pragma once
+ 
+ #include <memory>
+-#include <mutex>
++#include <mutex.h>
+ 
+ #include "dxgi_interfaces.h"
+ #include "dxgi_monitor.h"
+diff --git a/src/dxvk/dxvk_cs.h b/src/dxvk/dxvk_cs.h
+index c0c25d6d..3ffb70a3 100644
+--- a/src/dxvk/dxvk_cs.h
++++ b/src/dxvk/dxvk_cs.h
+@@ -1,8 +1,8 @@
+ #pragma once
+ 
+ #include <atomic>
+-#include <condition_variable>
+-#include <mutex>
++#include <condition_variable.h>
++#include <mutex.h>
+ #include <queue>
+ 
+ #include "../util/thread.h"
+diff --git a/src/dxvk/dxvk_gpu_query.h b/src/dxvk/dxvk_gpu_query.h
+index 68550d7c..ba2e944c 100644
+--- a/src/dxvk/dxvk_gpu_query.h
++++ b/src/dxvk/dxvk_gpu_query.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <vector>
+ 
+ #include "dxvk_resource.h"
+diff --git a/src/dxvk/dxvk_graphics.h b/src/dxvk/dxvk_graphics.h
+index 168e9714..d997536e 100644
+--- a/src/dxvk/dxvk_graphics.h
++++ b/src/dxvk/dxvk_graphics.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ 
+ #include "dxvk_bind_mask.h"
+ #include "dxvk_constant_state.h"
+diff --git a/src/dxvk/dxvk_meta_copy.h b/src/dxvk/dxvk_meta_copy.h
+index 43d90896..1fb8f636 100644
+--- a/src/dxvk/dxvk_meta_copy.h
++++ b/src/dxvk/dxvk_meta_copy.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "../spirv/spirv_code_buffer.h"
+diff --git a/src/dxvk/dxvk_meta_mipgen.h b/src/dxvk/dxvk_meta_mipgen.h
+index 4c602f33..c9a9c97f 100644
+--- a/src/dxvk/dxvk_meta_mipgen.h
++++ b/src/dxvk/dxvk_meta_mipgen.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "../spirv/spirv_code_buffer.h"
+diff --git a/src/dxvk/dxvk_meta_resolve.h b/src/dxvk/dxvk_meta_resolve.h
+index 09978275..4de4900f 100644
+--- a/src/dxvk/dxvk_meta_resolve.h
++++ b/src/dxvk/dxvk_meta_resolve.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "../spirv/spirv_code_buffer.h"
+diff --git a/src/dxvk/dxvk_openvr.h b/src/dxvk/dxvk_openvr.h
+index f5058c87..13caed9b 100644
+--- a/src/dxvk/dxvk_openvr.h
++++ b/src/dxvk/dxvk_openvr.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <vector>
+ 
+ #include "dxvk_include.h"
+diff --git a/src/dxvk/dxvk_pipecache.h b/src/dxvk/dxvk_pipecache.h
+index d1cc7fba..5b6fe6cd 100644
+--- a/src/dxvk/dxvk_pipecache.h
++++ b/src/dxvk/dxvk_pipecache.h
+@@ -2,7 +2,7 @@
+ 
+ #include <atomic>
+ #include <chrono>
+-#include <condition_variable>
++#include <condition_variable.h>
+ #include <fstream>
+ 
+ #include "dxvk_include.h"
+diff --git a/src/dxvk/dxvk_pipemanager.h b/src/dxvk/dxvk_pipemanager.h
+index f0087d15..cb6e5571 100644
+--- a/src/dxvk/dxvk_pipemanager.h
++++ b/src/dxvk/dxvk_pipemanager.h
+@@ -1,7 +1,7 @@
+ 
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <unordered_map>
+ 
+ #include "dxvk_compute.h"
+diff --git a/src/dxvk/dxvk_queue.h b/src/dxvk/dxvk_queue.h
+index bef9494e..3e03d435 100644
+--- a/src/dxvk/dxvk_queue.h
++++ b/src/dxvk/dxvk_queue.h
+@@ -1,7 +1,7 @@
+ #pragma once
+ 
+-#include <condition_variable>
+-#include <mutex>
++#include <condition_variable.h>
++#include <mutex.h>
+ #include <queue>
+ 
+ #include "../util/thread.h"
+diff --git a/src/dxvk/dxvk_recycler.h b/src/dxvk/dxvk_recycler.h
+index 03e80de4..0164a97b 100644
+--- a/src/dxvk/dxvk_recycler.h
++++ b/src/dxvk/dxvk_recycler.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <vector>
+ 
+ namespace dxvk {
+diff --git a/src/dxvk/dxvk_renderpass.h b/src/dxvk/dxvk_renderpass.h
+index 15bca81d..6bd8b61c 100644
+--- a/src/dxvk/dxvk_renderpass.h
++++ b/src/dxvk/dxvk_renderpass.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ #include <vector>
+ #include <unordered_map>
+ 
+diff --git a/src/dxvk/dxvk_state_cache.h b/src/dxvk/dxvk_state_cache.h
+index f764d25c..987bb557 100644
+--- a/src/dxvk/dxvk_state_cache.h
++++ b/src/dxvk/dxvk_state_cache.h
+@@ -1,9 +1,9 @@
+ #pragma once
+ 
+ #include <atomic>
+-#include <condition_variable>
++#include <condition_variable.h>
+ #include <fstream>
+-#include <mutex>
++#include <mutex.h>
+ #include <queue>
+ #include <unordered_map>
+ #include <vector>
+diff --git a/src/dxvk/meson.build b/src/dxvk/meson.build
+index 867f3002..b6255a63 100644
+--- a/src/dxvk/meson.build
++++ b/src/dxvk/meson.build
+@@ -107,11 +107,9 @@ dxvk_src = files([
+   'hud/dxvk_hud_stats.cpp',
+ ])
+ 
+-thread_dep = dependency('threads')
+-
+ dxvk_lib = static_library('dxvk', dxvk_src, glsl_generator.process(dxvk_shaders), dxvk_version,
+   link_with           : [ util_lib, spirv_lib ],
+-  dependencies        : [ thread_dep, vkcommon_dep ] + dxvk_extradep,
++  dependencies        : [ vkcommon_dep ] + dxvk_extradep,
+   include_directories : [ dxvk_include_path ],
+   override_options    : ['cpp_std='+dxvk_cpp_std])
+ 
+diff --git a/src/util/log/log.h b/src/util/log/log.h
+index caa606be..3a2f8871 100644
+--- a/src/util/log/log.h
++++ b/src/util/log/log.h
+@@ -3,7 +3,7 @@
+ #include <array>
+ #include <fstream>
+ #include <iostream>
+-#include <mutex>
++#include <mutex.h>
+ #include <string>
+ 
+ namespace dxvk {
+diff --git a/src/util/sync/sync_signal.h b/src/util/sync/sync_signal.h
+index 4303d01c..0e350715 100644
+--- a/src/util/sync/sync_signal.h
++++ b/src/util/sync/sync_signal.h
+@@ -1,8 +1,8 @@
+ #pragma once
+ 
+ #include <atomic>
+-#include <condition_variable>
+-#include <mutex>
++#include <condition_variable.h>
++#include <mutex.h>
+ 
+ namespace dxvk::sync {
+   
+diff --git a/src/util/util_lazy.h b/src/util/util_lazy.h
+index 03663664..cc94638c 100644
+--- a/src/util/util_lazy.h
++++ b/src/util/util_lazy.h
+@@ -1,6 +1,6 @@
+ #pragma once
+ 
+-#include <mutex>
++#include <mutex.h>
+ 
+ namespace dxvk {
+ 
+diff --git a/src/vulkan/meson.build b/src/vulkan/meson.build
+index 82635523..5f0f6983 100644
+--- a/src/vulkan/meson.build
++++ b/src/vulkan/meson.build
+@@ -4,10 +4,8 @@ vkcommon_src = files([
+   'vulkan_presenter.cpp',
+ ])
+ 
+-thread_dep = dependency('threads')
+-
+ vkcommon_lib = static_library('vkcommon', vkcommon_src,
+-  dependencies        : [ thread_dep, lib_vulkan ],
++  dependencies        : [ lib_vulkan ],
+   override_options    : ['cpp_std='+dxvk_cpp_std],
+   include_directories : [ dxvk_include_path ])
+ 

@@ -1,0 +1,137 @@
+From bc0537df37526a13a323cda4d0fcae72c144f357 Mon Sep 17 00:00:00 2001
+From: Philip Rebohle <philip.rebohle@tu-dortmund.de>
+Date: Sun, 4 Aug 2019 16:30:29 +0200
+Subject: [PATCH] [d3d11] Remove d3d11.asyncPresent option
+
+---
+ dxvk.conf                     | 13 -------------
+ src/d3d11/d3d11_options.cpp   |  1 -
+ src/d3d11/d3d11_options.h     |  4 ----
+ src/d3d11/d3d11_swapchain.cpp | 17 +----------------
+ src/d3d11/d3d11_swapchain.h   |  4 ----
+ 5 files changed, 1 insertion(+), 38 deletions(-)
+
+diff --git a/dxvk.conf b/dxvk.conf
+index ed5839b6..32065ec9 100644
+--- a/dxvk.conf
++++ b/dxvk.conf
+@@ -63,19 +63,6 @@
+ # dxgi.syncInterval = -1
+ 
+ 
+-# Toggles asynchronous present.
+-#
+-# Off-loads presentation to the queue submission thread in
+-# order to reduce stalling on the main rendering thread and
+-# improve performance.
+-#
+-# Supported values:
+-# - Auto: Enable on certain drivers
+-# - True / False: Always enable / disable
+-
+-# dxgi.asyncPresent = Auto
+-
+-
+ # Enables or dsables d3d10 support.
+ # 
+ # Supported values: True, False
+diff --git a/src/d3d11/d3d11_options.cpp b/src/d3d11/d3d11_options.cpp
+index e1f28211..21a33a11 100644
+--- a/src/d3d11/d3d11_options.cpp
++++ b/src/d3d11/d3d11_options.cpp
+@@ -17,7 +17,6 @@ namespace dxvk {
+     this->numBackBuffers        = config.getOption<int32_t>("dxgi.numBackBuffers", 0);
+     this->maxFrameLatency       = config.getOption<int32_t>("dxgi.maxFrameLatency", 0);
+     this->syncInterval          = config.getOption<int32_t>("dxgi.syncInterval", -1);
+-    this->asyncPresent          = config.getOption<Tristate>("dxgi.asyncPresent", Tristate::Auto);
+   }
+   
+ }
+\ No newline at end of file
+diff --git a/src/d3d11/d3d11_options.h b/src/d3d11/d3d11_options.h
+index 879c02a8..c87d5a05 100644
+--- a/src/d3d11/d3d11_options.h
++++ b/src/d3d11/d3d11_options.h
+@@ -76,10 +76,6 @@ namespace dxvk {
+     /// fixes issues with games that create multiple swap chains
+     /// for a single window that may interfere with each other.
+     bool deferSurfaceCreation;
+-
+-    /// Whether to use the submission thread for presentation.
+-    /// May increase performance in some games with some drivers.
+-    Tristate asyncPresent;
+   };
+   
+ }
+\ No newline at end of file
+diff --git a/src/d3d11/d3d11_swapchain.cpp b/src/d3d11/d3d11_swapchain.cpp
+index d5b2110b..98fb3df5 100644
+--- a/src/d3d11/d3d11_swapchain.cpp
++++ b/src/d3d11/d3d11_swapchain.cpp
+@@ -34,7 +34,6 @@ namespace dxvk {
+     InitRenderState();
+     InitSamplers();
+     InitShaders();
+-    InitOptions();
+   }
+ 
+ 
+@@ -203,8 +202,7 @@ namespace dxvk {
+       m_hud->update();
+ 
+     for (uint32_t i = 0; i < SyncInterval || i < 1; i++) {
+-      if (m_asyncPresent)
+-        SynchronizePresent();
++      SynchronizePresent();
+ 
+       m_context->beginRecording(
+         m_device->createCommandList());
+@@ -307,9 +305,6 @@ namespace dxvk {
+       
+       m_device->presentImage(m_presenter,
+         sync.present, &m_presentStatus);
+-
+-      if (!m_asyncPresent)
+-        SynchronizePresent();
+ 
+       if (m_presentStatus.result != VK_NOT_READY
+        && m_presentStatus.result != VK_SUCCESS)
+@@ -592,16 +587,6 @@ namespace dxvk {
+   }
+ 
+ 
+-  void D3D11SwapChain::InitOptions() {
+-    // Not synchronizing after present seems to increase
+-    // the likelyhood of hangs on Nvidia for some reason.
+-    m_asyncPresent = !m_device->adapter()->matchesDriver(
+-      DxvkGpuVendor::Nvidia, VK_DRIVER_ID_NVIDIA_PROPRIETARY_KHR, 0, 0);
+-    
+-    applyTristate(m_asyncPresent, m_parent->GetOptions()->asyncPresent);
+-  }
+-
+-
+   void D3D11SwapChain::InitRenderState() {
+     m_iaState.primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+     m_iaState.primitiveRestart  = VK_FALSE;
+diff --git a/src/d3d11/d3d11_swapchain.h b/src/d3d11/d3d11_swapchain.h
+index 671a8280..33082791 100644
+--- a/src/d3d11/d3d11_swapchain.h
++++ b/src/d3d11/d3d11_swapchain.h
+@@ -120,8 +120,6 @@ namespace dxvk {
+     bool                    m_dirty = true;
+     bool                    m_vsync = true;
+ 
+-    bool                    m_asyncPresent = false;
+-
+     void PresentImage(UINT SyncInterval);
+ 
+     void SynchronizePresent();
+@@ -145,8 +143,6 @@ namespace dxvk {
+     
+     void CreateHud();
+ 
+-    void InitOptions();
+-
+     void InitRenderState();
+ 
+     void InitSamplers();

@@ -122,6 +122,14 @@ else
   mv ../DXVKBUILD/patches/nativeopt.dxvkpatch ../DXVKBUILD/patches/nativeopt.dxvkpatchb 2>/dev/null
 fi
 
+# Community patches
+if [ -n $_community_patches ]; then
+  _community_patches=($_community_patches)
+  for _p in ${_community_patches[@]}; do
+   ln -s $ROOT/../community-patches/dxvk/$_p $ROOT/DXVKBUILD/patches/
+  done
+fi
+
 if [ "$PATCHIN" == "1" ]; then
   for F in ../DXVKBUILD/patches/*.dxvkrevert; do
     if [ -e "${F}" ]; then
@@ -154,6 +162,13 @@ if [ "$PATCHIN" == "1" ]; then
       echo ""
       echo "#################"
     fi
+  done
+fi
+
+# Community patches cleanup
+if [ -n $_community_patches ]; then
+  for _p in ${_community_patches[@]}; do
+   rm -f $ROOT/DXVKBUILD/patches/${_p}
   done
 fi
 

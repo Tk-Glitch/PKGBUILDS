@@ -109,7 +109,6 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
 #        0005-v5.4_undead-pds099o.patch
 #        0006-add-acs-overrides_iommu.patch
         0007-v5.4-fsync.patch
-        0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
 )
 sha256sums=('4c7089427e042f32498f9158ab4e7a892feaf6d74325ffac268c37cfc339d636'
             '67c347ddaedbe693f4a06c787bc624a57c2e0752b465b2fda0ae2f1b6223d64f'
@@ -120,8 +119,15 @@ sha256sums=('4c7089427e042f32498f9158ab4e7a892feaf6d74325ffac268c37cfc339d636'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
             'c2801fbccf3418ea82ea7d58837e61bb2ef02ee84df6463d262b556ead91fd59'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
-            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
-            '8296024e664a4957c0f79940cf4842c70f7d82b40b5fdccdfe055e62f9d58d40')
+            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d')
+
+# Community patches
+if [ -n $_community_patches ]; then
+  _community_patches=($_community_patches)
+  for _p in ${_community_patches[@]}; do
+    ln -s "$_where"/../community-patches/linux54-tkg/$_p "$_where"/
+  done
+fi
 
 user_patcher() {
 	# To patch the user because all your base are belong to us
@@ -613,17 +619,6 @@ prepare() {
   #if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
   #  patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
   #fi
-
-  # AMD Overdrive flicker fix
-  if [ -z "$_amd_overdrive_flickering_fix" ]; then
-    plain ""
-    plain "Use AMD overdrive flickering fix? *Some* AMD GPUs need that when using multiple monitors."
-    plain "https://bugs.freedesktop.org/show_bug.cgi?id=102646 https://bugs.freedesktop.org/show_bug.cgi?id=108941"
-    read -rp "`echo $'    > N/y : '`" CONDITION8;
-  fi
-  if [ "$CONDITION8" == "y" ] || [ "$_amd_overdrive_flickering_fix" == "true" ]; then
-    patch -Np1 -i ../0008-drm-amd-powerplay-force-the-trim-of-the-mclk-dpm-levels-if-OD-is-enabled.patch
-  fi
 
   # bcachefs
 #  if [ -z "$_bcachefs" ]; then
