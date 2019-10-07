@@ -76,9 +76,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
-_sub=77
+_sub=78
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=107
+pkgrel=108
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,7 +114,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v4.x/linux-${_basekernel}.tar.x
         0011-umip-instruction-emulation.patch
 )
 sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
-            'de3473cf607e2ca144e51b4a70ba81667bbd05eaf08252469e90fa43dab8064f'
+            'e31c62ca9cb4e0a4c56d2ad44fc5271ed49c0517651adea58cec0a4b732f9b30'
             '00e61adf2b206512b3da168663d8aa415f0c3ee0b0fe487c57837114efe95bed'
             '017a23531e972d74b8e79f27834a48ba94e4b045c4cd1ad38ab782d8244df87c'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
