@@ -1,0 +1,36 @@
+From b396b001487db18ac84d8d773d0234ac6b376dea Mon Sep 17 00:00:00 2001
+From: Ahzo <Ahzo@tutanota.com>
+Date: Mon, 5 Aug 2019 21:14:18 +0200
+Subject: drm/amd/powerplay/smu7: enforce minimal VBITimeout (v2)
+
+This fixes screen corruption/flickering on 75 Hz displays.
+
+v2: make print statement debug only (Alex)
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=102646
+Reviewed-by: Evan Quan <evan.quan@amd.com>
+Signed-off-by: Ahzo <Ahzo@tutanota.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c b/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c
+index 10d66e3c..b468f63 100644
+--- a/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c
++++ b/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c
+@@ -4067,6 +4067,11 @@ static int smu7_program_display_gap(struct pp_hwmgr *hwmgr)
+ 
+ 	data->frame_time_x2 = frame_time_in_us * 2 / 100;
+ 
++	if (data->frame_time_x2 < 280) {
++		pr_debug("%s: enforce minimal VBITimeout: %d -> 280\n", __func__, data->frame_time_x2);
++		data->frame_time_x2 = 280;
++	}
++
+ 	display_gap2 = pre_vbi_time_in_us * (ref_clock / 100);
+ 
+ 	cgs_write_ind_register(hwmgr->device, CGS_IND_REG__SMC, ixCG_DISPLAY_GAP_CNTL2, display_gap2);
+-- 
+cgit v1.1
+
