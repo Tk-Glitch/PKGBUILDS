@@ -1,0 +1,13 @@
+diff --git i/src/amd/vulkan/radv_cmd_buffer.c w/src/amd/vulkan/radv_cmd_buffer.c
+index 2fa55e6ab00..7eeddde8593 100644
+--- i/src/amd/vulkan/radv_cmd_buffer.c
++++ w/src/amd/vulkan/radv_cmd_buffer.c
+@@ -1021,7 +1021,7 @@ radv_emit_depth_bias(struct radv_cmd_buffer *cmd_buffer)
+ {
+ 	struct radv_dynamic_state *d = &cmd_buffer->state.dynamic;
+ 	unsigned slope = fui(d->depth_bias.slope * 16.0f);
+-	unsigned bias = fui(d->depth_bias.bias * cmd_buffer->state.offset_scale);
++	unsigned bias = fui(d->depth_bias.bias);// * cmd_buffer->state.offset_scale);
+ 
+ 
+ 	radeon_set_context_reg_seq(cmd_buffer->cs,
