@@ -1,0 +1,56 @@
+--- a/drivers/hid/hid-logitech-hidpp.c	2019-10-03 16:40:57.070678215 +0200
++++ a/drivers/hid/hid-logitech-hidpp.c	2019-10-03 17:07:02.376150215 +0200
+@@ -3483,7 +3483,7 @@ 
+ static bool hidpp_validate_device(struct hid_device *hdev)
+ {
+ 	return hidpp_validate_report(hdev, REPORT_ID_HIDPP_SHORT,
+-				     HIDPP_REPORT_SHORT_LENGTH, false) &&
++				     HIDPP_REPORT_SHORT_LENGTH, true) &&
+ 	       hidpp_validate_report(hdev, REPORT_ID_HIDPP_LONG,
+ 				     HIDPP_REPORT_LONG_LENGTH, true);
+ }
+@@ -3577,7 +3577,10 @@ 
+ 	 * Plain USB connections need to actually call start and open
+ 	 * on the transport driver to allow incoming data.
+ 	 */
+-	ret = hid_hw_start(hdev, 0);
++	if (hidpp->quirks & HIDPP_QUIRK_CLASS_G920)
++		ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
++	else
++		ret = hid_hw_start(hdev, 0);
+ 	if (ret) {
+ 		hid_err(hdev, "hw start failed\n");
+ 		goto hid_hw_start_fail;
+@@ -3621,19 +3624,21 @@ 
+ 
+ 	hidpp_connect_event(hidpp);
+ 
+-	/* Reset the HID node state */
+-	hid_device_io_stop(hdev);
+-	hid_hw_close(hdev);
+-	hid_hw_stop(hdev);
++	if (!(hidpp->quirks & HIDPP_QUIRK_CLASS_G920)) {
++		/* Reset the HID node state */
++		hid_device_io_stop(hdev);
++		hid_hw_close(hdev);
++		hid_hw_stop(hdev);
+ 
+-	if (hidpp->quirks & HIDPP_QUIRK_NO_HIDINPUT)
+-		connect_mask &= ~HID_CONNECT_HIDINPUT;
++		if (hidpp->quirks & HIDPP_QUIRK_NO_HIDINPUT)
++			connect_mask &= ~HID_CONNECT_HIDINPUT;
+ 
+-	/* Now export the actual inputs and hidraw nodes to the world */
+-	ret = hid_hw_start(hdev, connect_mask);
+-	if (ret) {
+-		hid_err(hdev, "%s:hid_hw_start returned error\n", __func__);
+-		goto hid_hw_start_fail;
++		/* Now export the actual inputs and hidraw nodes to the world */
++		ret = hid_hw_start(hdev, connect_mask);
++		if (ret) {
++			hid_err(hdev, "%s:hid_hw_start returned error\n", __func__);
++			goto hid_hw_start_fail;
++		}
+ 	}
+ 
+ 	return ret;
