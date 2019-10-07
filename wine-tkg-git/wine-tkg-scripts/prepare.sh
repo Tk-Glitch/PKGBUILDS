@@ -318,6 +318,14 @@ _prepare() {
 
 	source "$_where"/wine-tkg-patches/hotfixes/hotfixer
 
+	# Community patches
+	if [ -n "$_community_patches" ]; then
+	  _community_patches=($_community_patches)
+	  for _p in ${_community_patches[@]}; do
+	    ln -s "$_where"/../community-patches/wine-tkg-git/$_p "$_where"/
+	  done
+	fi
+
 	# wine-staging user patches
 	if [ "$_user_patches" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  _userpatch_target="wine-staging"
