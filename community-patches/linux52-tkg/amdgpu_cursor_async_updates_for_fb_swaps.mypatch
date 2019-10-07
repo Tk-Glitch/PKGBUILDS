@@ -1,0 +1,60 @@
+From e16e37efb4c9eb7bcb9dab756c975040c5257e98 Mon Sep 17 00:00:00 2001
+From: Nicholas Kazlauskas <nicholas.kazlauskas@amd.com>
+Date: Mon, 10 Jun 2019 08:47:57 -0400
+Subject: drm/amd/display: Allow cursor async updates for framebuffer swaps
+
+[Why]
+We previously allowed framebuffer swaps as async updates for cursor
+planes but had to disable them due to a bug in DRM with async update
+handling and incorrect ref counting. The check to block framebuffer
+swaps has been added to DRM for a while now, so this check is redundant.
+
+The real fix that allows this to properly in DRM has also finally been
+merged and is getting backported into stable branches, so dropping
+this now seems to be the right time to do so.
+
+[How]
+Drop the redundant check for old_fb != new_fb.
+
+With the proper fix in DRM, this should also fix some cursor stuttering
+issues with xf86-video-amdgpu since it double buffers the cursor.
+
+IGT tests that swap framebuffers (-varying-size for example) should
+also pass again.
+
+Signed-off-by: Nicholas Kazlauskas <nicholas.kazlauskas@amd.com>
+Acked-by: Alex Deucher <alexander.deucher@amd.com>
+Reviewed-by: David Francis <david.francis@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index 9443811..a833b23 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4544,20 +4544,10 @@ static int dm_plane_atomic_check(struct drm_plane *plane,
+ static int dm_plane_atomic_async_check(struct drm_plane *plane,
+ 				       struct drm_plane_state *new_plane_state)
+ {
+-	struct drm_plane_state *old_plane_state =
+-		drm_atomic_get_old_plane_state(new_plane_state->state, plane);
+-
+ 	/* Only support async updates on cursor planes. */
+ 	if (plane->type != DRM_PLANE_TYPE_CURSOR)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * DRM calls prepare_fb and cleanup_fb on new_plane_state for
+-	 * async commits so don't allow fb changes.
+-	 */
+-	if (old_plane_state->fb != new_plane_state->fb)
+-		return -EINVAL;
+-
+ 	return 0;
+ }
+ 
+-- 
+cgit v1.1
+
