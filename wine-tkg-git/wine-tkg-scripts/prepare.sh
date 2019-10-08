@@ -1011,7 +1011,11 @@ EOM
 
 	# Workarounds to prevent crashes on some mf functions
 	if [ "$_use_staging" == "true" ] && [ "$_proton_mf_hacks" == "true" ] && git merge-base --is-ancestor b182ba882cfcce7b8769470f49f0fba216095c45 HEAD; then
-	  _patchname='proton_mf_hacks.patch' && _patchmsg="Applied proton mf hacks patch" && nonuser_patcher
+	  if git merge-base --is-ancestor 7c5fcfffe7b3a001c980f19cb6ed1cee049c26c8 HEAD; then
+	    _patchname='proton_mf_hacks.patch' && _patchmsg="Applied proton mf hacks patch" && nonuser_patcher
+	  else
+	    _patchname='proton_mf_hacks-7c5fcff.patch' && _patchmsg="Applied proton mf hacks patch" && nonuser_patcher
+	  fi
 	fi
 
 	# Enable STAGING_SHARED_MEMORY by default - https://wiki.winehq.org/Wine-Staging_Environment_Variables#Shared_Memory

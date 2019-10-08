@@ -158,8 +158,8 @@ index c43e6d2838b..f35106b505b 100644
  {
      struct media_session *session = impl_from_IMFMediaSession(iface);
  
--    TRACE("%p, %p, %p.\n", iface, callback, state);
-+    FIXME("%p, %p, %p.\n", iface, callback, state);
+-    TRACE("(%p)->(%p, %p)\n", iface, callback, state);
++    FIXME("(%p)->(%p, %p)\n", iface, callback, state);
  
 -    return IMFMediaEventQueue_BeginGetEvent(session->event_queue, callback, state);
 +    return E_NOTIMPL;

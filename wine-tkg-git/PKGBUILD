@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.17.r7.g042a633c
+pkgver=4.17.r8.ga246130f
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -290,6 +290,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
 		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
 		'raw-input-proton-7349182.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset (<7349182(staging))
+		'proton_mf_hacks-7c5fcff.patch' # Workarounds to prevent crashes on some mf functions (<7c5fcff)
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
 		'proton-wined3d-additions.patch' # Proton non-vr-related wined3d additions
 )
@@ -417,6 +418,7 @@ md5sums=('SKIP'
          '72d50c442cb34ec7a46998636a63c424'
          'd8616d47efbe0465cda808abb0e9ac5b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'
+         '7857d05adb1227532f11b1c103f67126'
          'c463c6eb0ee5aaf533270a88bf5e272c')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
