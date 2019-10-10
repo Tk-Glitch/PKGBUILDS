@@ -118,7 +118,11 @@ _build() {
 }
 
 _package_nomakepkg() {
-	local _prefix="$_where/${pkgname}-${pkgver}"
+	if [ -z "$_nomakepkg_prefix_path" ]
+	  local _prefix="$_where/${pkgname}-${pkgver}"
+	else
+	  local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+	fi
 	local _lib32name="lib32"
 	local _lib64name="lib"
 
@@ -172,9 +176,13 @@ _package_nomakepkg() {
 	cp -v "$_where"/last_build_config.log "$_prefix"/share/wine/wine-tkg-config.txt
 
 	# move our build to some subfolder
-	mkdir -p "$_where"/non-makepkg-builds
-	mv "$_where/${pkgname}-${pkgver}" "$_where"/non-makepkg-builds/
-	pkgdir="$_where/non-makepkg-builds/${pkgname}-${pkgver}"
+	if [ -z "$_nomakepkg_prefix_path" ]
+	  mkdir -p "$_where"/non-makepkg-builds
+	  mv "$_where/${pkgname}-${pkgver}" "$_where"/non-makepkg-builds/
+	  pkgdir="$_where/non-makepkg-builds/${pkgname}-${pkgver}"
+	else
+	  pkgdir="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+	fi
 
 	if [ "$_use_esync" == "true" ] || [ "$_staging_esync" == "true" ]; then
 	  msg2 '##########################################################################################################################'
