@@ -159,7 +159,11 @@ build_wine_tkg() {
 
   _prebuild_common
 
-  local _prefix="$_where/${pkgname}-${pkgver}"
+  if [ -z "$_nomakepkg_prefix_path" ]
+    local _prefix="$_where/${pkgname}-${pkgver}"
+  else
+    local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+  fi
   local _lib32name="lib32"
   local _lib64name="lib"
 
