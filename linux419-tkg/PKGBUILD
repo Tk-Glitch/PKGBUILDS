@@ -78,7 +78,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=4.19
 _sub=78
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=108
+pkgrel=109
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -125,7 +125,7 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             '6d68c27dfeed20c601d925e6f9f965f201e9a652f22ff96e55f31f09908fd6b7'
             '2e3466e558546d93a2b845ee8ad5a75272437a4977f80928a576654e11d11ae8'
             '1d31a99042b5b0ca1e91e6e9164f6b9aeb95c96b5222914898aad7a5fb39acce'
-            '224752891520ce200a6f6ec8b4c361a28a88adab249f2aafad4992be189fff51'
+            'e59cfba32a84b9e9776dc7b2e21c3cf8d045f61340dc7b9dee442c70dc3170f2'
             'd05bfdbab33b52cc753c1e6c0305eec030a31f3fb07274707d6a7d93fb0f77be'
             'b3b115e5559fbaa6877bc7e8c8d54ea43a708d784ddf2944c1c84ad6ac1ac9a0'
             '8ab566ab93723bb1c372e8f62f8cd714e6a16fc414d703ba4d255f132cffadd8'
