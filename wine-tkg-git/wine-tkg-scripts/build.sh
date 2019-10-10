@@ -118,7 +118,7 @@ _build() {
 }
 
 _package_nomakepkg() {
-	if [ -z "$_nomakepkg_prefix_path" ]
+	if [ -z "$_nomakepkg_prefix_path" ]; then
 	  local _prefix="$_where/${pkgname}-${pkgver}"
 	else
 	  local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
