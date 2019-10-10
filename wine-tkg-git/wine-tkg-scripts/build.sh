@@ -176,7 +176,7 @@ _package_nomakepkg() {
 	cp -v "$_where"/last_build_config.log "$_prefix"/share/wine/wine-tkg-config.txt
 
 	# move our build to some subfolder
-	if [ -z "$_nomakepkg_prefix_path" ]
+	if [ -z "$_nomakepkg_prefix_path" ]; then
 	  mkdir -p "$_where"/non-makepkg-builds
 	  mv "$_where/${pkgname}-${pkgver}" "$_where"/non-makepkg-builds/
 	  pkgdir="$_where/non-makepkg-builds/${pkgname}-${pkgver}"
