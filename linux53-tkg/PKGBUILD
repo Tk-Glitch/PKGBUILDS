@@ -229,7 +229,7 @@ prepare() {
   cat "${srcdir}/${_configfile}" > ./.config
 
   # LOCALVERSION
-  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"."${_sub}"-tkg-${_cpusched}\"|g" ./.config
+  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-tkg-${_cpusched}\"|g" ./.config
   sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
 
   # set extraversion to pkgrel
