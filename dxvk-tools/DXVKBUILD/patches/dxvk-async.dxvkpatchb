@@ -41,14 +41,14 @@ index b4f679fa..13c86d8f 100644
      // Find out if the render target view is currently bound,
      // so that we can avoid spilling the render pass if it is.
 @@ -3652,7 +3652,7 @@ namespace dxvk {
+       : DxvkContextFlag::GpDirtyStencilRef);
      
      // Retrieve and bind actual Vulkan pipeline handle
-     m_gpActivePipeline = m_state.gp.pipeline != nullptr && m_state.om.framebuffer != nullptr
--      ? m_state.gp.pipeline->getPipelineHandle(m_state.gp.state, m_state.om.framebuffer->getRenderPass())
-+      ? m_state.gp.pipeline->getPipelineHandle(m_state.gp.state, m_state.om.framebuffer->getRenderPass(), this->checkAsyncCompilationCompat())
-       : VK_NULL_HANDLE;
-     
-     if (m_gpActivePipeline != VK_NULL_HANDLE) {
+-    m_gpActivePipeline = m_state.gp.pipeline->getPipelineHandle(m_state.gp.state, m_state.om.framebuffer->getRenderPass());
++    m_gpActivePipeline = m_state.gp.pipeline->getPipelineHandle(m_state.gp.state, m_state.om.framebuffer->getRenderPass(), this->checkAsyncCompilationCompat());
+ 
+     if (unlikely(!m_gpActivePipeline))
+       return false;
 @@ -3969,7 +3969,7 @@ namespace dxvk {
    }
    
