@@ -116,6 +116,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0009-glitched-bmq.patch
         0009-bmq_v5.3.1.patch
         0010-umip-instruction-emulation.patch
+        0011-ZFS-fix.patch
 )
 sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'f6fe83628dc0f6cceb0ac184715099eed4b0a671b5df9d1df9b0df1169fde868'
@@ -134,7 +135,8 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '39698ac22f8e9cc1513ebd3351817bb15f792b74b5ba03594c59182b7d5e1909'
-            'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
+            'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc'
+            '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
 
 # Community patches
 if [ -n "$_community_patches" ]; then
@@ -651,6 +653,17 @@ prepare() {
 #    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
 #    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
 #  fi
+
+  # ZFS fix
+  if [ -z "$_zfsfix" ]; then
+    plain ""
+    plain "Add back missing symbol for AES-NI/AVX support on ZFS"
+    plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions_5_3.patch"
+    read -rp "`echo $'    > N/y : '`" CONDITION10;
+  fi
+  if [ "$CONDITION10" == "y" ] || [ "$_zfsfix" == "true" ]; then
+    patch -Np1 -i ../0011-ZFS-fix.patch
+  fi
 
   # fsync support
   if [ -z "$_fsync" ]; then
