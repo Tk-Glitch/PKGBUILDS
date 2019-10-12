@@ -809,12 +809,12 @@ EOM
 	  _patchname='ffxiv-launcher-workaround.patch' && _patchmsg="Applied Final Fantasy XIV Launcher fix" && nonuser_patcher
 	fi
 
-	# Fix for LoL 9.10+ crashing - https://bugs.winehq.org/show_bug.cgi?id=47198
-	if [ "$_lol910_fix" == "true" ]; then
+	# Fix for LoL 9.20+ crashing - https://bugs.winehq.org/show_bug.cgi?id=47198
+	if [ "$_lol920_fix" == "true" ]; then
 	  if git merge-base --is-ancestor 944c4e8f760460ca6a260573d87c454052caad2c HEAD; then
-	    _patchname='leagueoflolfix.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
+	    _patchname='leagueoflolfix.patch' && _patchmsg="Applied LoL 9.20+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
 	  else
-	    _patchname='leagueoflolfix-944c4e8.patch' && _patchmsg="Applied LoL 9.10+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
+	    _patchname='leagueoflolfix-944c4e8.patch' && _patchmsg="Applied LoL 9.20+ fix - Requires vdso32 disabled (echo 0 > /proc/sys/abi/vsyscall32)" && nonuser_patcher
 	  fi
 	fi
 
