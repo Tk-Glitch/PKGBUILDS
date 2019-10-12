@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=6
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=12
+pkgrel=13
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -654,17 +654,6 @@ prepare() {
 #    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
 #  fi
 
-  # ZFS fix
-  if [ -z "$_zfsfix" ]; then
-    plain ""
-    plain "Add back missing symbol for AES-NI/AVX support on ZFS"
-    plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions_5_3.patch"
-    read -rp "`echo $'    > N/y : '`" CONDITION10;
-  fi
-  if [ "$CONDITION10" == "y" ] || [ "$_zfsfix" == "true" ]; then
-    patch -Np1 -i ../0011-ZFS-fix.patch
-  fi
-
   # fsync support
   if [ -z "$_fsync" ]; then
     plain ""
@@ -685,6 +674,17 @@ prepare() {
   fi
   if [ "$CONDITION10" == "y" ] || [ "$_umip_instruction_emulation" == "true" ]; then
     patch -Np1 -i ../0010-umip-instruction-emulation.patch
+  fi
+
+  # ZFS fix
+  if [ -z "$_zfsfix" ]; then
+    plain ""
+    plain "Add back missing symbol for AES-NI/AVX support on ZFS"
+    plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions_5_3.patch"
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
+  fi
+  if [ "$CONDITION11" == "y" ] || [ "$_zfsfix" == "true" ]; then
+    patch -Np1 -i ../0011-ZFS-fix.patch
   fi
 
   # userpatches
