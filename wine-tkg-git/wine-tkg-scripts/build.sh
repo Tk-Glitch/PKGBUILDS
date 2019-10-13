@@ -53,10 +53,7 @@ _build() {
 	  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
 	    ../${_winesrcdir}/configure \
 		    --prefix="$_prefix" \
-			--with-x \
-			--with-gstreamer \
 			--enable-win64 \
-			--with-xattr \
 			"${_configure_args64[@]}" \
 			"${_configure_args[@]}"
 	  fi
@@ -91,17 +88,11 @@ _build() {
 		 if [ "$_NOLIB64" == "true" ]; then
 	       ../${_winesrcdir}/configure \
 		      --prefix="$_prefix" \
-		      --with-x \
-		      --with-gstreamer \
-		      --with-xattr \
 		      "${_configure_args32[@]}" \
 		      "${_configure_args[@]}"
 		  else
 	        ../${_winesrcdir}/configure \
 		      --prefix="$_prefix" \
-		      --with-x \
-		      --with-gstreamer \
-		      --with-xattr \
 		      "${_configure_args32[@]}" \
 		      "${_configure_args[@]}" \
 		      --with-wine64="${srcdir}/${pkgname}"-64-build

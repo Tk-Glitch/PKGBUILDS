@@ -168,8 +168,11 @@ build_wine_tkg() {
   local _lib64name="lib"
 
   # configure args
-  if [ -n "$_configure_userargs" ]; then
-    _configure_args+=($_configure_userargs)
+  if [ -n "$_configure_userargs64" ]; then
+    _configure_args+=($_configure_userargs64)
+  fi
+  if [ -n "$_configure_userargs32" ]; then
+    _configure_args+=($_configure_userargs32)
   fi
 
   # External install

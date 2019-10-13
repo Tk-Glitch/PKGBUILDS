@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.17.r8.ga246130f
+pkgver=4.17.r11.gd4326087
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=209
+eval pkgrel=210
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -495,8 +495,11 @@ build() {
   local _lib64name="lib"
 
   # configure args
-  if [ -n "$_configure_userargs" ]; then
-    _configure_args+=($_configure_userargs)
+  if [ -n "$_configure_userargs64" ]; then
+    _configure_args+=($_configure_userargs64)
+  fi
+  if [ -n "$_configure_userargs32" ]; then
+    _configure_args+=($_configure_userargs32)
   fi
 
   # External install
