@@ -9,9 +9,9 @@ else
 fi
 
 if [ -z "$LD_LIBRARY_PATH" ]; then
-  LD_LIBRARY_PATH="$winetkgbindir/../lib64:$winetkgbindir/../lib"
+  LD_LIBRARY_PATH="$winetkgbindir/../lib64:$winetkgbindir/../lib:$winetkgbindir/../lib32"
 else
-  LD_LIBRARY_PATH="$winetkgbindir/../lib64:$winetkgbindir/../lib:$LD_LIBRARY_PATH"
+  LD_LIBRARY_PATH="$winetkgbindir/../lib64:$winetkgbindir/../lib:$winetkgbindir/../lib32:$LD_LIBRARY_PATH"
 fi
 
 cat << 'EOM'
