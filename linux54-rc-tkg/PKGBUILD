@@ -109,6 +109,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
 #        0005-v5.4_undead-pds099o.patch
 #        0006-add-acs-overrides_iommu.patch
         0007-v5.4-fsync.patch
+        0011-ZFS-fix.patch
 )
 sha256sums=('c50d29a05e5d8deea6c6bd3478ca7f13170febe928436e1fad49a11bc359e9c2'
             '67c347ddaedbe693f4a06c787bc624a57c2e0752b465b2fda0ae2f1b6223d64f'
@@ -119,7 +120,8 @@ sha256sums=('c50d29a05e5d8deea6c6bd3478ca7f13170febe928436e1fad49a11bc359e9c2'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
             '0b573448785ff940b3f4cf41e3598c9c816ec3541e494f0d6bbcd48d6cfdd0cb'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
-            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d')
+            '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
+            '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
 
 # Community patches
 if [ -n "$_community_patches" ]; then
@@ -646,6 +648,17 @@ prepare() {
   fi
   if [ "$CONDITION9" == "y" ] || [ "$_fsync" == "true" ]; then
     patch -Np1 -i ../0007-v5.4-fsync.patch
+  fi
+  
+  # ZFS fix
+  if [ -z "$_zfsfix" ]; then
+    plain ""
+    plain "Add back missing symbol for AES-NI/AVX support on ZFS"
+    plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions_5_3.patch"
+    read -rp "`echo $'    > N/y : '`" CONDITIONZFS;
+  fi
+  if [ "$CONDITIONZFS" == "y" ] || [ "$_zfsfix" == "true" ]; then
+    patch -Np1 -i ../0011-ZFS-fix.patch
   fi
 
   # userpatches
