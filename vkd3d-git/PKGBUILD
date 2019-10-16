@@ -25,10 +25,18 @@ pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
 
-_vkd3dsrcdir='vkd3d'
+if [ "$_vkd3d_source" == "staging" ]; then
+  _vkd3dsrcdir='vkd3d-staging'
+  _vkd3d_source='https://github.com/HansKristian-Work/vkd3d'
+else
+  _vkd3dsrcdir='vkd3d'
+  _vkd3d_source='https://source.winehq.org/git/vkd3d'
+fi
 
 # custom vkd3d commit to pass to git
-_vkd3d_commit="#commit="
+if [ -n "$_vkd3d_commit" ]; then
+  _vkd3d_commit="#commit=${_vkd3d_commit}"
+fi
 
 pkgdesc='Wine d3d12 to vulkan translation lib, git version'
 url='https://source.winehq.org/git/vkd3d.git'
@@ -37,13 +45,14 @@ license=('LGPL')
 depends=(
     'spirv-tools' 'lib32-spirv-tools'
 )
+
 makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
     'gcc>=4.5.0-2'     'schedtool'
     'spirv-headers-git'     'vulkan-headers'
     'vulkan-icd-loader'     'lib32-vulkan-icd-loader'
 )
 
-source=("$_vkd3dsrcdir"::"git+https://source.winehq.org/git/vkd3d.git${_vkd3d_commit}"
+source=("$_vkd3dsrcdir"::"git+${_vkd3d_source}.git${_vkd3d_commit}"
 )
 
 makedepends=(${makedepends[@]} ${depends[@]})
@@ -117,7 +126,7 @@ pkgver() {
 
 	# retrieve current version
 	cd "${srcdir}/${_vkd3dsrcdir}"
-	local _vkd3dVer="$(git describe --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^//;s/\.rc/rc/')"
+	local _vkd3dVer="$(git describe --always --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^//;s/\.rc/rc/')"
 
 	# version string
 	printf '%s' "${_vkd3dVer#vkd3d.}"
