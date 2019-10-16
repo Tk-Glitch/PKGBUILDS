@@ -5,7 +5,7 @@ pkgver=4.17.r12.gc96aa290
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=210
+eval pkgrel=211
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -243,6 +243,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'0001-kernelbase-Remove-DECLSPEC_HOTPATCH-from-SetThreadSt.patch' # Native dotnet workaround for 4.13+
 		'usvfs.patch' # USVFS (Mod Organizer 2's virtual filesystem) patch
 		'revert-c6b6935.patch' # Reverts c6b6935 due to https://bugs.winehq.org/show_bug.cgi?id=47752
+		'proton-tkg-kernelbase-reverts.patch' # Reverts 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase). This is required for proton-tkg and fixes some dll loading issues (with Cemu notably)
+		'proton-tkg-staging-kernelbase-reverts.patch' # Staging version of the above patch
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'raw-valve_proton_fullscreen_hack-staging.patch' # Proton FS hack for staging raw input impl
@@ -373,6 +375,8 @@ md5sums=('SKIP'
          'eba48702691263469da644495f9e1bfd'
          '566ffc5356fc4713108185f9fd870038'
          '180accf6a6ea2102956716c863e2bfda'
+         '634c6f10d973a1b27e0148ad35df62ce'
+         '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '17c64d0e5fa155868c10c6a7b18cf5df'
          '2dab489ea8770576652302efaa525141'
@@ -394,7 +398,7 @@ md5sums=('SKIP'
          '5f4fee214ec0d94decb19309caf8ec6e'
          '333469023e6e55496c4ec28518f87a3f'
          '5af0c5ae73a70bd3215564d95a80a78e'
-         '0379e011a4a0eb660d41321f8ef59afa'
+         '87a735dc5c2f198ee23bba31e4fd420d'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
@@ -403,7 +407,7 @@ md5sums=('SKIP'
          'd20a871566773b7d71c443383ddfb272'
          '3d55df1bc8677b16a41d7e6b555a609a'
          '28b66f6d107082e7dd50a4f842c42bef'
-         '152ceea9c7b3a9d2eccdee93d052955d'
+         '6cfe06d186016a5c246920a3ccb1c05d'
          'f404adafc8648495270e01241cd0601e'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
