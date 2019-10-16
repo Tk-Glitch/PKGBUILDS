@@ -183,6 +183,7 @@ build() {
 
 package_vkd3d-tkg-git() {
   provides=("vkd3d=$pkgver")
+  conflicts=("vkd3d")
 
 	msg2 'Packaging vkd3d 64...'
 	cd  "${srcdir}"/"${pkgname}"
@@ -191,6 +192,7 @@ package_vkd3d-tkg-git() {
 
 package_lib32-vkd3d-tkg-git() {
   provides=("lib32-vkd3d=$pkgver")
+  conflicts=("lib32-vkd3d")
 
 	msg2 'Packaging vkd3d 32...'
 	cd  "${srcdir}"/"${pkgname}"
