@@ -61,14 +61,13 @@ makedepends=(${makedepends[@]} ${depends[@]})
 if [ -n "$_community_patches" ]; then
   _community_patches=($_community_patches)
   for _p in ${_community_patches[@]}; do
-   ln -s "$_where"/../community-patches/vkd3d-git/$_p "$_where"/
+    ln -s "$_where"/../community-patches/vkd3d-git/$_p "$_where"/
   done
 fi
 
 function exit_cleanup {
   # Remove temporarily copied patches
-  rm -rf "$_where"/*.my*
-  rm -f "$_where"/src/vkd3d
+  rm -rf "$_where"/src/*
 
   remove_deps
 
@@ -144,6 +143,11 @@ prepare() {
 	_userpatch_target="vkd3d"
 	_userpatch_ext="myvkd3d"
 	user_patcher
+
+	# Community patches removal
+	for _p in ${_community_patches[@]}; do
+	  rm -f "$_where"/$_p
+	done
 
 	# create new build dirs
 	mkdir -p "${srcdir}"/vkd3d-tkg-git
