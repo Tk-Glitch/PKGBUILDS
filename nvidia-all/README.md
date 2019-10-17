@@ -1,4 +1,4 @@
-# Nvidia driver 435/430/418/415/410/396 series AIO installer
+# Nvidia driver 440/435/430/418/415/410/396 series AIO installer
 
 LIBGLVND compatible, with 32 bit libs and DKMS enabled out of the box (you will still be asked if you want to use the regular package). Installs for all currently installed kernels.
 Unwanted packages can be disabled with switches in the PKGBUILD. Defaults to complete installation.
@@ -11,7 +11,7 @@ Regular drivers : https://www.nvidia.com/object/unix.html
 
 
 # How to generate a package for a driver that isn't listed (390 and lower branches are not supported) :
-- When you are prompted for driver version, select "custom" (choice 8).
+- When you are prompted for driver version, select "custom" (choice 9).
 - You'll then be asked the branch group. Select either "Vulkan dev" (choice 2) for Vulkan dev drivers or "stable or regular beta" (choice 1) for every other driver.
 - Now you have to enter the version number of the desired driver. Vulkan dev drivers version is usually formatted as `mainbranch.version.subversion` (i.e.: 415.22.01) while the stable or regular beta drivers version is usually `mainbranch.version` (i.e.: 415.25)
 - To finish, you'll be asked if you want dkms(recommended) or regular modules, similarly to the usual drivers versions.
