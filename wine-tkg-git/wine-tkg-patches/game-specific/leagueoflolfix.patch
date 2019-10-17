@@ -118,33 +118,3 @@ index 72ffed80c0..c41f567fb6 100644
      wine_set_fs;
      wine_set_gs;
      wine_switch_to_stack; 
-diff --git a/dlls/user32/user32.spec b/dlls/user32/user32.spec
-index f9a4ae26df..2c4d0d252a 100644
---- a/dlls/user32/user32.spec
-+++ b/dlls/user32/user32.spec
-@@ -444,6 +444,7 @@
- @ stdcall InsertMenuItemA(long long long ptr)
- @ stdcall InsertMenuItemW(long long long ptr)
- @ stdcall InsertMenuW(long long long long ptr)
-+@ stdcall InternalGetWindowIcon(long long)
- @ stdcall InternalGetWindowText(long long long)
- @ stdcall IntersectRect(ptr ptr ptr)
- @ stdcall InvalidateRect(long ptr long)
-diff --git a/dlls/user32/win.c b/dlls/user32/win.c
-index 3323ed3e41..8231acc0f1 100644
---- a/dlls/user32/win.c
-+++ b/dlls/user32/win.c
-@@ -2887,6 +2887,13 @@ INT WINAPI GetWindowTextA( HWND hwnd, LPSTR lpString, INT nMaxCount )
-     return strlen(lpString);
- }
- 
-+/*******************************************************************
-+ *		InternalGetWindowIcon (USER32.@)
-+ */
-+INT WINAPI InternalGetWindowIcon(HWND hwnd, UINT iconType )
-+{
-+    return NULL;
-+}
- 
- /*******************************************************************
-  *		InternalGetWindowText (USER32.@)
