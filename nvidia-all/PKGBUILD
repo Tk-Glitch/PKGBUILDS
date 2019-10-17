@@ -254,6 +254,9 @@ prepare() {
   # linux-rt fix for newer drivers. This just passes the same value regardless of kernel type as a bypass. This was stolen from https://gitlab.manjaro.org/packages/community/realtime-kernels/linux416-rt-extramodules/blob/master/nvidia/PKGBUILD - Thanks Muhownage <3
   sed -i -e 's|PREEMPT_RT_PRESENT=1|PREEMPT_RT_PRESENT=0|g' kernel/conftest.sh
 
+  # non-english locale workaround for 440 series
+  sed -i -e 's|$CC $CFLAGS -c conftest_headers$$.c|LC_ALL=C $CC $CFLAGS -c conftest_headers$$.c|g' kernel/conftest.sh
+
   cp -a kernel kernel-dkms
   cd kernel-dkms
   sed -i "s/__VERSION_STRING/${pkgver}/" dkms.conf
