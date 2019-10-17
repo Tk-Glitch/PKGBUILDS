@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=19.3.0_devel.116254.072c94f7245
+pkgver=19.3.0_devel.116358.4857d695f58
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -83,11 +83,11 @@ if [ -n "$_community_patches" ]; then
   done
 fi
 
-cp "$_where"/mesa-userpatches/*.my* "$_where" # copy userpatches inside the PKGBUILD's dir
+cp "$_where"/mesa-userpatches/*.mymesa* "$_where" # copy userpatches inside the PKGBUILD's dir
 
 function exit_cleanup {
   # Remove temporarily copied patches
-  rm -rf "$_where"/*.my*
+  rm -rf "$_where"/*.mymesa*
   rm -f "$_where"/frogminer
 
   remove_deps
@@ -293,7 +293,7 @@ build () {
       cd "$srcdir"
       export CC="gcc -m32"
       export CXX="g++ -m32"
-      export PKG_CONFIG=/usr/bin/i686-pc-linux-gnu-pkg-config
+      export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
 
       meson setup $_mesa_srcdir _build32 \
           --native-file llvm32.native \
@@ -332,7 +332,7 @@ build () {
           -D tools=[] \
        
       meson configure _build32
-      ninja  $NINJAFLAGS -C _build32
+      ninja $NINJAFLAGS -C _build32
 
       if [ "$_localglesv2pc" == "true" ]; then
         echo -e "prefix=/usr\nlibdir=\${prefix}/lib32\nincludedir=\${prefix}/include\n\nName: glesv2\nDescription: Mesa OpenGL ES 2.0 library\nVersion: ${pkgver}\nLibs: -L\${libdir} -lGLESv2\nLibs.private: -lpthread -pthread -lm -ldl\nCflags: -I\${includedir}" > "$srcdir"/_build32/glesv2.pc
@@ -353,7 +353,7 @@ package_mesa-tkg-git() {
   DESTDIR="$pkgdir" ninja $NINJAFLAGS -C _build64 install
 
   # indirect rendering
-  ln -s /usr/lib/libGLX_mesa.so.0 ${pkgdir}/usr/lib/libGLX_indirect.so.0
+  ln -s /usr/lib/libGLX_mesa.so.0 "${pkgdir}/usr/lib/libGLX_indirect.so.0"
 
   if [ "$_localglesv2pc" == "true" ]; then
     # bring back glesv2.pc
