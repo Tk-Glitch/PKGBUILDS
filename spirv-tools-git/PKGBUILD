@@ -62,6 +62,7 @@ build() {
       -DCMAKE_INSTALL_LIBDIR=lib \
       -DCMAKE_BUILD_TYPE=Release \
       -DSPIRV_WERROR=Off \
+      -DBUILD_SHARED_LIBS=ON \
       -DSPIRV-Headers_SOURCE_DIR=${srcdir}/SPIRV-Headers
   make
 
@@ -72,6 +73,7 @@ build() {
       -DCMAKE_INSTALL_LIBDIR=lib32 \
       -DCMAKE_BUILD_TYPE=Release \
       -DSPIRV_WERROR=Off \
+      -DBUILD_SHARED_LIBS=ON \
       -DSPIRV-Headers_SOURCE_DIR=${srcdir}/SPIRV-Headers
   make
 }
