@@ -1,7 +1,7 @@
 # Based on Arch's PKGBUILD by Laurent Carlier <lordheavym@gmail.com>
 # Modified by Tk-Glitch <ti3nou at gmail dot com> to target git instead of tagged releases
 
-pkgname=vulkan-headers-git
+pkgname=vulkan-headers-tkg-git
 pkgver=1.1.125.r0.gd287523
 pkgrel=1
 pkgdesc="Vulkan header files"
