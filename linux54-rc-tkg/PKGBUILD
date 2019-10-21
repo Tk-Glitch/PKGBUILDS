@@ -78,7 +78,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
-_sub=rc3
+_sub=rc4
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -111,14 +111,14 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0007-v5.4-fsync.patch
         0011-ZFS-fix.patch
 )
-sha256sums=('c50d29a05e5d8deea6c6bd3478ca7f13170febe928436e1fad49a11bc359e9c2'
+sha256sums=('b1f4856860c9ac423446324aec0090a8de73b2b7213baede062db7d0d3b41838'
             '67c347ddaedbe693f4a06c787bc624a57c2e0752b465b2fda0ae2f1b6223d64f'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
-            '0b573448785ff940b3f4cf41e3598c9c816ec3541e494f0d6bbcd48d6cfdd0cb'
+            '4b9daf276fd39dc72be5ed87f6c9b51b63b8887f453509e328b24c5d4ebe9a0f'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
