@@ -1030,11 +1030,17 @@ EOM
 
 	# Revert 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase) to fix some dll loading issues
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  if git merge-base --is-ancestor 9551cb0b84dc0c0c9c1778cc37d7bafef4fd4299 HEAD; then
+	  if git merge-base --is-ancestor c258b5ef1100c8c238aab0a17ca743a326829aac HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
 	    else
 	      _patchname='proton-tkg-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch" && nonuser_patcher
+	    fi
+	  elif git merge-base --is-ancestor 9551cb0b84dc0c0c9c1778cc37d7bafef4fd4299 HEAD; then
+	    if [ "$_use_staging" == "true" ]; then
+	      _patchname='proton-tkg-staging-kernelbase-reverts-c258b5e.patch' && _patchmsg="Using kernelbase reverts patch (staging) (<c258b5e)" && nonuser_patcher
+	    else
+	      _patchname='proton-tkg-kernelbase-reverts-c258b5e.patch' && _patchmsg="Using kernelbase reverts patch (<c258b5e)" && nonuser_patcher
 	    fi
 	  elif git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
 	    if [ "$_use_staging" == "true" ]; then

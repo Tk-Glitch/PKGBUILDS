@@ -247,6 +247,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-staging-kernelbase-reverts.patch' # Staging version of the above patch
 		'proton-tkg-kernelbase-reverts-9551cb0.patch'
 		'proton-tkg-staging-kernelbase-reverts-9551cb0.patch'
+		'proton-tkg-kernelbase-reverts-c258b5e.patch'
+		'proton-tkg-staging-kernelbase-reverts-c258b5e.patch'
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'raw-valve_proton_fullscreen_hack-staging.patch' # Proton FS hack for staging raw input impl
@@ -377,8 +379,10 @@ md5sums=('SKIP'
          'eba48702691263469da644495f9e1bfd'
          '566ffc5356fc4713108185f9fd870038'
          '180accf6a6ea2102956716c863e2bfda'
-         '1ba531c8288ad34f01c03fbf6bd86dfc'
-         'b9347b2c89ffec20de1cd8f3a7864dd9'
+         'a64cff9c1e89de3c084bc55a49b6479d'
+         'ac515cc93232447bbd92985ce8633914'
+         '634c6f10d973a1b27e0148ad35df62ce'
+         '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '634c6f10d973a1b27e0148ad35df62ce'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
