@@ -153,7 +153,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=70
+pkgrel=71
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -191,6 +191,7 @@ source=($_source_name
         'kernel-5.2.patch' # 5.2 workaround
         'kernel-5.3.patch' # 5.3 workaround
         'kernel-5.4.patch' # 5.4 workaround
+        'kernel-5.4-symver.diff' # 5.4 symver fix only
         'GFP_RETRY_MAYFAIL-test.diff' # test for DXVK issue #1100 - https://github.com/doitsujin/dxvk/issues/1100
 )
 
@@ -211,6 +212,7 @@ md5sums=("$_md5sum"
          '98b67a671ece0a796f9767793c209c93'
          '6f9a62ef76ac86f299b0174f44488987'
          '97298693767cd1223792e7505da7ac26'
+         '0d9aa49647cc73a4522246cc22ae15e1'
          '559c4f7655a8bf891bd9d5c17563b99e')
 
 if [ $_autoaddpatch == "true" ]; then
@@ -367,6 +369,11 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     if (( $(vercmp "$_kernel" "5.4") >= 0 )); then
       _kernel54="1"
       _whitelist54=( 396* 410* 415* 418* 430* 435* )
+      if [[ $pkgver = 440* ]]; then
+        cd "$srcdir"/"$_pkg"/kernel-$_kernel
+        patch -Np2 -i "$srcdir"/kernel-5.4-symver.diff
+        cd ..
+      fi
     fi
 
     # Loop patches (linux-4.15.patch, lol.patch, ...)
@@ -532,6 +539,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         patch -Np1 -i "$srcdir"/kernel-5.4.patch
       else
         msg2 "Skipping kernel-5.4.patch as it doesn't apply to this driver version..."
+      fi
+      if [[ $pkgver = 440* ]]; then
+        patch -Np1 -i "$srcdir"/kernel-5.4-symver.diff
       fi
     fi
 
