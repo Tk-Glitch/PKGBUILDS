@@ -1,3 +1,34 @@
+From 2d049f6e78eaa3eafbb60a884091a6fcd4c7d7be Mon Sep 17 00:00:00 2001
+From: Tk-Glitch <ti3nou@gmail.com>
+Date: Tue, 22 Oct 2019 06:31:01 +0200
+Subject: Revert kernelbase: Fix variable name aliasing issue.
+
+This reverts commit 9551cb0b84dc0c0c9c1778cc37d7bafef4fd4299
+
+diff --git a/dlls/kernelbase/loader.c b/dlls/kernelbase/loader.c
+index 5b70dfd874a..456a9f2da49 100644
+--- a/dlls/kernelbase/loader.c
++++ b/dlls/kernelbase/loader.c
+@@ -114,12 +114,12 @@ static BOOL load_library_as_datafile( LPCWSTR load_path, DWORD flags, LPCWSTR na
+ 
+         if (flags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE)
+         {
+-            struct exclusive_datafile *datafile = HeapAlloc( GetProcessHeap(), 0, sizeof(*datafile) );
+-            if (!datafile) goto failed;
+-            datafile->module = *mod_ret;
+-            datafile->file   = file;
+-            list_add_head( &exclusive_datafile_list, &datafile->entry );
+-            TRACE( "delaying close %p for module %p\n", datafile->file, datafile->module );
++            struct exclusive_datafile *file = HeapAlloc( GetProcessHeap(), 0, sizeof(*file) );
++            if (!file) goto failed;
++            file->module = *mod_ret;
++            file->file   = file;
++            list_add_head( &exclusive_datafile_list, &file->entry );
++            TRACE( "delaying close %p for module %p\n", file->file, file->module );
+             return TRUE;
+         }
+     }
+
 From 171675e5015b0946ea755d7d2c4182f4cfa5358a Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Sat, 5 Oct 2019 01:33:26 +0200

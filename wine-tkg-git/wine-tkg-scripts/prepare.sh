@@ -1029,24 +1029,30 @@ EOM
 	fi
 
 	# Revert 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase) to fix some dll loading issues
-	if [ "$_kernelbase_reverts" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ] && git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
-	  if [ "$_use_staging" == "true" ]; then
-	    _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
-	  else
-	    _patchname='proton-tkg-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch" && nonuser_patcher
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  if git merge-base --is-ancestor 9551cb0b84dc0c0c9c1778cc37d7bafef4fd4299 HEAD; then
+	    if [ "$_use_staging" == "true" ]; then
+	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
+	    else
+	      _patchname='proton-tkg-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch" && nonuser_patcher
+	    fi
+	  elif git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
+	    if [ "$_use_staging" == "true" ]; then
+	      _patchname='proton-tkg-staging-kernelbase-reverts-9551cb0.patch' && _patchmsg="Using kernelbase reverts patch (staging) (<9551cb0)" && nonuser_patcher
+	    else
+	      _patchname='proton-tkg-kernelbase-reverts-9551cb0.patch' && _patchmsg="Using kernelbase reverts patch (<9551cb0)" && nonuser_patcher
+	    fi
 	  fi
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
 	  if git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
-	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 1/3" && nonuser_patcher
-	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 2/3" && nonuser_patcher
-	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 3/3" && nonuser_patcher
+	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/2" && nonuser_patcher
+	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 2/2" && nonuser_patcher
 	    else
-	      _patchname='proton-tkg-kernelbase-reverts.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 1/3" && nonuser_patcher
-	      _patchname='proton-tkg-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/3" && nonuser_patcher
-	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 3/3" && nonuser_patcher
+	      _patchname='proton-tkg-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 1/2" && nonuser_patcher
+	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/2" && nonuser_patcher
 	    fi
 	  else
 	    if git merge-base --is-ancestor 619bd16e7a7486ca72cde1df01791629efb61341 HEAD; then

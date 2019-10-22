@@ -1,34 +1,3 @@
-From 2d049f6e78eaa3eafbb60a884091a6fcd4c7d7be Mon Sep 17 00:00:00 2001
-From: Tk-Glitch <ti3nou@gmail.com>
-Date: Tue, 22 Oct 2019 06:31:01 +0200
-Subject: Revert kernelbase: Fix variable name aliasing issue.
-
-This reverts commit 9551cb0b84dc0c0c9c1778cc37d7bafef4fd4299
-
-diff --git a/dlls/kernelbase/loader.c b/dlls/kernelbase/loader.c
-index 5b70dfd874a..456a9f2da49 100644
---- a/dlls/kernelbase/loader.c
-+++ b/dlls/kernelbase/loader.c
-@@ -114,12 +114,12 @@ static BOOL load_library_as_datafile( LPCWSTR load_path, DWORD flags, LPCWSTR na
- 
-         if (flags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE)
-         {
--            struct exclusive_datafile *datafile = HeapAlloc( GetProcessHeap(), 0, sizeof(*datafile) );
--            if (!datafile) goto failed;
--            datafile->module = *mod_ret;
--            datafile->file   = file;
--            list_add_head( &exclusive_datafile_list, &datafile->entry );
--            TRACE( "delaying close %p for module %p\n", datafile->file, datafile->module );
-+            struct exclusive_datafile *file = HeapAlloc( GetProcessHeap(), 0, sizeof(*file) );
-+            if (!file) goto failed;
-+            file->module = *mod_ret;
-+            file->file   = file;
-+            list_add_head( &exclusive_datafile_list, &file->entry );
-+            TRACE( "delaying close %p for module %p\n", file->file, file->module );
-             return TRUE;
-         }
-     }
-
 From 171675e5015b0946ea755d7d2c4182f4cfa5358a Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
 Date: Sat, 5 Oct 2019 01:33:26 +0200
@@ -648,18 +617,18 @@ index 5b70dfd874..4a3e0f4722 100644
                              NULL, OPEN_EXISTING, 0, 0 );
 
 
-From ea7454188b454ab164133982ac818b084b696647 Mon Sep 17 00:00:00 2001
+From 1b7c0d2233456e8e8b67746bef60262a8354bc25 Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
-Date: Fri, 4 Oct 2019 03:13:09 +0200
+Date: Fri, 4 Oct 2019 03:17:51 +0200
 Subject: Revert c5dc41e980b311a9d49122c6e3e33a1c4483c660,
  a5d45e9ae5a6a88f859c1ca1f05b4c93a0817103,
  619bd16e7a7486ca72cde1df01791629efb61341 Conflicting with our proton meta
  patchset
 
-Staging edition
+Mainline edition
 
 diff --git a/dlls/kernel32/kernel32.spec b/dlls/kernel32/kernel32.spec
-index 73cb8260cf..e051ac0e7a 100644
+index 6cf7feb0d7..f522429b76 100644
 --- a/dlls/kernel32/kernel32.spec
 +++ b/dlls/kernel32/kernel32.spec
 @@ -140,7 +140,7 @@
@@ -1406,14 +1375,13 @@ index b7f19ffe36..131c2f9621 100644
   *           GetProcAddress   		(KERNEL32.@)
   *
 diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
-index 2e96a24324..610ce1deb0 100644
+index 28fad7e61b..0eab7ec9e5 100644
 --- a/dlls/kernel32/process.c
 +++ b/dlls/kernel32/process.c
-@@ -442,22 +442,11 @@ static HANDLE open_exe_file( const WCHAR *name, BOOL *is_64bit )
+@@ -439,18 +439,11 @@ static HANDLE open_exe_file( const WCHAR *name, BOOL *is_64bit )
   */
  static BOOL find_exe_file( const WCHAR *name, WCHAR *buffer, int buflen, HANDLE *handle )
  {
--    WCHAR cur_dir[MAX_PATH];
 -    WCHAR *load_path;
 -    BOOL ret;
 -
@@ -1422,10 +1390,7 @@ index 2e96a24324..610ce1deb0 100644
 -    TRACE("looking for %s in %s\n", debugstr_w(name), debugstr_w(load_path) );
 +    TRACE("looking for %s\n", debugstr_w(name) );
  
--    ret = (NeedCurrentDirectoryForExePathW( name ) && GetCurrentDirectoryW( MAX_PATH, cur_dir) &&
--           SearchPathW( cur_dir, name, exeW, buflen, buffer, NULL )) ||
--           /* not found in the working directory, try the system search path */
--           (SearchPathW( load_path, name, exeW, buflen, buffer, NULL ) ||
+-    ret = (SearchPathW( load_path, name, exeW, buflen, buffer, NULL ) ||
 -           /* no builtin found, try native without extension in case it is a Unix app */
 -           SearchPathW( load_path, name, NULL, buflen, buffer, NULL ));
 -    RtlReleasePath( load_path );
@@ -1436,7 +1401,7 @@ index 2e96a24324..610ce1deb0 100644
  
      TRACE( "Trying native exe %s\n", debugstr_w(buffer) );
      *handle = CreateFileW( buffer, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_DELETE,
-@@ -1404,7 +1393,6 @@ void * CDECL __wine_kernel_init(void)
+@@ -1390,7 +1383,6 @@ void * CDECL __wine_kernel_init(void)
      RTL_USER_PROCESS_PARAMETERS *params = peb->ProcessParameters;
      HANDLE boot_events[2];
      BOOL got_environment = TRUE;
@@ -1444,7 +1409,7 @@ index 2e96a24324..610ce1deb0 100644
  
      /* Initialize everything */
  
-@@ -1443,14 +1431,12 @@ void * CDECL __wine_kernel_init(void)
+@@ -1429,14 +1421,12 @@ void * CDECL __wine_kernel_init(void)
      {
          BOOL is_64bit;
  
@@ -1460,7 +1425,7 @@ index 2e96a24324..610ce1deb0 100644
          update_library_argv0( main_exe_name );
          if (!build_command_line( __wine_main_wargv )) goto error;
          start_wineboot( boot_events );
-@@ -1463,8 +1449,8 @@ void * CDECL __wine_kernel_init(void)
+@@ -1449,8 +1439,8 @@ void * CDECL __wine_kernel_init(void)
      TRACE( "starting process name=%s argv[0]=%s\n",
             debugstr_w(main_exe_name), debugstr_w(__wine_main_wargv[0]) );
  
@@ -1472,7 +1437,7 @@ index 2e96a24324..610ce1deb0 100644
      if (boot_events[0])
      {
 diff --git a/dlls/kernel32/tests/path.c b/dlls/kernel32/tests/path.c
-index 11b5ea35f0..976993c922 100644
+index 71577793b0..876ca743bc 100644
 --- a/dlls/kernel32/tests/path.c
 +++ b/dlls/kernel32/tests/path.c
 @@ -73,15 +73,10 @@ static DWORD (WINAPI *pGetLongPathNameW)(LPWSTR,LPWSTR,DWORD);
@@ -1494,7 +1459,7 @@ index 11b5ea35f0..976993c922 100644
  
  static BOOL   (WINAPI *pActivateActCtx)(HANDLE,ULONG_PTR*);
  static HANDLE (WINAPI *pCreateActCtxW)(PCACTCTXW);
-@@ -2209,10 +2204,7 @@ static void init_pointers(void)
+@@ -2206,10 +2201,7 @@ static void init_pointers(void)
      MAKEFUNC(NeedCurrentDirectoryForExePathA);
      MAKEFUNC(NeedCurrentDirectoryForExePathW);
      MAKEFUNC(SetSearchPathMode);
@@ -1506,16 +1471,16 @@ index 11b5ea35f0..976993c922 100644
      MAKEFUNC(ActivateActCtx);
      MAKEFUNC(CreateActCtxW);
      MAKEFUNC(DeactivateActCtx);
-@@ -2223,8 +2215,6 @@ static void init_pointers(void)
-     MAKEFUNC(CreateSymbolicLinkW);
- 
+@@ -2218,8 +2210,6 @@ static void init_pointers(void)
+     MAKEFUNC(CheckNameLegalDOS8Dot3W);
+     MAKEFUNC(CheckNameLegalDOS8Dot3A);
      mod = GetModuleHandleA("ntdll.dll");
 -    MAKEFUNC(LdrGetDllPath);
 -    MAKEFUNC(RtlGetExePath);
      MAKEFUNC(RtlGetSearchPath);
      MAKEFUNC(RtlReleasePath);
- 
-@@ -2486,23 +2476,12 @@ static void test_SetSearchPathMode(void)
+ #undef MAKEFUNC
+@@ -2480,23 +2470,12 @@ static void test_SetSearchPathMode(void)
  
  static const WCHAR pathW[] = {'P','A','T','H',0};
  
@@ -1540,7 +1505,7 @@ index 11b5ea35f0..976993c922 100644
      GetSystemDirectoryW( p, buffer + size - p );
      p = buffer + lstrlenW(buffer);
      *p++ = ';';
-@@ -2512,7 +2491,7 @@ static void build_search_path( WCHAR *buffer, UINT size, const WCHAR *dlldir, BO
+@@ -2506,7 +2485,7 @@ static void build_search_path( WCHAR *buffer, UINT size, const WCHAR *dlldir, BO
      GetWindowsDirectoryW( p, buffer + size - p );
      p = buffer + lstrlenW(buffer);
      *p++ = ';';
@@ -1549,7 +1514,7 @@ index 11b5ea35f0..976993c922 100644
      {
          *p++ = '.';
          *p++ = ';';
-@@ -2528,7 +2507,7 @@ static BOOL path_equal( const WCHAR *path1, const WCHAR *path2 )
+@@ -2522,7 +2501,7 @@ static BOOL path_equal( const WCHAR *path1, const WCHAR *path2 )
          if (*path1 && *path1 != '\\' && *path1 != ';') return FALSE;
          while (*path1 && (*path1 == '\\' || *path1 == ';')) path1++;
          while (*path2 && (*path2 == '\\' || *path2 == ';')) path2++;
@@ -1558,7 +1523,7 @@ index 11b5ea35f0..976993c922 100644
      }
  }
  
-@@ -2536,7 +2515,7 @@ static void test_RtlGetSearchPath(void)
+@@ -2530,7 +2509,7 @@ static void test_RtlGetSearchPath(void)
  {
      NTSTATUS ret;
      WCHAR *path;
@@ -1567,7 +1532,7 @@ index 11b5ea35f0..976993c922 100644
  
      if (!pRtlGetSearchPath)
      {
-@@ -2545,10 +2524,8 @@ static void test_RtlGetSearchPath(void)
+@@ -2539,10 +2518,8 @@ static void test_RtlGetSearchPath(void)
      }
  
      GetEnvironmentVariableW( pathW, old_path, ARRAY_SIZE(old_path) );
@@ -1579,7 +1544,7 @@ index 11b5ea35f0..976993c922 100644
      path = (WCHAR *)0xdeadbeef;
      ret = pRtlGetSearchPath( &path );
      ok( !ret, "RtlGetSearchPath failed %x\n", ret );
-@@ -2556,195 +2533,23 @@ static void test_RtlGetSearchPath(void)
+@@ -2550,195 +2527,23 @@ static void test_RtlGetSearchPath(void)
      pRtlReleasePath( path );
  
      SetEnvironmentVariableA( "PATH", "foo" );
@@ -1780,13 +1745,12 @@ index 11b5ea35f0..976993c922 100644
      }
  
      SetEnvironmentVariableW( pathW, old_path );
-@@ -2874,7 +2679,5 @@ START_TEST(path)
+@@ -2779,6 +2584,4 @@ START_TEST(path)
      test_CheckNameLegalDOS8Dot3();
      test_SetSearchPathMode();
      test_RtlGetSearchPath();
 -    test_RtlGetExePath();
 -    test_LdrGetDllPath();
-     test_CreateSymbolicLink();
  }
 diff --git a/dlls/kernelbase/kernelbase.spec b/dlls/kernelbase/kernelbase.spec
 index b64a1fc1ae..7d86399af5 100644
@@ -2217,10 +2181,10 @@ index 4a3e0f4722..de46cc8c10 100644
   * Resources
   ***********************************************************************/
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index de304d8cd5..8d435f7862 100644
+index 610c62a3af..52a95877d2 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
-@@ -73,9 +73,7 @@ const WCHAR system_dir[] = {'C',':','\\','w','i','n','d','o','w','s','\\',
+@@ -72,25 +72,13 @@ const WCHAR system_dir[] = {'C',':','\\','w','i','n','d','o','w','s','\\',
  static const WCHAR system_path[] =
      {'C',':','\\','w','i','n','d','o','w','s','\\','s','y','s','t','e','m','3','2',';',
       'C',':','\\','w','i','n','d','o','w','s','\\','s','y','s','t','e','m',';',
@@ -2229,9 +2193,7 @@ index de304d8cd5..8d435f7862 100644
 -static const WCHAR dotW[] = {'.',0};
 +     'C',':','\\','w','i','n','d','o','w','s',';',0};
  
- #define IS_OPTION_TRUE(ch) ((ch) == 'y' || (ch) == 'Y' || (ch) == 't' || (ch) == 'T' || (ch) == '1')
- 
-@@ -84,17 +82,7 @@ static BOOL imports_fixup_done = FALSE;  /* set once the imports have been fixed
+ static BOOL imports_fixup_done = FALSE;  /* set once the imports have been fixed up, before attaching them */
  static BOOL process_detaching = FALSE;  /* set on process detach to avoid deadlocks with thread detach */
  static int free_lib_count;   /* recursion depth of LdrUnloadDll calls */
  static ULONG path_safe_mode;  /* path mode set by RtlSetSearchPathMode */
@@ -2247,9 +2209,9 @@ index de304d8cd5..8d435f7862 100644
 -
 -static struct list dll_dir_list = LIST_INIT( dll_dir_list );  /* extra dirs from LdrAddDllDirectory */
  
- static BOOL hide_wine_exports = FALSE;  /* try to hide ntdll wine exports from applications */
- 
-@@ -2249,54 +2237,25 @@ static BOOL is_valid_binary( HMODULE module, const pe_image_info_t *info )
+ struct ldr_notification
+ {
+@@ -2090,54 +2078,25 @@ static BOOL is_valid_binary( HMODULE module, const pe_image_info_t *info )
  }
  
  
@@ -2311,7 +2273,7 @@ index de304d8cd5..8d435f7862 100644
          len += (mod_end - module) + 1;
      }
  
-@@ -2307,18 +2266,18 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
+@@ -2148,18 +2107,18 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
      if (RtlQueryEnvironmentVariable_U( NULL, &name, &value ) == STATUS_BUFFER_TOO_SMALL)
          path_len = value.Length;
  
@@ -2341,7 +2303,7 @@ index de304d8cd5..8d435f7862 100644
      value.MaximumLength = path_len;
  
      while (RtlQueryEnvironmentVariable_U( NULL, &name, &value ) == STATUS_BUFFER_TOO_SMALL)
-@@ -2342,69 +2301,6 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
+@@ -2183,69 +2142,6 @@ static NTSTATUS get_dll_load_path( LPCWSTR module, LPCWSTR dll_dir, ULONG safe_m
  }
  
  
@@ -2411,7 +2373,7 @@ index de304d8cd5..8d435f7862 100644
  /***********************************************************************
   *	open_dll_file
   *
-@@ -4143,7 +4039,6 @@ static void load_global_options(void)
+@@ -3926,7 +3822,6 @@ static void load_global_options(void)
                                       'S','e','s','s','i','o','n',' ','M','a','n','a','g','e','r',0};
      static const WCHAR globalflagW[] = {'G','l','o','b','a','l','F','l','a','g',0};
      static const WCHAR safesearchW[] = {'S','a','f','e','P','r','o','c','e','s','s','S','e','a','r','c','h','M','o','d','e',0};
@@ -2419,7 +2381,7 @@ index de304d8cd5..8d435f7862 100644
      static const WCHAR critsectW[] = {'C','r','i','t','i','c','a','l','S','e','c','t','i','o','n','T','i','m','e','o','u','t',0};
      static const WCHAR heapresW[] = {'H','e','a','p','S','e','g','m','e','n','t','R','e','s','e','r','v','e',0};
      static const WCHAR heapcommitW[] = {'H','e','a','p','S','e','g','m','e','n','t','C','o','m','m','i','t',0};
-@@ -4167,7 +4062,6 @@ static void load_global_options(void)
+@@ -3950,7 +3845,6 @@ static void load_global_options(void)
  
      query_dword_option( hkey, globalflagW, &NtCurrentTeb()->Peb->NtGlobalFlag );
      query_dword_option( hkey, safesearchW, &path_safe_mode );
@@ -2427,7 +2389,7 @@ index de304d8cd5..8d435f7862 100644
  
      if (!query_dword_option( hkey, critsectW, &value ))
          NtCurrentTeb()->Peb->CriticalSectionTimeout.QuadPart = (ULONGLONG)value * -10000000;
-@@ -4320,124 +4214,6 @@ NTSTATUS WINAPI LdrSetDllDirectory( const UNICODE_STRING *dir )
+@@ -4103,124 +3997,6 @@ NTSTATUS WINAPI LdrSetDllDirectory( const UNICODE_STRING *dir )
  }
  
  
@@ -2552,7 +2514,7 @@ index de304d8cd5..8d435f7862 100644
  /*************************************************************************
   *		RtlSetSearchPathMode (NTDLL.@)
   */
-@@ -4470,38 +4246,13 @@ NTSTATUS WINAPI RtlSetSearchPathMode( ULONG flags )
+@@ -4253,38 +4029,13 @@ NTSTATUS WINAPI RtlSetSearchPathMode( ULONG flags )
  }
  
  
@@ -2594,7 +2556,7 @@ index de304d8cd5..8d435f7862 100644
  
  
 diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
-index 1881571b41..00332c7a20 100644
+index fd51312e8a..fe183a6074 100644
 --- a/dlls/ntdll/ntdll.spec
 +++ b/dlls/ntdll/ntdll.spec
 @@ -71,7 +71,6 @@
@@ -2637,10 +2599,10 @@ index 1881571b41..00332c7a20 100644
  @ stdcall RtlGetFrame()
  @ stdcall RtlGetFullPathName_U(wstr long ptr ptr)
 diff --git a/include/winternl.h b/include/winternl.h
-index e542d3cc90..0eb1fdd162 100644
+index 16df963770..cb0172c366 100644
 --- a/include/winternl.h
 +++ b/include/winternl.h
-@@ -2421,7 +2421,6 @@ NTSYSAPI NTSTATUS  WINAPI DbgUiIssueRemoteBreakin(HANDLE);
+@@ -2309,7 +2309,6 @@ NTSYSAPI NTSTATUS  WINAPI DbgUiIssueRemoteBreakin(HANDLE);
  NTSYSAPI void      WINAPI DbgUiRemoteBreakin(void*);
  NTSYSAPI void      WINAPI DbgUserBreakPoint(void);
  NTSYSAPI NTSTATUS  WINAPI LdrAccessResource(HMODULE,const IMAGE_RESOURCE_DATA_ENTRY*,void**,PULONG);
@@ -2648,7 +2610,7 @@ index e542d3cc90..0eb1fdd162 100644
  NTSYSAPI NTSTATUS  WINAPI LdrAddRefDll(ULONG,HMODULE);
  NTSYSAPI NTSTATUS  WINAPI LdrDisableThreadCalloutsForDll(HMODULE);
  NTSYSAPI NTSTATUS  WINAPI LdrFindEntryForAddress(const void*, PLDR_MODULE*);
-@@ -2429,15 +2428,12 @@ NTSYSAPI NTSTATUS  WINAPI LdrFindResourceDirectory_U(HMODULE,const LDR_RESOURCE_
+@@ -2317,15 +2316,12 @@ NTSYSAPI NTSTATUS  WINAPI LdrFindResourceDirectory_U(HMODULE,const LDR_RESOURCE_
  NTSYSAPI NTSTATUS  WINAPI LdrFindResource_U(HMODULE,const LDR_RESOURCE_INFO*,ULONG,const IMAGE_RESOURCE_DATA_ENTRY**);
  NTSYSAPI NTSTATUS  WINAPI LdrGetDllDirectory(UNICODE_STRING*);
  NTSYSAPI NTSTATUS  WINAPI LdrGetDllHandle(LPCWSTR, ULONG, const UNICODE_STRING*, HMODULE*);
@@ -2664,7 +2626,7 @@ index e542d3cc90..0eb1fdd162 100644
  NTSYSAPI NTSTATUS  WINAPI LdrSetDllDirectory(const UNICODE_STRING*);
  NTSYSAPI void      WINAPI LdrShutdownProcess(void);
  NTSYSAPI void      WINAPI LdrShutdownThread(void);
-@@ -2837,7 +2833,6 @@ NTSYSAPI NTSTATUS  WINAPI RtlGetControlSecurityDescriptor(PSECURITY_DESCRIPTOR,
+@@ -2724,7 +2720,6 @@ NTSYSAPI NTSTATUS  WINAPI RtlGetControlSecurityDescriptor(PSECURITY_DESCRIPTOR,
  NTSYSAPI ULONG     WINAPI RtlGetCurrentDirectory_U(ULONG, LPWSTR);
  NTSYSAPI PEB *     WINAPI RtlGetCurrentPeb(void);
  NTSYSAPI NTSTATUS  WINAPI RtlGetDaclSecurityDescriptor(PSECURITY_DESCRIPTOR,PBOOLEAN,PACL *,PBOOLEAN);
@@ -2797,7 +2759,7 @@ index 016c3022dc..bb496425aa 100644
 @@ -718,12 +718,12 @@
  @ stdcall GetMailslotInfo(long ptr ptr ptr ptr)
  @ stdcall GetMaximumProcessorCount(long)
- @ stdcall GetMaximumProcessorGroupCount()
+ # @ stub GetMaximumProcessorGroupCount
 -@ stdcall -import GetModuleFileNameA(long ptr long)
 -@ stdcall -import GetModuleFileNameW(long ptr long)
 -@ stdcall -import GetModuleHandleA(str)
