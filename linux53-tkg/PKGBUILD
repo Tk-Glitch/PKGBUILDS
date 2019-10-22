@@ -84,7 +84,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=7
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=14
+pkgrel=15
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -114,7 +114,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0006-add-acs-overrides_iommu.patch
         0007-v5.3-fsync.patch
         0009-glitched-bmq.patch
-        0009-bmq_v5.3.1.patch
+        0009-bmq_v5.3-r2.patch
         0010-umip-instruction-emulation.patch
         0011-ZFS-fix.patch
 )
@@ -134,7 +134,7 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
-            '39698ac22f8e9cc1513ebd3351817bb15f792b74b5ba03594c59182b7d5e1909'
+            '131ce6048e26771f5b017ceb4cc7106cd646c28ae8ce6d46c0fca92bed5f82ae'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc'
             '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
 
@@ -214,7 +214,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0009-bmq_v5.3.1.patch
+    patch -Np1 -i ../0009-bmq_v5.3-r2.patch
     patch -Np1 -i ../0009-glitched-bmq.patch
   elif [ "${_cpusched}" == "cfsturbo" ]; then
     # CFS+TurboSched
