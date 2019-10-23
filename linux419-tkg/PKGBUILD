@@ -680,6 +680,11 @@ prepare() {
     user_patcher
   fi
 
+  # Community patches removal
+  for _p in ${_community_patches[@]}; do
+    rm -f "$_where"/$_p
+  done
+
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
 
