@@ -9,6 +9,7 @@
 *.pkg
 *.bak
 *.tar.gz
+*.tar.zst
 *.old
 *.db
 *.files
