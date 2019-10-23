@@ -121,7 +121,11 @@ EOM
    done
 EOM
   fi
-  makepkg -csi --noconfirm --force
+  if [[ "$1" == "-f" ]] || [[ "$1" == "--force" ]]; then
+    makepkg -csi --noconfirm --force
+  else
+    makepkg -csi --noconfirm
+  fi
   if [ "$_AURPKGNAME" == "mingw-w64-winpthreads" ]; then
     libtool --finish /usr/x86_64-w64-mingw32/lib
   fi
