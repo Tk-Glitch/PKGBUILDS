@@ -20,7 +20,7 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.1.r642.g769dd2b
+pkgver=1.1.r644.g907d733
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
@@ -122,13 +122,13 @@ user_patcher() {
 }
 
 pkgver() {
-
 	# retrieve current version
 	cd "${srcdir}/${_vkd3dsrcdir}"
 	local _vkd3dVer="$(git describe --always --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^//;s/\.rc/rc/')"
 
 	# version string
 	printf '%s' "${_vkd3dVer#vkd3d.}"
+	cd "$_where"
 }
 
 prepare() {
