@@ -46,6 +46,11 @@ elif [ "$_OPTIPROFILE" == "3" ]; then
   source "$_where"/generic-desktop-profile.cfg && msg2 "Generic Desktop (Performance) profile will be used." && msg2 ""
 fi
 
+# source cpuschedset early if present
+if [ -e "$_where"/cpuschedset ]; then
+  source "$_where"/cpuschedset
+fi
+
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
@@ -957,44 +962,12 @@ hackheaders() {
   fi
 }
 
-package_linux52-tkg-pds() {
-hackbase
-}
-
-package_linux52-tkg-MuQSS() {
-hackbase
-}
-
-package_linux52-tkg-cfs() {
-hackbase
-}
-
-package_linux52-tkg-bmq() {
-hackbase
-}
-
-package_linux52-tkg-pds-headers() {
-hackheaders
-}
-
-package_linux52-tkg-MuQSS-headers() {
-hackheaders
-}
-
-package_linux52-tkg-cfs-headers() {
-hackheaders
-}
-
-package_linux52-tkg-bmq-headers() {
-hackheaders
-}
-
 source /dev/stdin <<EOF
-package_${_custom_pkgbase}() {
+package_${pkgbase}() {
 hackbase
 }
 
-package_${_custom_pkgbase}-headers() {
+package_${pkgbase}-headers() {
 hackheaders
 }
 EOF

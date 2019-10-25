@@ -44,6 +44,11 @@ if [ "$_OPTIPROFILE" == "2" ]; then
   source "$_where"/ryzen-desktop-profile.cfg && msg2 "Ryzen Desktop (Performance) profile will be used." && msg2 ""
 fi
 
+# source cpuschedset early if present
+if [ -e "$_where"/cpuschedset ]; then
+  source "$_where"/cpuschedset
+fi
+
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
@@ -133,6 +138,10 @@ sha256sums=('0c68f5655528aed4f99dae71a5b259edc93239fa899e2df79c055275c21749a1'
             'b58555e0a1dc18a75db0a436e446374bd0c2c45a3e39c86282a006f0862c546a'
             'babe6aaaab7df5aac831dec886674dcdf83877d031fb629c8ffadc0f20b0d3e9'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
+
+export KBUILD_BUILD_HOST=archlinux
+export KBUILD_BUILD_USER=$pkgbase
+export KBUILD_BUILD_TIMESTAMP="@${SOURCE_DATE_EPOCH:-$(date +%s)}"
 
 # Community patches
 if [ -n "$_community_patches" ]; then
@@ -933,36 +942,12 @@ hackheaders() {
   fi
 }
 
-package_linux419-tkg-pds() {
-hackbase
-}
-
-package_linux419-tkg-MuQSS() {
-hackbase
-}
-
-package_linux419-tkg-cfs() {
-hackbase
-}
-
-package_linux419-tkg-pds-headers() {
-hackheaders
-}
-
-package_linux419-tkg-MuQSS-headers() {
-hackheaders
-}
-
-package_linux419-tkg-cfs-headers() {
-hackheaders
-}
-
 source /dev/stdin <<EOF
-package_${_custom_pkgbase}() {
+package_${pkgbase}() {
 hackbase
 }
 
-package_${_custom_pkgbase}-headers() {
+package_${pkgbase}-headers() {
 hackheaders
 }
 EOF
