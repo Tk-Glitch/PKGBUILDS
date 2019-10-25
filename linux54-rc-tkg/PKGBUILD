@@ -46,6 +46,11 @@ elif [ "$_OPTIPROFILE" == "3" ]; then
   source "$_where"/generic-desktop-profile.cfg && msg2 "Generic Desktop (Performance) profile will be used." && msg2 ""
 fi
 
+# source cpuschedset early if present
+if [ -e "$_where"/cpuschedset ]; then
+  source "$_where"/cpuschedset
+fi
+
 # CPU SCHED selector
 #if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
 #  plain "What CPU sched variant do you want to build/install?"
@@ -122,6 +127,10 @@ sha256sums=('b1f4856860c9ac423446324aec0090a8de73b2b7213baede062db7d0d3b41838'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
+
+export KBUILD_BUILD_HOST=archlinux
+export KBUILD_BUILD_USER=$pkgbase
+export KBUILD_BUILD_TIMESTAMP="@${SOURCE_DATE_EPOCH:-$(date +%s)}"
 
 # Community patches
 if [ -n "$_community_patches" ]; then
@@ -862,8 +871,6 @@ hackheaders() {
   install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
   install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
 
-  mkdir "${_builddir}/.tmp_versions"
-
   cp -t "${_builddir}" -a include scripts
 
   install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
@@ -921,52 +928,12 @@ hackheaders() {
   fi
 }
 
-package_linux54-tkg-pds() {
-hackbase
-}
-
-package_linux54-tkg-MuQSS() {
-hackbase
-}
-
-package_linux54-tkg-cfs() {
-hackbase
-}
-
-package_linux54-tkg-cfsturbo() {
-hackbase
-}
-
-package_linux54-tkg-bmq() {
-hackbase
-}
-
-package_linux54-tkg-pds-headers() {
-hackheaders
-}
-
-package_linux54-tkg-MuQSS-headers() {
-hackheaders
-}
-
-package_linux54-tkg-cfs-headers() {
-hackheaders
-}
-
-package_linux54-tkg-cfsturbo-headers() {
-hackheaders
-}
-
-package_linux54-tkg-bmq-headers() {
-hackheaders
-}
-
 source /dev/stdin <<EOF
-package_${_custom_pkgbase}() {
+package_${pkgbase}() {
 hackbase
 }
 
-package_${_custom_pkgbase}-headers() {
+package_${pkgbase}-headers() {
 hackheaders
 }
 EOF
