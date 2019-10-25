@@ -43,7 +43,7 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.01\n  2.440 series: 440.26\n  3.435 series: 435.21\n  4.430 series: 430.50\n  5.418 series: 418.88\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.02\n  2.440 series: 440.26\n  3.435 series: 435.21\n  4.430 series: 430.50\n  5.418 series: 418.88\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=440.26' > options
       echo '_md5sum=e46e10e719e6e6bd6c79b149d2e58f61' >> options
@@ -85,8 +85,8 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; th
       echo "_md5sum='SKIP'" >> options
       echo "_driver_version=$_driver_version" >> options
     else
-      echo '_driver_version=435.27.01' > options
-      echo '_md5sum=b4d24de67bb0bf8e121cc7ef250eed56' >> options
+      echo '_driver_version=435.27.02' > options
+      echo '_md5sum=9cf23a4161dca27ba066b81d4f4e907b' >> options
       echo '_driver_branch=vulkandev' >> options
     fi
 # Package type selector
@@ -99,13 +99,18 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; th
       fi
   fi
   if [ -z "$_nvdxvktest" ]; then
-    plain "Do you want to test a potential workaround/fix for DXVK issue #1100?"
-    plain "The patch was suggested by NVIDIA"
-    plain "Please help fixing the problem by giving some feedback (good or bad):"
-    plain "https://github.com/doitsujin/dxvk/issues/1100"
-    read -rp "`echo $'    N/y ? : '`" nvtest;
-    if [ "$nvtest" == "y" ]; then
-      echo '_nvdxvktest="true"' >> options
+    if [ -e options ]; then
+      source options
+    fi
+    if [ "$_driver_version" != "435.27.02" ]; then
+      plain "Do you want to test a potential workaround/fix for DXVK issue #1100?"
+      plain "The patch was suggested by NVIDIA"
+      plain "Please help fixing the problem by giving some feedback (good or bad):"
+      plain "https://github.com/doitsujin/dxvk/issues/1100"
+      read -rp "`echo $'    N/y ? : '`" nvtest;
+      if [ "$nvtest" == "y" ]; then
+        echo '_nvdxvktest="true"' >> options
+      fi
     fi
   fi
 else
@@ -153,7 +158,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=71
+pkgrel=72
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -368,8 +373,8 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # 5.4
     if (( $(vercmp "$_kernel" "5.4") >= 0 )); then
       _kernel54="1"
-      _whitelist54=( 396* 410* 415* 418* 430* 435* )
-      if [[ $pkgver = 440* ]]; then
+      _whitelist54=( 396* 410* 415* 418* 430* 435.1* 435.21* 435.24* 435.27.01 )
+      if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 440* ]]; then
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
         patch -Np2 -i "$srcdir"/kernel-5.4-symver.diff
         cd ..
@@ -422,7 +427,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     done
 
     # DXVK issue #1100 test
-    if [ "$_nvdxvktest" == "true" ]; then
+    if [ "$_nvdxvktest" == "true" ] && [ "$pkgver" != "435.27.02" ]; then
       msg2 "Applying GFP_RETRY_MAYFAIL-test.patch for $_kernel..."
       patch -p2 -i "$srcdir"/GFP_RETRY_MAYFAIL-test.diff
     fi
@@ -540,7 +545,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       else
         msg2 "Skipping kernel-5.4.patch as it doesn't apply to this driver version..."
       fi
-      if [[ $pkgver = 440* ]]; then
+      if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 440* ]]; then
         patch -Np1 -i "$srcdir"/kernel-5.4-symver.diff
       fi
     fi
