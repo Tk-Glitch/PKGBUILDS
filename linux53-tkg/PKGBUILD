@@ -675,7 +675,8 @@ prepare() {
   if [ -z "$_umip_instruction_emulation" ]; then
     plain ""
     plain "Enable support for emulation of the SGDT, SIDT, and SMSW instructions for 64-bit processes?"
-    plain "May help with crashing in certain 64-bit Windows games under Wine, on UMIP-enabled systems."
+    plain "May help with crashing in certain 64-bit Windows games under Wine, on UMIP-enabled systems"
+    plain "(Cannonlake or newer for Intel, Zen2 or newer for AMD)."
     read -rp "`echo $'    > N/y : '`" CONDITION10;
   fi
   if [ "$CONDITION10" == "y" ] || [ "$_umip_instruction_emulation" == "true" ]; then
