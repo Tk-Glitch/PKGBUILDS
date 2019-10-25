@@ -49,27 +49,29 @@ fi
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-  read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.CFS+TurboSched (experimental)\n    4.BMQ\nchoice[1-4?]: '`" CONDITION;
+  read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.BMQ\n    4.CFS\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
-    echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
-  elif [ "$CONDITION" == "4" ]; then
     echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "4" ]; then
+    echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
   fi
   if [ -n "$_custom_pkgbase" ]; then
     echo "_custom_pkgbase=\"${_custom_pkgbase}\"" >> "$_where"/cpuschedset
   fi
-elif [ "$_cpusched" == "cfs" ]; then
-  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
-elif [ "$_cpusched" == "cfsturbo" ]; then
-  echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "muqss" ]; then
+  echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "pds" ]; then
   echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "bmq" ]; then
   echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "cfsturbo" ]; then
+  echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
+else
+  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
 fi
 
 source "$_where"/cpuschedset
@@ -84,7 +86,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=7
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=15
+pkgrel=16
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -109,6 +111,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0003-glitched-base.patch
         0003-glitched-cfs.patch
         0003-v5.3_turbosched-v4.patch
+        0004-glitched-muqss.patch
+        0004-5.3-ck1.patch
         0005-glitched-pds.patch
         0005-v5.3_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
@@ -129,6 +133,8 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '2cd58317a323bda2714de6208150c627729ce4cfe9c7d716376d19a81dcd015e'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '8e7b98412f110f3e95637a82c7536c0ca7f1169a892f041b8d30327995e0e98f'
+            '384770c97e982529ea20f09fac0c691f9d5eb79b614a0564dcb836f8bb7bb3b1'
+            'a6d6faca095342ec95a04512a400fdea65fb68d2fa758ad691ba8454350342e7'
             '703059b0b74ccc0cc839bba41f204a654be383072f8a880cce7eb5ac4a8f116d'
             'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
