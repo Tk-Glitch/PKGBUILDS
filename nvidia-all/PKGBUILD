@@ -561,7 +561,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     fi
 
     # DXVK issue #1100 test
-    if [ "$_nvdxvktest" == "true" ]; then
+    if [ "$_nvdxvktest" == "true" ] && [ "$pkgver" != "435.27.02" ]; then
       msg2 "Applying GFP_RETRY_MAYFAIL-test.patch for dkms..."
       patch -Np1 -i "$srcdir"/GFP_RETRY_MAYFAIL-test.diff
     fi
