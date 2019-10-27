@@ -1044,10 +1044,12 @@ EOM
 	    elif git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
 	      _lastcommit="9551cb0"
 	    fi
-	    if [ "$_use_staging" == "true" ]; then
-	      _patchname="proton-tkg-staging-kernelbase-reverts-$_lastcommit.patch" && _patchmsg="Using kernelbase reverts patch (staging) (<$_lastcommit)" && nonuser_patcher
-	    else
-	      _patchname="proton-tkg-kernelbase-reverts-$_lastcommit.patch" && _patchmsg="Using kernelbase reverts patch (<$_lastcommit)" && nonuser_patcher
+	    if [ -n "$_lastcommit" ]; then
+	      if [ "$_use_staging" == "true" ]; then
+	        _patchname="proton-tkg-staging-kernelbase-reverts-$_lastcommit.patch" && _patchmsg="Using kernelbase reverts patch (staging) (<$_lastcommit)" && nonuser_patcher
+	      else
+	        _patchname="proton-tkg-kernelbase-reverts-$_lastcommit.patch" && _patchmsg="Using kernelbase reverts patch (<$_lastcommit)" && nonuser_patcher
+	      fi
 	    fi
 	  fi
 	fi
