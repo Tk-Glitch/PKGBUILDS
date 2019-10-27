@@ -107,6 +107,7 @@ fi
         echo "gcc is not a clone of ${_gcc_git}. Please delete gcc dir and try again."
         exit 1
       fi
+      echo -e "\nPlease be patient, it might take a while...\n"
       git fetch --all -p
       rm -rf ${_nowhere}/build/gcc && git clone ${_nowhere}/gcc ${_nowhere}/build/gcc
       cd ${_nowhere}/build/gcc
@@ -339,8 +340,8 @@ fi
         echo -e "Installing ${_target} GCC C compiler"
         cd ${_nowhere}/build/gcc-base-${_target}
         make install-gcc
-        strip ${_dstdir}/bin/${_target}-*
-        strip ${_dstdir}/libexec/gcc/${_target}/${_gcc_version}/{cc1,collect2,lto*}
+        strip ${_dstdir}/bin/${_target}-* || true
+        strip ${_dstdir}/libexec/gcc/${_target}/${_gcc_version}/{cc1,collect2,lto*} || true
       done
 
       # mingw-w64-crt
@@ -430,9 +431,9 @@ fi
         ${_target}-strip ${_dstdir}/${_target}/lib/*.dll || true
         strip ${_dstdir}/bin/${_target}-*
         if [ $_fortran == "false" ]; then
-          strip ${_dstdir}/lib/gcc/${_target}/${_gcc_version}/{cc1*,collect2,gnat1,lto*}
+          strip ${_dstdir}/lib/gcc/${_target}/${_gcc_version}/{cc1*,collect2,gnat1,lto*} || true
         else
-          strip ${_dstdir}/lib/gcc/${_target}/${_gcc_version}/{cc1*,collect2,gnat1,f951,lto*}
+          strip ${_dstdir}/lib/gcc/${_target}/${_gcc_version}/{cc1*,collect2,gnat1,f951,lto*} || true
         fi
         ln -s ${_target}-gcc ${_dstdir}/bin/${_target}-cc
         # mv dlls
@@ -445,8 +446,8 @@ fi
         fi
       done
       # remove unnecessary files
-      rm -r ${_dstdir}/share
-      rm ${_dstdir}/lib/libcc1.*
+      rm -rf ${_dstdir}/share
+      rm -f ${_dstdir}/lib/libcc1.*
     else
       # binutils
       cd ${_nowhere}/build/binutils-${_binutils}
