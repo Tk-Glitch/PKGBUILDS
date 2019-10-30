@@ -804,7 +804,7 @@ EOM
 	  _patchname='high-core-count-fix.patch' && _patchmsg="Applied high core count fix" && nonuser_patcher
 	fi
 
-	# Workaround for Final Fantasy XIV Launcher 404 error - Thanks @varris1 !
+	# Workaround for Final Fantasy XIV Launcher 404 error - Thanks @varris1 ! - Fixed by d535df42f665a097ec721b10fb49d7b18f899be9 (4.10)
 	if [ "$_ffxivlauncher_fix" == "true" ] && ! git merge-base --is-ancestor d535df42f665a097ec721b10fb49d7b18f899be9 HEAD; then
 	  _patchname='ffxiv-launcher-workaround.patch' && _patchmsg="Applied Final Fantasy XIV Launcher fix" && nonuser_patcher
 	fi
