@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=19.3.0_devel.117073.41407d5e9fc
+pkgver=19.3.0_devel.117096.4f8c86e6a58
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -66,14 +66,11 @@ _mesa_srcdir="mesa"
 
 source=("$_sourceurl"
         'LICENSE'
-        'llvm32.native'
 )
 md5sums=('SKIP'
-         '5c65a0fe315dd347e09b1f2826a1df5a'
-         '6b4a19068a323d7f90a3d3cd315ed1f9')
+         '5c65a0fe315dd347e09b1f2826a1df5a')
 sha512sums=('SKIP'
-            '25da77914dded10c1f432ebcbf29941124138824ceecaf1367b3deedafaecabc082d463abcfa3d15abff59f177491472b505bcb5ba0c4a51bb6b93b4721a23c2'
-            'c7dbb390ebde291c517a854fcbe5166c24e95206f768cc9458ca896b2253aabd6df12a7becf831998721b2d622d0c02afdd8d519e77dea8e1d6807b35f0166fe')
+            '25da77914dded10c1f432ebcbf29941124138824ceecaf1367b3deedafaecabc082d463abcfa3d15abff59f177491472b505bcb5ba0c4a51bb6b93b4721a23c2')
 
 # Community patches
 if [ -n "$_community_patches" ]; then
@@ -83,7 +80,7 @@ if [ -n "$_community_patches" ]; then
   done
 fi
 
-cp "$_where"/mesa-userpatches/*.mymesa* "$_where" # copy userpatches inside the PKGBUILD's dir
+cp "$_where"/mesa-userpatches/*.mymesa* "$_where" >/dev/null 2>&1 # copy userpatches inside the PKGBUILD's dir
 
 function exit_cleanup {
   # Remove temporarily copied patches
@@ -245,39 +242,36 @@ prepare() {
 }
 
 build () {
-    meson setup $_mesa_srcdir _build64 \
+    arch-meson $_mesa_srcdir _build64 \
+       -D b_lto=false \
        -D b_ndebug=true \
-       -D buildtype=plain \
-       --wrap-mode=nofallback \
-       -D prefix=/usr \
-       -D sysconfdir=/etc \
        -D platforms=x11,wayland,drm,surfaceless \
        -D dri-drivers=i915,i965,r200,r100,nouveau \
-       -D gallium-drivers=r300,r600,radeonsi,nouveau,svga,swrast,virgl,iris \
+       -D gallium-drivers=r300,r600,radeonsi,nouveau,svga,swrast,swr,virgl,iris,zink \
        -D vulkan-drivers=amd,intel \
+       -D vulkan-overlay-layer=true \
+       -D swr-arches=avx,avx2 \
        -D dri3=true \
        -D egl=true \
        -D gallium-extra-hud=true \
        -D gallium-nine=true \
        -D gallium-omx=bellagio \
+       -D gallium-opencl=icd \
        -D gallium-va=true \
        -D gallium-vdpau=true \
        -D gallium-xa=true \
        -D gallium-xvmc=false \
        -D gbm=true \
-       -D gles1=true \
+       -D gles1=false \
        -D gles2=true \
-       -D glvnd=true \
        -D glx=dri \
        -D libunwind=true \
        -D llvm=true \
        -D lmsensors=true \
        -D osmesa=gallium \
        -D shared-glapi=true \
-       -D gallium-opencl=icd \
-       -D valgrind=false \
-       -D vulkan-overlay-layer=true \
-       -D tools=[]
+       -D opengl=true \
+       -D valgrind=true
        
     meson configure _build64
     ninja  $NINJAFLAGS -C _build64
@@ -294,23 +288,20 @@ build () {
       export CC="gcc -m32"
       export CXX="g++ -m32"
       export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
+      export LLVM_CONFIG="/usr/bin/llvm-config32"
 
-      meson setup $_mesa_srcdir _build32 \
-          --native-file llvm32.native \
-          -D b_ndebug=true \
-          -D buildtype=plain \
-          --wrap-mode=nofallback \
-          -D prefix=/usr \
-          -D sysconfdir=/etc \
+      arch-meson $_mesa_srcdir _build32 \
           --libdir=/usr/lib32 \
+          -D b_lto=false \
+          -D b_ndebug=true \
           -D platforms=x11,wayland,drm,surfaceless \
-          -D dri-drivers=i915,i965,r200,r100,nouveau \
-          -D gallium-drivers=r300,r600,radeonsi,nouveau,svga,swrast,virgl,iris \
+          -D dri-drivers=i915,i965,r100,r200,nouveau \
+          -D gallium-drivers=r300,r600,radeonsi,nouveau,virgl,svga,swrast,iris,zink \
           -D vulkan-drivers=amd,intel \
+          -D swr-arches=avx,avx2 \
           -D dri3=true \
           -D egl=true \
           -D gallium-extra-hud=true \
-          -D vulkan-overlay-layer=true \
           -D gallium-nine=true \
           -D gallium-omx=disabled \
           -D gallium-opencl=disabled \
@@ -319,17 +310,16 @@ build () {
           -D gallium-xa=true \
           -D gallium-xvmc=false \
           -D gbm=true \
-          -D gles1=true \
+          -D gles1=false \
           -D gles2=true \
           -D glvnd=true \
           -D glx=dri \
-          -D libunwind=true \
+          -D libunwind=false \
           -D llvm=true \
           -D lmsensors=true \
           -D osmesa=gallium \
           -D shared-glapi=true \
-          -D valgrind=false \
-          -D tools=[] \
+          -D valgrind=false
        
       meson configure _build32
       ninja $NINJAFLAGS -C _build32
