@@ -67,7 +67,7 @@ if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   if [ -n "$_custom_pkgbase" ]; then
     echo "_custom_pkgbase=\"${_custom_pkgbase}\"" >> "$_where"/cpuschedset
   fi
-elif [ "$_cpusched" == "muqss" ]; then
+elif [ "$_cpusched" == "muqss" ] || [ "$_cpusched" == "MuQSS" ]; then
   echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
 elif [ "$_cpusched" == "cfs" ]; then
   echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
