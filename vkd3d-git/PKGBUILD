@@ -25,9 +25,8 @@ pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
 
-if [ "$_vkd3d_source" == "staging" ]; then
-  _vkd3dsrcdir='vkd3d-staging'
-  _vkd3d_source='https://github.com/HansKristian-Work/vkd3d'
+if [ -n "$_vkd3d_source" ]; then
+  _vkd3dsrcdir=$( sed 's|/|-|g' <<< $(sed 's|.*://.[^/]*/||g' <<< $_vkd3d_source))
 else
   _vkd3dsrcdir='vkd3d'
   _vkd3d_source='https://source.winehq.org/git/vkd3d'
