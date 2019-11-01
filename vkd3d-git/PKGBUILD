@@ -20,7 +20,7 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.1.r657.ga38ee68
+pkgver=1.1.r662.g4576236
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
@@ -55,14 +55,6 @@ source=("$_vkd3dsrcdir"::"git+${_vkd3d_source}.git${_vkd3d_commit}"
 )
 
 makedepends=(${makedepends[@]} ${depends[@]})
-
-# Community patches
-if [ -n "$_community_patches" ]; then
-  _community_patches=($_community_patches)
-  for _p in ${_community_patches[@]}; do
-    ln -s "$_where"/../community-patches/vkd3d-git/$_p "$_where"/
-  done
-fi
 
 function exit_cleanup {
   # Remove temporarily copied patches
@@ -137,6 +129,14 @@ prepare() {
 
 	git reset --hard HEAD
 	git clean -xdf
+
+	# Community patches
+	if [ -n "$_community_patches" ]; then
+	  _community_patches=($_community_patches)
+	  for _p in ${_community_patches[@]}; do
+	    ln -s "$_where"/../community-patches/vkd3d-git/$_p "$_where"/
+	  done
+	fi
 
 	# vkd3d user patches
 	_userpatch_target="vkd3d"
