@@ -106,6 +106,7 @@ fi
 source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         'config.x86_64' # stock Arch config
+        'config_hardened.x86_64' # hardened Arch config
         'linux53-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
         '90-linux.hook'     # pacman hook for initramfs regeneration
@@ -126,10 +127,12 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0009-bmq_v5.3-r2.patch
         0010-umip-instruction-emulation.patch
         0011-ZFS-fix.patch
+        0012-linux-hardened.patch
 )
 sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '7225bd200069c7dd4fbae5cfe1c24f4f73939ea5bd213e20ac62771bdc9e7578'
             'e6d2df92f3079c740ca2cafd7e8b34b5dd43832d292284c2dc133d47600d1f29'
+            '514512ab1ffbb69367e20787b4ae7cc3a4df903aa6e8eb0a2c7e6ed4356c43c4'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -147,7 +150,8 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '131ce6048e26771f5b017ceb4cc7106cd646c28ae8ce6d46c0fca92bed5f82ae'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc'
-            '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
+            '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3'
+            '0dd90897d1857bf7b3f373c86174056a447774930c419fbc27db599da30dd51e')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
@@ -212,7 +216,12 @@ prepare() {
   patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
-  patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  if [ "${_configfile}" == "config_hardened.x86_64" ] && [ "${_cpusched}" == "cfs" ]; then
+    msg2 "Using linux hardened patchset"
+    patch -Np1 -i ../0012-linux-hardened.patch
+  else
+    patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  fi
 
   # TkG
   patch -Np1 -i ../0002-clear-patches.patch
