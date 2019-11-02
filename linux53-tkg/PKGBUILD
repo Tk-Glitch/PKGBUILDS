@@ -91,7 +91,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=8
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=18
+pkgrel=19
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -131,7 +131,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '7225bd200069c7dd4fbae5cfe1c24f4f73939ea5bd213e20ac62771bdc9e7578'
-            'e6d2df92f3079c740ca2cafd7e8b34b5dd43832d292284c2dc133d47600d1f29'
+            '1da444b9f2f55de39072f267598f80b6858adbf912deb5c08222b58cb0466ecb'
             '514512ab1ffbb69367e20787b4ae7cc3a4df903aa6e8eb0a2c7e6ed4356c43c4'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
