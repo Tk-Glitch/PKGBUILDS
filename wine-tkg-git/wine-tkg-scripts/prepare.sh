@@ -419,6 +419,9 @@ _prepare() {
 
 	# XRandR display device handler breaks FS hack, so let's get rid of it for now
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
+	    git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 && echo "Reverted 413aad3 to unbreak FS hack" >> "$_where"/last_build_config.log
+	  fi
 	  if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
 	    git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 && echo "Reverted de94cfa to unbreak FS hack" >> "$_where"/last_build_config.log
 	  fi
