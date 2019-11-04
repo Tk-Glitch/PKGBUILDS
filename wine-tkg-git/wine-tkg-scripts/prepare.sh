@@ -422,17 +422,17 @@ _prepare() {
 	  if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
 	    git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 && echo "Reverted 413aad3 to unbreak FS hack" >> "$_where"/last_build_config.log
 	  fi
+	  if git merge-base --is-ancestor 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 HEAD; then
+	    git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 && echo "Reverted 9ae8da6 to unbreak FS hack" >> "$_where"/last_build_config.log
+	  fi
 	  if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
 	    git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 && echo "Reverted de94cfa to unbreak FS hack" >> "$_where"/last_build_config.log
 	  fi
-	  if git merge-base --is-ancestor ffd4caa5f0e401cf973078fbbd54e4950d408792 HEAD; then
-	    git revert -n --no-edit ffd4caa5f0e401cf973078fbbd54e4950d408792 && echo "Reverted ffd4caa to unbreak FS hack" >> "$_where"/last_build_config.log
+	  if git merge-base --is-ancestor 6dbb153ede48e77a87dddf37e5276276a701c5c3 HEAD; then
+	    git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 && echo "Reverted 6dbb153 to unbreak FS hack" >> "$_where"/last_build_config.log
 	  fi
-	  if git merge-base --is-ancestor 22795243b2d21e1a667215f54c3a15634735749c HEAD; then
-	    git revert -n --no-edit 22795243b2d21e1a667215f54c3a15634735749c && echo "Reverted 2279524 to unbreak FS hack" >> "$_where"/last_build_config.log
-	  fi
-	  if git merge-base --is-ancestor be54adcffc249a44cb52c24320a7ad3db758ba54 HEAD; then
-	    git revert -n --no-edit be54adcffc249a44cb52c24320a7ad3db758ba54 && echo "Reverted be54adc to unbreak FS hack" >> "$_where"/last_build_config.log
+	  if git merge-base --is-ancestor 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 HEAD; then
+	    git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 && echo "Reverted 81f8b6e to unbreak FS hack" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
@@ -487,11 +487,16 @@ _prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
-	# Disable winex11.drv-mouse-coorrds patchset on staging for proton FS hack
+	# Disable winex11-WM_WINDOWPOSCHANGING and winex11-_NET_ACTIVE_WINDOW patchsets on proton-tkg staging
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_use_staging" == "true" ] || [ "$_proton_fs_hack" == "true" ]; then
+	  _staging_args+=(-W winex11-WM_WINDOWPOSCHANGING -W winex11-_NET_ACTIVE_WINDOW)
+	fi
+
+	# Disable winex11.drv-mouse-coorrds and winex11-MWM_Decorations patchsets on staging for proton FS hack
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
-	    _staging_args+=(-W winex11.drv-mouse-coorrds)
+	    _staging_args+=(-W winex11.drv-mouse-coorrds -W winex11-MWM_Decorations)
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
@@ -976,7 +981,9 @@ EOM
 	  else
 	    _patchname='valve_proton_fullscreen_hack-staging-legacy.patch' && _patchmsg="Applied Proton fullscreen hack patch (legacy)" && nonuser_patcher
 	  fi
-	  _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack" && nonuser_patcher
+	  if $(cd "${srcdir}"/"${_stgsrcdir}" && ! git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD); then
+	    _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack addon" && nonuser_patcher
+	  fi
 	fi
 
 	# rawinput legacy patches need to be applied after Fs hack patchset
