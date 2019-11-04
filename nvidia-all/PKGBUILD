@@ -43,10 +43,10 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.02\n  2.440 series: 440.26\n  3.435 series: 435.21\n  4.430 series: 430.50\n  5.418 series: 418.88\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.03\n  2.440 series: 440.31\n  3.435 series: 435.21\n  4.430 series: 430.50\n  5.418 series: 418.88\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
-      echo '_driver_version=440.26' > options
-      echo '_md5sum=e46e10e719e6e6bd6c79b149d2e58f61' >> options
+      echo '_driver_version=440.31' > options
+      echo '_md5sum=dc33e07e1b3ba11a14daf226f5d8cf7b' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "3" ]; then
       echo '_driver_version=435.21' > options
@@ -85,8 +85,8 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; th
       echo "_md5sum='SKIP'" >> options
       echo "_driver_version=$_driver_version" >> options
     else
-      echo '_driver_version=435.27.02' > options
-      echo '_md5sum=9cf23a4161dca27ba066b81d4f4e907b' >> options
+      echo '_driver_version=435.27.03' > options
+      echo '_md5sum=70cbbbbfebe4a62d9ea939e649ba9b52' >> options
       echo '_driver_branch=vulkandev' >> options
     fi
 # Package type selector
@@ -102,7 +102,7 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; th
     if [ -e options ]; then
       source options
     fi
-    if [ "$_driver_version" != "435.27.02" ]; then
+    if [ "$_driver_version" != "435.27.02" ] && [ "$_driver_version" != "435.27.03" ] && [ "$_driver_version" != "440.31" ]; then
       plain "Do you want to test a potential workaround/fix for DXVK issue #1100?"
       plain "The patch was suggested by NVIDIA"
       plain "Please help fixing the problem by giving some feedback (good or bad):"
@@ -158,7 +158,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=72
+pkgrel=73
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -261,8 +261,10 @@ prepare() {
   # linux-rt fix for newer drivers. This just passes the same value regardless of kernel type as a bypass. This was stolen from https://gitlab.manjaro.org/packages/community/realtime-kernels/linux416-rt-extramodules/blob/master/nvidia/PKGBUILD - Thanks Muhownage <3
   sed -i -e 's|PREEMPT_RT_PRESENT=1|PREEMPT_RT_PRESENT=0|g' kernel/conftest.sh
 
-  # non-english locale workaround for 440 series
-  sed -i -e 's|$CC $CFLAGS -c conftest_headers$$.c|LC_ALL=C $CC $CFLAGS -c conftest_headers$$.c|g' kernel/conftest.sh
+  # non-english locale workaround for 440.26
+  if [[ $pkgver = 440.26 ]]; then
+    sed -i -e 's|$CC $CFLAGS -c conftest_headers$$.c|LC_ALL=C $CC $CFLAGS -c conftest_headers$$.c|g' kernel/conftest.sh
+  fi
 
   cp -a kernel kernel-dkms
   cd kernel-dkms
@@ -374,7 +376,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     if (( $(vercmp "$_kernel" "5.4") >= 0 )); then
       _kernel54="1"
       _whitelist54=( 396* 410* 415* 418* 430* 435.1* 435.21* 435.24* 435.27.01 )
-      if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 440* ]]; then
+      if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 435.27.03 ]] || [[ $pkgver = 440.26 ]]; then
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
         patch -Np2 -i "$srcdir"/kernel-5.4-symver.diff
         cd ..
@@ -545,7 +547,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       else
         msg2 "Skipping kernel-5.4.patch as it doesn't apply to this driver version..."
       fi
-      if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 440* ]]; then
+      if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 435.27.03 ]] || [[ $pkgver = 440.26 ]]; then
         patch -Np1 -i "$srcdir"/kernel-5.4-symver.diff
       fi
     fi
@@ -561,7 +563,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     fi
 
     # DXVK issue #1100 test
-    if [ "$_nvdxvktest" == "true" ] && [ "$pkgver" != "435.27.02" ]; then
+    if [ "$_nvdxvktest" == "true" ] && [ "$pkgver" != "435.27.02" ] && [ "$pkgver" != "435.27.03" ] && [ "$pkgver" != "440.31" ]; then
       msg2 "Applying GFP_RETRY_MAYFAIL-test.patch for dkms..."
       patch -Np1 -i "$srcdir"/GFP_RETRY_MAYFAIL-test.diff
     fi
