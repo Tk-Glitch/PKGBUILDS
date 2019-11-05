@@ -43,7 +43,7 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.03\n  2.440 series: 440.31\n  3.435 series: 435.21\n  4.430 series: 430.50\n  5.418 series: 418.88\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.03\n  2.440 series: 440.31\n  3.435 series: 435.21\n  4.430 series: 430.64\n  5.418 series: 418.113\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
       echo '_driver_version=440.31' > options
       echo '_md5sum=dc33e07e1b3ba11a14daf226f5d8cf7b' >> options
@@ -53,12 +53,12 @@ if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; th
       echo '_md5sum=050acb0aecc93ba15d1fc609ee82bebe' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "4" ]; then
-      echo '_driver_version=430.50' > options
-      echo '_md5sum=f10833a9522b4c35ea3439dd17b11b28' >> options
+      echo '_driver_version=430.64' > options
+      echo '_md5sum=a4ea35bf913616c71f104f15092df714' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "5" ]; then
-      echo '_driver_version=418.88' > options
-      echo '_md5sum=b670e91f989826e54a1f05213a5a88ec' >> options
+      echo '_driver_version=418.113' > options
+      echo '_md5sum=0b21dbabaa25beed46c20a177e59642e' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "6" ]; then
       echo '_driver_version=415.27' > options
@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=73
+pkgrel=74
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -352,13 +352,13 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # 5.3
     if (( $(vercmp "$_kernel" "5.3") >= 0 )); then
       _kernel53="1"
-      _whitelist53=( 396* 410* 415* 418* )
+      _whitelist53=( 396* 410* 415* 418.3* 418.4* 418.5* 418.7* 418.8* )
     fi
 
     # 5.4
     if (( $(vercmp "$_kernel" "5.4") >= 0 )); then
       _kernel54="1"
-      _whitelist54=( 396* 410* 415* 418* 430* 435.1* 435.21* 435.24* 435.27.01 )
+      _whitelist54=( 396* 410* 415* 418.3* 418.4* 418.5* 418.7* 418.8* 430.0* 430.1* 430.2* 430.3* 430.4* 430.5* 435.1* 435.21* 435.24* 435.27.01 )
       if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 435.27.03 ]] || [[ $pkgver = 440.26 ]]; then
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
         patch -Np2 -i "$srcdir"/kernel-5.4-symver.diff
