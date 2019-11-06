@@ -256,11 +256,11 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'valve_proton_fullscreen_hack-staging-938dddf.patch' # Proton FS hack (<938dddf)
 		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
 		'valve_proton_fullscreen_hack-staging-82c6ec3.patch' # Proton FS hack (<82c6ec3)
-		'valve_proton_fullscreen_hack-staging-4.6.patch' # Proton FS hack for <=4.6
-		'valve_proton_fullscreen_hack-staging-4.5-a4b9460.patch' # Proton FS hack for <=4.5-a4b9460
-		'valve_proton_fullscreen_hack-staging-4.5.patch' # Proton FS hack for <=4.5
-		'valve_proton_fullscreen_hack-staging-4.4.patch' # Proton FS hack for <=4.4
-		'valve_proton_fullscreen_hack-staging-legacy.patch' # Proton FS hack for <=3.16 masochists
+		'valve_proton_fullscreen_hack-staging-7cc69d7.patch' # Proton FS hack (<7cc69d7)
+		'valve_proton_fullscreen_hack-staging-0cb79db.patch' # Proton FS hack (<0cb79db)
+		'valve_proton_fullscreen_hack-staging-a4b9460.patch' # Proton FS hack (<a4b9460)
+		'valve_proton_fullscreen_hack-staging-57bb5cc.patch' # Proton FS hack (<57bb5cc)
+		'valve_proton_fullscreen_hack-staging-6e87235.patch' # Proton FS hack for <=3.16 masochists (<6e87235)
 		'valve_proton_fullscreen_hack_realmodes.patch' # Real modes listing in FS hack
 		'winevulkan-1.1.113-proton.patch' # Update winevulkan - Proton edition
 		'proton-tkg-8d25965.patch' # Proton-tkg (<8d25965)
