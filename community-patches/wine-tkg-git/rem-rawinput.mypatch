@@ -1141,7 +1141,7 @@ background. They have to specify a target hwnd in which queue to receive
 them and the messages will carry a RIM_INPUTSINK wparam in this case.
 ---
  dlls/user32/rawinput.c       | 9 ++++++++-
- dlls/user32/tests/rawinput.c | 2 --
+ dlls/user32/tests/input.c | 2 --
  server/queue.c               | 8 ++++++--
  3 files changed, 14 insertions(+), 5 deletions(-)
 
@@ -1172,10 +1172,10 @@ index 511f8ce1755..47814e5b0ae 100644
              FIXME("Unhandled flags %#x for device %u.\n", devices[i].dwFlags, i);
  
          d[i].usage_page = devices[i].usUsagePage;
-diff --git a/dlls/user32/tests/rawinput.c b/dlls/user32/tests/rawinput.c
+diff --git a/dlls/user32/tests/input.c b/dlls/user32/tests/input.c
 index f4c8eb6738b..3e459a53940 100644
---- a/dlls/user32/tests/rawinput.c
-+++ b/dlls/user32/tests/rawinput.c
+--- a/dlls/user32/tests/input.c
++++ b/dlls/user32/tests/input.c
 @@ -80,9 +80,7 @@ static void test_RegisterRawInputDevices(void)
  
      SetLastError(0xdeadbeef);
