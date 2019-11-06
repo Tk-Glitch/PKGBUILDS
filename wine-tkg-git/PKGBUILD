@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.19.r1.gded2e226
+pkgver=4.19.r2.g8c5d374d
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -244,6 +244,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'revert-c6b6935.patch' # Reverts c6b6935 due to https://bugs.winehq.org/show_bug.cgi?id=47752
 		'proton-tkg-kernelbase-reverts.patch' # Reverts 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase). This is required for proton-tkg and fixes some dll loading issues (with Cemu notably)
 		'proton-tkg-staging-kernelbase-reverts.patch' # Staging version of the above patch
+		'proton-tkg-kernelbase-reverts-461b5e5.patch'
+		'proton-tkg-staging-kernelbase-reverts-461b5e5.patch'
 		'proton-tkg-kernelbase-reverts-9551cb0.patch'
 		'proton-tkg-staging-kernelbase-reverts-9551cb0.patch'
 		'proton-tkg-kernelbase-reverts-c258b5e.patch'
@@ -379,6 +381,8 @@ md5sums=('SKIP'
          '566ffc5356fc4713108185f9fd870038'
          '180accf6a6ea2102956716c863e2bfda'
          'b1ed3fe1cf1d2c0bc4e10d4233f7e2d9'
+         '43c81f7c81f6d2719af71309b64363be'
+         '6f5ebeec71ed4b6e7ce86b72cf5dadde'
          'a93f5e33afea26d15830f86ea6889e39'
          '634c6f10d973a1b27e0148ad35df62ce'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'

@@ -451,6 +451,21 @@ _prepare() {
 	  fi
 	fi
 
+	# Kernelbase reverts patchset - cleanly reverting part - Required by proton-tkg
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  if [ "$_use_staging" != "true" ]; then
+	    if git merge-base --is-ancestor 3dadd980bfbb2fb05a1a695decd06a429ddda97c HEAD; then
+	      git revert -n --no-edit 3dadd980bfbb2fb05a1a695decd06a429ddda97c && echo "Reverted 3dadd98 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	    fi
+	  fi
+	  if git merge-base --is-ancestor e5354008f46bc0e345c06ac06a7a7780faa9398b HEAD; then
+	    git revert -n --no-edit e5354008f46bc0e345c06ac06a7a7780faa9398b && echo "Reverted e535400 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	  fi
+	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
+	    git revert -n --no-edit 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a && echo "Reverted 461b5e5 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	  fi
+	fi
+
 	# Update winevulkan
 	if [ "$_update_winevulkan" == "true" ] && ! git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && git merge-base --is-ancestor eb39d3dbcac7a8d9c17211ab358cda4b7e07708a HEAD; then
 	  _patchname='winevulkan-1.1.103.patch' && _patchmsg="Applied winevulkan 1.1.103 patch" && nonuser_patcher
@@ -1009,14 +1024,16 @@ EOM
 
 	# Revert 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase) to fix some dll loading issues
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  if git merge-base --is-ancestor fd3735cf4dd55b5c582bd51bb03647e5eaf12847 HEAD; then
+	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
 	    else
 	      _patchname='proton-tkg-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor c258b5ef1100c8c238aab0a17ca743a326829aac HEAD; then
+	    if git merge-base --is-ancestor fd3735cf4dd55b5c582bd51bb03647e5eaf12847 HEAD; then
+	      _lastcommit="461b5e5"
+	    elif git merge-base --is-ancestor c258b5ef1100c8c238aab0a17ca743a326829aac HEAD; then
 	      _lastcommit="fd3735c"
 	    elif git merge-base --is-ancestor 9551cb0b84dc0c0c9c1778cc37d7bafef4fd4299 HEAD; then
 	      _lastcommit="c258b5e"
