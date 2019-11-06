@@ -529,33 +529,10 @@ _prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
-	# raw input fix by Guy1524 - part one
+	# Disable broken rawinput patchset that was enabled between e09468e and 5b066d6
 	cd "${srcdir}"/"${_stgsrcdir}"
-	if [ "$_use_staging" == "true" ] ; then
-	  if [ "$_rawinput_fix" == "staging" ] && git merge-base --is-ancestor 5b066d6aed7fd90c0be0a2a156b0e5c6cbb44bba HEAD; then
-	    _rawinput_fix="true"
-	  fi
-	  if [ "$_rawinput_fix" == "true" ] && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
-	    _staging_args+=(-W winex11-mouse-movements)
-	  fi
-	  if [ "$_rawinput_fix" != "staging" ] && git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD && ! git merge-base --is-ancestor 5b066d6aed7fd90c0be0a2a156b0e5c6cbb44bba HEAD; then
-	    _staging_args+=(-W user32-rawinput)
-	  fi
-      if [ "$_rawinput_fix" != "false" ]; then
-	    for _f in "$_where"/valve_proton_fullscreen_hack-staging-*.patch ; do
-	      patch ${_f} << 'EOM'
-@@ -2577,7 +2577,7 @@ index 1209a250b0..077c18ac10 100644
- +    input.u.mi.dx = pt.x;
- +    input.u.mi.dy = pt.y;
- +
--     TRACE( "pos %d,%d (event %f,%f, accum %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy, x_rel->accum, y_rel->accum );
-+     TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
-  
-      input.type = INPUT_MOUSE;
- diff --git a/dlls/winex11.drv/opengl.c b/dlls/winex11.drv/opengl.c
-EOM
-        done
-      fi
+	if [ "$_use_staging" == "true" ] && git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD && ! git merge-base --is-ancestor 5b066d6aed7fd90c0be0a2a156b0e5c6cbb44bba HEAD; then
+	  _staging_args+=(-W user32-rawinput)
     fi
 	cd "${srcdir}"/"${_winesrcdir}"
 
@@ -935,25 +912,6 @@ EOM
 	  fi
 	fi
 
-	# raw input fix by Guy1524 - part two - nolegacy
-	if [ "$_rawinput_fix" == "true" ] && [ "$_rawinput_fix" != "staging" ] && git merge-base --is-ancestor 4da1c4370be6515bf64c185e6b55a305247c754b HEAD; then
-	  if [ "$_use_staging" == "true" ]; then
-	    if [ "$_proton_fs_hack" == "true" ]; then
-	      cd "${srcdir}"/"${_stgsrcdir}"
-	      if git merge-base --is-ancestor e09468ec178930ac7b1ee33482cd03f0cc136685 HEAD; then
-	        cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-input.patch' && _patchmsg="Applied raw input fix (overriding staging)" && nonuser_patcher
-	      elif git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD && ! git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD; then
-	        _rawinputlegacy=1
-	      elif git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD && ! git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD; then
-	        _rawinputlegacy=2
-	      fi
-	    fi
-	    cd "${srcdir}"/"${_winesrcdir}"
-	  else
-	    _patchname='raw-input.patch' && _patchmsg="Applied raw input fix (mainline)" && nonuser_patcher
-	  fi
-	fi
-
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
@@ -973,12 +931,8 @@ EOM
         done
 	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (in a disabled state)" && nonuser_patcher
 	  fi
-	  if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor c0389b04792d93d361e12f53441bcf9f0d6c4fd5 HEAD) && [ "$_rawinput_fix" != "false" ]; then
+	  if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD); then
 	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
-	  elif $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD); then
-	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-valve_proton_fullscreen_hack-staging-c0389b0.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
-	  elif $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 938dddf7df920396ac3b30a44768c1582d0c144f HEAD && ! git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD); then
-	    cd "${srcdir}"/"${_winesrcdir}" && _patchname='raw-valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
 	  elif git merge-base --is-ancestor de6450135de419ac7e64aee0c0efa27b60bea3e8 HEAD; then
 	    _patchname='valve_proton_fullscreen_hack-staging-938dddf.patch' && _patchmsg="Applied Proton fullscreen hack patch (<938dddf)" && nonuser_patcher
 	  elif git merge-base --is-ancestor 82c6ec3a32f44e8b3e0cc88b7f10e0c0d7fa1b89 HEAD; then
@@ -999,13 +953,6 @@ EOM
 	  if $(cd "${srcdir}"/"${_stgsrcdir}" && ! git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD); then
 	    _patchname='valve_proton_fullscreen_hack_realmodes.patch' && _patchmsg="Using real modes in FS hack addon" && nonuser_patcher
 	  fi
-	fi
-
-	# rawinput legacy patches need to be applied after Fs hack patchset
-	if [ "$_rawinputlegacy" == "1" ]; then
-	  _patchname='raw-input-proton.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
-	elif [ "$_rawinputlegacy" == "2" ]; then
-	  _patchname='raw-input-proton-7349182.patch' && _patchmsg="Applied raw input fix" && nonuser_patcher
 	fi
 
 	# Update winevulkan

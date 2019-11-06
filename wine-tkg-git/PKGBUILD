@@ -5,7 +5,7 @@ pkgver=4.19.r1.gded2e226
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=214
+eval pkgrel=215
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -239,7 +239,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'high-core-count-fix.patch' # High core count setup fix for <=4.0
 		'nvidia-hate.patch' # novideo hate patch to disable nvapi, nvcuda etc.
 		'virtual_desktop_refreshrate.patch' # Add custom fake refreshrate to virtual desktop
-		'raw-input.patch' # Raw input fix by Guy1524
 		'0001-kernelbase-Remove-DECLSPEC_HOTPATCH-from-SetThreadSt.patch' # Native dotnet workaround for 4.13+
 		'usvfs.patch' # USVFS (Mod Organizer 2's virtual filesystem) patch
 		'revert-c6b6935.patch' # Reverts c6b6935 due to https://bugs.winehq.org/show_bug.cgi?id=47752
@@ -253,8 +252,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-staging-kernelbase-reverts-fd3735c.patch'
 		# proton
 		'FS_bypass_compositor.patch' # Perf
-		'raw-valve_proton_fullscreen_hack-staging.patch' # Proton FS hack for staging raw input impl
-		'raw-valve_proton_fullscreen_hack-staging-c0389b0.patch' # Proton FS hack for staging raw input impl (<c0389b0)
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
 		'valve_proton_fullscreen_hack-staging-938dddf.patch' # Proton FS hack (<938dddf)
 		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
@@ -302,8 +299,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-gamepad-additions.patch' # Proton 4.11-7 xinput hacks and other gamepad additions
 		'proton-vk-bits-4.5.patch' # Proton vk bits for 4.5+
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
-		'raw-input-proton.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset
-		'raw-input-proton-7349182.patch' # Raw input fix by Guy1524, to apply against the proton fs hack patchset (<7349182(staging))
 		'proton_mf_hacks-7c5fcff.patch' # Workarounds to prevent crashes on some mf functions (<7c5fcff)
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
 		'proton-wined3d-additions.patch' # Proton non-vr-related wined3d additions
@@ -380,7 +375,6 @@ md5sums=('SKIP'
          'd047619c11d95c4c9bbefae564876950'
          'bcf6dd7c16f37f20cca6ec4edfab5b34'
          'b415db953ef35b73c1608bc360356113'
-         '81e4daf39eac2fa996249195bc2cb4ea'
          'eba48702691263469da644495f9e1bfd'
          '566ffc5356fc4713108185f9fd870038'
          '180accf6a6ea2102956716c863e2bfda'
@@ -393,9 +387,7 @@ md5sums=('SKIP'
          '634c6f10d973a1b27e0148ad35df62ce'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
-         '17c64d0e5fa155868c10c6a7b18cf5df'
          '1faa90447591467c690063fd00073b16'
-         '5c58e179f8001cddbf05871a2483f131'
          '126f11c8ea4bc4bdb8a07f8724712564'
          'a21dd4c345c597bc2f9204ea253794d3'
          '46f69d6e2911afdce9a5e446aca3982a'
@@ -442,8 +434,6 @@ md5sums=('SKIP'
          '46c9db3524f858fcc8a8844a0294fc96'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
-         '72d50c442cb34ec7a46998636a63c424'
-         'd8616d47efbe0465cda808abb0e9ac5b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'
          '7857d05adb1227532f11b1c103f67126'
          '6a3515ac9aef8948d8be01a110a5c066')
