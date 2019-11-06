@@ -420,34 +420,34 @@ _prepare() {
 	# XRandR display device handler breaks FS hack, so let's get rid of it for now
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if git merge-base --is-ancestor 427152ec7b4ee85631617b693dbf1deea763c0ba HEAD; then
-	    $(git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba && echo "Reverted 427152e to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba && echo "Reverted 427152e to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 HEAD; then
-	    $(git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 && echo "Reverted b7b4bac to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 && echo "Reverted b7b4bac to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor acf03ed9da0f7d3f94de9b47c44366be3ee47f8e HEAD; then
-	    $(git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e && echo "Reverted acf03ed to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e && echo "Reverted acf03ed to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor 914b5519b1cd96f9ae19f1eec226e94af96354b9 HEAD; then
-	    $(git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 && echo "Reverted 914b551 to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 && echo "Reverted 914b551 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor 99d047724e768822d6508573cd82a5c75b30bdcb HEAD; then
-	    $(git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb && echo "Reverted 99d0477 to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb && echo "Reverted 99d0477 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
-	    $(git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 && echo "Reverted 413aad3 to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 && echo "Reverted 413aad3 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 HEAD; then
-	    $(git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 && echo "Reverted 9ae8da6 to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 && echo "Reverted 9ae8da6 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
-	    $(git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 && echo "Reverted de94cfa to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 && echo "Reverted de94cfa to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor 6dbb153ede48e77a87dddf37e5276276a701c5c3 HEAD; then
-	    $(git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 && echo "Reverted 6dbb153 to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 && echo "Reverted 6dbb153 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	  if git merge-base --is-ancestor 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 HEAD; then
-	    $(git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 && echo "Reverted 81f8b6e to unbreak FS hack" >> "$_where"/last_build_config.log) || exit 1
+	    git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 && echo "Reverted 81f8b6e to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
 	  fi
 	fi
 
