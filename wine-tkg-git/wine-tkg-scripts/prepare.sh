@@ -1056,10 +1056,13 @@ EOM
 	  else
 	    if git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
 	      _lastcommit="6d7828e"
+	      _rpc="1"
 	    elif git merge-base --is-ancestor 619bd16e7a7486ca72cde1df01791629efb61341 HEAD; then
 	      _lastcommit="8d25965"
+	      _rpc="1"
 	    elif git merge-base --is-ancestor 940c3b4896a75b65351d4c7d610f1071d0c9d0be HEAD; then
 	      _lastcommit="619bd16"
+	      _rpc="1"
 	    elif git merge-base --is-ancestor 0bebbbaa51c7647389ef9ac886169f6037356460 HEAD; then
 	      _lastcommit="940c3b4"
 	    elif git merge-base --is-ancestor 05d00276c627753487c571c30fddfc56c02ad37e HEAD; then
@@ -1074,9 +1077,15 @@ EOM
 	      _lastcommit="eafb4af"
         fi
 	    if [ "$_use_staging" == "true" ]; then
-	      _patchname="proton-tkg-staging-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches (staging-$_lastcommit)" && nonuser_patcher
+	      if [ "$_rpc" == "1" ]; then
+	        _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/2" && nonuser_patcher
+	      fi
+	      _patchname="proton-tkg-staging-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches (staging-$_lastcommit) 2/2" && nonuser_patcher
 	    else
-	      _patchname="proton-tkg-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches ($_lastcommit)" && nonuser_patcher
+	      if [ "$_rpc" == "1" ]; then
+	        _patchname='proton-tkg-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 1/2" && nonuser_patcher
+	      fi
+	      _patchname="proton-tkg-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches ($_lastcommit) 2/2" && nonuser_patcher
 	    fi
 	  fi
 	  # Enforce mscvrt Dlls to native then builtin - from Proton
