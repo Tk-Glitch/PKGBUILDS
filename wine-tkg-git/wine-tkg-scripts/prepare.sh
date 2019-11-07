@@ -415,53 +415,67 @@ _prepare() {
 	# XRandR display device handler breaks FS hack, so let's get rid of it for now
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if git merge-base --is-ancestor 427152ec7b4ee85631617b693dbf1deea763c0ba HEAD; then
-	    git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba && echo "Reverted 427152e to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba || exit 1
 	  fi
 	  if git merge-base --is-ancestor b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 HEAD; then
-	    git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 && echo "Reverted b7b4bac to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 || exit 1
 	  fi
 	  if git merge-base --is-ancestor acf03ed9da0f7d3f94de9b47c44366be3ee47f8e HEAD; then
-	    git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e && echo "Reverted acf03ed to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e || exit 1
 	  fi
 	  if git merge-base --is-ancestor 914b5519b1cd96f9ae19f1eec226e94af96354b9 HEAD; then
-	    git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 && echo "Reverted 914b551 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 || exit 1
 	  fi
 	  if git merge-base --is-ancestor 99d047724e768822d6508573cd82a5c75b30bdcb HEAD; then
-	    git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb && echo "Reverted 99d0477 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb || exit 1
 	  fi
 	  if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
-	    git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 && echo "Reverted 413aad3 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 || exit 1
 	  fi
 	  if git merge-base --is-ancestor 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 HEAD; then
-	    git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 && echo "Reverted 9ae8da6 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 || exit 1
 	  fi
 	  if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
-	    git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 && echo "Reverted de94cfa to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 || exit 1
 	  fi
 	  if git merge-base --is-ancestor 6dbb153ede48e77a87dddf37e5276276a701c5c3 HEAD; then
-	    git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 && echo "Reverted 6dbb153 to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 || exit 1
 	  fi
 	  if git merge-base --is-ancestor 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 HEAD; then
-	    git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 && echo "Reverted 81f8b6e to unbreak FS hack" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 || exit 1
 	  fi
+	  echo "FS hack unbreak reverts applied" >> "$_where"/last_build_config.log
 	fi
 
 	# Kernelbase reverts patchset - cleanly reverting part - Required by proton-tkg
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  if git merge-base --is-ancestor b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 HEAD; then
+	    git revert -n --no-edit b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 || exit 1
+	  fi
+	  if git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then
+	    git revert -n --no-edit 608d086f1b1bb7168e9322c65224c23f34e75f29 || exit 1
+	  fi
+	  if git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
+	    git revert -n --no-edit b7db0b52cee65a008f503ce727befcad3ba8d28a || exit 1
+	  fi
+	  if git merge-base --is-ancestor 3ede217e5cd80b18f709339aea281356579756cb HEAD; then
+	    git revert -n --no-edit 3ede217e5cd80b18f709339aea281356579756cb || exit 1
+	  fi
 	  if git merge-base --is-ancestor 87307de2173ee813daca9bd93ec750f17d3eda94 HEAD; then
-	    git revert -n --no-edit 87307de2173ee813daca9bd93ec750f17d3eda94 && echo "Reverted 87307de for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 87307de2173ee813daca9bd93ec750f17d3eda94 || exit 1
 	  fi
 	  if [ "$_use_staging" != "true" ]; then
 	    if git merge-base --is-ancestor 3dadd980bfbb2fb05a1a695decd06a429ddda97c HEAD; then
-	      git revert -n --no-edit 3dadd980bfbb2fb05a1a695decd06a429ddda97c && echo "Reverted 3dadd98 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	      git revert -n --no-edit 3dadd980bfbb2fb05a1a695decd06a429ddda97c || exit 1
 	    fi
 	  fi
 	  if git merge-base --is-ancestor e5354008f46bc0e345c06ac06a7a7780faa9398b HEAD; then
-	    git revert -n --no-edit e5354008f46bc0e345c06ac06a7a7780faa9398b && echo "Reverted e535400 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit e5354008f46bc0e345c06ac06a7a7780faa9398b || exit 1
 	  fi
 	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
-	    git revert -n --no-edit 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a && echo "Reverted 461b5e5 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	    git revert -n --no-edit 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a || exit 1
 	  fi
+	  echo "Kernelbase reverts clean reverts applied" >> "$_where"/last_build_config.log
 	fi
 
 	# Update winevulkan
