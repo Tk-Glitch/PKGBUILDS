@@ -448,6 +448,9 @@ _prepare() {
 
 	# Kernelbase reverts patchset - cleanly reverting part - Required by proton-tkg
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	  if git merge-base --is-ancestor 87307de2173ee813daca9bd93ec750f17d3eda94 HEAD; then
+	    git revert -n --no-edit 87307de2173ee813daca9bd93ec750f17d3eda94 && echo "Reverted 87307de for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
+	  fi
 	  if [ "$_use_staging" != "true" ]; then
 	    if git merge-base --is-ancestor 3dadd980bfbb2fb05a1a695decd06a429ddda97c HEAD; then
 	      git revert -n --no-edit 3dadd980bfbb2fb05a1a695decd06a429ddda97c && echo "Reverted 3dadd98 for kernelbase reverts patchset" >> "$_where"/last_build_config.log || exit 1
