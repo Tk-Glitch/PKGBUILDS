@@ -4,7 +4,7 @@ A simple distro-agnostic script to make portable x86_64 GCC/MinGW builds, handy 
 
 ## Requirements:
 You'll need basic development tools installed (base-devel, build-essential or similar for your distro as well as schedtool) to use it.
-**It is bound to the libc/binutils version of the host system, so cross-distro portability will only work for a given libc/binutils version combo**
+**It is bound to the libc version of the host system, so cross-distro portability will only work with a corresponding libc version**
 
 ## Customization:
 - Use `mostlyportable-gcc.cfg` or `mostlyportable-mingw.cfg` files (depending on the compiler you want to build) to define core options as needed;

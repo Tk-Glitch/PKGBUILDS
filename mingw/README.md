@@ -31,3 +31,6 @@ Here's more detail about the keys:
 `3A24BC1E8FB409FA9F14371813FCEF89DD9E3C4F` # Nick Clifton <nickc@redhat.com>
 `CAF5641F74F7DFBA88AE205693BDB53CD4EBC740` # Jonathan Yong <jon_y@users.sourceforge.net>
 `33C235A34C46AA3FFB293709A328C3A2C3C45C06` # Jakub Jelinek <jakub@redhat.com>
+
+## If you don't necessarily want pacman packages and would prefer a "portable" toolchain:
+A more powerful and configurable GCC/Mingw building tool (working cross-distro) is also available here https://github.com/Tk-Glitch/PKGBUILDS/tree/master/mostlyportable-gcc
