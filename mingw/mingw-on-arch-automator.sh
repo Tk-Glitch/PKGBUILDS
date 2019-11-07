@@ -157,21 +157,21 @@ done 2>/dev/null &
 if [ $_cloog_git == "true" ]; then
   sudo pacman -Rscnd cloog --noconfirm
   _AURPKGNAME=cloog-git
-  _mingwloop
+  _mingwloop || exit 1
 else
   sudo pacman -Rscnd cloog-git --noconfirm
 
   # osl - isl - cloog
   _AURPKGS=(osl isl cloog)
   for _AURPKGNAME in "${_AURPKGS[@]}"; do
-    _mingwloop
+    _mingwloop || exit 1
   done
 fi
 
 # mingw-w64-binutils - mingw-w64-headers - mingw-w64-headers-bootstrap - mingw-w64-gcc-base - mingw-w64-crt
 _AURPKGS=(mingw-w64-binutils mingw-w64-headers mingw-w64-headers-bootstrap mingw-w64-gcc-base mingw-w64-crt)
 for _AURPKGNAME in "${_AURPKGS[@]}"; do
-  _mingwloop
+  _mingwloop || exit 1
 done
 
 # remove mingw-w64-headers-bootstrap
@@ -179,20 +179,20 @@ sudo pacman -Rdd --noconfirm mingw-w64-headers-bootstrap
 
 # mingw-w64-winpthreads
 _AURPKGNAME=mingw-w64-winpthreads
-_mingwloop
+_mingwloop || exit 1
 
 # remove mingw-w64-gcc-base
 sudo pacman -Rdd --noconfirm mingw-w64-gcc-base
 
 # mingw-w64-gcc
 _AURPKGNAME=mingw-w64-gcc
-_mingwloop
+_mingwloop || exit 1
 
 if [ $_sdlandco == "true" ]; then
   # mingw-w64-pkg-config - mingw-w64-configure - mingw-w64-cmake - mingw-w64-sdl2
   _AURPKGS=(mingw-w64-pkg-config mingw-w64-configure mingw-w64-cmake mingw-w64-sdl2)
   for _AURPKGNAME in "${_AURPKGS[@]}"; do
-    _mingwloop
+    _mingwloop || exit 1
   done
 fi
 
