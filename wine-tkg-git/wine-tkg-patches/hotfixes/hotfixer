@@ -2,7 +2,7 @@
 
 if [ "$_use_staging" == "true" ]; then
   cd "${srcdir}"/"${_stgsrcdir}"
-  if [ "$_rawinput_fix" == "true" ] && git merge-base --is-ancestor fd3bb06a4c1102cf424bc78ead25ee440db1b0fa HEAD; then
+  if git merge-base --is-ancestor 471dc198a8bdeb9b9f0c5309b9d473253a1c9a31 HEAD; then
   cd "${srcdir}"/"${_winesrcdir}"
 
   hotfixer() {
@@ -11,6 +11,7 @@ if [ "$_use_staging" == "true" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
 	    msg2 "Found ${#_patches[@]} reverting hotfix:"
 	    printf '%s\n' "${_patches[@]}"
+	    msg2 "This patch was found to prevent various games/apps from running, so this reverts it."
 	    read -rp "Do you want to install it/them?"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
