@@ -217,11 +217,6 @@ _pkgnaming() {
       pkgname="${pkgname/%-git/-vkd3d-git}"
       msg2 "Using VKD3D for d3d12 translation"
     fi
-
-    if [ "$_use_faudio" == "true" ]; then
-      pkgname="${pkgname/%-git/-faudio-git}"
-      msg2 "Using Faudio for xaudio2"
-    fi
   fi
 
   # External install
