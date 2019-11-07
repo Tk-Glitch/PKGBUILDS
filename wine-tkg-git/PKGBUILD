@@ -5,7 +5,7 @@ pkgver=4.19.r6.g471dc198
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=216
+eval pkgrel=217
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -455,6 +455,7 @@ else
     "wine-esync=$pkgver"
   )
   conflicts=('wine' 'wine-wow64' 'wine-staging' 'wine-esync')
+  replaces=("${pkgname/%-git/-faudio-git}")
 fi
 
 makedepends=("${makedepends[@]}" "${depends[@]}")
