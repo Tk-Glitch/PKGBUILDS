@@ -644,8 +644,6 @@ _prepare() {
 	  if [ -d "${srcdir}"/"${_stgsrcdir}"/patches/server-send_hardware_message ]; then # ghetto check for server-send_hardware_message staging patchset presence
 	    _staging_args+=(-W server-send_hardware_message)
 	    echo "server-send_hardware_message staging patchset disabled (mouse jittering fix)" >> "$_where"/last_build_config.log
-	  else
-	    echo "server-send_hardware_message staging patchset wasn't found, so _server_send_hwmsg_disable setting was ignored" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
@@ -867,9 +865,7 @@ EOM
 
 	# apply wine-pba patchset
 	if [ "$_use_pba" == "true" ]; then
-	  if [ "$_pba_version" == "none" ]; then
-	    echo "PBA disabled due to known issues with selected Wine version" >> "$_where"/last_build_config.log
-	  else
+	  if [ "$_pba_version" != "none" ]; then
 	    _patchname="PBA${_pba_version}.patch" && _patchmsg="Using pba (${_pba_version}) patchset" && nonuser_patcher
 	  fi
 	fi
