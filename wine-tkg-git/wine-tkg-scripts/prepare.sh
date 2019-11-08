@@ -448,7 +448,7 @@ _prepare() {
 	fi
 
 	# Kernelbase reverts patchset - cleanly reverting part - Required by proton-tkg
-	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 HEAD; then
 	    git revert -n --no-edit b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 || exit 1
 	  fi
@@ -1029,7 +1029,7 @@ EOM
 	fi
 
 	# Revert 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase) to fix some dll loading issues
-	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
@@ -1078,7 +1078,7 @@ EOM
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-	  if git merge-base --is-ancestor 6d7828e8df68178ca662bc618f7598254afcfbe1 HEAD; then
+	  if git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/2" && nonuser_patcher
 	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 2/2" && nonuser_patcher
@@ -1087,7 +1087,10 @@ EOM
 	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/2" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
+	    if git merge-base --is-ancestor 6d7828e8df68178ca662bc618f7598254afcfbe1 HEAD; then
+	      _lastcommit="b7db0b5"
+	      _rpc="1"
+	    elif git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD; then
 	      _lastcommit="6d7828e"
 	      _rpc="1"
 	    elif git merge-base --is-ancestor 619bd16e7a7486ca72cde1df01791629efb61341 HEAD; then
