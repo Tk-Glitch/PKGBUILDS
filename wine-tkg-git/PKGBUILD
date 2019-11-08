@@ -235,6 +235,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'enable_stg_shared_mem_def.patch' # Enable STAGING_SHARED_MEMORY by default
 		'LAA-legacy.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
 		'LAA-staging-legacy.patch' # Same as above, for staging
+		'LAA-608d086.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<608d086)
+		'LAA-staging-608d086.patch' # Same as above, for staging (<608d086)
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
 		'LAA-staging.patch' # Same as above, for staging
 		'winevulkan-1.1.103.patch' # Update winevulkan
@@ -378,6 +380,8 @@ md5sums=('SKIP'
          '25e20e66ee3b2896f2979ba4e16ff767'
          '8427bb8d40cc49bc1de3a53ed82254ad'
          '3034b1a397cad46feb641cb3d7dc8584'
+         'befb9ee56a90ebffba98afb3dd6e7396'
+         '53bf2adcc2313f140fc79f2a093d2789'
          '1c4738e438debf72266b96d09f465b25'
          '9cabed407e00dc03ec4cd9e023285d76'
          'd047619c11d95c4c9bbefae564876950'

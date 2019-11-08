@@ -1009,21 +1009,6 @@ EOM
 	   _patchname='overwatch-mfstub.patch' && _patchmsg="Applied Overwatch mf crash fix" && nonuser_patcher
 	fi
 
-	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
-	if [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
-	  if [ "$_use_staging" == "true" ]; then
-	    _patchname='LAA-staging-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
-	  else
-	    _patchname='LAA-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
-	  fi
-	elif [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
-	  if [ "$_use_staging" == "true" ]; then
-	    _patchname='LAA-staging.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
-	  else
-	    _patchname='LAA.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
-	  fi
-	fi
-
 	# Workarounds to prevent crashes on some mf functions
 	if [ "$_use_staging" == "true" ] && [ "$_proton_mf_hacks" == "true" ] && git merge-base --is-ancestor b182ba882cfcce7b8769470f49f0fba216095c45 HEAD; then
 	  if git merge-base --is-ancestor 7c5fcfffe7b3a001c980f19cb6ed1cee049c26c8 HEAD; then
@@ -1068,6 +1053,27 @@ EOM
 	        _patchname="proton-tkg-kernelbase-reverts-$_lastcommit.patch" && _patchmsg="Using kernelbase reverts patch (<$_lastcommit)" && nonuser_patcher
 	      fi
 	    fi
+	  fi
+	fi
+
+	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
+	if [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
+	  if [ "$_use_staging" == "true" ]; then
+	    _patchname='LAA-staging-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
+	  else
+	    _patchname='LAA-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
+	  fi
+	elif [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then
+	  if [ "$_use_staging" == "true" ]; then
+	    _patchname='LAA-staging.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
+	  else
+	    _patchname='LAA.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
+	  fi
+	elif [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
+	  if [ "$_use_staging" == "true" ]; then
+	    _patchname='LAA-staging-608d086.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
+	  else
+	    _patchname='LAA.patch-608d086' && _patchmsg="Applied large address aware override support" && nonuser_patcher
 	  fi
 	fi
 

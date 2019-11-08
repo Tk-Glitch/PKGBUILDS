@@ -180,14 +180,14 @@ index d7dbe573a4f..e03335a2709 100644
  /******************************************************************************
   *	load_native_dll  (internal)
 @@ -3550,7 +3671,7 @@ void __wine_process_init(void)
-     NtCurrentTeb()->Peb->LoaderLock = &loader_section;
-     update_user_process_params( &wm->ldr.FullDllName );
-     version_init( wm->ldr.FullDllName.Buffer );
+         NtTerminateProcess( GetCurrentProcess(), STATUS_INVALID_IMAGE_FORMAT );
+     }
+ 
 -    virtual_set_large_address_space();
 +    virtual_set_large_address_space(needs_override_large_address_aware(NtCurrentTeb()->Peb->ProcessParameters->ImagePathName.Buffer));
  
-     LdrQueryImageFileExecutionOptions( &wm->ldr.FullDllName, globalflagW, REG_DWORD,
-                                        &NtCurrentTeb()->Peb->NtGlobalFlag, sizeof(DWORD), NULL );
+     /* the main exe needs to be the first in the load order list */
+     RemoveEntryList( &wm->ldr.InLoadOrderModuleList );
 diff --git a/dlls/ntdll/ntdll.spec b/dlls/ntdll/ntdll.spec
 index fe96472cb86..42f6ee2576d 100644
 --- a/dlls/ntdll/ntdll.spec
