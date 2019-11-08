@@ -4411,3 +4411,79 @@ index 20de45bc595..b3871ad3834 100644
                          if (current)
                          {
                              TRACE("Woken up by handle %p [%d].\n", handles[i], i);
+From 455786a3e6750ae502376da06e41424d012d52bf Mon Sep 17 00:00:00 2001
+From: Zebediah Figura <zfigura@codeweavers.com>
+Date: Mon, 16 Sep 2019 12:11:36 -0500
+Subject: [PATCH] ntdll: fix for spincounts
+
+---
+ dlls/ntdll/fsync.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/dlls/ntdll/fsync.c b/dlls/ntdll/fsync.c
+index b3871ad3834..2c4c656d276 100644
+--- a/dlls/ntdll/fsync.c
++++ b/dlls/ntdll/fsync.c
+@@ -860,18 +860,14 @@ static NTSTATUS __fsync_wait_objects( DWORD count, const HANDLE *handles,
+ 
+                         for (spin = 0; spin < spincount + 1; ++spin)
+                         {
+-                            do
++                            if ((current = __atomic_load_n( &semaphore->count, __ATOMIC_SEQ_CST ))
++                                    && __sync_val_compare_and_swap( &semaphore->count, current, current - 1) == current)
+                             {
+-                                if (!(current = semaphore->count)) goto out;
+-                            } while (__sync_val_compare_and_swap( &semaphore->count, current, current - 1 ) != current);
++                                TRACE("Woken up by handle %p [%d].\n", handles[i], i);
++                                return i;
++                            }
+                             small_pause();
+                         }
+-out:
+-                        if (current)
+-                        {
+-                            TRACE("Woken up by handle %p [%d].\n", handles[i], i);
+-                            return i;
+-                        }
+ 
+                         futexes[i].addr = &semaphore->count;
+                         futexes[i].val = current;
+From 367e8f9e04164299c175ade7a77915d1698d4770 Mon Sep 17 00:00:00 2001
+From: Zebediah Figura <z.figura12@gmail.com>
+Date: Tue, 29 Oct 2019 19:09:17 -0500
+Subject: [PATCH] ntdll/fsync: Fix spincounts for semaphores, again.
+
+---
+ dlls/ntdll/fsync.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/ntdll/fsync.c b/dlls/ntdll/fsync.c
+index 2c4c656d276..16bd38e7c8f 100644
+--- a/dlls/ntdll/fsync.c
++++ b/dlls/ntdll/fsync.c
+@@ -858,10 +858,14 @@ static NTSTATUS __fsync_wait_objects( DWORD count, const HANDLE *handles,
+                         struct semaphore *semaphore = obj->shm;
+                         int current;
+ 
+-                        for (spin = 0; spin < spincount + 1; ++spin)
++                        /* It would be a little clearer (and less error-prone)
++                         * to use a dedicated interlocked_dec_if_nonzero()
++                         * helper, but nesting loops like that is probably not
++                         * great for performance... */
++                        for (spin = 0; spin < spincount + 1 || current; ++spin)
+                         {
+                             if ((current = __atomic_load_n( &semaphore->count, __ATOMIC_SEQ_CST ))
+-                                    && __sync_val_compare_and_swap( &semaphore->count, current, current - 1) == current)
++                                    && __sync_val_compare_and_swap( &semaphore->count, current, current - 1 ) == current)
+                             {
+                                 TRACE("Woken up by handle %p [%d].\n", handles[i], i);
+                                 return i;
+@@ -870,7 +874,7 @@ static NTSTATUS __fsync_wait_objects( DWORD count, const HANDLE *handles,
+                         }
+ 
+                         futexes[i].addr = &semaphore->count;
+-                        futexes[i].val = current;
++                        futexes[i].val = 0;
+                         break;
+                     }
+                     case FSYNC_MUTEX:
