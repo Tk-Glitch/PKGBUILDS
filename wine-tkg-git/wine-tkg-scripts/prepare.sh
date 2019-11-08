@@ -861,7 +861,7 @@ _prepare() {
 	# Fix for Mortal Kombat 11 - Requires staging, native mfplat (win7) and a different GPU driver than RADV
 	if [ "$_mk11_fix" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_large_address_aware" == "true" ]; then
-	    for _f in "$_where"/LAA-staging.patch ; do
+	    for _f in "$_where"/LAA-stagin*.patch ; do
 	      patch ${_f} << 'EOM'
 @@ -220,15 +220,16 @@ diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
  index c008db78066..6163761a466 100644
@@ -1059,9 +1059,9 @@ EOM
 	# IMAGE_FILE_LARGE_ADDRESS_AWARE override - Enable with WINE_LARGE_ADDRESS_AWARE=1
 	if [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor c998667bf0983ef99cc48847d3d6fc6ca6ff4a2d HEAD && ! git merge-base --is-ancestor 9f0d66923933d82ae0b09fe5d84f977c1a657cc1 HEAD; then
 	  if [ "$_use_staging" == "true" ]; then
-	    _patchname='LAA-staging-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
+	    _patchname='legacy-LAA-staging.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
 	  else
-	    _patchname='LAA-legacy.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
+	    _patchname='legacy-LAA.patch' && _patchmsg="Applied large address aware override support (legacy)" && nonuser_patcher
 	  fi
 	elif [ "$_large_address_aware" == "true" ] && git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then
 	  if [ "$_use_staging" == "true" ]; then

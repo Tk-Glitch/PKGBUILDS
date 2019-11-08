@@ -233,8 +233,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'plasma_systray_fix.patch' # Systray fix for winex11
 		'faudio-exp.patch' # Faudio experimental support
 		'enable_stg_shared_mem_def.patch' # Enable STAGING_SHARED_MEMORY by default
-		'LAA-legacy.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
-		'LAA-staging-legacy.patch' # Same as above, for staging
+		'legacy-LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
+		'legacy-LAA-staging.patch' # Same as above, for staging
 		'LAA-608d086.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<608d086)
 		'LAA-staging-608d086.patch' # Same as above, for staging (<608d086)
 		'LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override
