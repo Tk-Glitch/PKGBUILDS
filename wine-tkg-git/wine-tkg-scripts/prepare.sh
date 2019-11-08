@@ -740,6 +740,13 @@ _prepare() {
 	      _patchname='esync-compat-fixes-r3.6.patch' && _patchmsg="Using esync 4.8+(29914d5) additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
+
+	    # if using a wine version that includes 608d086, apply 4.20+ additional fixes
+	    if git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then # server: Pass file object handle in IRP_CALL_CREATE request.
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.7.patch' && _patchmsg="Using esync 4.20+(608d086) additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
 	  elif git merge-base --is-ancestor aec7befb5115d866724149bbc5576c7259fef820 HEAD; then # server: Avoid potential size overflow for empty object attributes
 	    if [ "$_use_staging" == "true" ]; then
