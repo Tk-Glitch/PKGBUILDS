@@ -208,7 +208,9 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'esync-compat-fixes-r3.7.patch' # Addon for 4.20+ (608d086)
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# fsync
+		'fsync-mainline-608d086.patch' # Fsync patchset, introduced with Proton 4.11-1 (<608d086)
 		'fsync-mainline.patch' # Fsync patchset, introduced with Proton 4.11-1
+		'fsync-staging-608d086.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<608d086)
 		'fsync-staging-cf04b8d.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<cf04b8d)
 		'fsync-staging.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition
 		'fsync-staging-no_alloc_handle.patch' # Add no_alloc_handle object method to fsync for staging
@@ -350,8 +352,10 @@ md5sums=('SKIP'
          '565dd54d2ac0ed5e0b7b36e52dc66056'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '78bac45e2d8c9466ca74c3c6a37bf248'
-         'dcb0d65c67f87779af974f0899851308'
+         '0ac1e3c0355ec0091b6f203c73197b9e'
          'ed9467125c3771a0307acc9aeb9e95ee'
+         'dcb0d65c67f87779af974f0899851308'
+         '7c065d045aed89c8c322ad15f65ff4a6'
          'ff418685a55dbe3d4a14dfd1c9cde41c'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
