@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.19.r6.g471dc198
+pkgver=4.19.r9.gfb40c21c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=217
+eval pkgrel=218
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
