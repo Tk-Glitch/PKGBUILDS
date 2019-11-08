@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.19.r9.gfb40c21c
+pkgver=4.19.r7.ge1ac8f20
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -305,6 +305,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-gamepad-additions-fcfeaf0.patch' # Proton 4.11-1 xinput hacks and other gamepad additions (<fcfeaf0(staging))
 		'proton-gamepad-additions-8db70e9.patch' # Proton 4.11-3 xinput hacks and other gamepad additions (<8db70e9)
 		'proton-gamepad-additions-aa48242.patch' # Proton 4.11-3 xinput hacks and other gamepad additions (<aa48242)
+		'proton-gamepad-additions-c074966.patch' # Proton 4.11-3 xinput hacks and other gamepad additions (<c074966)
 		'proton-gamepad-additions.patch' # Proton 4.11-7 xinput hacks and other gamepad additions
 		'proton-vk-bits-4.5.patch' # Proton vk bits for 4.5+
 		'proton-restore-unicode.patch' # Restore installing wine/unicode.h to please Proton
@@ -422,6 +423,7 @@ md5sums=('SKIP'
          '333469023e6e55496c4ec28518f87a3f'
          '5af0c5ae73a70bd3215564d95a80a78e'
          '87a735dc5c2f198ee23bba31e4fd420d'
+         '11e75f0dcfaf0a70c53fa95bb9e76f05'
          'd45680d03ef27ee8ba0d6f4327366a97'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
@@ -432,6 +434,7 @@ md5sums=('SKIP'
          '3d55df1bc8677b16a41d7e6b555a609a'
          '28b66f6d107082e7dd50a4f842c42bef'
          '0ed0bf8c3cd2bed919aa2b8918b1c209'
+         'b93fe7f5948e32e6a947bcb8d2f8a2d8'
          '096c299231c93c078a77a0c345f99afd'
          'f404adafc8648495270e01241cd0601e'
          '017e316df9b4a6aada912f3a83e16b08'
@@ -448,6 +451,7 @@ md5sums=('SKIP'
          '656cec36554c499ff1681d56b76fba47'
          'dbfbe90139f3df928df6e96f1759d7e8'
          '46c9db3524f858fcc8a8844a0294fc96'
+         'c46f29cb50c9bd3322a4d81a7696bfe6'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'
