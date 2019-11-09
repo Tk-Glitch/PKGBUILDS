@@ -87,6 +87,7 @@ fi
 
   _exit_cleanup() {
     cd ${_nowhere}/build && find . -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
+    rm -f ${_nowhere}/proton_binutils*.binutilspatch
     echo -e "\n## Exit cleanup complete"
   }
 
@@ -171,6 +172,8 @@ fi
       chmod a+x osl-${_osl}.tar.* && tar -xvf osl-${_osl}.tar.* >/dev/null 2>&1
       chmod a+x cloog-${_cloog}.tar.* && tar -xvf cloog-${_cloog}.tar.* >/dev/null 2>&1
       chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
+      wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
+      wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
     fi
 
     # Make the process use our tools as they get built
@@ -181,6 +184,16 @@ fi
     _userpatch_ext="gcc"
     cd ${_nowhere}/build/gcc
     user_patcher
+
+    if [ "$_valve_patches" == "true" ]; then
+      mv ${_nowhere}/build/proton_binutils* ${_nowhere}/
+    fi
+
+    _userpatch_target="binutils"
+    _userpatch_ext="binutils"
+    cd ${_nowhere}/build/binutils-${_binutils}
+    user_patcher
+
   }
 
   _build() {
