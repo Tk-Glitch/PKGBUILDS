@@ -447,7 +447,7 @@ _prepare() {
 	  echo "FS hack unbreak reverts applied" >> "$_where"/last_build_config.log
 	fi
 
-	# Kernelbase reverts patchset - cleanly reverting part - Required by proton-tkg
+	# Kernelbase reverts patchset - cleanly reverting part
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 HEAD; then
 	    git revert -n --no-edit b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 || exit 1
@@ -1028,7 +1028,7 @@ EOM
 	  _patchname='nvidia-hate.patch' && _patchmsg="Hatin' on novideo" && nonuser_patcher
 	fi
 
-	# Revert 05d0027, 0f5538b, c5dc41e, a5d45e9, 619bd16 and 8d25965 (moving various funcs to kernelbase) to fix some dll loading issues
+	# Revert moving various funcs to kernelbase & ntdll to fix some dll loading issues and ntdll crashes (with Cemu and Blizzard games notably)
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
