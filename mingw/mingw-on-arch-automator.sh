@@ -70,6 +70,66 @@ _mingwloop() {
   if [ "$_win32threads" == "true" ]; then
     sed -i "s/threads=posix/threads=win32/g" PKGBUILD
   fi
+  if [ "$_AURPKGNAME" == "mingw-w64-headers" ]; then
+    #v6.0.0 folder in 7.0.0 sources issue
+    patch PKGBUILD << 'EOM'  
+@@ -9,7 +9,7 @@
+ options=('!strip' '!libtool' '!emptydirs')
+ validpgpkeys=('CAF5641F74F7DFBA88AE205693BDB53CD4EBC740')
+ source=(https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${pkgver}.tar.bz2{,.sig})
+-sha256sums=('aa20dfff3596f08a7f427aab74315a6cb80c2b086b4a107ed35af02f9496b628'
++sha256sums=('f5c9a04e1a6c02c9ef2ec19b3906ec4613606d1b5450d34bbd3c4d94ac696b3b'
+             'SKIP')
+ 
+ _targets="i686-w64-mingw32 x86_64-w64-mingw32"
+@@ -18,7 +18,7 @@
+   for _target in ${_targets}; do
+     msg "Configuring ${_target} headers"
+     mkdir -p "$srcdir"/headers-${_target} && cd "$srcdir"/headers-${_target}
+-    "$srcdir"/mingw-w64-v${pkgver}/mingw-w64-headers/configure --prefix=/usr/${_target} --enable-sdk=all --enable-secure-api --host=${_target}
++    "$srcdir"/mingw-w64-v6.0.0/mingw-w64-headers/configure --prefix=/usr/${_target} --enable-sdk=all --enable-secure-api --host=${_target}
+   done
+ }
+ 
+@@ -33,9 +33,9 @@
+   done
+ 
+   msg "Installing MinGW-w64 licenses"
+-  install -Dm644 "$srcdir"/mingw-w64-v${pkgver}/COPYING.MinGW-w64/COPYING.MinGW-w64.txt "$pkgdir"/usr/share/licenses/${pkgname}/COPYING.MinGW-w64.txt
+-  install -Dm644 "$srcdir"/mingw-w64-v${pkgver}/COPYING.MinGW-w64-runtime/COPYING.MinGW-w64-runtime.txt "$pkgdir"/usr/share/licenses/${pkgname}/COPYING.MinGW-w64-runtime.txt
+-  install -Dm644 "$srcdir"/mingw-w64-v${pkgver}/mingw-w64-headers/ddk/readme.txt "$pkgdir"/usr/share/licenses/${pkgname}/ddk-readme.txt
+-  install -Dm644 "$srcdir"/mingw-w64-v${pkgver}/mingw-w64-headers/direct-x/COPYING.LIB "$pkgdir"/usr/share/licenses/${pkgname}/direct-x-COPYING.LIB
+-  install -Dm644 "$srcdir"/mingw-w64-v${pkgver}/mingw-w64-headers/direct-x/readme.txt "$pkgdir"/usr/share/licenses/${pkgname}/direct-x-readme.txt
++  install -Dm644 "$srcdir"/mingw-w64-v6.0.0/COPYING.MinGW-w64/COPYING.MinGW-w64.txt "$pkgdir"/usr/share/licenses/${pkgname}/COPYING.MinGW-w64.txt
++  install -Dm644 "$srcdir"/mingw-w64-v6.0.0/COPYING.MinGW-w64-runtime/COPYING.MinGW-w64-runtime.txt "$pkgdir"/usr/share/licenses/${pkgname}/COPYING.MinGW-w64-runtime.txt
++  install -Dm644 "$srcdir"/mingw-w64-v6.0.0/mingw-w64-headers/ddk/readme.txt "$pkgdir"/usr/share/licenses/${pkgname}/ddk-readme.txt
++  install -Dm644 "$srcdir"/mingw-w64-v6.0.0/mingw-w64-headers/direct-x/COPYING.LIB "$pkgdir"/usr/share/licenses/${pkgname}/direct-x-COPYING.LIB
++  install -Dm644 "$srcdir"/mingw-w64-v6.0.0/mingw-w64-headers/direct-x/readme.txt "$pkgdir"/usr/share/licenses/${pkgname}/direct-x-readme.txt
+ }
+EOM
+  fi
+  if [ "$_AURPKGNAME" == "mingw-w64-winpthreads" ]; then
+    patch PKGBUILD << 'EOM'
+@@ -13,7 +13,7 @@
+ options=('!strip' '!buildflags' 'staticlibs' '!emptydirs')
+ validpgpkeys=('CAF5641F74F7DFBA88AE205693BDB53CD4EBC740')
+ source=(https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${pkgver}.tar.bz2{,.sig})
+-sha256sums=('aa20dfff3596f08a7f427aab74315a6cb80c2b086b4a107ed35af02f9496b628'
++sha256sums=('f5c9a04e1a6c02c9ef2ec19b3906ec4613606d1b5450d34bbd3c4d94ac696b3b'
+             'SKIP')
+ 
+ _targets="i686-w64-mingw32 x86_64-w64-mingw32"
+@@ -22,7 +22,7 @@
+   for _target in ${_targets}; do
+     msg "Building ${_target} winpthreads..."
+     mkdir -p "$srcdir"/winpthreads-build-${_target} && cd "$srcdir"/winpthreads-build-${_target}
+-    "$srcdir"/mingw-w64-v${pkgver}/mingw-w64-libraries/winpthreads/configure --prefix=/usr/${_target} \
++    "$srcdir"/mingw-w64-v6.0.0/mingw-w64-libraries/winpthreads/configure --prefix=/usr/${_target} \
+         --host=${_target} --enable-static --enable-shared
+     make
+   done 
+EOM
+  fi
   if [ "$_AURPKGNAME" == "mingw-w64-gcc-base" ] && [ $_dwarf2 == "true" ]; then
     #dwarf2 exceptions
     patch PKGBUILD << 'EOM'
@@ -82,6 +142,29 @@ _mingwloop() {
          --disable-nls --enable-version-specific-runtime-libs \
          --disable-multilib --enable-checking=release
      make all-gcc
+EOM
+  fi
+  if [ "$_AURPKGNAME" == "mingw-w64-crt" ]; then
+    patch PKGBUILD << 'EOM'
+@@ -10,7 +10,7 @@
+ options=('!strip' '!buildflags' 'staticlibs' '!emptydirs')
+ validpgpkeys=('CAF5641F74F7DFBA88AE205693BDB53CD4EBC740')
+ source=(https://sourceforge.net/projects/mingw-w64/files/mingw-w64/mingw-w64-release/mingw-w64-v${pkgver}.tar.bz2{,.sig})
+-sha256sums=('aa20dfff3596f08a7f427aab74315a6cb80c2b086b4a107ed35af02f9496b628'
++sha256sums=('f5c9a04e1a6c02c9ef2ec19b3906ec4613606d1b5450d34bbd3c4d94ac696b3b'
+             'SKIP')
+ 
+ _targets="i686-w64-mingw32 x86_64-w64-mingw32"
+@@ -25,7 +25,7 @@
+         _crt_configure_args="--disable-lib32 --enable-lib64"
+     fi
+     mkdir -p "$srcdir"/crt-${_target} && cd "$srcdir"/crt-${_target}
+-    "$srcdir"/mingw-w64-v${pkgver}/mingw-w64-crt/configure --prefix=/usr/${_target} \
++    "$srcdir"/mingw-w64-v6.0.0/mingw-w64-crt/configure --prefix=/usr/${_target} \
+         --host=${_target} --enable-wildcard \
+         ${_crt_configure_args}
+     make
+
 EOM
   fi
   if [ "$_AURPKGNAME" == "mingw-w64-gcc" ] && [ $_fortran == "false" ]; then
