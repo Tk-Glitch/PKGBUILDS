@@ -121,7 +121,7 @@ index cc7bf6900b..28bbb26f79 100644
  static const WCHAR dotW[] = {'.',0};
  
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 031bf83b4b..cca947ae41 100644
+index 031bf83b4b..a80afff56a 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -1710,6 +1710,28 @@ NTSTATUS WINAPI LdrUnlockLoaderLock( ULONG flags, ULONG_PTR magic )
@@ -153,7 +153,7 @@ index 031bf83b4b..cca947ae41 100644
  /******************************************************************
   *		LdrGetProcedureAddress  (NTDLL.@)
   */
-@@ -1720,6 +1742,19 @@ NTSTATUS WINAPI LdrGetProcedureAddress(HMODULE module, const ANSI_STRING *name,
+@@ -1720,6 +1742,18 @@ NTSTATUS WINAPI LdrGetProcedureAddress(HMODULE module, const ANSI_STRING *name,
      DWORD exp_size;
      NTSTATUS ret = STATUS_PROCEDURE_NOT_FOUND;
  
@@ -163,8 +163,7 @@ index 031bf83b4b..cca947ae41 100644
 +        HMODULE steamclient_mod;
 +
 +        RtlInitUnicodeString(&steamclient_us, steamclient_w);
-+        LdrGetDllHandle(NULL, 0, &steamclient_us, &steamclient_mod);
-+        if (steamclient_mod == module)
++        if (!(LdrGetDllHandle(NULL, 0, &steamclient_us, &steamclient_mod)) && steamclient_mod == module)
 +        {
 +            module = get_lsteamclient_mod();
 +        }
