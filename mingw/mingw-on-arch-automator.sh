@@ -26,6 +26,7 @@ EOM
 
 export BUILDDIR= # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
 
+_arg1="$1"
 _where=$PWD
 _dwarf2=true
 _fortran=false
@@ -204,7 +205,7 @@ EOM
    done
 EOM
   fi
-  if [[ "$1" == "-f" ]] || [[ "$1" == "--force" ]]; then
+  if [[ "$_arg1" == "-f" ]] || [[ "$_arg1" == "--force" ]]; then
     makepkg -csi --noconfirm --force
   else
     makepkg -csi --noconfirm
