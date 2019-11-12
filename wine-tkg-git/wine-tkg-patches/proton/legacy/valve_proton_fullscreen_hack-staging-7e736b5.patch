@@ -2055,9 +2055,9 @@ index f48db3da66..fe0858ca54 100644
 -    return device->funcs.p_vkAcquireNextImageKHR(device->device, swapchain, timeout, semaphore, fence, pImageIndex);
 -}
 -
- static VkResult WINAPI wine_vkAcquirePerformanceConfigurationINTEL(VkDevice device, const VkPerformanceConfigurationAcquireInfoINTEL *pAcquireInfo, VkPerformanceConfigurationINTEL *pConfiguration)
+ VkResult WINAPI wine_vkAllocateDescriptorSets(VkDevice device, const VkDescriptorSetAllocateInfo *pAllocateInfo, VkDescriptorSet *pDescriptorSets)
  {
-     TRACE("%p, %p, %p\n", device, pAcquireInfo, pConfiguration);
+ #if defined(USE_STRUCT_CONVERSION)
 @@ -2589,25 +2559,6 @@ static void WINAPI wine_vkCmdNextSubpass2KHR(VkCommandBuffer commandBuffer, cons
      commandBuffer->device->funcs.p_vkCmdNextSubpass2KHR(commandBuffer->command_buffer, pSubpassBeginInfo, pSubpassEndInfo);
  }
@@ -2157,9 +2157,9 @@ index f48db3da66..fe0858ca54 100644
 -    return queue->device->funcs.p_vkQueuePresentKHR(queue->queue, pPresentInfo);
 -}
 -
- static VkResult WINAPI wine_vkQueueSetPerformanceConfigurationINTEL(VkQueue queue, VkPerformanceConfigurationINTEL configuration)
+ VkResult WINAPI wine_vkQueueWaitIdle(VkQueue queue)
  {
-     TRACE("%p, 0x%s\n", queue, wine_dbgstr_longlong(configuration));
+     TRACE("%p\n", queue);
 diff --git a/dlls/winevulkan/vulkan_thunks.h b/dlls/winevulkan/vulkan_thunks.h
 index d39cab76ac..10444d0bc9 100644
 --- a/dlls/winevulkan/vulkan_thunks.h

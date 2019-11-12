@@ -260,6 +260,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
+		'valve_proton_fullscreen_hack-staging-7e736b5.patch' # Proton FS hack (<7e736b5)
 		'valve_proton_fullscreen_hack-staging-938dddf.patch' # Proton FS hack (<938dddf)
 		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
 		'valve_proton_fullscreen_hack-staging-82c6ec3.patch' # Proton FS hack (<82c6ec3)
@@ -404,6 +405,7 @@ md5sums=('SKIP'
          '634c6f10d973a1b27e0148ad35df62ce'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
+         '7fe6635805c658f5e4ed658b5f535948'
          '1faa90447591467c690063fd00073b16'
          '126f11c8ea4bc4bdb8a07f8724712564'
          'a21dd4c345c597bc2f9204ea253794d3'
