@@ -996,7 +996,7 @@ EOM
 	fi
 
 	# Update winevulkan
-	if [ "$_update_winevulkan" == "true" ] && git merge-base --is-ancestor ad82739dda15b44510f6003302f0ad17848a35a7 HEAD; then
+	if [ "$_update_winevulkan" == "true" ] && git merge-base --is-ancestor ad82739dda15b44510f6003302f0ad17848a35a7 HEAD && ! git merge-base --is-ancestor 7e736b5903d3d078bbf7bb6a509536a942f6b9a0 HEAD; then
 	  if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	    _patchname='winevulkan-1.1.113-proton.patch' && _patchmsg="Applied winevulkan 1.1.113 patch (proton edition)" && nonuser_patcher
 	  else
