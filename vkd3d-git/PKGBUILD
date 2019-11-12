@@ -20,12 +20,12 @@ plain '       `-+shdNNNNNNNNNNNNNNNdhs+-`'
 plain '             `.-:///////:-.`'
 
 pkgname=('vkd3d-tkg-git' 'lib32-vkd3d-tkg-git')
-pkgver=1.1.r662.g4576236
+pkgver=1.1.r663.g1d95550
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
 
-if [ -n "$_vkd3d_source" ]; then
+if [ -n "$_vkd3d_source" ] && [ "$_vkd3d_source" != 'https://source.winehq.org/git/vkd3d' ]; then
   _vkd3dsrcdir=$( sed 's|/|-|g' <<< $(sed 's|.*://.[^/]*/||g' <<< $_vkd3d_source))
 else
   _vkd3dsrcdir='vkd3d'
