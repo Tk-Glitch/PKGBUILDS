@@ -103,144 +103,9 @@ Subject: [PATCH] Replacement of de6a38d-9688551, excluding the wine.inf
  change.
 
 ---
- dlls/kernelbase/loader.c | 80 ++++++++++++++++++++++++++++++++++++++++
- dlls/ntdll/loader.c      |  3 +-
- 2 files changed, 82 insertions(+), 1 deletion(-)
+ dlls/ntdll/loader.c      |  37 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-diff --git a/dlls/kernelbase/loader.c b/dlls/kernelbase/loader.c
-index 456a9f2da4..bab05e587f 100644
---- a/dlls/kernelbase/loader.c
-+++ b/dlls/kernelbase/loader.c
-@@ -49,6 +49,31 @@ struct exclusive_datafile
- static struct list exclusive_datafile_list = LIST_INIT( exclusive_datafile_list );
- 
- 
-+/* Steam Client->Linux Steam Client Replacement Hack */
-+#ifdef _WIN64
-+#define STEAM_CLIENT_NAME L"steamclient64"
-+#else
-+#define STEAM_CLIENT_NAME L"steamclient"
-+#endif
-+static const WCHAR *steamClientDllName = STEAM_CLIENT_NAME;
-+static const WCHAR *steamClientDllPath = L"C:\\Program Files (x86)\\Steam\\"STEAM_CLIENT_NAME;
-+static HMODULE hSteamClient;
-+static HMODULE hSteamClientLin;
-+
-+static WCHAR *findSubstr( const WCHAR *str, const WCHAR *sub )
-+{
-+    while (*str)
-+    {
-+        const WCHAR *p1 = str, *p2 = sub;
-+        while (*p1 && *p2 && towlower(*p1) == towlower(*p2)) { p1++; p2++; }
-+        if (!*p2) return (WCHAR *)str;
-+        str++;
-+    }
-+    return NULL;
-+}
-+
-+/* End Replacement Hack Utilities */
-+
- /***********************************************************************
-  * Modules
-  ***********************************************************************/
-@@ -64,6 +89,9 @@ FARPROC WINAPI get_proc_address( HMODULE module, LPCSTR function )
- 
-     if (!module) module = NtCurrentTeb()->Peb->ImageBaseAddress;
- 
-+    if(hSteamClient != NULL && module == hSteamClient)
-+        module = hSteamClientLin;
-+
-     if ((ULONG_PTR)function >> 16)
-     {
-         RtlInitAnsiString( &str, function );
-@@ -144,9 +172,41 @@ static HMODULE load_library( const UNICODE_STRING *libname, DWORD flags )
-     NTSTATUS status;
-     HMODULE module;
-     WCHAR *load_path, *dummy;
-+    WCHAR *found;
- 
-     if (flags & unsupported_flags) FIXME( "unsupported flag(s) used %#08x\n", flags );
- 
-+    if((found = findSubstr(libname->Buffer, steamClientDllName)) && // and is not preceded by 1
-+            (found == libname->Buffer ||
-+             *(found - 1) != 'l'))
-+    {
-+
-+        if(!hSteamClientLin)
-+            hSteamClientLin = LoadLibraryA("lsteamclient.dll");
-+
-+        if(!hSteamClient){
-+            HANDLE f = CreateFileW(steamClientDllPath,
-+                    GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-+                    NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-+            /*if(f != INVALID_HANDLE_VALUE){
-+                DWORD sz, readed;
-+
-+                sz = GetFileSize(f, NULL);
-+
-+                hSteamClient = HeapAlloc(GetProcessHeap(), 0, sz);
-+                ReadFile(f, hSteamClient, sz, &readed, NULL);
-+
-+                CloseHandle(f);
-+            }else{*/
-+                /* this will fail DRM checks, but otherwise should work */
-+                ERR("somehow failed to load steamclient\n");
-+                hSteamClient = hSteamClientLin;
-+            /*}*/
-+        }
-+
-+        return hSteamClient;
-+    }
-+
-     if (!set_ntstatus( LdrGetDllPath( libname->Buffer, flags, &load_path, &dummy ))) return 0;
- 
-     if (flags & (LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE |
-@@ -238,6 +298,9 @@ BOOL WINAPI DECLSPEC_HOTPATCH FreeLibrary( HINSTANCE module )
-         return FALSE;
-     }
- 
-+    if(hSteamClient && module == hSteamClient)
-+        return TRUE;
-+
-     if ((ULONG_PTR)module & 3) /* this is a datafile module */
-     {
-         void *ptr = (void *)((ULONG_PTR)module & ~3);
-@@ -306,6 +369,12 @@ DWORD WINAPI DECLSPEC_HOTPATCH GetModuleFileNameW( HMODULE module, LPWSTR filena
-     LDR_MODULE *pldr;
-     WIN16_SUBSYSTEM_TIB *win16_tib;
- 
-+    if(hSteamClient && module == hSteamClient)
-+    {
-+        memcpy(filename, steamClientDllPath, (wcslen(steamClientDllPath)+1) * sizeof(WCHAR));
-+        return sizeof(steamClientDllPath)/sizeof(WCHAR);
-+    }
-+
-     if (!module && ((win16_tib = NtCurrentTeb()->Tib.SubSystemTib)) && win16_tib->exe_name)
-     {
-         len = min( size, win16_tib->exe_name->Length / sizeof(WCHAR) );
-@@ -403,11 +472,22 @@ BOOL WINAPI DECLSPEC_HOTPATCH GetModuleHandleExW( DWORD flags, LPCWSTR name, HMO
-     {
-         void *dummy;
-         if (!(ret = RtlPcToFileHeader( (void *)name, &dummy ))) status = STATUS_DLL_NOT_FOUND;
-+        if (hSteamClient && ret == hSteamClientLin)
-+            ret = hSteamClient;
-     }
-     else
-     {
-         UNICODE_STRING wstr;
-         RtlInitUnicodeString( &wstr, name );
-+
-+        if (hSteamClient && findSubstr(name, steamClientDllName))
-+        {
-+            *module = hSteamClient;
-+            if (lock)
-+                LdrUnlockLoaderLock( 0, magic );
-+            return STATUS_SUCCESS;
-+        }
-+
-         status = LdrGetDllHandle( NULL, 0, &wstr, &ret );
-     }
- 
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
 index cc7bf6900b..28bbb26f79 100644
 --- a/dlls/ntdll/loader.c
@@ -255,6 +120,59 @@ index cc7bf6900b..28bbb26f79 100644
  
  static const WCHAR dotW[] = {'.',0};
  
+diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
+index 031bf83b4b..cca947ae41 100644
+--- a/dlls/ntdll/loader.c
++++ b/dlls/ntdll/loader.c
+@@ -1710,6 +1710,28 @@ NTSTATUS WINAPI LdrUnlockLoaderLock( ULONG flags, ULONG_PTR magic )
+ }
+ 
+ 
++#ifdef _WIN64
++    static WCHAR steamclient_w[] = {'s','t','e','a','m','c','l','i','e','n','t','6','4',0};
++#else
++    static WCHAR steamclient_w[] = {'s','t','e','a','m','c','l','i','e','n','t',0};
++#endif
++static WCHAR lsteamclient_w[] = {'l','s','t','e','a','m','c','l','i','e','n','t',0};
++
++static HMODULE get_lsteamclient_mod(void)
++{
++    HMODULE lsteamclient_mod = 0;
++    UNICODE_STRING lsteamclient_us;
++    
++    RtlInitUnicodeString(&lsteamclient_us, lsteamclient_w);
++    LdrGetDllHandle(NULL, 0, &lsteamclient_us, &lsteamclient_mod);
++
++    if (lsteamclient_mod)
++        return lsteamclient_mod;
++    
++    LdrLoadDll(NULL, 0, &lsteamclient_us, &lsteamclient_mod);
++    return lsteamclient_mod;
++}
++
+ /******************************************************************
+  *		LdrGetProcedureAddress  (NTDLL.@)
+  */
+@@ -1720,6 +1742,19 @@ NTSTATUS WINAPI LdrGetProcedureAddress(HMODULE module, const ANSI_STRING *name,
+     DWORD exp_size;
+     NTSTATUS ret = STATUS_PROCEDURE_NOT_FOUND;
+ 
++    /* subtitution hack */
++    {
++        UNICODE_STRING steamclient_us;
++        HMODULE steamclient_mod;
++
++        RtlInitUnicodeString(&steamclient_us, steamclient_w);
++        LdrGetDllHandle(NULL, 0, &steamclient_us, &steamclient_mod);
++        if (steamclient_mod == module)
++        {
++            module = get_lsteamclient_mod();
++        }
++    }
++
+     RtlEnterCriticalSection( &loader_section );
+ 
+     /* check if the module itself is invalid to return the proper error */
 diff --git a/loader/wine.inf.in b/loader/wine.inf.in
 index 75d5f4a7216..7fe2f49dcd9 100644
 --- a/loader/wine.inf.in
