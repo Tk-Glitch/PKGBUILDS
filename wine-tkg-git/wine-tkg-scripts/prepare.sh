@@ -177,6 +177,19 @@ msg2 ''
     _exit_cleanup
     exit
   fi
+  # Disable undesirable patchsets when using official proton wine source
+  if [ "$_custom_wine_source" == "https://github.com/ValveSoftware/wine" ]; then
+    _clock_monotonic="false"
+    _FS_bypass_compositor="false"
+    _use_esync="false"
+    _use_fsync="false"
+    _use_staging="false"
+    _proton_fs_hack="false"
+    _large_address_aware="false"
+    _proton_mf_hacks="false"
+    _update_winevulkan="false"
+    _unfrog="true"
+  fi
 }
 
 _pkgnaming() {
@@ -448,7 +461,7 @@ _prepare() {
 	fi
 
 	# Kernelbase reverts patchset - cleanly reverting part
-	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 HEAD; then
 	    git revert -n --no-edit b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 || exit 1
 	  fi
@@ -1035,7 +1048,7 @@ EOM
 	fi
 
 	# Revert moving various funcs to kernelbase & ntdll to fix some dll loading issues and ntdll crashes (with Cemu and Blizzard games notably)
-	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
@@ -1083,7 +1096,7 @@ EOM
 	  fi
 	fi
 
-	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
 	  if git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/2" && nonuser_patcher
