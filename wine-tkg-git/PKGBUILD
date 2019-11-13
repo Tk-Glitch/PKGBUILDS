@@ -152,12 +152,17 @@ optdepends=(
 )
 
 # Wine source
-if [ "$_plain_mirrorsrc" == "true" ]; then
-  _winesrcdir="wine-mirror-git"
-  _winesrctarget="git+https://github.com/wine-mirror/wine.git"
+if [ -n "$_custom_wine_source" ]; then
+  _winesrcdir=$( sed 's|/|-|g' <<< $(sed 's|.*://.[^/]*/||g' <<< $_custom_wine_source))
+  _winesrctarget="$_custom_wine_source"
 else
-  _winesrcdir="wine-git"
-  _winesrctarget="git://source.winehq.org/git/wine.git"
+  if [ "$_plain_mirrorsrc" == "true" ]; then
+    _winesrcdir="wine-mirror-git"
+    _winesrctarget="git+https://github.com/wine-mirror/wine.git"
+  else
+    _winesrcdir="wine-git"
+    _winesrctarget="git://source.winehq.org/git/wine.git"
+  fi
 fi
 
 find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "$_where" \; # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
