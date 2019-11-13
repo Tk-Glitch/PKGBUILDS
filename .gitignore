@@ -33,6 +33,9 @@ mostlyportable-gcc/gcc/
 mostlyportable-gcc/gcc-mostlyportable*
 mostlyportable-gcc/mingw-mostlyportable*
 gst-libav/gst-libav/
+gst-libav/ffmpeg/
+gst-libav/gas-preprocessor/
+gst-libav/gst-common/
 faudio-git/FAudio/
 spirv-tools-git/SPIRV-Headers/
 spirv-tools-git/SPIRV-Tools/
