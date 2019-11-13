@@ -5,7 +5,7 @@ pkgver=4.19.r16.gcec9c7c7
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=222
+eval pkgrel=223
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
