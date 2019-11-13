@@ -599,16 +599,16 @@ index 6ce8198aee5..f84d92cc860 100644
 From 1ef83da3b15171782dc009bb6649665769122aa5 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Tue, 15 Jan 2019 10:10:47 -0600
-Subject: [PATCH] kernel32: Don't pass SDL_AUDIODRIVER from Linux environment
+Subject: [PATCH] ntdll: Don't pass SDL_AUDIODRIVER from Linux environment
 
 ---
- dlls/kernel32/process.c | 1 +
+ dlls/ntdll/env.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/dlls/kernel32/process.c b/dlls/kernel32/process.c
+diff --git a/dlls/ntdll/env.c b/dlls/ntdll/env.c
 index 9c957f02c06..e14b514ccc1 100644
---- a/dlls/kernel32/process.c
-+++ b/dlls/kernel32/process.c
+--- a/dlls/ntdll/env.c
++++ b/dlls/ntdll/env.c
 @@ -137,6 +137,7 @@ static inline BOOL is_special_env_var( const char *var )
              !strncmp( var, "TEMP=", sizeof("TEMP=")-1 ) ||
              !strncmp( var, "TMP=", sizeof("TMP=")-1 ) ||
