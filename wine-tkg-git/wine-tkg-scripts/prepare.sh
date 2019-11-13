@@ -652,8 +652,10 @@ _prepare() {
 
 	# steam crossover hack for store/web functionality
 	# https://bugs.winehq.org/show_bug.cgi?id=39403
-	if [ "$_steam_fix" == "true" ]; then
+	if [ "$_steam_fix" == "true" ] && git merge-base --is-ancestor 712ae337fe02c2e222e7c3067e5f624160bb84a1 HEAD; then
 	  _patchname='steam.patch' && _patchmsg="Applied steam crossover hack" && nonuser_patcher
+	else
+	  _patchname='steam-712ae33.patch' && _patchmsg="Applied steam crossover hack" && nonuser_patcher
 	fi
 
 	# Disable server-send_hardware_message staging patchset if found - Fixes FFXIV/Warframe/Crysis 3 (...) mouse jittering issues on 3.19 staging and lower.

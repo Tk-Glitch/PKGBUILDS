@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.19.r13.g81481943
+pkgver=4.19.r16.gcec9c7c7
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -222,6 +222,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'wine-tkg.patch' # Do NOT report bugs at winehq when using custom build
 		'wine-tkg-staging.patch' # Do NOT report bugs at winehq when using custom build - staging
 		'steam.patch' # auto-append --no-sandbox
+		'steam-712ae33.patch' # auto-append --no-sandbox (<712ae33)
 		'30-win32-aliases.conf' # 32-bit font antialiasing
 		'use_clock_monotonic.patch' # Perf
 		'use_clock_monotonic-2.patch' # Addon for the patch above, needed on 13e11d3+
@@ -368,6 +369,7 @@ md5sums=('SKIP'
          'd27ec22ee6815a97b4d28ccdfc0420fe'
          '620823d02d9278f44924780d28cf7221'
          '898fe6be699c16ef95ffb24aa752c98b'
+         'a67cfb630963fb5cd5b762437d5fc85c'
          'f58a4e17b33bd96ce0d6e8325cad7f76'
          '1ff4e467f59409272088d92173a0f801'
          '517a67b31d26990e6704074ccb630f80'
