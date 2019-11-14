@@ -159,7 +159,6 @@ msg2 ''
     _EXTERNAL_NOVER="false"
     _NOLIB32="false"
     _NOLIB64="false"
-    _NUKR="true"
     _esync_version=""
     _use_faudio="true"
     _highcorecount_fix="true"
