@@ -1047,7 +1047,7 @@ EOM
 	fi
 
 	# Revert moving various funcs to kernelbase & ntdll to fix some dll loading issues and ntdll crashes (with Cemu and Blizzard games notably)
-	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
+	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] && git merge-base --is-ancestor 8d25965e12717b266f2fc74bb10d915234d16772 HEAD && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-kernelbase-reverts.patch' && _patchmsg="Using kernelbase reverts patch (staging)" && nonuser_patcher
