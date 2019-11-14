@@ -121,7 +121,7 @@ index cc7bf6900b..28bbb26f79 100644
  static const WCHAR dotW[] = {'.',0};
  
 diff --git a/dlls/ntdll/loader.c b/dlls/ntdll/loader.c
-index 031bf83b4b..a80afff56a 100644
+index 031bf83b4b..367a6cca2d 100644
 --- a/dlls/ntdll/loader.c
 +++ b/dlls/ntdll/loader.c
 @@ -1710,6 +1710,28 @@ NTSTATUS WINAPI LdrUnlockLoaderLock( ULONG flags, ULONG_PTR magic )
@@ -139,13 +139,13 @@ index 031bf83b4b..a80afff56a 100644
 +{
 +    HMODULE lsteamclient_mod = 0;
 +    UNICODE_STRING lsteamclient_us;
-+    
++
 +    RtlInitUnicodeString(&lsteamclient_us, lsteamclient_w);
 +    LdrGetDllHandle(NULL, 0, &lsteamclient_us, &lsteamclient_mod);
 +
 +    if (lsteamclient_mod)
 +        return lsteamclient_mod;
-+    
++
 +    LdrLoadDll(NULL, 0, &lsteamclient_us, &lsteamclient_mod);
 +    return lsteamclient_mod;
 +}
@@ -153,11 +153,11 @@ index 031bf83b4b..a80afff56a 100644
  /******************************************************************
   *		LdrGetProcedureAddress  (NTDLL.@)
   */
-@@ -1720,6 +1742,18 @@ NTSTATUS WINAPI LdrGetProcedureAddress(HMODULE module, const ANSI_STRING *name,
+@@ -1720,6 +1742,19 @@ NTSTATUS WINAPI LdrGetProcedureAddress(HMODULE module, const ANSI_STRING *name,
      DWORD exp_size;
      NTSTATUS ret = STATUS_PROCEDURE_NOT_FOUND;
  
-+    /* subtitution hack */
++    /* redirection hack */
 +    {
 +        UNICODE_STRING steamclient_us;
 +        HMODULE steamclient_mod;
@@ -165,6 +165,7 @@ index 031bf83b4b..a80afff56a 100644
 +        RtlInitUnicodeString(&steamclient_us, steamclient_w);
 +        if (!(LdrGetDllHandle(NULL, 0, &steamclient_us, &steamclient_mod)) && steamclient_mod == module)
 +        {
++            WARN("HACK: Swapping steamclient proc for lsteamclient proc\n");
 +            module = get_lsteamclient_mod();
 +        }
 +    }
@@ -172,6 +173,38 @@ index 031bf83b4b..a80afff56a 100644
      RtlEnterCriticalSection( &loader_section );
  
      /* check if the module itself is invalid to return the proper error */
+@@ -2329,6 +2364,13 @@ static NTSTATUS open_dll_file( UNICODE_STRING *nt_name, WINE_MODREF **pwm,
+     }
+     if (!status && !is_valid_binary( *module, image_info ))
+     {
++        #ifdef _WIN64
++        if (strstrW(nt_name->Buffer, steamclient_w))
++        {
++            WARN("HACK: Accepting steamclient64 even though it's the wrong arch\n");
++            return STATUS_SUCCESS;
++        }
++        #endif
+         TRACE( "%s is for arch %x, continuing search\n", debugstr_us(nt_name), image_info->machine );
+         NtUnmapViewOfSection( NtCurrentProcess(), *module );
+         *module = NULL;
+@@ -2974,6 +3016,17 @@ static NTSTATUS load_dll( const WCHAR *load_path, const WCHAR *libname, const WC
+         return STATUS_SUCCESS;
+     }
+ 
++    #ifdef _WIN64
++    if (strstrW(libname, steamclient_w))
++    {
++        WARN("HACK: Allocating module, but not loading dll for %s\n", debugstr_w(libname));
++        /* don't actually load */
++        if (!(*pwm = alloc_module( module, &nt_name, FALSE)))
++            return STATUS_NO_MEMORY;
++        return STATUS_SUCCESS;
++    }
++    #endif
++
+     if (nts && nts != STATUS_DLL_NOT_FOUND && nts != STATUS_INVALID_IMAGE_NOT_MZ) goto done;
+ 
+     main_exe = get_modref( NtCurrentTeb()->Peb->ImageBaseAddress );
 diff --git a/loader/wine.inf.in b/loader/wine.inf.in
 index 75d5f4a7216..7fe2f49dcd9 100644
 --- a/loader/wine.inf.in
