@@ -1091,7 +1091,7 @@ EOM
 	  if [ "$_use_staging" == "true" ]; then
 	    _patchname='LAA-staging-608d086.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
 	  else
-	    _patchname='LAA.patch-608d086' && _patchmsg="Applied large address aware override support" && nonuser_patcher
+	    _patchname='LAA-608d086.patch' && _patchmsg="Applied large address aware override support" && nonuser_patcher
 	  fi
 	fi
 
