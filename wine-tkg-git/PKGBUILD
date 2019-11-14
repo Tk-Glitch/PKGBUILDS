@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.19.r16.gcec9c7c7
+pkgver=4.19.r17.gf94a2747
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -76,7 +76,7 @@ depends=(
 )
 
 makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
-    'gcc>=4.5.0-2'
+    'gcc>=4.5.0-2'          'pkgconf'
     'giflib'                'lib32-giflib'
     'libpng'                'lib32-libpng'
     'gnutls'                'lib32-gnutls'
