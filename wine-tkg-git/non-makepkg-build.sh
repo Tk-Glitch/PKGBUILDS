@@ -81,7 +81,7 @@ pkgver() {
   else
     if [ "$_plain_mirrorsrc" == "true" ]; then
       _winesrcdir="wine-mirror-git"
-      _winesrctarget="git+https://github.com/wine-mirror/wine.git"
+      _winesrctarget="https://github.com/wine-mirror/wine.git"
     else
       _winesrcdir="wine-git"
       _winesrctarget="git://source.winehq.org/git/wine.git"
