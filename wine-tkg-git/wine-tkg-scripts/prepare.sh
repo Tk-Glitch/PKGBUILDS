@@ -962,6 +962,9 @@ EOM
 	  else
 	    echo "Fsync forcefully disabled due to incompatible tree" >> "$_where"/last_build_config.log
 	  fi
+	  if [ "$_fsync_spincounts" == "true" ]; then
+	    _patchname='fsync-spincounts.patch' && _patchmsg="Add a configurable spin count to fsync" && nonuser_patcher
+	  fi
 	fi
 
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution

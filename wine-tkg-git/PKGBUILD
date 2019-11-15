@@ -5,7 +5,7 @@ pkgver=4.19.r17.gf94a2747
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=223
+eval pkgrel=224
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -219,6 +219,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'fsync-staging-cf04b8d.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<cf04b8d)
 		'fsync-staging.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition
 		'fsync-staging-no_alloc_handle.patch' # Add no_alloc_handle object method to fsync for staging
+		'fsync-spincounts.patch' # Add a configurable spin count to fsync
 		# pba
 		'PBA313-.patch' # For 3.10-3.13 - Untested on lower than 3.10
 		'PBA314+.patch' # For 3.14-3.16
@@ -363,12 +364,13 @@ md5sums=('SKIP'
          'f80f0a4743b4a3e39c523b85c46e13d5'
          '53d96ebf21d5162a58de7e3e37d883a3'
          '83696ccf73ee8f6d1b68f0023716bdf4'
-         '78bac45e2d8c9466ca74c3c6a37bf248'
-         '9ddbc186c40da22265485ef38a8b1dff'
-         'ed9467125c3771a0307acc9aeb9e95ee'
-         'dcb0d65c67f87779af974f0899851308'
-         'b3c478226a23e144c1eaea3443004772'
+         '48f029f46f5c6020c1074c1c98ce50d8'
+         'cbff6a4e12a75e6c42d61c41a51a0bd5'
+         '127be3cd4b99480fe36c5bedbaf81b3a'
+         '3094a41bb285f41ff002d6e4e8061db1'
+         '0c0015f8720453c05e903983ed012af3'
          'ff418685a55dbe3d4a14dfd1c9cde41c'
+         'aa1039ed5cc87d842a5a34a0de17b84d'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
          'd27ec22ee6815a97b4d28ccdfc0420fe'
