@@ -60,6 +60,11 @@ function exit_cleanup {
   # Remove temporarily copied patches
   rm -rf "$_where"/src/*
 
+  # Community patches removal
+  for _p in ${_community_patches[@]}; do
+    rm -f "$_where"/$_p
+  done
+
   remove_deps
 
   msg2 "Cleanup done"
