@@ -27,8 +27,10 @@ _init
 _pkgnaming
 
 # custom plain wine commit to pass to git
-if [ "$_use_staging" == "false" ] && [ -n "$_plain_version" ]; then
-  _plain_commit="#commit=$_plain_version"
+if [ -n "$_plain_version" ]; then
+  if [ "$_use_staging" == "false" ] || ( [ "$_use_staging" == "true" ] && [ "$_staging_upstreamignore" == true ] ); then
+    _plain_commit="#commit=$_plain_version"
+  fi
 fi
 
 # custom staging commit to pass to git
