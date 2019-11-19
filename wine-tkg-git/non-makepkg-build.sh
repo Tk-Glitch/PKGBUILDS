@@ -96,11 +96,11 @@ _nomakepkgsrcinit() {
   ## Handle git repos similarly to makepkg to preserve repositories when building both with and without makepkg on Arch
   # Wine source
   cd "$_where"
-  git clone --mirror "${_winesrctarget}" "$_winesrcdir"
+  git clone --mirror "${_winesrctarget}" "$_winesrcdir" || true
 
   # Wine staging source
   if [ "$_use_staging" == "true" ]; then
-    git clone --mirror https://github.com/wine-staging/wine-staging.git "$_stgsrcdir"
+    git clone --mirror https://github.com/wine-staging/wine-staging.git "$_stgsrcdir" || true
   fi
 
   pushd "$srcdir" &>/dev/null
@@ -200,7 +200,7 @@ build_wine_tkg() {
     #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
     fi
 
-      _build
+    _build
   fi
 
   _package_nomakepkg
