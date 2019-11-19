@@ -1273,7 +1273,7 @@ EOM
 
 _makedirs() {
 	# Nuke if present then create new build dirs
-	if [ "$_NUKR" == "true" ]; then
+	if [ "$_NUKR" == "true" ] && [ "$_SKIPBUILDING" != "true"]; then
 	  rm -rf "${srcdir}"/"${pkgname}"-64-build
 	  rm -rf "${srcdir}"/"${pkgname}"-32-build
 	fi

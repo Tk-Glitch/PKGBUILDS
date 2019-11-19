@@ -173,36 +173,38 @@ build_wine_tkg() {
     ## prepare step end
 
     _prebuild_common
+  fi
 
-    if [ -z "$_nomakepkg_prefix_path" ]; then
-      local _prefix="$_where/${pkgname}-${pkgver}"
-    else
-      local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
-    fi
-    local _lib32name="lib32"
-    local _lib64name="lib"
+  if [ -z "$_nomakepkg_prefix_path" ]; then
+    local _prefix="$_where/${pkgname}-${pkgver}"
+  else
+    local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+  fi
+  local _lib32name="lib32"
+  local _lib64name="lib"
 
-    # configure args
-    if [ -n "$_configure_userargs64" ]; then
-      _configure_args64+=($_configure_userargs64)
-    fi
-    if [ -n "$_configure_userargs32" ]; then
-      _configure_args32+=($_configure_userargs32)
-    fi
+  # configure args
+  if [ -n "$_configure_userargs64" ]; then
+    _configure_args64+=($_configure_userargs64)
+  fi
+  if [ -n "$_configure_userargs32" ]; then
+    _configure_args32+=($_configure_userargs32)
+  fi
 
-    # External install
-    if [ "$_EXTERNAL_INSTALL" == "true" ]; then
-      if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-        _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
-      elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-        #_prefix="$_where"
-        _configure_args+=(--without-curses)
-      fi
-    #else
-    #  _configure_args64+=(--libdir="$_prefix/$_lib64name")
-    #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
+  # External install
+  if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+    if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
+      _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+    elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+      #_prefix="$_where"
+      _configure_args+=(--without-curses)
     fi
+  #else
+  #  _configure_args64+=(--libdir="$_prefix/$_lib64name")
+  #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
+  fi
 
+  if [ "$_SKIPBUILDING" != "true" ]; then
     _build
   fi
 
