@@ -35,8 +35,10 @@ msg2() {
 error() {
  echo -e " \033[1;31m->\033[1;0m \033[1;1m$1\033[1;0m" >&2
 }
+
 pkgver() {
-	if [ "$_use_staging" == "true" ]; then
+  if [ -d "${srcdir}/${_winesrcdir}" ]; then
+	if [ "$_use_staging" == "true" ] && [ -d "${srcdir}/${_stgsrcdir}" ]; then
 	  cd "${srcdir}/${_stgsrcdir}"
 	else
 	  cd "${srcdir}/${_winesrcdir}"
@@ -44,6 +46,7 @@ pkgver() {
 
 	# retrieve current wine version - if staging is enabled, staging version will be used instead
 	_describe_wine
+  fi
 }
 
   # The dependency "helper" (running configure) doesn't have to go through the initial prompt, so skip it
