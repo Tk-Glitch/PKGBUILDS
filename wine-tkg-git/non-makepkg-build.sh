@@ -74,6 +74,7 @@ pkgver() {
   pkgname="${pkgname/-faudio-git/}"
 # init step end
 
+_nomakepkgsrcinit() {
   # Wine source
   if [ -n "$_custom_wine_source" ]; then
     _winesrcdir=$( sed 's|/|-|g' <<< $(sed 's|.*://.[^/]*/||g' <<< $_custom_wine_source))
@@ -135,6 +136,7 @@ pkgver() {
   fi
 
   popd &>/dev/null
+}
 
 nonuser_patcher() {
   if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW1" == "y" ]; then
@@ -158,42 +160,49 @@ build_wine_tkg() {
     _configure_args+=(--without-mingw)
   fi
 
-  _source_cleanup
-  _prepare
-  ## prepare step end
+  _makedirs
 
-  _prebuild_common
+  if [ "$_SKIPBUILDING" != "true" ]; then
+    _nomakepkgsrcinit
 
-  if [ -z "$_nomakepkg_prefix_path" ]; then
-    local _prefix="$_where/${pkgname}-${pkgver}"
-  else
-    local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
-  fi
-  local _lib32name="lib32"
-  local _lib64name="lib"
+    _source_cleanup
+    _prepare
+    ## prepare step end
 
-  # configure args
-  if [ -n "$_configure_userargs64" ]; then
-    _configure_args64+=($_configure_userargs64)
-  fi
-  if [ -n "$_configure_userargs32" ]; then
-    _configure_args32+=($_configure_userargs32)
-  fi
+    _prebuild_common
 
-  # External install
-  if [ "$_EXTERNAL_INSTALL" == "true" ]; then
-    if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-      _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
-    elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
-      #_prefix="$_where"
-      _configure_args+=(--without-curses)
+    if [ -z "$_nomakepkg_prefix_path" ]; then
+      local _prefix="$_where/${pkgname}-${pkgver}"
+    else
+      local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
     fi
-  #else
-  #  _configure_args64+=(--libdir="$_prefix/$_lib64name")
-  #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
+    local _lib32name="lib32"
+    local _lib64name="lib"
+
+    # configure args
+    if [ -n "$_configure_userargs64" ]; then
+      _configure_args64+=($_configure_userargs64)
+    fi
+    if [ -n "$_configure_userargs32" ]; then
+      _configure_args32+=($_configure_userargs32)
+    fi
+
+    # External install
+    if [ "$_EXTERNAL_INSTALL" == "true" ]; then
+      if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
+        _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+      elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
+        #_prefix="$_where"
+        _configure_args+=(--without-curses)
+      fi
+    #else
+    #  _configure_args64+=(--libdir="$_prefix/$_lib64name")
+    #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
+    fi
+
+      _build
   fi
 
-  _build
   _package_nomakepkg
 }
 

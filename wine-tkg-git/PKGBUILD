@@ -532,6 +532,7 @@ prepare() {
 	# prepare steps
 	_source_cleanup
 	_prepare
+	_makedirs
 }
 
 build() {

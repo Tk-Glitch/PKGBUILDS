@@ -1268,6 +1268,10 @@ EOM
 	  YOU_SHALL_NOT_PASS
 	fi
 
+	cd "$_where" # this is needed on version update not to get lost in srcdir
+}
+
+_makedirs() {
 	# Nuke if present then create new build dirs
 	if [ "$_NUKR" == "true" ]; then
 	  rm -rf "${srcdir}"/"${pkgname}"-64-build
@@ -1275,8 +1279,6 @@ EOM
 	fi
 	mkdir -p "${srcdir}"/"${pkgname}"-64-build
 	mkdir -p "${srcdir}"/"${pkgname}"-32-build
-
-	cd "$_where" # this is needed on version update not to get lost in srcdir
 }
 
 # Workaround
