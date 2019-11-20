@@ -2214,7 +2214,7 @@ index dac41cf0b94a..ebb8f61886d1 100644
 -			       s->size - s->inuse - rsize);
 +			check_canary(s, object, s->random_active);
 +
-+			if (slab_want_init_on_free(s)) {
++			if (IS_ENABLED(CONFIG_SLAB_CANARY) || slab_want_init_on_free(s)) {
 +				/*
 +				 * Clear the object and the metadata, but don't touch
 +				 * the redzone.
