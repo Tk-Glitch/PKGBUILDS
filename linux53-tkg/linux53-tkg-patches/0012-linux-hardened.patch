@@ -2199,17 +2199,10 @@ index dac41cf0b94a..ebb8f61886d1 100644
  	if (s->flags & SLAB_STORE_USER)
  		/* We also have user information there */
  		off += 2 * sizeof(struct track);
-@@ -1432,23 +1476,31 @@ static inline bool slab_free_freelist_hook(struct kmem_cache *s,
- 	void *old_tail = *tail ? *tail : *head;
- 	int rsize;
+@@ -1485,16 +1485,23 @@ static inline bool slab_free_freelist_hook(struct kmem_cache *s,
+ 		next = get_freepointer(s, object);
  
--	if (slab_want_init_on_free(s)) {
-+	if (IS_ENABLED(CONFIG_SLAB_CANARY) || slab_want_init_on_free(s)) {
- 		void *p = NULL;
- 
- 		do {
- 			object = next;
- 			next = get_freepointer(s, object);
+ 		if (slab_want_init_on_free(s)) {
 -			/*
 -			 * Clear the object and the metadata, but don't touch
 -			 * the redzone.
@@ -2219,8 +2212,6 @@ index dac41cf0b94a..ebb8f61886d1 100644
 -							   : 0;
 -			memset((char *)object + s->inuse, 0,
 -			       s->size - s->inuse - rsize);
--			set_freepointer(s, object, p);
--			p = object;
 +			check_canary(s, object, s->random_active);
 +
 +			if (slab_want_init_on_free(s)) {
@@ -2235,14 +2226,12 @@ index dac41cf0b94a..ebb8f61886d1 100644
 +				       s->size - s->inuse - rsize);
 +				if (!IS_ENABLED(CONFIG_SLAB_SANITIZE_VERIFY) && s->ctor)
 +					s->ctor(object);
-+				set_freepointer(s, object, p);
-+				p = object;
 +			}
-+
-+			set_canary(s, object, s->random_inactive);
- 		} while (object != old_tail);
- 	}
  
++			set_canary(s, object, s->random_inactive);
+ 		}
+ 		/* If object's reuse doesn't have to be delayed */
+ 		if (!slab_free_hook(s, object)) {
 @@ -1493,8 +1545,9 @@ static void *setup_object(struct kmem_cache *s, struct page *page,
  				void *object)
  {
