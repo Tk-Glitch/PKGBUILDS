@@ -91,7 +91,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=11
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=22
+pkgrel=23
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -123,6 +123,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0005-v5.3_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
         0007-v5.3-fsync.patch
+        0008-5.3-bcachefs.patch
         0009-glitched-bmq.patch
         0009-bmq_v5.3-r2.patch
         0010-umip-instruction-emulation.patch
@@ -147,6 +148,7 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
+            'd738f666670fa444d0bfd7d5704a553e43779b7b3876447dd82f131d00079e1b'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '131ce6048e26771f5b017ceb4cc7106cd646c28ae8ce6d46c0fca92bed5f82ae'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc'
@@ -664,21 +666,21 @@ prepare() {
   fi
 
   # bcachefs
-#  if [ -z "$_bcachefs" ]; then
-#    plain ""
-#    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
-#    plain "https://bcachefs.org/"
-#    read -rp "`echo $'    > N/y : '`" CONDITION8;
-#  fi
-#  if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
-#    patch -Np1 -i ../0008-bcachefs.patch
-#    echo "CONFIG_BCACHEFS_FS=m" >> ./.config
-#    echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
-#    echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
-#    echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
-#    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
-#    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
-#  fi
+  if [ -z "$_bcachefs" ]; then
+    plain ""
+    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
+    plain "https://bcachefs.org/"
+    read -rp "`echo $'    > N/y : '`" CONDITION8;
+  fi
+  if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
+    patch -Np1 -i ../0008-5.3-bcachefs.patch
+    echo "CONFIG_BCACHEFS_FS=m" >> ./.config
+    echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
+    echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
+    echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
+    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
+    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
+  fi
 
   # fsync support
   if [ -z "$_fsync" ]; then
