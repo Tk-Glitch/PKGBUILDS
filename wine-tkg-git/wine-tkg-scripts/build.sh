@@ -16,15 +16,16 @@ _prebuild_common() {
 	# compiler flags
 	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
 	  export CFLAGS="${_GCC_FLAGS}"
+	  export CXXFLAGS="${_GCC_FLAGS}"
 	  export LDFLAGS="${_LD_FLAGS}"
 	  export CROSSCFLAGS="${_CROSS_FLAGS}"
 	  export CROSSLDFLAGS="${_CROSS_LD_FLAGS}"
 	  echo "With predefined optimizations:" >> "$_where"/last_build_config.log
-	  echo "CFLAGS = ${CFLAGS}" >> "$_where"/last_build_config.log
-	  echo "LDFLAGS = ${LDFLAGS}" >> "$_where"/last_build_config.log
-	  echo "CROSSCFLAGS = ${CROSSCFLAGS}" >> "$_where"/last_build_config.log
-	  echo "CROSSLDFLAGS = ${CROSSLDFLAGS}" >> "$_where"/last_build_config.log
 	else
+	  export CFLAGS="${CFLAGS/-fno-plt/}"
+	  export LDFLAGS="${CFLAGS/-fno-plt/}"
+	  export CROSSCFLAGS="${CFLAGS/-fno-plt/}"
+	  export CROSSLDFLAGS="${CFLAGS/-fno-plt/}"
 	  echo "Using /etc/makepkg.conf settings for compiler optimization flags" >> "$_where"/last_build_config.log
 	fi
 
@@ -35,6 +36,10 @@ _prebuild_common() {
 	export LDFLAGS="${LDFLAGS/,-z,now/}"
 	export CROSSCFLAGS="${CROSSCFLAGS/-fno-plt/}"
 	export CROSSLDFLAGS="${CROSSLDFLAGS/,-z,now/}"
+	echo "CFLAGS = ${CFLAGS}" >> "$_where"/last_build_config.log
+	echo "LDFLAGS = ${LDFLAGS}" >> "$_where"/last_build_config.log
+	echo "CROSSCFLAGS = ${CROSSCFLAGS}" >> "$_where"/last_build_config.log
+	echo "CROSSLDFLAGS = ${CROSSLDFLAGS}" >> "$_where"/last_build_config.log
 }
 
 _build() {
