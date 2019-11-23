@@ -214,6 +214,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'esync-compat-fixes-r3.5.patch' # Addon for 4.6+ (f534fbd)
 		'esync-compat-fixes-r3.6.patch' # Addon for 4.8+ (29914d5)
 		'esync-compat-fixes-r3.7.patch' # Addon for 4.20+ (608d086)
+		'esync-compat-fixes-r3.8.patch' # Addon for 4.20+ (4538a13)
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# fsync
 		'fsync-mainline-608d086.patch' # Fsync patchset, introduced with Proton 4.11-1 (<608d086)
@@ -367,6 +368,7 @@ md5sums=('SKIP'
          '358093d65dba3fa477065fe21ce85874'
          'f80f0a4743b4a3e39c523b85c46e13d5'
          '53d96ebf21d5162a58de7e3e37d883a3'
+         'ddd8134ecb39c56d93d282e8c6fd88ea'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '48f029f46f5c6020c1074c1c98ce50d8'
          'cbff6a4e12a75e6c42d61c41a51a0bd5'
