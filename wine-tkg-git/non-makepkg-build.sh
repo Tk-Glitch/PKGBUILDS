@@ -163,8 +163,6 @@ build_wine_tkg() {
     _configure_args+=(--without-mingw)
   fi
 
-  _makedirs
-
   if [ "$_SKIPBUILDING" != "true" ]; then
     _nomakepkgsrcinit
 
@@ -174,6 +172,8 @@ build_wine_tkg() {
 
     _prebuild_common
   fi
+
+  _makedirs
 
   if [ -z "$_nomakepkg_prefix_path" ]; then
     local _prefix="$_where/${pkgname}-${pkgver}"
