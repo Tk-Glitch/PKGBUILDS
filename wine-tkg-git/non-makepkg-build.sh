@@ -92,8 +92,8 @@ _nomakepkgsrcinit() {
     fi
   fi
 
-  find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "$_where" \; # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
-  cp "$_where"/wine-tkg-userpatches/*.my* "$_where" 2>/dev/null # copy userpatches inside the PKGBUILD's dir
+  $( find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "$_where" \; ) # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+  $( find "$_where"/wine-tkg-userpatches -type f -name "*.my*" -exec cp -n {} "$_where" \; ) # copy userpatches inside the PKGBUILD's dir
 
 
   ## Handle git repos similarly to makepkg to preserve repositories when building both with and without makepkg on Arch
