@@ -15,10 +15,6 @@ import subprocess
 import sys
 import tarfile
 
-import tkinter as tk
-from tkinter import messagebox
-import time
-
 from filelock import FileLock
 
 #To enable debug logging, copy "user_settings.sample.py" to "user_settings.py"
@@ -826,17 +822,23 @@ class Session:
             if os.path.exists(os.environ["STEAM_COMPAT_DATA_PATH"]):
                 tricksfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/tricks"
                 if not os.path.exists(tricksfile_path):
-                    root = tk.Tk()
-                    root.withdraw()
-                    if not len( os.popen( "ps -aef | grep -i 'winetricks' | grep -v 'grep' | awk '{ print $3 }'" ).read().strip().split( '\n' ) ) > 1:
-                        if "tk" == root.title():
-                            if messagebox.askyesno('Proton-tkg', 'Do you want to run winetricks?'):
-                                root.destroy()
-                                open(tricksfile_path, "w+").close()
-                                commandtorun=g_proton.winetricks_bin
-                            else:
-                                root.destroy()
-                                open(tricksfile_path, "w+").close()
+                    try:
+                        import tkinter as tk
+                        from tkinter import messagebox
+                        import time
+                        root = tk.Tk()
+                        root.withdraw()
+                        if not len( os.popen( "ps -aef | grep -i 'winetricks' | grep -v 'grep' | awk '{ print $3 }'" ).read().strip().split( '\n' ) ) > 1:
+                            if "tk" == root.title():
+                                if messagebox.askyesno('Proton-tkg', 'Do you want to run winetricks?'):
+                                    root.destroy()
+                                    open(tricksfile_path, "w+").close()
+                                    commandtorun=g_proton.winetricks_bin
+                                else:
+                                    root.destroy()
+                                    open(tricksfile_path, "w+").close()
+                    except ImportError:
+                        commandtorun=[g_proton.wine_bin] + sys.argv[2:]
         self.run_proc(commandtorun)
 
 
