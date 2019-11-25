@@ -52,26 +52,32 @@ if [ -e "$_where"/cpuschedset ]; then
 fi
 
 # CPU SCHED selector
-#if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
-#  plain "What CPU sched variant do you want to build/install?"
-#  read -rp "`echo $'  > 1.PDS\n    2.CFS\n    3.CFS+TurboSched (experimental)\nchoice[1-3?]: '`" CONDITION;
-#  if [ "$CONDITION" == "2" ]; then
+if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
+  plain "What CPU sched variant do you want to build/install?"
+#  read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.BMQ\n    4.CFS\nchoice[1-4?]: '`" CONDITION;
+  read -rp "`echo $'  > 1.PDS\n    2.BMQ\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
+  if [ "$CONDITION" == "2" ]; then
+#    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
+    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "3" ]; then
+#    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+#  elif [ "$CONDITION" == "4" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
-#  elif [ "$CONDITION" == "3" ]; then
-#    echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
-#  else
-#    echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
-#  fi
+  else
+    echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+  fi
   if [ -n "$_custom_pkgbase" ]; then
     echo "_custom_pkgbase=\"${_custom_pkgbase}\"" >> "$_where"/cpuschedset
   fi
-#elif [ "$_cpusched" == "cfs" ]; then
-#  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
-#elif [ "$_cpusched" == "cfsturbo" ]; then
-#  echo "_cpusched=\"cfsturbo\"" > "$_where"/cpuschedset
-#elif [ "$_cpusched" == "pds" ]; then
-#  echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
-#fi
+elif [ "$_cpusched" == "muqss" ] || [ "$_cpusched" == "MuQSS" ]; then
+  echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "pds" ]; then
+  echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
+elif [ "$_cpusched" == "bmq" ]; then
+  echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+else
+  echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
+fi
 
 source "$_where"/cpuschedset
 
@@ -83,7 +89,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
-_sub=rc8
+_sub=0
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 arch=('x86_64') # no i686 in here
@@ -97,9 +103,10 @@ else
   msg2 'ccache was not found and will not be used'
   options=('!strip')
 fi
-source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
+source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         'config.x86_64' # stock Arch config
+        #'config_hardened.x86_64' # hardened Arch config
         'linux54-tkg.preset' # standard config files for mkinitcpio ramdisk
         '60-linux.hook'     # pacman hook for depmod
         '90-linux.hook'     # pacman hook for initramfs regeneration
@@ -109,15 +116,20 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0002-clear-patches.patch
         0003-glitched-base.patch
         0003-glitched-cfs.patch
-#        0003-v5.4_turbosched-v4.patch
-#        0005-glitched-pds.patch
-#        0005-v5.4_undead-pds099o.patch
-#        0006-add-acs-overrides_iommu.patch
+        #0004-glitched-muqss.patch
+        #0004-5.4-ck1.patch
+        0005-glitched-pds.patch
+        0005-v5.4_undead-pds099o.patch
+        0006-add-acs-overrides_iommu.patch
         0007-v5.4-fsync.patch
+        #0008-5.4-bcachefs.patch
+        0009-glitched-bmq.patch
+        0009-bmq_v5.4-r0.patch
         0011-ZFS-fix.patch
+        #0012-linux-hardened.patch
 )
-sha256sums=('b310b110f06f297a617fedbd1c0bf2cfc07825c6ddbadb3aba7d8177184a0d4d'
-            '52345657652ef64a83f09e3b3fa8293d475e902e843ef071949dc1869862d7df'
+sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
+            '1539ba67555a6bab688e0876fd2720b42c477701a4e55b1e3ed71a89458ceaee'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -125,8 +137,13 @@ sha256sums=('b310b110f06f297a617fedbd1c0bf2cfc07825c6ddbadb3aba7d8177184a0d4d'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
             '4b9daf276fd39dc72be5ed87f6c9b51b63b8887f453509e328b24c5d4ebe9a0f'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
+            '703059b0b74ccc0cc839bba41f204a654be383072f8a880cce7eb5ac4a8f116d'
+            'db03fbd179ec78941eefe1c0edde4c19071bc603511d0b5c06c04e412994b62e'
+            '90917e09bb06fbed6853efe9e52f8c2ba4066fca44accdf7608222212561104a'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
-            '39be7492e3288179c8d90e906cef6d1f4d1db9d787b1093325a786ead854edc3')
+            '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
+            'd3405db8ab0557a8d4ca28c15052413abefe0ae267016c3708dfaed2dae8a858'
+            '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
@@ -185,13 +202,18 @@ prepare() {
 
   ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # add upstream patch
   #patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
-  patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  if [ "${_configfile}" == "config_hardened.x86_64" ] && [ "${_cpusched}" == "cfs" ]; then
+    msg2 "Using linux hardened patchset"
+    patch -Np1 -i ../0012-linux-hardened.patch
+  else
+    patch -Np1 -i ../0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
+  fi
 
   # TkG
   patch -Np1 -i ../0002-clear-patches.patch
@@ -208,12 +230,8 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0010-v5.4_bmq100.patch
-    patch -Np1 -i ../0010-glitched-bmq.patch
-  elif [ "${_cpusched}" == "cfsturbo" ]; then
-    # CFS+TurboSched
-    patch -Np1 -i ../0003-glitched-cfs.patch
-    patch -Np1 -i ../0003-v5.4_turbosched-v4.patch
+    patch -Np1 -i ../0009-bmq_v5.4-r0.patch
+    patch -Np1 -i ../0009-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
   fi
@@ -225,13 +243,14 @@ prepare() {
   cat "${srcdir}/${_configfile}" > ./.config
 
   # LOCALVERSION
-  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"."${_sub}"-tkg-${_cpusched}\"|g" ./.config
+  sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"-tkg-${_cpusched}\"|g" ./.config
   sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
 
   # set extraversion to pkgrel
   sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
 
   # Set some -tkg defaults
+  echo "# CONFIG_DYNAMIC_FAULT is not set" >> ./.config
   sed -i -e 's/CONFIG_DEFAULT_FQ_CODEL=y/# CONFIG_DEFAULT_FQ_CODEL is not set/' ./.config
   echo "CONFIG_DEFAULT_CAKE=y" >> ./.config
   echo "CONFIG_NR_TTY_DEVICES=63" >> ./.config
@@ -470,15 +489,17 @@ prepare() {
 
   # rq sharing
   if [ "$_runqueue_sharing" == "none" ]; then
-    echo -e "CONFIG_RQ_NONE=y\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+    echo -e "CONFIG_RQ_NONE=y\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
   elif [ "$_runqueue_sharing" == "smt" ]; then
-    echo -e "# CONFIG_RQ_NONE is not set\nCONFIG_RQ_SMT=y\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+    echo -e "# CONFIG_RQ_NONE is not set\nCONFIG_RQ_SMT=y\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
   elif [ "$_runqueue_sharing" == "mc" ]; then
-    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\nCONFIG_RQ_MC=y\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\nCONFIG_RQ_MC=y\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
   elif [ "$_runqueue_sharing" == "smp" ]; then
-    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\nCONFIG_RQ_SMP=y\n# CONFIG_RQ_ALL is not set" >> ./.config
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_MC_LLC is not set\nCONFIG_RQ_SMP=y\n# CONFIG_RQ_ALL is not set" >> ./.config
   elif [ "$_runqueue_sharing" == "all" ]; then
-    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_SMP is not set\nCONFIG_RQ_ALL=y" >> ./.config
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\nCONFIG_RQ_ALL=y" >> ./.config
+  elif [ "$_runqueue_sharing" == "mc-llc" ]; then
+    echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\nCONFIG_RQ_MC_LLC=y\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
   fi
 
   # timer freq
@@ -621,32 +642,32 @@ prepare() {
   fi
 
   # acs override
-  #if [ -z "$_acs_override" ]; then
-  #  plain ""
-  #  plain "Use ACS override patch?"
-  #  plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
-  #  read -rp "`echo $'    > N/y : '`" CONDITION7;
-  #fi
-  #if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
-  #  patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
-  #fi
+  if [ -z "$_acs_override" ]; then
+    plain ""
+    plain "Use ACS override patch?"
+    plain "https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Bypassing_the_IOMMU_groups_.28ACS_override_patch.29"
+    read -rp "`echo $'    > N/y : '`" CONDITION7;
+  fi
+  if [ "$CONDITION7" == "y" ] || [ "$_acs_override" == "true" ]; then
+    patch -Np1 -i ../0006-add-acs-overrides_iommu.patch
+  fi
 
   # bcachefs
 #  if [ -z "$_bcachefs" ]; then
-#    plain ""
-#    plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
-#    plain "https://bcachefs.org/"
-#    read -rp "`echo $'    > N/y : '`" CONDITION8;
-#  fi
-#  if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
-#    patch -Np1 -i ../0008-bcachefs.patch
-#    echo "CONFIG_BCACHEFS_FS=m" >> ./.config
-#    echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
-#    echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
-#    echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
-#    echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
-#    echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
-#  fi
+#     plain ""
+#     plain "Add Bcache filesystem support? You'll have to install bcachefs-tools-git from AUR for utilities."
+#     plain "https://bcachefs.org/"
+#     read -rp "`echo $'    > N/y : '`" CONDITION8;
+#   fi
+#   if [ "$CONDITION8" == "y" ] || [ "$_bcachefs" == "true" ]; then
+#     patch -Np1 -i ../0008-5.4-bcachefs.patch
+#     echo "CONFIG_BCACHEFS_FS=m" >> ./.config
+#     echo "CONFIG_BCACHEFS_QUOTA=y" >> ./.config
+#     echo "CONFIG_BCACHEFS_POSIX_ACL=y" >> ./.config
+#     echo "# CONFIG_BCACHEFS_DEBUG is not set" >> ./.config
+#     echo "# CONFIG_BCACHEFS_TESTS is not set" >> ./.config
+#     echo "# CONFIG_DEBUG_CLOSURES is not set" >> ./.config
+#   fi
 
   # fsync support
   if [ -z "$_fsync" ]; then
@@ -658,15 +679,15 @@ prepare() {
   if [ "$CONDITION9" == "y" ] || [ "$_fsync" == "true" ]; then
     patch -Np1 -i ../0007-v5.4-fsync.patch
   fi
-  
+
   # ZFS fix
   if [ -z "$_zfsfix" ]; then
     plain ""
     plain "Add back missing symbol for AES-NI/AVX support on ZFS"
     plain "https://github.com/NixOS/nixpkgs/blob/master/pkgs/os-specific/linux/kernel/export_kernel_fpu_functions_5_3.patch"
-    read -rp "`echo $'    > N/y : '`" CONDITIONZFS;
+    read -rp "`echo $'    > N/y : '`" CONDITION11;
   fi
-  if [ "$CONDITIONZFS" == "y" ] || [ "$_zfsfix" == "true" ]; then
+  if [ "$CONDITION11" == "y" ] || [ "$_zfsfix" == "true" ]; then
     patch -Np1 -i ../0011-ZFS-fix.patch
   fi
 
@@ -695,9 +716,9 @@ prepare() {
     plain "Speeds up compilation considerably. Requires root."
     plain "https://wiki.archlinux.org/index.php/Modprobed-db"
     plain "!!!! Make sure to have a well populated db !!!!"
-    read -rp "`echo $'    > N/y : '`" CONDITION11;
+    read -rp "`echo $'    > N/y : '`" CONDITIONMPDB;
   fi
-  if [ "$CONDITION11" == "y" ] || [ "$_modprobeddb" == "true" ]; then
+  if [ "$CONDITIONMPDB" == "y" ] || [ "$_modprobeddb" == "true" ]; then
     sudo modprobed-db recall
     make localmodconfig
   fi
@@ -711,9 +732,9 @@ prepare() {
     else
       for i in "${!fragments[@]}"; do
         while true; do
-          read -r -p 'Found config fragment '"${fragments[$i]#$_where/}"', apply it? [y/N] ' CONDITION11
-          CONDITION11="$(printf '%s' "$CONDITION11" | tr '[:upper:]' '[:lower:]')"
-          case "$CONDITION11" in
+          read -r -p 'Found config fragment '"${fragments[$i]#$_where/}"', apply it? [y/N] ' CONDITIONMPDB
+          CONDITIONMPDB="$(printf '%s' "$CONDITIONMPDB" | tr '[:upper:]' '[:lower:]')"
+          case "$CONDITIONMPDB" in
             y|yes)
               break;;
             n|no|'')
@@ -738,8 +759,8 @@ prepare() {
     plain "to configure the kernel before building it?"
     plain "If you do, make sure your terminal is currently"
     plain "at least 19 lines by 80 columns large or you'll get an error :D"
-    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITION12;
-    _menunconfig="$CONDITION12"
+    read -rp "`echo $'    > 0. nope\n      1. menuconfig\n      2. nconfig\n      choice[0-2?]: '`" CONDITIONMNC;
+    _menunconfig="$CONDITIONMNC"
   fi
   if [ 1 = "$_menunconfig" ]; then
     cp .config .config.orig
@@ -754,9 +775,9 @@ prepare() {
   if [ 1 = "$_menunconfig" ] || [ 2 = "$_menunconfig" ]; then
     if [ -z "${_diffconfig}" ]; then
       while true; do
-        read -r -p 'Generate a config fragment from your changes? [y/N] ' CONDITION13
-        CONDITION13="$(printf '%s' "$CONDITION13" | tr '[:upper:]' '[:lower:]')"
-        case "$CONDITION13" in
+        read -r -p 'Generate a config fragment from your changes? [y/N] ' CONDITIONF
+        CONDITIONF="$(printf '%s' "$CONDITIONF" | tr '[:upper:]' '[:lower:]')"
+        case "$CONDITIONF" in
           y|yes)
             _diffconfig=true
             break;;
@@ -783,7 +804,7 @@ prepare() {
 }
 
 build() {
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # Use custom compiler paths if defined
   if [ -n "${CUSTOM_GCC_PATH}" ]; then
@@ -813,7 +834,7 @@ hackbase() {
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
   install=linux${_basever}-tkg.install
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # get kernel version
   _kernver="$(make LOCALVERSION= kernelrelease)"
@@ -865,7 +886,7 @@ hackheaders() {
   pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
   provides=("linux-headers=${pkgver}" "${pkgbase}-headers=${pkgver}")
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
   local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
 
   install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
