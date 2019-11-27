@@ -151,8 +151,6 @@ build_wine_tkg() {
 
   set -e
 
-  pkgver=$(pkgver)
-
   ## prepare step
   cd "$srcdir"
   # state tracker start - FEAR THE MIGHTY FROG MINER
@@ -172,6 +170,8 @@ build_wine_tkg() {
 
     _prebuild_common
   fi
+
+  pkgver=$(pkgver)
 
   _makedirs
 
