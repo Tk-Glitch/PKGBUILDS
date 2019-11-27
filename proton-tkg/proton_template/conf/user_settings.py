@@ -31,8 +31,8 @@ user_settings = {
     #Disable winedbg
     "PROTON_WINEDBG_DISABLE": "1",
 
-    #Enable IMAGE_FILE_LARGE_ADDRESS_AWARE override - Required by some 32-bit games hitting address space issues
-#    "PROTON_FORCE_LARGE_ADDRESS_AWARE": "1",
+    #Disable IMAGE_FILE_LARGE_ADDRESS_AWARE override - In case it breaks your (32-bit) game - System Shock 2 is known to break with LAA enabled
+#    "PROTON_DISABLE_LARGE_ADDRESS_AWARE": "1",
 
     #Reduce Pulse Latency
     "PROTON_PULSE_LOWLATENCY": "1",

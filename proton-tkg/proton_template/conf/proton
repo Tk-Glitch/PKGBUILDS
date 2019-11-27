@@ -604,7 +604,7 @@ class Session:
         self.check_environment("PROTON_USE_CUSTOMD3D9", "custom9")
         self.check_environment("PROTON_NO_ESYNC", "noesync")
         self.check_environment("PROTON_NO_FSYNC", "nofsync")
-        self.check_environment("PROTON_FORCE_LARGE_ADDRESS_AWARE", "forcelgadd")
+        self.check_environment("PROTON_DISABLE_LARGE_ADDRESS_AWARE", "disablelgadd")
         self.check_environment("PROTON_OLD_GL_STRING", "oldglstr")
         self.check_environment("PROTON_DXVK_ASYNC", "dxvkasync")
         self.check_environment("PROTON_NVAPI_DISABLE", "nonvapi")
@@ -625,11 +625,8 @@ class Session:
             #nvidia override
             self.env["__GL_ExtensionStringVersion"] = "17700"
 
-        if "forcelgadd" in self.compat_config:
-            #forcelgadd should be used just for testing whether a game is helped by
-            #setting LARGE_ADDRESS_AWARE. If it does, then add an AppDefault in the
-            #registry, so that it doesn't impact every executable in the prefix.
-            self.env["WINE_LARGE_ADDRESS_AWARE"] = "1"
+        if "disablegadd" in self.compat_config:
+            self.env["WINE_LARGE_ADDRESS_AWARE"] = "0"
 
         if "dxvkasync" in self.compat_config:
             self.env["DXVK_ASYNC"] = "1"
