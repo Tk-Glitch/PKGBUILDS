@@ -1,0 +1,44 @@
+From 14133150b4320f2bbdf9df8da1c5f7a15afda84e Mon Sep 17 00:00:00 2001
+From: llde <lorenzofer@live.it>
+Date: Sat, 23 Nov 2019 15:27:28 +0100
+Subject: [PATCH] HACK to remove MSVCRT_ prefix
+
+---
+ dlls/dbghelp/symbol.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/dbghelp/symbol.c b/dlls/dbghelp/symbol.c
+index 69d8b38b71..5c6bebc02e 100644
+--- a/dlls/dbghelp/symbol.c
++++ b/dlls/dbghelp/symbol.c
+@@ -658,6 +658,7 @@ static void symt_fill_sym_info(struct module_pair* pair,
+                 case VT_I4:  sym_info->Value = (ULONG)data->u.value.n1.n2.n3.lVal; break;
+                 case VT_I2:  sym_info->Value = (ULONG)(long)data->u.value.n1.n2.n3.iVal; break;
+                 case VT_I1:  sym_info->Value = (ULONG)(long)data->u.value.n1.n2.n3.cVal; break;
++                case VT_UI8: sym_info->Value = (ULONG64)data->u.value.n1.n2.n3.ullVal;  break;
+                 case VT_UI4: sym_info->Value = (ULONG)data->u.value.n1.n2.n3.ulVal; break;
+                 case VT_UI2: sym_info->Value = (ULONG)data->u.value.n1.n2.n3.uiVal; break;
+                 case VT_UI1: sym_info->Value = (ULONG)data->u.value.n1.n2.n3.bVal; break;
+@@ -706,8 +707,16 @@ static void symt_fill_sym_info(struct module_pair* pair,
+                                                        sym_info->MaxNameLen, UNDNAME_NAME_ONLY)) == 0))
+         {
+             sym_info->NameLen = min(strlen(name), sym_info->MaxNameLen - 1);
+-            memcpy(sym_info->Name, name, sym_info->NameLen);
+-            sym_info->Name[sym_info->NameLen] = '\0';
++            if(memcmp(name, "MSVCRT_", 7) == 0) {
++                memcpy(sym_info->Name, name + 7, sym_info->NameLen -6);
++                sym_info->Name[sym_info->NameLen -6] = '\0';
++                /*HACK HACK HACK HACK VERY DIRTY HACK */
++                
++            }
++            else {
++                memcpy(sym_info->Name, name, sym_info->NameLen);
++                sym_info->Name[sym_info->NameLen] = '\0';
++            }
+         }
+     }
+     TRACE_(dbghelp_symt)("%p => %s %u %s\n",
+-- 
+2.24.0
+
+ 
