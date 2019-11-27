@@ -1,6 +1,8 @@
-A custom Linux kernel 5.4.y with specific PDS and BMQ CPU schedulers related patchsets selector (stock CFS is also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
+A custom Linux kernel 5.4.y with specific PDS, MuQSS and BMQ CPU schedulers related patchsets selector (stock CFS is also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
 Various personalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
+
+MuQSS : http://ck-hack.blogspot.com/
 
 BMQ : http://cchalpha.blogspot.com/
 

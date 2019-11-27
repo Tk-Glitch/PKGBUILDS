@@ -54,14 +54,12 @@ fi
 # CPU SCHED selector
 if [ -z "$_cpusched" ] && [ ! -e "$_where"/cpuschedset ]; then
   plain "What CPU sched variant do you want to build/install?"
-#  read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.BMQ\n    4.CFS\nchoice[1-4?]: '`" CONDITION;
-  read -rp "`echo $'  > 1.PDS\n    2.BMQ\n    3.CFS\nchoice[1-3?]: '`" CONDITION;
+  read -rp "`echo $'  > 1.PDS\n    2.MuQSS\n    3.BMQ\n    4.CFS\nchoice[1-4?]: '`" CONDITION;
   if [ "$CONDITION" == "2" ]; then
-#    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
-    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+    echo "_cpusched=\"MuQSS\"" > "$_where"/cpuschedset
   elif [ "$CONDITION" == "3" ]; then
-#    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
-#  elif [ "$CONDITION" == "4" ]; then
+    echo "_cpusched=\"bmq\"" > "$_where"/cpuschedset
+  elif [ "$CONDITION" == "4" ]; then
     echo "_cpusched=\"cfs\"" > "$_where"/cpuschedset
   else
     echo "_cpusched=\"pds\"" > "$_where"/cpuschedset
@@ -91,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=1
+pkgrel=2
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -116,8 +114,8 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0002-clear-patches.patch
         0003-glitched-base.patch
         0003-glitched-cfs.patch
-        #0004-glitched-muqss.patch
-        #0004-5.4-ck1.patch
+        0004-glitched-muqss.patch
+        0004-5.4-ck1.patch
         0005-glitched-pds.patch
         0005-v5.4_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
@@ -137,6 +135,8 @@ sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
             '4b9daf276fd39dc72be5ed87f6c9b51b63b8887f453509e328b24c5d4ebe9a0f'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
+            '384770c97e982529ea20f09fac0c691f9d5eb79b614a0564dcb836f8bb7bb3b1'
+            'e7638aabd2041dd8a03096462f9d5d4aa58680ee0f690703ccb1912047dac4f4'
             '703059b0b74ccc0cc839bba41f204a654be383072f8a880cce7eb5ac4a8f116d'
             'db03fbd179ec78941eefe1c0edde4c19071bc603511d0b5c06c04e412994b62e'
             '90917e09bb06fbed6853efe9e52f8c2ba4066fca44accdf7608222212561104a'
