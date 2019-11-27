@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.20.r10.g3fe9b83f
+pkgver=4.20.r14.g3ba119e6
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=226
+eval pkgrel=227
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -396,12 +396,12 @@ md5sums=('SKIP'
          '927f39348cd29ce9876871e4edb15a09'
          '6262b0ff26fd1e00eb6123db5e0a4160'
          '07b48859d0b274c9b35be4de3016ae27'
-         '3cb83a83c7ed9335eddbef665f4d89f9'
-         '25e20e66ee3b2896f2979ba4e16ff767'
-         '8427bb8d40cc49bc1de3a53ed82254ad'
-         '3034b1a397cad46feb641cb3d7dc8584'
-         'befb9ee56a90ebffba98afb3dd6e7396'
-         '53bf2adcc2313f140fc79f2a093d2789'
+         '7446f74dedc3a7eaf5aaeed6adcab2e3'
+         '4368dad1869932648fa1702f2c0053e7'
+         'e8306108c5c898ac72d909b136d4cf53'
+         'c2291a3cb8ab8457d5289b60f2a43fcc'
+         '51b3e1b240b5fba80c45949c2f503764'
+         '31408a7c467ecae09b769673fcf5adb4'
          '1c4738e438debf72266b96d09f465b25'
          '9cabed407e00dc03ec4cd9e023285d76'
          'd047619c11d95c4c9bbefae564876950'

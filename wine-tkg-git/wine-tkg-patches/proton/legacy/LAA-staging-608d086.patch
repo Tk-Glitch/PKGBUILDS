@@ -132,7 +132,7 @@ index d7dbe573a4f..e03335a2709 100644
 +
 +    exename = get_basename(exename);
 +
-+    if (app_key != (HANDLE)-1) return FALSE;
++    if (app_key != (HANDLE)-1) return TRUE;
 +
 +    str = RtlAllocateHeap( GetProcessHeap(), 0,
 +                           sizeof(AppDefaultsW) + strlenW(exename) * sizeof(WCHAR) );
@@ -150,7 +150,7 @@ index d7dbe573a4f..e03335a2709 100644
 +    RtlInitUnicodeString( &nameW, str );
 +    RtlInitUnicodeString( &valueNameW, LargeAddressAwareW );
 +
-+    result = FALSE;
++    result = TRUE;
 +
 +    /* @@ Wine registry key: HKCU\Software\Wine\AppDefaults\app.exe */
 +    if (!NtOpenKey( &app_key, KEY_ALL_ACCESS, &attr ))
@@ -159,8 +159,8 @@ index d7dbe573a4f..e03335a2709 100644
 +        {
 +            if (info->DataLength >= sizeof(DWORD))
 +            {
-+                if ((*(DWORD *)info->Data) != 0)
-+                    result = TRUE;
++                if ((*(DWORD *)info->Data) == 0)
++                    result = FALSE;
 +            }
 +        }
 +        NtClose( app_key );
