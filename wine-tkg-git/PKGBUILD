@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.20.r14.g3ba119e6
+pkgver=4.20.r15.g14a1f8bd
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -443,7 +443,7 @@ md5sums=('SKIP'
          '5af0c5ae73a70bd3215564d95a80a78e'
          '87a735dc5c2f198ee23bba31e4fd420d'
          '11e75f0dcfaf0a70c53fa95bb9e76f05'
-         '2dfbd50f194f8a924f05ac43c62c940a'
+         '55bafc9f4c623f8011622300d7b2043c'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
@@ -454,7 +454,7 @@ md5sums=('SKIP'
          '28b66f6d107082e7dd50a4f842c42bef'
          '0ed0bf8c3cd2bed919aa2b8918b1c209'
          'b93fe7f5948e32e6a947bcb8d2f8a2d8'
-         'fec04dbf64b52e9c7944841a8f26b91c'
+         '4b81f2bac325d9c7463718436331b153'
          'f404adafc8648495270e01241cd0601e'
          '3f3368914a1e7e21201e3db935e45a33'
          '017e316df9b4a6aada912f3a83e16b08'
@@ -471,7 +471,7 @@ md5sums=('SKIP'
          '656cec36554c499ff1681d56b76fba47'
          'dbfbe90139f3df928df6e96f1759d7e8'
          '46c9db3524f858fcc8a8844a0294fc96'
-         'c46f29cb50c9bd3322a4d81a7696bfe6'
+         'b9d02985f9fcdc601b7d5fbf4941d9d4'
          '3a4e77d80bc2d645266bed6979dc0da9'
          'eea40375be4cd3615eaef5412802274b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'
