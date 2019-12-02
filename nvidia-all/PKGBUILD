@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=79
+pkgrel=80
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -285,6 +285,11 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
     ## kernel version variables, quirks & driver patch whitelists
 
+    # https://bugs.archlinux.org/task/62142
+    if [ "$_62142_fix" == "true" ]; then
+      sed -i 's/return (ops->map_resource != NULL);/return (ops \&\& ops->map_resource);/' "$srcdir/$_pkg/kernel-$_kernel/nvidia/nv-dma.c" && msg2 "Applied fix for https://bugs.archlinux.org/task/62142"
+    fi
+
     # 4.16
     if (( $(vercmp "$_kernel" "4.16") >= 0 )); then
       _kernel416="1"
@@ -417,6 +422,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
   # dkms patches
   if [ "$_dkms" == "true" ]; then
+
+    # https://bugs.archlinux.org/task/62142
+    if [ "$_62142_fix" == "true" ]; then
+      sed -i 's/return (ops->map_resource != NULL);/return (ops \&\& ops->map_resource);/' "$srcdir/$_pkg/kernel-dkms/nvidia/nv-dma.c" && msg2 "Applied fix for https://bugs.archlinux.org/task/62142"
+    fi
+
     msg2 "Applying linux-version.diff for dkms..."
     patch -Np1 -i "$srcdir"/linux-version.diff
 
