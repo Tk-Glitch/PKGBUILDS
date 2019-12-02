@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=3
+pkgrel=4
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -128,7 +128,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '78f08a9d16bc88f1478c560bd9a3a71be6e2af1bbd5f6ff60771fa1e14b74705'
-            '1539ba67555a6bab688e0876fd2720b42c477701a4e55b1e3ed71a89458ceaee'
+            'b7f23bbc09b6c571b76f851f0389386a6f3a64f3d7b1b8509c8550228b0f4537'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
             '75f99f5239e03238f88d1a834c50043ec32b1dc568f2cc291b07d04718483919'
@@ -605,17 +605,26 @@ prepare() {
     read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION4;
   fi
   if [ "$CONDITION4" == "0" ] || [ "$_tickless" == "0" ]; then
+    echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
     sed -i -e 's/# CONFIG_HZ_PERIODIC is not set/CONFIG_HZ_PERIODIC=y/' ./.config
+    sed -i -e 's/CONFIG_NO_HZ_IDLE=y/# CONFIG_NO_HZ_IDLE is not set/' ./.config
+    sed -i -e 's/CONFIG_NO_HZ_FULL=y/# CONFIG_NO_HZ_FULL is not set/' ./.config
     sed -i -e 's/CONFIG_NO_HZ=y/# CONFIG_NO_HZ is not set/' ./.config
-    sed -i -e 's/CONFIG_RCU_BOOST=y/# CONFIG_RCU_BOOST is not set/' ./.config
     sed -i -e 's/CONFIG_NO_HZ_COMMON=y/# CONFIG_NO_HZ_COMMON is not set/' ./.config
   elif [ "$CONDITION4" == "2" ] || [ "$_tickless" == "2" ]; then
-      sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
-      sed -i -e 's/CONFIG_NO_HZ_FULL=y/# CONFIG_NO_HZ_FULL is not set/' ./.config
-      echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
-      echo "CONFIG_TICK_CPU_ACCOUNTING=y" >> ./.config
+    echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+    sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
+    sed -i -e 's/CONFIG_NO_HZ_FULL=y/# CONFIG_NO_HZ_FULL is not set/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
   else
     echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
+    sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
+    sed -i -e 's/CONFIG_NO_HZ_IDLE=y/# CONFIG_NO_HZ_IDLE is not set/' ./.config
+    sed -i -e 's/#CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
   fi
 
   # voluntary preempt
