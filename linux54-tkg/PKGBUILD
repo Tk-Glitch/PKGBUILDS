@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -267,6 +267,10 @@ prepare() {
   echo "CONFIG_NR_TTY_DEVICES=63" >> ./.config
   echo "CONFIG_TP_SMAPI=m" >> ./.config
   echo "CONFIG_RAID6_USE_PREFER_GEN=y" >> ./.config
+  sed -i -e 's/CONFIG_CRYPTO_LZ4=m/CONFIG_CRYPTO_LZ4=y/' ./.config
+  sed -i -e 's/CONFIG_CRYPTO_LZ4HC=m/CONFIG_CRYPTO_LZ4HC=y/' ./.config
+  sed -i -e 's/CONFIG_LZ4_COMPRESS=m/CONFIG_LZ4_COMPRESS=y/' ./.config
+  sed -i -e 's/CONFIG_LZ4HC_COMPRESS=m/CONFIG_LZ4HC_COMPRESS=y/' ./.config
 
   # Inject cpuopts options
   echo "# CONFIG_MK8SSE3 is not set" >> ./.config
