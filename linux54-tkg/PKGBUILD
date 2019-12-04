@@ -114,8 +114,10 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0002-clear-patches.patch
         0003-glitched-base.patch
         0003-glitched-cfs.patch
+        0004-glitched-ondemand-muqss.patch
         0004-glitched-muqss.patch
         0004-5.4-ck1.patch
+        0005-glitched-ondemand-pds.patch
         0005-glitched-pds.patch
         0005-v5.4_undead-pds099o.patch
         0006-add-acs-overrides_iommu.patch
@@ -136,9 +138,11 @@ sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
             '4b9daf276fd39dc72be5ed87f6c9b51b63b8887f453509e328b24c5d4ebe9a0f'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
-            '384770c97e982529ea20f09fac0c691f9d5eb79b614a0564dcb836f8bb7bb3b1'
+            'c605f638d74c61861ebdc36ebd4cb8b6475eae2f6273e1ccb2bbb3e10a2ec3fe'
+            'ee44b8acb03fdfbc8bee9c4713d65dad80ed03cd070577bbfbcd200853e6e5af'
             'e7638aabd2041dd8a03096462f9d5d4aa58680ee0f690703ccb1912047dac4f4'
-            '703059b0b74ccc0cc839bba41f204a654be383072f8a880cce7eb5ac4a8f116d'
+            '62496f9ca788996181ef145f96ad26291282fcc3fb95cdc04080dcf84365be33'
+            'eac7e5d6201528e64f4bdf5e286c842511e1afc52e1518dc8e7d11932bbe0a99'
             'db03fbd179ec78941eefe1c0edde4c19071bc603511d0b5c06c04e412994b62e'
             '90917e09bb06fbed6853efe9e52f8c2ba4066fca44accdf7608222212561104a'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
@@ -223,10 +227,16 @@ prepare() {
 
   if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
+    if [ "${_aggressive_ondemand}" == "true"]; then
+      patch -Np1 -i ../0004-glitched-ondemand-muqss.patch
+    fi
     patch -Np1 -i ../0004-5.4-ck1.patch
     patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
+    if [ "${_aggressive_ondemand}" == "true"]; then
+      patch -Np1 -i ../0005-glitched-ondemand-pds.patch
+    fi
     patch -Np1 -i ../0005-v5.4_undead-pds099o.patch
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
@@ -548,15 +558,11 @@ prepare() {
 
   # default cpu gov
   if [ "$_default_cpu_gov" == "performance" ]; then
-    sed -i -e 's/CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' ./.config
     sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set/' ./.config
     sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y/' ./.config
   elif [ "$_default_cpu_gov" == "ondemand" ]; then
-    sed -i -e 's/CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' ./.config
     sed -i -e 's/CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y/# CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL is not set/' ./.config
     sed -i -e 's/# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set/CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y/' ./.config
-  elif [ "$_default_cpu_gov" == "schedutil" ]; then
-    sed -i -e 's/CONFIG_X86_INTEL_PSTATE=y/# CONFIG_X86_INTEL_PSTATE is not set/' ./.config
   fi
 
   # ACPI_CPUFREQ disablement
