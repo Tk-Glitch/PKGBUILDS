@@ -16,10 +16,26 @@ index 2ac36d3db0..b411ad733c 100644
              key_size = 32;
              magic = BCRYPT_ECDH_PRIVATE_P256_MAGIC;
 diff --git a/dlls/bcrypt/gnutls.c b/dlls/bcrypt/gnutls.c
-index a6a07fff19..ec0ae8291b 100644
+index a6a07fff19..b78021443c 100644
 --- a/dlls/bcrypt/gnutls.c
 +++ b/dlls/bcrypt/gnutls.c
-@@ -710,6 +710,8 @@ NTSTATUS key_asymmetric_generate( struct key *key )
+@@ -100,6 +100,7 @@ MAKE_FUNCPTR(gnutls_perror);
+ MAKE_FUNCPTR(gnutls_privkey_deinit);
+ MAKE_FUNCPTR(gnutls_privkey_init);
+ MAKE_FUNCPTR(gnutls_privkey_sign_hash);
++MAKE_FUNCPTR(gnutls_decode_rs_value);
+ MAKE_FUNCPTR(gnutls_pubkey_deinit);
+ MAKE_FUNCPTR(gnutls_pubkey_init);
+ #undef MAKE_FUNCPTR
+@@ -197,6 +198,7 @@ BOOL gnutls_initialize(void)
+     LOAD_FUNCPTR(gnutls_privkey_deinit);
+     LOAD_FUNCPTR(gnutls_privkey_init);
+     LOAD_FUNCPTR(gnutls_privkey_sign_hash);
++    LOAD_FUNCPTR(gnutls_decode_rs_value);
+     LOAD_FUNCPTR(gnutls_pubkey_deinit);
+     LOAD_FUNCPTR(gnutls_pubkey_init);
+ #undef LOAD_FUNCPTR
+@@ -710,6 +712,8 @@ NTSTATUS key_asymmetric_generate( struct key *key )
          bitlen = key->u.a.bitlen;
          break;
  
@@ -28,7 +44,7 @@ index a6a07fff19..ec0ae8291b 100644
      case ALG_ID_ECDH_P256:
          pk_alg = GNUTLS_PK_ECC; /* compatible with ECDSA and ECDH */
          bitlen = GNUTLS_CURVE_TO_BITS( GNUTLS_ECC_CURVE_SECP256R1 );
-@@ -824,6 +826,8 @@ NTSTATUS key_import_ecc( struct key *key, UCHAR *buf, ULONG len )
+@@ -824,6 +828,8 @@ NTSTATUS key_import_ecc( struct key *key, UCHAR *buf, ULONG len )
  
      switch (key->alg_id)
      {
@@ -37,7 +53,7 @@ index a6a07fff19..ec0ae8291b 100644
      case ALG_ID_ECDH_P256:
          curve = GNUTLS_ECC_CURVE_SECP256R1;
          break;
-@@ -1114,20 +1118,33 @@ NTSTATUS key_asymmetric_sign( struct key *key, void *padding, UCHAR *input, ULON
+@@ -1114,20 +1120,33 @@ NTSTATUS key_asymmetric_sign( struct key *key, void *padding, UCHAR *input, ULON
      gnutls_datum_t hash, signature;
      int ret;
  
@@ -82,7 +98,7 @@ index a6a07fff19..ec0ae8291b 100644
      }
  
      if (!input)
-@@ -1143,14 +1160,49 @@ NTSTATUS key_asymmetric_sign( struct key *key, void *padding, UCHAR *input, ULON
+@@ -1143,14 +1162,53 @@ NTSTATUS key_asymmetric_sign( struct key *key, void *padding, UCHAR *input, ULON
      signature.data = NULL;
      signature.size = 0;
  
@@ -106,17 +122,21 @@ index a6a07fff19..ec0ae8291b 100644
 +
 +        if (output_len >= 64)
 +        {
-+            if (signature.size >= 64)
-+            {
-+                memcpy( output, signature.data+(signature.size+1)/2-32, 32 );
-+                memcpy( output+32, signature.data+signature.size-32, 32 );
-+            }
++            gnutls_datum_t r,s;
++            pgnutls_decode_rs_value(&signature, &r, &s);
++
++            memset(output, 0, 64);
++            if (r.size > 32)
++                memcpy( output, r.data+r.size-32, 32 );
 +            else
-+            {
-+                memset(output, 0, 64);
-+                memcpy( output, signature.data, (signature.size+1)/2 );
-+                memcpy( output+32, signature.data+(signature.size+1)/2, signature.size/2 );
-+            }
++                memcpy( output+32-r.size, r.data, r.size );
++            if (s.size > 32)
++                memcpy( output+32, s.data+s.size-32, 32 );
++            else
++                memcpy( output+64-s.size, s.data, s.size );
++
++            free( r.data );
++            free( s.data );
 +        }
 +        *ret_len = 64;
 +    }
@@ -137,4 +157,3 @@ index a6a07fff19..ec0ae8291b 100644
  
      free( signature.data );
      return STATUS_SUCCESS;
- 
