@@ -1,3 +1,5 @@
+**intel_pstate seems to perform poorly lately. If you are affected, you can add `intel_pstate=passive` to your kernel command line (in GRUB for example) to make use of acpi_cpufreq governors while keeping full support for turbo frequencies.**
+
 A custom Linux kernel 5.3.y with specific PDS, MuQSS and BMQ CPU schedulers related patchsets selector (stock CFS and CFS+TurboSched are also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
 Various personalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
