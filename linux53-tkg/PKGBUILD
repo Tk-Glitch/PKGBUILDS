@@ -89,9 +89,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
-_sub=14
+_sub=15
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=27
+pkgrel=28
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -131,7 +131,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0012-linux-hardened.patch
 )
 sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
-            '6cd4270276e526f4324024e723b74fa18ef8d0e87752f58ea42e04198a301e81'
+            '205c9ec3d4ab126bb0f7c7c7a66f97ea89fdbbfa2145c49490c86709648ff538'
             'c8acb4cd72fb91e6a759485b1f8b8d8453df6486bac9911596a4f0f9a6c13eff'
             'd07d6105fc199402429f5fa79d47ee240b21faf2481b77f19f7ed227e73ba67d'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
@@ -148,7 +148,7 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
             'a20a7984f819f1ebcb35e99f40fda98366870d8ba56771b0e4e30e7ddbb1bfcb'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
-            'd738f666670fa444d0bfd7d5704a553e43779b7b3876447dd82f131d00079e1b'
+            '0d40d79dd40e23f367e07842d7ba12a5fcbcd8edc3a2df554a2c626934858e6a'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '131ce6048e26771f5b017ceb4cc7106cd646c28ae8ce6d46c0fca92bed5f82ae'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc'

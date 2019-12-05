@@ -68342,28 +68342,6 @@ index 9d631a7b6a70..7df4f7f395bf 100644
  	for (i = 0; i < 16; i++)
  		check_move_small(xa, 1UL << i);
  
-diff --git a/lib/xarray.c b/lib/xarray.c
-index 446b956c9188..1237c213f52b 100644
---- a/lib/xarray.c
-+++ b/lib/xarray.c
-@@ -994,6 +994,8 @@ void *__xas_prev(struct xa_state *xas)
- 
- 	if (!xas_frozen(xas->xa_node))
- 		xas->xa_index--;
-+	if (!xas->xa_node)
-+		return set_bounds(xas);
- 	if (xas_not_node(xas->xa_node))
- 		return xas_load(xas);
- 
-@@ -1031,6 +1033,8 @@ void *__xas_next(struct xa_state *xas)
- 
- 	if (!xas_frozen(xas->xa_node))
- 		xas->xa_index++;
-+	if (!xas->xa_node)
-+		return set_bounds(xas);
- 	if (xas_not_node(xas->xa_node))
- 		return xas_load(xas);
- 
 diff --git a/mm/filemap.c b/mm/filemap.c
 index d0cf700bf201..5de3b44ec9aa 100644
 --- a/mm/filemap.c
