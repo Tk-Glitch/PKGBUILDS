@@ -87,9 +87,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
-_sub=1
+_sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=5
+pkgrel=6
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -129,7 +129,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0012-linux-hardened.patch
 )
 sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
-            '78f08a9d16bc88f1478c560bd9a3a71be6e2af1bbd5f6ff60771fa1e14b74705'
+            '90f5cb7b43bd7510de633dc9cd6cc14d4380d60d0c72eaf09b289412c01380f0'
             'b7f23bbc09b6c571b76f851f0389386a6f3a64f3d7b1b8509c8550228b0f4537'
             'ad6344badc91ad0630caacde83f7f9b97276f80d26a20619a87952be65492c65'
             'ae2e95db94ef7176207c690224169594d49445e04249d2499e9d2fbc117a0b21'
