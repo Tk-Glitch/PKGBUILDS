@@ -11,4 +11,4 @@
 - hide-prefix-update-window.mypatch : As the name implies, will hide the prefix update dialog - https://github.com/ValveSoftware/wine/commit/6051b0612ca0436139f6e059cdaa704b7d9fa7ab
 - FinalFantasyXVHack.mypatch : Hack enabling Final Fantasy XV Steam to run - https://github.com/ValveSoftware/Proton/issues/74#issuecomment-553084621
 - MWSE_hack.mypatch : Hack to allow Morrowind Script Extender to work - https://bugs.winehq.org/show_bug.cgi?id=47940#c24
-- halo_mcc_hack.mypatch : LukasRuppert's hack to allow Halo: The Master Chief Collection to run, after insisting enough - Could be unsafe - https://github.com/ValveSoftware/Proton/issues/2907
+- halo_mcc_fix.mypatch : Guy1524's rewrite of LukasRuppert's hack to allow Halo: The Master Chief Collection to run, after insisting enough - https://github.com/ValveSoftware/Proton/issues/2907
