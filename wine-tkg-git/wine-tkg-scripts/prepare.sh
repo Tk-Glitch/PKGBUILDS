@@ -758,16 +758,30 @@ _prepare() {
 	    fi
 
 	    # if using a wine version that includes 608d086, apply 4.20+ additional fixes
-	    if git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then # server: Pass file object handle in IRP_CALL_CREATE request.
+	    if git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      _patchname='esync-compat-fixes-r3.7.patch' && _patchmsg="Using esync 4.20+(608d086) additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 
 	    # if using a wine version that includes 4538a13, apply 4.20+ additional fixes
-	    if git merge-base --is-ancestor 4538a137e089240f1981f0d6f82fb8d63a65f4f6 HEAD; then # server: Pass file object handle in IRP_CALL_CREATE request.
+	    if git merge-base --is-ancestor 4538a137e089240f1981f0d6f82fb8d63a65f4f6 HEAD; then
 	      cd "${srcdir}"/"${_esyncsrcdir}"
 	      _patchname='esync-compat-fixes-r3.8.patch' && _patchmsg="Using esync 4.20+(4538a13) additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    # if using a wine version that includes b934f66, apply 4.21+ additional fixes
+	    if git merge-base --is-ancestor b934f6626ed7cb8a6cc18b261550d363a0068141 HEAD; then
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.9.patch' && _patchmsg="Using esync 4.21+(b934f66) additional compat fixes" && nonuser_patcher
+	      cd "${srcdir}"/"${_winesrcdir}"
+	    fi
+
+	    # if using a wine version that includes fc17535, apply 4.21+ additional fixes
+	    if git merge-base --is-ancestor fc17535eb98a4b200d6a418337a7e280568c7cfd HEAD; then
+	      cd "${srcdir}"/"${_esyncsrcdir}"
+	      _patchname='esync-compat-fixes-r3.10.patch' && _patchmsg="Using esync 4.21+(fc17535) additional compat fixes" && nonuser_patcher
 	      cd "${srcdir}"/"${_winesrcdir}"
 	    fi
 	  # if using a wine version that includes aec7bef, use 3.17+ fixes
