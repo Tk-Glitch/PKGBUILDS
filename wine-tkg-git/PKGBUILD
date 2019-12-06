@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=4.21.r7.gaf616c5f
+pkgver=4.21.r9.gcb9aa710
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=227
+eval pkgrel=228
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -218,9 +218,11 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'esync-no_kernel_obj_list.patch' # esync extended support patch (4.5+)
 		# fsync
 		'fsync-mainline-608d086.patch' # Fsync patchset, introduced with Proton 4.11-1 (<608d086)
+		'fsync-mainline-fc17535.patch' # Fsync patchset, introduced with Proton 4.11-1 (<fc17535)
 		'fsync-mainline.patch' # Fsync patchset, introduced with Proton 4.11-1
 		'fsync-staging-608d086.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<608d086)
 		'fsync-staging-cf04b8d.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<cf04b8d)
+		'fsync-staging-fc17535.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition (<fc17535)
 		'fsync-staging.patch' # Fsync patchset, introduced with Proton 4.11-1 - Staging edition
 		'fsync-staging-no_alloc_handle.patch' # Add no_alloc_handle object method to fsync for staging
 		'fsync-spincounts.patch' # Add a configurable spin count to fsync
@@ -375,9 +377,11 @@ md5sums=('SKIP'
          '83696ccf73ee8f6d1b68f0023716bdf4'
          '48f029f46f5c6020c1074c1c98ce50d8'
          'cbff6a4e12a75e6c42d61c41a51a0bd5'
+         'd1bc0ada1823f7b50b528b754dde243f'
          '127be3cd4b99480fe36c5bedbaf81b3a'
          '3094a41bb285f41ff002d6e4e8061db1'
          '0c0015f8720453c05e903983ed012af3'
+         '259569221964b0f2d0fc45196f114204'
          'ff418685a55dbe3d4a14dfd1c9cde41c'
          'aa1039ed5cc87d842a5a34a0de17b84d'
          '0a8e5406472ae39c0687bc017edfb352'
