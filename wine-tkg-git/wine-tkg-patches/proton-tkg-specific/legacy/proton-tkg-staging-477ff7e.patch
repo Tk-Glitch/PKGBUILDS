@@ -222,9 +222,9 @@ index f08474b3635..2f637f25537 100644
      else
      {
 +#endif
-         /* '$HOME' doesn't exist. Create subdirs for 'My Pictures', 'My Videos',
-          * 'My Music' etc. in '%USERPROFILE%\My Documents' or fail silently if
-          * they already exist. */
+         /* '$HOME' doesn't exist. Create 'My Pictures', 'My Videos' and 'My Music' subdirs
+          * in '%USERPROFILE%\\My Documents' or fail silently if they already exist. */
+         pszHome = NULL;
 @@ -4486,8 +4488,11 @@ static void _SHCreateSymbolicLinks(void)
              if (_SHAppendToUnixPath(szMyStuffTarget, MAKEINTRESOURCEW(aidsMyStuff[i])))
                  mkdir(szMyStuffTarget, 0777);
@@ -234,7 +234,7 @@ index f08474b3635..2f637f25537 100644
 +#endif
  
 +#if 0
-     /* Create symbolic links for 'My Pictures', 'My Videos', 'My Music' etc. */
+     /* Create symbolic links for 'My Pictures', 'My Videos' and 'My Music'. */
      for (i=0; i < ARRAY_SIZE(aidsMyStuff); i++)
      {
 @@ -4532,13 +4537,17 @@ static void _SHCreateSymbolicLinks(void)
