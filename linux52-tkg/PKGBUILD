@@ -151,49 +151,48 @@ sha256sums=('54ad66f672e1a831b574f5e704e8a05f1e6180a8245d4bdd811208a6cb0ac1e7'
             'd73217d735df7933f86c7495b4c469014dc7c1d531899e3ab591cdabfdf9648c'
             'a96fb714db831f0848d1ed4245f9c7bf5c83afb4d25174b06c38b7fdff3b4dbc')
 
-# Community patches
-if [ -n "$_community_patches" ]; then
-  _community_patches=($_community_patches)
-  for _p in ${_community_patches[@]}; do
-    ln -s "$_where"/../community-patches/linux52-tkg/$_p "$_where"/
-  done
-fi
-
 user_patcher() {
 	# To patch the user because all your base are belong to us
-	if [[ $(find "$_where" -name "*.${_userpatch_ext}patch") ]]; then
+	local _patches=("$_where"/*."${_userpatch_ext}revert")
+	if [ ${#_patches[@]} -ge 2 ] || [ -e "${_patches}" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -rp "At least one of your own ${_userpatch_target} patches were found (*.${_userpatch_ext}patch). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	    msg2 "Found ${#_patches[@]} 'to revert' userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${_patches[@]}"
+	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
-	    for _f in "$_where"/*.${_userpatch_ext}patch; do
-	    if [ -e "${_f}" ]; then
-	      msg2 "######################################################"
-	      msg2 ""
-	      msg2 "Applying your own ${_userpatch_target} patch ${_f}"
-	      msg2 ""
-	      msg2 "######################################################"
-	      patch -Np1 < "${_f}"
-	      echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
-	    fi
+	    for _f in "${_patches[@]}"; do
+	      if [ -e "${_f}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 -R < "${_f}"
+	        echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
+	      fi
 	    done
 	  fi
 	fi
-	if [[ $(find "$_where" -name "*.${_userpatch_ext}revert") ]]; then
+
+	_patches=("$_where"/*."${_userpatch_ext}patch")
+	if [ ${#_patches[@]} -ge 2 ] || [ -e "${_patches}" ]; then
 	  if [ "$_user_patches_no_confirm" != "true" ]; then
-	  read -rp "At least one of your own ${_userpatch_target} 'to revert' patches were found (*.${_userpatch_ext}revert). Do you want to install it/them? - Be careful with that ;)`echo $'\n> N/y : '`" _CONDITION;
+	    msg2 "Found ${#_patches[@]} userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${_patches[@]}"
+	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
 	  fi
 	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
-	    for _f in "$_where"/*.${_userpatch_ext}revert; do
-	    if [ -e "${_f}" ]; then
-	      msg2 "######################################################"
-	      msg2 ""
-	      msg2 "Reverting your own ${_userpatch_target} patch ${_f}"
-	      msg2 ""
-	      msg2 "######################################################"
-	      patch -Np1 -R < "${_f}"
-	      echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
-	    fi
+	    for _f in "${_patches[@]}"; do
+	      if [ -e "${_f}" ]; then
+	        msg2 "######################################################"
+	        msg2 ""
+	        msg2 "Applying your own ${_userpatch_target} patch ${_f}"
+	        msg2 ""
+	        msg2 "######################################################"
+	        patch -Np1 < "${_f}"
+	        echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
+	      fi
 	    done
 	  fi
 	fi
@@ -702,6 +701,14 @@ prepare() {
     patch -Np1 -i ../0015-umip-instruction-emulation.patch
   fi
 
+  # Community patches
+  if [ -n "$_community_patches" ]; then
+    _community_patches=($_community_patches)
+    for _p in ${_community_patches[@]}; do
+      ln -s "$_where"/../community-patches/linux52-tkg/$_p "$_where"/
+    done
+  fi
+
   # userpatches
   if [ "$_user_patches" == "true" ]; then
     _userpatch_target="linux-${_basekernel}"
@@ -983,6 +990,11 @@ function exit_cleanup {
   rm -rf "$_where"/*.preset
   rm -rf "$_where"/*-profile.cfg
   rm -f "$_where"/config*
+
+  # Community patches removal in case of failure
+  for _p in ${_community_patches[@]}; do
+    rm -f "$_where"/$_p
+  done
 
   if [ $_NUKR == "true" ]; then
     rm -rf "$_where"/src/*
