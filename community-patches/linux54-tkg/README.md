@@ -4,3 +4,4 @@
 - amdgpu_dyn_mem_clock_75Hz_fix.mypatch : Allows dynamic video memory clocking with amdgpu and 75Hz display (https://cgit.freedesktop.org/~agd5f/linux/commit/?h=amd-staging-drm-next&id=b396b001487db18ac84d8d773d0234ac6b376dea)
 - mm_proactive_compaction.mypatch : https://lkml.org/lkml/2019/10/30/1076
 - net_WireGuard_secure_network_tunnel.mypatch : implements WireGuard as an in-kernel network device driver. Includes the crypto-2.6 branch (https://lkml.org/lkml/2019/11/27/266)
+- le9i.mypatch : An attempt to improve Linux's OOM behaviour - https://web.archive.org/web/20191018064145/https://gist.github.com/howaboutsynergy/04fd9be927835b055ac15b8b64658e85
