@@ -259,6 +259,7 @@ prepare() {
   echo "CONFIG_NR_TTY_DEVICES=63" >> ./.config
   echo "CONFIG_TP_SMAPI=m" >> ./.config
   echo "CONFIG_RAID6_USE_PREFER_GEN=y" >> ./.config
+  echo "# CONFIG_NTP_PPS is not set" >> ./.config
   sed -i -e 's/CONFIG_CRYPTO_LZ4=m/CONFIG_CRYPTO_LZ4=y/' ./.config
   sed -i -e 's/CONFIG_CRYPTO_LZ4HC=m/CONFIG_CRYPTO_LZ4HC=y/' ./.config
   sed -i -e 's/CONFIG_LZ4_COMPRESS=m/CONFIG_LZ4_COMPRESS=y/' ./.config
