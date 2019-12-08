@@ -173,6 +173,9 @@ if [ "$_d3d9_only" == "true" ]; then
   sed -i "s|option('enable_d3d11'.*|option('enable_d3d11', type : 'boolean', value : false, description: 'Build D3D11')|g" meson_options.txt
 fi
 
+# Enforce version generation
+sed -i "s|  command: \['git'.*|  command: \['git', 'describe', '--tags', '--dirty=+'],|g" meson.build
+
 echo "#################"
 echo ""
 echo "BUILDING"
