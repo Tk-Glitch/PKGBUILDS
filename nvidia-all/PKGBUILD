@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=80
+pkgrel=81
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -274,7 +274,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
   fi
 
   # Loop kernels (4.15.0-1-ARCH, 4.14.5-1-ck, ...)
-  for _kernel in $(cat /usr/lib/modules/extramodules-*/version); do
+  local -a _kernels
+  mapfile -t _kernels < <(find /usr/lib/modules/*/build/version -exec cat {} +)
+  for _kernel in "${_kernels[@]}"; do
     # Use separate source directories
     cp -r kernel kernel-$_kernel
 
@@ -554,14 +556,18 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
 
 build() {
   if [ "$_dkms" != "true" ]; then
-  # Build for all kernels
-  for _kernel in $(cat /usr/lib/modules/extramodules-*/version); do
-    cd "$srcdir"/$_pkg/kernel-$_kernel
+    # Build for all kernels
+    local _kernel
+    local -a _kernels
+    mapfile -t _kernels < <(find /usr/lib/modules/*/build/version -exec cat {} +)
 
-    # Build module
-    msg2 "Building Nvidia module for $_kernel..."
-    make SYSSRC=/usr/lib/modules/$_kernel/build modules
-  done
+    for _kernel in "${_kernels[@]}"; do
+      cd "$srcdir"/$_pkg/kernel-$_kernel
+
+      # Build module
+      msg2 "Building Nvidia module for $_kernel..."
+      make SYSSRC=/usr/lib/modules/$_kernel/build modules
+    done
   fi
 }
 
@@ -813,36 +819,13 @@ if [ "$_dkms" == "false" ] || [ "$_dkms" == "full" ]; then
     install=nvidia-tkg.install
 
     # Install for all kernels
-    for _path in $(find /usr/lib/modules/extramodules-*/version -printf '%h\n'); do
-      _extramodules=$(cat $_path/version)
+    local _kernel
+    local -a _kerndels
+    mapfile -t _kernels < <(find /usr/lib/modules/*/build/version -exec cat {} +)
 
-      # Nvidia kernel module; provides low-level access to your NVIDIA hardware for the other components. Generally
-      # loaded into the kernel when the X server is started, to be used by the X driver and OpenGL. Consists of two
-      # pieces: the binary-only core, and a kernel interface that must be compiled specifically for your kernel version,
-      # because the Linux kernel doesn't have a consistent binary interface like the X server.
-      install -Dm644 $_pkg/kernel-$_extramodules/nvidia.ko \
-             "$pkgdir"/$_path/nvidia.ko
-
-      # NVIDIA Unified Memory kernel module; provides functionality for sharing memory between the CPU and GPU in
-      # CUDA programs. Generally loaded into the kernel when a CUDA program is started, and used by the CUDA
-      # driver on supported platforms: http://devblogs.nvidia.com/parallelforall/unified-memory-in-cuda-6/
-      install -Dm644 $_pkg/kernel-$_extramodules/nvidia-uvm.ko \
-             "$pkgdir"/$_path/nvidia-uvm.ko
-
-      # Kernel module responsible for programming the display engine of the GPU. User-mode NVIDIA driver components
-      # such as the NVIDIA X driver, OpenGL driver, and VDPAU driver communicate with nvidia-modeset.ko through the
-      # /dev/nvidia-modeset device file.
-      install -Dm644 $_pkg/kernel-$_extramodules/nvidia-modeset.ko \
-             "$pkgdir"/$_path/nvidia-modeset.ko
-
-      # NVIDIA DRM kernel module; registers as a DRM driver to provide GEM and PRIME DRM capabilities
-      # for atomic DRM KMS and graphics display offload on Optimus notebooks:
-      # https://devtalk.nvidia.com/default/topic/925605/linux/nvidia-364-12-release-vulkan-glvnd-drm-kms-and-eglstreams/
-      install -Dm644 $_pkg/kernel-$_extramodules/nvidia-drm.ko \
-             "$pkgdir"/$_path/nvidia-drm.ko
-
-      # Compress
-      gzip "$pkgdir"/$_path/nvidia*.ko
+    for _kernel in "${_kernels[@]}"; do
+      install -D -m644 "${_pkg}/kernel-${_kernel}/"nvidia{,-drm,-modeset,-uvm}.ko -t "${pkgdir}/usr/lib/modules/${_kernel}/extramodules"
+      find "$pkgdir" -name '*.ko' -exec gzip -n {} +
     done
 
   # Blacklist Nouveau
