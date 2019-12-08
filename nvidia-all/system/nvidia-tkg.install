@@ -1,9 +1,8 @@
 _depmod() {
-    # This gets auto-updated during build
-    _extramodules='extramodules-4.11-ARCH'
-
     # Update module dependencies for all kernels
-    for _kernel in $(cat /usr/lib/modules/extramodules-*/version); do
+    local -a _kernels
+    mapfile -t _kernels < <(find /usr/lib/modules/*/build/version -exec cat {} +)
+    for _kernel in "${_kernels[@]}"; do
         depmod $_kernel
     done
 }
