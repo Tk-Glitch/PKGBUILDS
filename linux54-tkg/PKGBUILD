@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=7
+pkgrel=8
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -625,9 +625,11 @@ prepare() {
     echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
     sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
     sed -i -e 's/CONFIG_NO_HZ_IDLE=y/# CONFIG_NO_HZ_IDLE is not set/' ./.config
-    sed -i -e 's/#CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+    sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
     sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
     sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
+    echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
+    echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
   fi
 
   # voluntary preempt
