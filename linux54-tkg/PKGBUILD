@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=8
+pkgrel=9
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -226,17 +226,17 @@ prepare() {
 
   if [ "${_cpusched}" == "MuQSS" ]; then
     # MuQSS
-    if [ "${_aggressive_ondemand}" == "true"]; then
+    patch -Np1 -i ../0004-5.4-ck1.patch
+    if [ "${_aggressive_ondemand}" == "true" ]; then
       patch -Np1 -i ../0004-glitched-ondemand-muqss.patch
     fi
-    patch -Np1 -i ../0004-5.4-ck1.patch
     patch -Np1 -i ../0004-glitched-muqss.patch
   elif [ "${_cpusched}" == "pds" ]; then
     # PDS-mq
-    if [ "${_aggressive_ondemand}" == "true"]; then
+    patch -Np1 -i ../0005-v5.4_undead-pds099o.patch
+    if [ "${_aggressive_ondemand}" == "true" ]; then
       patch -Np1 -i ../0005-glitched-ondemand-pds.patch
     fi
-    patch -Np1 -i ../0005-v5.4_undead-pds099o.patch
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
