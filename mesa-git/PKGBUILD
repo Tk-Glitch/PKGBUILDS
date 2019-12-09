@@ -35,7 +35,7 @@ arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
              'libomxil-bellagio' 'libxrandr' 'ocl-icd' 'vulkan-icd-loader' 'libgcrypt'  'wayland'
              'wayland-protocols' 'meson' 'ninja' 'libdrm' 'glproto' 'libdrm' 'dri2proto' 'dri3proto'
-             'presentproto' 'libxshmfence' 'libxxf86vm' 'libxdamage' 'libclc' 'clang' 'libglvnd'
+             'presentproto' 'libxshmfence' 'libxxf86vm' 'libxdamage' 'libclc' 'libglvnd'
              'libunwind' 'lm_sensors' 'libxrandr' 'valgrind' 'glslang')
 if [ "$_lib32" == "true" ]; then
   makedepends+=('lib32-libxml2' 'lib32-libx11' 'lib32-libdrm' 'lib32-libxshmfence' 'lib32-libxxf86vm'
@@ -337,7 +337,7 @@ build () {
 package_mesa-tkg-git() {
   depends=('libdrm' 'wayland' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'libelf'
            'libomxil-bellagio' 'libunwind' 'llvm-libs' 'lm_sensors' 'libglvnd'
-           'expat' 'libclc' 'clang' 'libx11')
+           'expat' 'libclc' 'libx11')
   provides=(mesa=$pkgver-$pkgrel vulkan-intel=$pkgver-$pkgrel vulkan-radeon=$pkgver-$pkgrel vulkan-mesa-layer=$pkgver-$pkgrel mesa-vulkan-layer=$pkgver-$pkgrel libva-mesa-driver=$pkgver-$pkgrel mesa-vdpau=$pkgver-$pkgrel vulkan-driver opencl-mesa=$pkgver-$pkgrel opengl-driver opencl-driver ati-dri intel-dri nouveau-dri svga-dri mesa-dri mesa-libgl)
   conflicts=('mesa' 'opencl-mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'mesa-vulkan-layer' 'libva-mesa-driver' 'mesa-vdpau')
 
