@@ -5,3 +5,4 @@
 - mm_proactive_compaction.mypatch : https://lkml.org/lkml/2019/10/30/1076
 - net_WireGuard_secure_network_tunnel.mypatch : implements WireGuard as an in-kernel network device driver. Includes the crypto-2.6 branch (https://lkml.org/lkml/2019/11/27/266)
 - le9i.mypatch : An attempt to improve Linux's OOM behaviour - https://web.archive.org/web/20191018064145/https://gist.github.com/howaboutsynergy/04fd9be927835b055ac15b8b64658e85
+- zstd.mypatch : Add support for ZSTD-compressed kernel
