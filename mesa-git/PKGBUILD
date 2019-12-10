@@ -72,14 +72,6 @@ md5sums=('SKIP'
 sha512sums=('SKIP'
             '25da77914dded10c1f432ebcbf29941124138824ceecaf1367b3deedafaecabc082d463abcfa3d15abff59f177491472b505bcb5ba0c4a51bb6b93b4721a23c2')
 
-# Community patches
-if [ -n "$_community_patches" ]; then
-  _community_patches=($_community_patches)
-  for _p in ${_community_patches[@]}; do
-    ln -s "$_where"/../community-patches/mesa-git/$_p "$_where"/
-  done
-fi
-
 cp "$_where"/mesa-userpatches/*.mymesa* "$_where" >/dev/null 2>&1 # copy userpatches inside the PKGBUILD's dir
 
 function exit_cleanup {
@@ -222,6 +214,14 @@ prepare() {
     git reset --hard HEAD
     git clean -xdf
     msg2 "Tree cleaned"
+
+    # Community patches
+    if [ -n "$_community_patches" ]; then
+      _community_patches=($_community_patches)
+      for _p in ${_community_patches[@]}; do
+        ln -s "$_where"/../community-patches/mesa-git/$_p "$_where"/
+      done
+    fi
 
     # mesa user patches
     if [ "$_user_patches" == "true" ]; then
