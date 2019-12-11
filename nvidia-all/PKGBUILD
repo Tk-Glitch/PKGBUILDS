@@ -43,10 +43,10 @@ fi
 
 # Package type selector
 if [ -z "$_driver_version" ] || [ -z "$_driver_branch" ] && [ ! -e options ]; then
-  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.08\n  2.440 series: 440.36\n  3.435 series: 435.21\n  4.430 series: 430.64\n  5.418 series: 418.113\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
+  read -p "What driver version do you want?`echo $'\n> 1.Vulkan dev: 435.27.08\n  2.440 series: 440.44\n  3.435 series: 435.21\n  4.430 series: 430.64\n  5.418 series: 418.113\n  6.415 series: 415.27\n  7.410 series: 410.104\n  8.396 series: 396.54\n  9.Custom version (396.xx to 435.xx series)\nchoice[1-9?]: '`" CONDITION;
     if [ "$CONDITION" == "2" ]; then
-      echo '_driver_version=440.36' > options
-      echo '_md5sum=0a85672111e3eb348838a5919253411b' >> options
+      echo '_driver_version=440.44' > options
+      echo '_md5sum=8b72e9af14e43171405526a308a08796' >> options
       echo '_driver_branch=regular' >> options
     elif [ "$CONDITION" == "3" ]; then
       echo '_driver_version=435.21' > options
@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=82
+pkgrel=83
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
