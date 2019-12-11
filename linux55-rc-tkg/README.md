@@ -1,7 +1,5 @@
 **intel_pstate seems to perform poorly lately. If you are affected, you can add `intel_pstate=passive` to your kernel command line (in GRUB for example) to make use of acpi_cpufreq governors while keeping full support for turbo frequencies.**
 
-**nvidia drivers are not compatible with this kernel yet**
-
 A custom Linux kernel 5.5 RC with specific PDS, MuQSS and BMQ CPU schedulers related patchsets selector (stock CFS is also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
 Various personalization options available and userpatches support (put your own patches in the same dir as the PKGBUILD, with the ".mypatch" extension.
@@ -31,6 +29,7 @@ You can enable support for it at the beginning of the PKGBUILD file. Make sure t
 - using yeah TCP congestion algo by default
 - using cake network queue management system
 - using vm.max_map_count=262144 by default
+- intel E1000 fixes
 - cherry-picked clear linux patches
 - **optional** overrides for missing ACS capabilities
 - **optional** ZFS fpu symbols
