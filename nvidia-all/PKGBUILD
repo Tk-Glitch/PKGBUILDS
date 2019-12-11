@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=81
+pkgrel=82
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -182,6 +182,7 @@ source=($_source_name
         'kernel-5.3.patch' # 5.3 workaround
         'kernel-5.4.patch' # 5.4 workaround
         'kernel-5.4-symver.diff' # 5.4 symver fix only
+        'kernel-5.5.patch' # 5.5 workaround
 )
 
 msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
@@ -201,7 +202,8 @@ md5sums=("$_md5sum"
          '98b67a671ece0a796f9767793c209c93'
          '6f9a62ef76ac86f299b0174f44488987'
          '97298693767cd1223792e7505da7ac26'
-         '0d9aa49647cc73a4522246cc22ae15e1')
+         '0d9aa49647cc73a4522246cc22ae15e1'
+         '50b989d1ca1ae0f30aeb0de9e1966422')
 
 if [ $_autoaddpatch == "true" ]; then
   # Auto-add *.patch files from $startdir to source=()
@@ -373,6 +375,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
     fi
 
+    # 5.5
+    if (( $(vercmp "$_kernel" "5.5") >= 0 )); then
+      _kernel55="1"
+      _whitelist55=( 396* 410* 415* 418* 430* 435* 440* )
+    fi
+
     # Loop patches (linux-4.15.patch, lol.patch, ...)
     for _p in $(printf -- '%s\n' ${source[@]} | grep .patch); do  # https://stackoverflow.com/a/21058239/1821548
       # Patch version (4.15, "", ...)
@@ -401,6 +409,9 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
       if [ "$_patch" == "5.4" ]; then
         _whitelist=(${_whitelist54[@]})
+      fi
+      if [ "$_patch" == "5.5" ]; then
+        _whitelist=(${_whitelist55[@]})
       fi
 
       patchy=0
@@ -539,6 +550,20 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       fi
       if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 435.27.03 ]] || [[ $pkgver = 435.27.06 ]] || [[ $pkgver = 435.27.07 ]] || [[ $pkgver = 435.27.08 ]] || [[ $pkgver = 440.26 ]]; then
         patch -Np1 -i "$srcdir"/kernel-5.4-symver.diff
+      fi
+    fi
+
+    # 5.5
+    if [ "$_kernel55" == "1" ]; then
+      patchy=0
+      for yup in "${_whitelist55[@]}"; do
+        [[ $pkgver = $yup ]] && patchy=1
+      done
+      if [ "$patchy" == "1" ]; then
+        msg2 "Applying kernel-5.5.patch for dkms..."
+        patch -Np1 -i "$srcdir"/kernel-5.5.patch
+      else
+        msg2 "Skipping kernel-5.5.patch as it doesn't apply to this driver version..."
       fi
     fi
 
