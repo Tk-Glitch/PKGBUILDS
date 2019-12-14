@@ -992,6 +992,11 @@ function exit_cleanup {
   rm -rf "${where}"/egl-wayland
   rm -rf "${where}"/src/*
 
+  # Put the built packages in a versioned dir - overwrite if needed
+  if [ "$_local_package_storing" == "true" ]; then
+    rm -rf "${where}/${pkgver}-packages" && mkdir -p "${where}/${pkgver}-packages" && mv "${where}/"*.pkg.* "${where}/${pkgver}-packages"/ >/dev/null 2>&1
+  fi
+
   remove_deps
 
   msg2 'exit cleanup done'
