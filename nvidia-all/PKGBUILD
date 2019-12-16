@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=84
+pkgrel=85
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -739,6 +739,9 @@ nvidia-utils-tkg() {
     else
       install -D -m644 "nvidia_icd.json.template" "${pkgdir}/usr/share/vulkan/icd.d/nvidia_icd.json"
     fi
+    if [ -e nvidia_layers.json ]; then
+      install -D -m644 "nvidia_layers.json" "${pkgdir}/usr/share/vulkan/explicit_layer.d/nvidia_layers.json"
+    fi
 
     # VDPAU
     install -D -m755 "libvdpau_nvidia.so.${pkgver}" "${pkgdir}/usr/lib/vdpau/libvdpau_nvidia.so.${pkgver}"
@@ -822,6 +825,9 @@ nvidia-utils-tkg() {
     install -Dm644 "$srcdir"/20-nvidia.conf "$pkgdir"/etc/X11/xorg.conf.d/20-nvidia.conf
 
     # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
+    if [ "$_PRIME_render_offload" == "true" ]; then
+      sed -i 's/Option "PrimaryGPU" "yes"/d' "$srcdir"/10-nvidia-drm-outputclass.conf
+    fi
     install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
 
     install -Dm644 "$srcdir"/nvidia-utils-tkg.sysusers "$pkgdir"/usr/lib/sysusers.d/$pkgname.conf
