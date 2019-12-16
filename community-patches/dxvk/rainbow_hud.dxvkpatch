@@ -114,11 +114,11 @@ index 8b658c49d..ce88bfb16 100644
      void drawText(
              float             size,
 @@ -129,6 +133,8 @@ namespace dxvk::hud {
-     
-     Rc<DxvkBuffer>      m_vertexBuffer;
-     VkDeviceSize        m_vertexOffset = 0;
+     uint32_t            m_currTextVertex    = 0;
+     uint32_t            m_currTextInstance  = 0;
+     uint32_t            m_currLineVertex    = 0;
 +
 +    dxvk::high_resolution_clock::time_point m_startTime;
+ 
+     void allocVertexBufferSlice();
      
-     DxvkBufferSlice allocVertexBuffer(
-             VkDeviceSize      dataSize);
