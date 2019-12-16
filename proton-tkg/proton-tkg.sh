@@ -248,25 +248,6 @@ else
       mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
     fi
 
-    # d9vk
-    if [ "$_use_d9vk" != "false" ]; then
-      if [ ! -d "$_nowhere"/d9vk ] || [ "$_use_d9vk" == "release" ]; then
-        rm -rf "$_nowhere"/d9vk
-        echo "#####################################################"
-        echo ""
-        echo " Downloading some D9VK release from github for you..."
-        echo ""
-        echo "#####################################################"
-        echo ""
-        wget https://github.com/Joshua-Ashton/d9vk/releases/download/0.40.1/d9vk-0.40.1.tar.gz
-        tar -xvf d9vk-*.tar.gz >/dev/null 2>&1
-        rm -f d9vk-*.tar.*
-        mv "$_nowhere"/d9vk-* "$_nowhere"/d9vk
-      fi
-      mkdir -p proton_dist_tmp/lib64/wine/d9vk && cp -v d9vk/x64/d3d9.dll proton_dist_tmp/lib64/wine/d9vk/
-      mkdir -p proton_dist_tmp/lib/wine/d9vk && cp -v d9vk/x32/d3d9.dll proton_dist_tmp/lib/wine/d9vk/
-    fi
-
     echo ''
     echo "Packaging..."
 

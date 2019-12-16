@@ -480,13 +480,13 @@ class CompatData:
             if not ("wined3d9only" in g_session.compat_config or "wined3d" in g_session.compat_config or "custom9" in g_session.compat_config):
                 if not os.path.exists(self.prefix_dir + "drive_c/windows/syswow64"):
                     #use vulkan-based d9vk for d3d9 32
-                    make_d9vk_links(g_proton.lib_dir + "wine/d9vk/",
+                    make_d9vk_links(g_proton.lib_dir + "wine/dxvk/",
                         self.prefix_dir + "drive_c/windows/system32")
                 else:
                     #use vulkan-based d9vk for d3d9 32+64
-                    make_d9vk_links(g_proton.lib64_dir + "wine/d9vk/",
+                    make_d9vk_links(g_proton.lib64_dir + "wine/dxvk/",
                         self.prefix_dir + "drive_c/windows/system32")
-                    make_d9vk_links(g_proton.lib_dir + "wine/d9vk/",
+                    make_d9vk_links(g_proton.lib_dir + "wine/dxvk/",
                         self.prefix_dir + "drive_c/windows/syswow64")
                 g_session.dlloverrides["d3d9"] = "n"
             elif not ("wined3d9only" in g_session.compat_config or "wined3d" in g_session.compat_config) and "custom9" in g_session.compat_config:
