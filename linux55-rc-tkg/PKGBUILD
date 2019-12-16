@@ -87,7 +87,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
-_sub=rc1
+_sub=rc2
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=2
 pkgdesc='Linux-tkg'
@@ -126,7 +126,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0011-ZFS-fix.patch
         #0012-linux-hardened.patch
 )
-sha256sums=('b739f74a099f96128eecad8bad6346f0f41df7e526846e21b912c985c0175a34'
+sha256sums=('aca303b87c818cb41c2ddfd4c06d3fcaa85e935fbd61ea203232ccd2a81844bb'
             'd6bb0fe5150c84c19fe40199e72f708a635271b0b5eeefbf847b9cff3f23143e'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             '6b338201e5282f0c6e05ccc01f4d7c6b3ec57af12d768e40db8f095b7f3f6ea6'
