@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.0.0_devel.118594.a3ea4805aad
+pkgver=20.0.0_devel.118608.75caae2268f
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -66,11 +66,14 @@ _mesa_srcdir="mesa"
 
 source=("$_sourceurl"
         'LICENSE'
+        'llvm32.native'
 )
 md5sums=('SKIP'
-         '5c65a0fe315dd347e09b1f2826a1df5a')
+         '5c65a0fe315dd347e09b1f2826a1df5a'
+         '6b4a19068a323d7f90a3d3cd315ed1f9')
 sha512sums=('SKIP'
-            '25da77914dded10c1f432ebcbf29941124138824ceecaf1367b3deedafaecabc082d463abcfa3d15abff59f177491472b505bcb5ba0c4a51bb6b93b4721a23c2')
+            '25da77914dded10c1f432ebcbf29941124138824ceecaf1367b3deedafaecabc082d463abcfa3d15abff59f177491472b505bcb5ba0c4a51bb6b93b4721a23c2'
+            'c7dbb390ebde291c517a854fcbe5166c24e95206f768cc9458ca896b2253aabd6df12a7becf831998721b2d622d0c02afdd8d519e77dea8e1d6807b35f0166fe')
 
 cp "$_where"/mesa-userpatches/*.mymesa* "$_where" >/dev/null 2>&1 # copy userpatches inside the PKGBUILD's dir
 
@@ -288,10 +291,10 @@ build () {
       cd "$srcdir"
       export CC="gcc -m32"
       export CXX="g++ -m32"
-      export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
-      export LLVM_CONFIG="/usr/bin/llvm-config32"
+      export PKG_CONFIG=/usr/bin/i686-pc-linux-gnu-pkg-config
 
       arch-meson $_mesa_srcdir _build32 \
+          --native-file llvm32.native \
           --libdir=/usr/lib32 \
           -D b_lto=false \
           -D b_ndebug=true \
@@ -342,6 +345,11 @@ package_mesa-tkg-git() {
   conflicts=('mesa' 'opencl-mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'mesa-vulkan-layer' 'libva-mesa-driver' 'mesa-vdpau')
 
   DESTDIR="$pkgdir" ninja $NINJAFLAGS -C _build64 install
+
+  # remove script file from /usr/bin
+  # https://gitlab.freedesktop.org/mesa/mesa/issues/2230
+  rm "${pkgdir}/usr/bin/mesa-overlay-control.py"
+  rmdir "${pkgdir}/usr/bin"
 
   # indirect rendering
   ln -s /usr/lib/libGLX_mesa.so.0 "${pkgdir}/usr/lib/libGLX_indirect.so.0"
