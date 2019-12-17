@@ -1,0 +1,417 @@
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/amdgpu/amdgpu_dpm.h linux-5.4/drivers/gpu/drm/amd/amdgpu/amdgpu_dpm.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/amdgpu/amdgpu_dpm.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/amdgpu/amdgpu_dpm.h	2019-11-26 13:12:29.302246245 +0100
+@@ -274,6 +274,12 @@
+ #define amdgpu_dpm_enable_bapm(adev, e) \
+ 		((adev)->powerplay.pp_funcs->enable_bapm((adev)->powerplay.pp_handle, (e)))
+ 
++#define amdgpu_dpm_get_temperature_asic_max(adev) \
++		((adev)->powerplay.pp_funcs->get_temperature_asic_max((adev)->powerplay.pp_handle))
++
++#define amdgpu_dpm_have_temperature_asic_max(adev) \
++		((adev)->powerplay.pp_funcs->have_temperature_asic_max((adev)->powerplay.pp_handle))
++
+ #define amdgpu_dpm_set_fan_control_mode(adev, m) \
+ 		((adev)->powerplay.pp_funcs->set_fan_control_mode((adev)->powerplay.pp_handle, (m)))
+ 
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/amdgpu/amdgpu_pm.c linux-5.4/drivers/gpu/drm/amd/amdgpu/amdgpu_pm.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/amdgpu/amdgpu_pm.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/amdgpu/amdgpu_pm.c	2019-11-26 13:12:29.305579619 +0100
+@@ -1506,6 +1506,28 @@
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", temp);
+ }
+ 
++static ssize_t amdgpu_hwmon_show_temp_asic_max(struct device *dev,
++				      struct device_attribute *attr,
++				      char *buf)
++{
++	struct amdgpu_device *adev = dev_get_drvdata(dev);
++	struct drm_device *ddev = adev->ddev;
++	int temp;
++
++	/* Can't get temperature when the card is off */
++	if  ((adev->flags & AMD_IS_PX) &&
++	     (ddev->switch_power_state != DRM_SWITCH_POWER_ON))
++		return -EINVAL;
++
++	if (!(adev->powerplay.pp_funcs &&
++		 adev->powerplay.pp_funcs->get_temperature_asic_max))
++		temp = 0;
++	else
++		temp = amdgpu_dpm_get_temperature_asic_max(adev);
++
++	return snprintf(buf, PAGE_SIZE, "%d\n", temp);
++}
++
+ static ssize_t amdgpu_hwmon_show_temp_thresh(struct device *dev,
+ 					     struct device_attribute *attr,
+ 					     char *buf)
+@@ -2225,6 +2247,7 @@
+ static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, amdgpu_hwmon_show_temp_label, NULL, PP_TEMP_EDGE);
+ static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, amdgpu_hwmon_show_temp_label, NULL, PP_TEMP_JUNCTION);
+ static SENSOR_DEVICE_ATTR(temp3_label, S_IRUGO, amdgpu_hwmon_show_temp_label, NULL, PP_TEMP_MEM);
++static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, amdgpu_hwmon_show_temp_asic_max, NULL, 0);
+ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO | S_IWUSR, amdgpu_hwmon_get_pwm1, amdgpu_hwmon_set_pwm1, 0);
+ static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR, amdgpu_hwmon_get_pwm1_enable, amdgpu_hwmon_set_pwm1_enable, 0);
+ static SENSOR_DEVICE_ATTR(pwm1_min, S_IRUGO, amdgpu_hwmon_get_pwm1_min, NULL, 0);
+@@ -2263,6 +2286,7 @@
+ 	&sensor_dev_attr_temp1_label.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_label.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_label.dev_attr.attr,
++	&sensor_dev_attr_temp4_input.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_enable.dev_attr.attr,
+ 	&sensor_dev_attr_pwm1_min.dev_attr.attr,
+@@ -2293,6 +2317,11 @@
+ 	struct device *dev = kobj_to_dev(kobj);
+ 	struct amdgpu_device *adev = dev_get_drvdata(dev);
+ 	umode_t effective_mode = attr->mode;
++        
++	if ((!adev->powerplay.pp_funcs->have_temperature_asic_max ||
++	     !amdgpu_dpm_have_temperature_asic_max(adev)) &&
++	    (attr == &sensor_dev_attr_temp4_input.dev_attr.attr))
++		return 0;
+ 
+ 	/* Skip fan attributes if fan is not present */
+ 	if (adev->pm.no_fan && (attr == &sensor_dev_attr_pwm1.dev_attr.attr ||
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/amdgpu/si_dpm.c linux-5.4/drivers/gpu/drm/amd/amdgpu/si_dpm.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/amdgpu/si_dpm.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/amdgpu/si_dpm.c	2019-11-26 13:12:29.305579619 +0100
+@@ -7867,6 +7867,31 @@
+ 	return actual_temp;
+ }
+ 
++static int si_dpm_get_temp_asic_max(void *handle)
++{
++	u32 temp;
++	int actual_temp = 0;
++	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
++
++	temp = (RREG32(CG_MULT_THERMAL_STATUS) & ASIC_MAX_TEMP_MASK) >>
++		ASIC_MAX_TEMP_SHIFT;
++
++	if (temp & 0x200)
++		actual_temp = 255;
++	else
++		actual_temp = temp & 0x1ff;
++
++	actual_temp = (actual_temp * 1000);
++
++	return actual_temp;
++}
++
++static int si_dpm_have_temp_asic_max(void *handle)
++{
++	return 1;
++}
++
++
+ static u32 si_dpm_get_sclk(void *handle, bool low)
+ {
+ 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+@@ -8049,6 +8074,8 @@
+ };
+ 
+ static const struct amd_pm_funcs si_dpm_funcs = {
++	.get_temperature_asic_max = &si_dpm_get_temp_asic_max,
++	.have_temperature_asic_max = &si_dpm_have_temp_asic_max,
+ 	.pre_set_power_state = &si_dpm_pre_set_power_state,
+ 	.set_power_state = &si_dpm_set_power_state,
+ 	.post_set_power_state = &si_dpm_post_set_power_state,
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/include/kgd_pp_interface.h linux-5.4/drivers/gpu/drm/amd/include/kgd_pp_interface.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/include/kgd_pp_interface.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/include/kgd_pp_interface.h	2019-11-26 13:15:33.697825343 +0100
+@@ -312,6 +312,9 @@
+ 	int (*get_ppfeature_status)(void *handle, char *buf);
+ 	int (*set_ppfeature_status)(void *handle, uint64_t ppfeature_masks);
+ 	int (*asic_reset_mode_2)(void *handle);
++	// my ASIC_MAX temperature
++	int (*get_temperature_asic_max)(void *handle);
++	int (*have_temperature_asic_max)(void *handle);
+ };
+ 
+ #endif
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/amd_powerplay.c linux-5.4/drivers/gpu/drm/amd/powerplay/amd_powerplay.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/amd_powerplay.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/amd_powerplay.c	2019-11-26 13:12:29.305579619 +0100
+@@ -603,6 +603,41 @@
+ 	return ret;
+ }
+ 
++static int pp_dpm_get_temperature_asic_max(void *handle)
++{
++	struct pp_hwmgr  *hwmgr = handle;
++	int ret = 0;
++
++	if (!hwmgr || !hwmgr->pm_en)
++		return -EINVAL;
++
++	if (hwmgr->hwmgr_func->get_temperature_asic_max == NULL) {
++		pr_info("%s was not implemented.\n", __func__);
++		return 0;
++	}
++	mutex_lock(&hwmgr->smu_lock);
++	ret = hwmgr->hwmgr_func->get_temperature_asic_max(hwmgr);
++	mutex_unlock(&hwmgr->smu_lock);
++	return ret;
++}
++
++static int pp_dpm_have_temperature_asic_max(void *handle)
++{
++	struct pp_hwmgr  *hwmgr = handle;
++
++	if (!hwmgr || !hwmgr->pm_en)
++		return 0;
++	
++	if (hwmgr->hwmgr_func == NULL)
++		return 0;
++
++	if (hwmgr->hwmgr_func->get_temperature_asic_max == NULL)
++		return 0;
++	// we have asic max
++	return 1;
++}
++
++
+ static int pp_dpm_get_pp_num_states(void *handle,
+ 		struct pp_states_info *data)
+ {
+@@ -1549,6 +1584,8 @@
+ }
+ 
+ static const struct amd_pm_funcs pp_dpm_funcs = {
++	.get_temperature_asic_max = pp_dpm_get_temperature_asic_max,
++	.have_temperature_asic_max = pp_dpm_have_temperature_asic_max,
+ 	.load_firmware = pp_dpm_load_fw,
+ 	.wait_for_fw_loading_complete = pp_dpm_fw_loading_complete,
+ 	.force_performance_level = pp_dpm_force_performance_level,
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c	2019-11-26 13:12:29.308912993 +0100
+@@ -5146,6 +5146,7 @@
+ 	.set_mclk_od = smu7_set_mclk_od,
+ 	.get_clock_by_type = smu7_get_clock_by_type,
+ 	.read_sensor = smu7_read_sensor,
++	.get_temperature_asic_max = smu7_thermal_get_temperature_asic_max,
+ 	.dynamic_state_management_disable = smu7_disable_dpm_tasks,
+ 	.avfs_control = smu7_avfs_control,
+ 	.disable_smc_firmware_ctf = smu7_thermal_disable_alert,
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.c	2019-11-26 13:12:29.308912993 +0100
+@@ -302,6 +302,30 @@
+ }
+ 
+ /**
++* Reads the remote temperature from the SIslands thermal controller (ASIC MAX)
++*
++* @param    hwmgr The address of the hardware manager.
++*/
++int smu7_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr)
++{
++	int temp;
++
++	temp = PHM_READ_VFPF_INDIRECT_FIELD(hwmgr->device, CGS_IND_REG__SMC,
++			CG_MULT_THERMAL_STATUS, ASIC_MAX_TEMP);
++
++	/* Bit 9 means the reading is lower than the lowest usable value. */
++	if (temp & 0x200)
++		temp = SMU7_THERMAL_MAXIMUM_TEMP_READING;
++	else
++		temp = temp & 0x1ff;
++
++	temp *= PP_TEMPERATURE_UNITS_PER_CENTIGRADES;
++
++	return temp;
++}
++
++
++/**
+ * Set the requested temperature range for high and low alert signals
+ *
+ * @param    hwmgr The address of the hardware manager.
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.h linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/smu7_thermal.h	2019-11-26 13:12:29.308912993 +0100
+@@ -39,6 +39,7 @@
+ #define FDO_PWM_MODE_STATIC_RPM 5
+ 
+ extern int smu7_thermal_get_temperature(struct pp_hwmgr *hwmgr);
++extern int smu7_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr);
+ extern int smu7_thermal_stop_thermal_controller(struct pp_hwmgr *hwmgr);
+ extern int smu7_fan_ctrl_get_fan_speed_info(struct pp_hwmgr *hwmgr, struct phm_fan_speed_info *fan_speed_info);
+ extern int smu7_fan_ctrl_get_fan_speed_percent(struct pp_hwmgr *hwmgr, uint32_t *speed);
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_hwmgr.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_hwmgr.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_hwmgr.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_hwmgr.c	2019-11-26 13:12:29.308912993 +0100
+@@ -5296,6 +5296,7 @@
+ 	.set_fan_control_mode = vega10_set_fan_control_mode,
+ 	.get_fan_control_mode = vega10_get_fan_control_mode,
+ 	.read_sensor = vega10_read_sensor,
++	.get_temperature_asic_max = vega10_thermal_get_temperature_asic_max,
+ 	.get_dal_power_level = vega10_get_dal_power_level,
+ 	.get_clock_by_type_with_latency = vega10_get_clock_by_type_with_latency,
+ 	.get_clock_by_type_with_voltage = vega10_get_clock_by_type_with_voltage,
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.c	2019-11-26 13:12:29.308912993 +0100
+@@ -354,6 +354,29 @@
+ }
+ 
+ /**
++* Reads the remote temperature from ASIC MAX
++*
++* @param    hwmgr The address of the hardware manager.
++*/
++int vega10_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr)
++{
++	struct amdgpu_device *adev = hwmgr->adev;
++	int temp;
++
++	temp = RREG32_SOC15(THM, 0, mmCG_MULT_THERMAL_STATUS);
++
++	temp = (temp & CG_MULT_THERMAL_STATUS__ASIC_MAX_TEMP_MASK) >>
++			CG_MULT_THERMAL_STATUS__ASIC_MAX_TEMP__SHIFT;
++
++	temp = temp & 0x1ff;
++
++	temp *= PP_TEMPERATURE_UNITS_PER_CENTIGRADES;
++
++	return temp;
++}
++
++
++/**
+ * Set the requested temperature range for high and low alert signals
+ *
+ * @param    hwmgr The address of the hardware manager.
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.h linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega10_thermal.h	2019-11-26 13:12:29.308912993 +0100
+@@ -51,6 +51,7 @@
+ 
+ 
+ extern int vega10_thermal_get_temperature(struct pp_hwmgr *hwmgr);
++extern int vega10_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr);
+ extern int vega10_thermal_stop_thermal_controller(struct pp_hwmgr *hwmgr);
+ extern int vega10_fan_ctrl_get_fan_speed_info(struct pp_hwmgr *hwmgr,
+ 		struct phm_fan_speed_info *fan_speed_info);
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_hwmgr.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_hwmgr.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_hwmgr.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_hwmgr.c	2019-11-26 13:12:29.308912993 +0100
+@@ -2683,6 +2683,7 @@
+ 	.set_fan_control_mode = vega12_set_fan_control_mode,
+ 	.get_fan_control_mode = vega12_get_fan_control_mode,
+ 	.read_sensor = vega12_read_sensor,
++	.get_temperature_asic_max = vega12_thermal_get_temperature_asic_max,
+ 	.get_dal_power_level = vega12_get_dal_power_level,
+ 	.get_clock_by_type_with_latency = vega12_get_clock_by_type_with_latency,
+ 	.get_clock_by_type_with_voltage = vega12_get_clock_by_type_with_voltage,
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.c	2019-11-26 13:12:29.308912993 +0100
+@@ -160,6 +160,28 @@
+ }
+ 
+ /**
++* Reads the remote temperature from the SIslands thermal controller (ASIC_MAX).
++*
++* @param    hwmgr The address of the hardware manager.
++*/
++int vega12_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr)
++{
++	struct amdgpu_device *adev = hwmgr->adev;
++	int temp = 0;
++
++	temp = RREG32_SOC15(THM, 0, mmCG_MULT_THERMAL_STATUS);
++
++	temp = (temp & CG_MULT_THERMAL_STATUS__ASIC_MAX_TEMP_MASK) >>
++			CG_MULT_THERMAL_STATUS__ASIC_MAX_TEMP__SHIFT;
++
++	temp = temp & 0x1ff;
++
++	temp *= PP_TEMPERATURE_UNITS_PER_CENTIGRADES;
++	return temp;
++}
++
++
++/**
+ * Set the requested temperature range for high and low alert signals
+ *
+ * @param    hwmgr The address of the hardware manager.
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.h linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega12_thermal.h	2019-11-26 13:12:29.308912993 +0100
+@@ -50,6 +50,7 @@
+ #define FDO_PWM_MODE_STATIC_RPM 5
+ 
+ extern int vega12_thermal_get_temperature(struct pp_hwmgr *hwmgr);
++extern int vega12_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr);
+ extern int vega12_thermal_stop_thermal_controller(struct pp_hwmgr *hwmgr);
+ extern int vega12_fan_ctrl_get_fan_speed_info(struct pp_hwmgr *hwmgr,
+ 		struct phm_fan_speed_info *fan_speed_info);
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_hwmgr.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_hwmgr.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_hwmgr.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_hwmgr.c	2019-11-26 13:12:29.312246367 +0100
+@@ -4195,6 +4195,7 @@
+ 	.force_clock_level = vega20_force_clock_level,
+ 	.print_clock_levels = vega20_print_clock_levels,
+ 	.read_sensor = vega20_read_sensor,
++	.get_temperature_asic_max = vega20_thermal_get_temperature_asic_max,
+ 	.get_ppfeature_status = vega20_get_ppfeature_status,
+ 	.set_ppfeature_status = vega20_set_ppfeature_status,
+ 	/* powergate related */
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.c linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.c
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.c	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.c	2019-11-26 13:12:29.328913236 +0100
+@@ -230,6 +230,27 @@
+ }
+ 
+ /**
++* Reads the remote temperature from the SIslands thermal controller.
++*
++* @param    hwmgr The address of the hardware manager.
++*/
++int vega20_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr)
++{
++	struct amdgpu_device *adev = hwmgr->adev;
++	int temp = 0;
++
++	temp = RREG32_SOC15(THM, 0, mmCG_MULT_THERMAL_STATUS);
++
++	temp = (temp & CG_MULT_THERMAL_STATUS__ASIC_MAX_TEMP_MASK) >>
++			CG_MULT_THERMAL_STATUS__ASIC_MAX_TEMP__SHIFT;
++
++	temp = temp & 0x1ff;
++
++	temp *= PP_TEMPERATURE_UNITS_PER_CENTIGRADES;
++	return temp;
++}
++
++/**
+ * Set the requested temperature range for high and low alert signals
+ *
+ * @param    hwmgr The address of the hardware manager.
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.h linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/hwmgr/vega20_thermal.h	2019-11-26 13:12:29.332246611 +0100
+@@ -50,6 +50,7 @@
+ #define FDO_PWM_MODE_STATIC_RPM 5
+ 
+ extern int vega20_thermal_get_temperature(struct pp_hwmgr *hwmgr);
++extern int vega20_thermal_get_temperature_asic_max(struct pp_hwmgr *hwmgr);
+ extern int vega20_fan_ctrl_get_fan_speed_info(struct pp_hwmgr *hwmgr,
+ 		struct phm_fan_speed_info *fan_speed_info);
+ extern int vega20_fan_ctrl_get_fan_speed_rpm(struct pp_hwmgr *hwmgr,
+diff -rau linux-5.4-orig/drivers/gpu/drm/amd/powerplay/inc/hwmgr.h linux-5.4/drivers/gpu/drm/amd/powerplay/inc/hwmgr.h
+--- linux-5.4-orig/drivers/gpu/drm/amd/powerplay/inc/hwmgr.h	2019-11-25 01:32:01.000000000 +0100
++++ linux-5.4/drivers/gpu/drm/amd/powerplay/inc/hwmgr.h	2019-11-26 13:16:44.895340135 +0100
+@@ -355,6 +355,8 @@
+ 	int (*set_mp1_state)(struct pp_hwmgr *hwmgr, enum pp_mp1_state mp1_state);
+ 	int (*asic_reset)(struct pp_hwmgr *hwmgr, enum SMU_ASIC_RESET_MODE mode);
+ 	int (*smu_i2c_bus_access)(struct pp_hwmgr *hwmgr, bool aquire);
++	// my ASIC MAX temperature
++	int (*get_temperature_asic_max)(struct pp_hwmgr *hwmgr);
+ };
+ 
+ struct pp_table_func {
