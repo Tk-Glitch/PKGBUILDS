@@ -1,7 +1,7 @@
 From 18e69d251b7fd3e19adc8a1dabd883641c585455 Mon Sep 17 00:00:00 2001
 From: Tk-Glitch <ti3nou@gmail.com>
-Date: Mon, 9 Dec 2019 11:52:32 +0100
-Subject: Initial 5.5 patch, based on Isaak I. Aleksandrov's - https://gitlab.com/snippets/1921156
+Date: Mon, 18 Dec 2019 14:11:36 +0100
+Subject: Updated 5.5 patch, from Isaak I. Aleksandrov - https://gitlab.com/snippets/1923197
 
 
 diff --git a/kernel-dkms/common/inc/nv-drm.h b/kernel-dkms/common/inc/nv-drm.h
@@ -47,70 +47,29 @@ index 0000000..07e9f3c
 +
 +#endif
 diff --git a/kernel-dkms/conftest.sh b/kernel-dkms/conftest.sh
-index a54e2c0..15140d0 100755
+index c9c2db3..dd22bb0 100755
 --- a/kernel-dkms/conftest.sh
 +++ b/kernel-dkms/conftest.sh
-@@ -1115,31 +1115,36 @@ compile_test() {
-         drm_available)
-             # Determine if the DRM subsystem is usable
+@@ -1150,6 +1150,9 @@ compile_test() {
              CODE="
-+            #include <linux/version.h>
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
              #if defined(NV_DRM_DRMP_H_PRESENT)
              #include <drm/drmP.h>
++            #else
++            #include <drm/drm_drv.h>
++            #include <drm/drm_prime.h>
              #endif
              #if !defined(CONFIG_DRM) && !defined(CONFIG_DRM_MODULE)
              #error DRM not enabled
-             #endif
-+#endif
-             void conftest_drm_available(void) {
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
-                 struct drm_driver drv;
- 
-                 /* 2013-01-15 89177644a7b6306e6084a89eab7e290f4bfef397 */
-                 drv.gem_prime_pin = 0;
-                 drv.gem_prime_get_sg_table = 0;
-                 drv.gem_prime_vmap = 0;
-                 drv.gem_prime_vunmap = 0;
-                 (void)drm_gem_prime_import;
-                 (void)drm_gem_prime_export;
- 
-                 /* 2013-10-02 1bb72532ac260a2d3982b40bdd4c936d779d0d16 */
-                 (void)drm_dev_alloc;
- 
-                 /* 2013-10-02 c22f0ace1926da399d9a16dfaf09174c1b03594c */
-                 (void)drm_dev_register;
- 
-                 /* 2013-10-02 c3a49737ef7db0bdd4fcf6cf0b7140a883e32b2a */
-                 (void)drm_dev_unregister;
-+#endif
-             }"
- 
-             compile_check_conftest "$CODE" "NV_DRM_AVAILABLE" "" "generic"
-@@ -1746,17 +1722,22 @@ compile_test() {
-             # prototype from drm/drm_atomic.h to drm/drm_atomic_uapi.h.
-             #
+@@ -1781,6 +1784,8 @@ compile_test() {
              echo "$CONFTEST_PREAMBLE
-+            #include <linux/version.h>
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
              #if defined(NV_DRM_DRMP_H_PRESENT)
              #include <drm/drmP.h>
++            #else
++            #include <drm/drm_drv.h>
              #endif
              #include <drm/drm_atomic.h>
              #if !defined(CONFIG_DRM) && !defined(CONFIG_DRM_MODULE)
-             #error DRM not enabled
-             #endif
-+#endif
-             void conftest_drm_atomic_modeset_available(void) {
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
-                 size_t a;
- 
-                 a = offsetof(struct drm_mode_config_funcs, atomic_state_alloc);
-+#endif
-             }" > conftest$$.c;
- 
-             $CC $CFLAGS -c conftest$$.c > /dev/null 2>&1
-@@ -1876,7 +1842,11 @@ compile_test() {
+@@ -1909,7 +1914,11 @@ compile_test() {
              # attached drivers") in v3.14 (2013-12-11)
              #
              CODE="
@@ -122,7 +81,7 @@ index a54e2c0..15140d0 100755
              int conftest_drm_driver_has_legacy_dev_list(void) {
                  return offsetof(struct drm_driver, legacy_dev_list);
              }"
-@@ -1900,7 +1870,11 @@ compile_test() {
+@@ -1933,7 +1942,11 @@ compile_test() {
              #   2017-07-23  e6fc3b68558e4c6d8d160b5daf2511b99afa8814
              #
              CODE="
@@ -134,7 +93,7 @@ index a54e2c0..15140d0 100755
  
              int conftest_drm_crtc_init_with_planes_has_name_arg(void) {
                  return
-@@ -1916,7 +1890,11 @@ compile_test() {
+@@ -1949,7 +1962,11 @@ compile_test() {
              compile_check_conftest "$CODE" "NV_DRM_CRTC_INIT_WITH_PLANES_HAS_NAME_ARG" "" "types"
  
              CODE="
@@ -146,7 +105,7 @@ index a54e2c0..15140d0 100755
  
              int conftest_drm_encoder_init_has_name_arg(void) {
                  return
-@@ -1931,7 +1909,11 @@ compile_test() {
+@@ -1964,7 +1981,11 @@ compile_test() {
              compile_check_conftest "$CODE" "NV_DRM_ENCODER_INIT_HAS_NAME_ARG" "" "types"
  
              echo "$CONFTEST_PREAMBLE
@@ -158,7 +117,7 @@ index a54e2c0..15140d0 100755
  
              int conftest_drm_universal_plane_init_has_format_modifiers_arg(void) {
                  return
-@@ -1958,7 +1940,11 @@ compile_test() {
+@@ -1991,7 +2012,11 @@ compile_test() {
                  echo "#undef NV_DRM_UNIVERSAL_PLANE_INIT_HAS_FORMAT_MODIFIERS_ARG" | append_conftest "types"
  
                  echo "$CONFTEST_PREAMBLE
@@ -170,7 +129,7 @@ index a54e2c0..15140d0 100755
  
                  int conftest_drm_universal_plane_init_has_name_arg(void) {
                      return
-@@ -3037,7 +3023,9 @@ compile_test() {
+@@ -3084,7 +3109,9 @@ compile_test() {
              # drm_framebuffer_{get,put}()") in v4.12 (2017-02-28).
              #
              CODE="
@@ -180,7 +139,7 @@ index a54e2c0..15140d0 100755
              #if defined(NV_DRM_DRM_FRAMEBUFFER_H_PRESENT)
              #include <drm/drm_framebuffer.h>
              #endif
-@@ -3056,7 +3044,9 @@ compile_test() {
+@@ -3103,7 +3130,9 @@ compile_test() {
              # drm_gem_object_{get,put}()") in v4.12 (2017-02-28).
              #
              CODE="
@@ -190,7 +149,7 @@ index a54e2c0..15140d0 100755
              #if defined(NV_DRM_DRM_GEM_H_PRESENT)
              #include <drm/drm_gem.h>
              #endif
-@@ -3075,7 +3065,9 @@ compile_test() {
+@@ -3122,7 +3151,9 @@ compile_test() {
              # functions") in v4.15 (2017-09-26).
              #
              CODE="
@@ -201,23 +160,22 @@ index a54e2c0..15140d0 100755
              #include <drm/drm_drv.h>
              #endif
 diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-connector.c b/kernel-dkms/nvidia-drm/nvidia-drm-connector.c
-index 1553ebc..841dead 100644
+index 1553ebc..f851561 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-connector.c
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-connector.c
-@@ -71,7 +71,12 @@ static enum drm_connector_status __nv_drm_connector_detect_internal(
+@@ -71,7 +73,11 @@ static enum drm_connector_status __nv_drm_connector_detect_internal(
      struct nv_drm_encoder *nv_detected_encoder = NULL;
  
      struct NvKmsKapiDynamicDisplayParams *pDetectParams = NULL;
 +#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
      unsigned int i;
 +#else
-+    struct nv_drm_encoder *nv_encoder;
 +    struct drm_encoder *encoder = NULL;
 +#endif
  
      BUG_ON(!mutex_is_locked(&dev->mode_config.mutex));
  
-@@ -87,21 +87,28 @@ static enum drm_connector_status __nv_drm_connector_detect_internal(
+@@ -87,11 +93,16 @@ static enum drm_connector_status __nv_drm_connector_detect_internal(
          goto done;
      }
  
@@ -225,20 +183,16 @@ index 1553ebc..841dead 100644
      for (i = 0;
           i < DRM_CONNECTOR_MAX_ENCODER && detected_encoder == NULL; i++) {
          struct drm_encoder *encoder;
-         struct nv_drm_encoder *nv_encoder;
- 
-         if (connector->encoder_ids[i] == 0) {
 +#else
 +    drm_connector_for_each_possible_encoder(connector, encoder) {
-+        if (detected_encoder != NULL) {
 +#endif
-             break;
-         }
+         struct nv_drm_encoder *nv_encoder;
  
 +#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
-         encoder = nv_drm_encoder_find(dev, connector->encoder_ids[i]);
- 
-         if (encoder == NULL) {
+         if (connector->encoder_ids[i] == 0) {
+             break;
+         }
+@@ -102,6 +113,7 @@ static enum drm_connector_status __nv_drm_connector_detect_internal(
              BUG_ON(encoder != NULL);
              continue;
          }
@@ -246,19 +200,25 @@ index 1553ebc..841dead 100644
  
          /*
           * DVI-I connectors can drive both digital and analog
+@@ -169,6 +181,8 @@ static enum drm_connector_status __nv_drm_connector_detect_internal(
+             }
+ 
+             detected_encoder = encoder;
++
++            break;
+         }
+     }
+ 
 diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-connector.h b/kernel-dkms/nvidia-drm/nvidia-drm-connector.h
 index f74e22c..099390d 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-connector.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-connector.h
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  #include "nvtypes.h"
  #include "nvkms-api-types.h"
@@ -266,15 +226,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-crtc.h b/kernel-dkms/nvidia-drm/n
 index 31ef3b5..5de3a51 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-crtc.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-crtc.h
-@@ -29,7 +29,11 @@
+@@ -29,7 +29,7 @@
  
  #include "nvidia-drm-helper.h"
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  #include "nvtypes.h"
  #include "nvkms-kapi.h"
  
@@ -282,15 +239,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-drv.c b/kernel-dkms/nvidia-drm/nv
 index a66d3cc..06bf859 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-drv.c
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-drv.c
-@@ -39,7 +39,11 @@
+@@ -39,7 +39,7 @@
  
  #include "nvidia-drm-ioctl.h"
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  /*
   * Commit fcd70cd36b9b ("drm: Split out drm_probe_helper.h")
@@ -298,15 +252,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-encoder.h b/kernel-dkms/nvidia-dr
 index bbaf986..af341a8 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-encoder.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-encoder.h
-@@ -32,7 +32,11 @@
+@@ -32,7 +32,7 @@
  #if defined(NV_DRM_DRM_ENCODER_H_PRESENT)
  #include <drm/drm_encoder.h>
  #else
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  #endif
  
  #include "nvkms-kapi.h"
@@ -314,15 +265,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-fb.h b/kernel-dkms/nvidia-drm/nvi
 index 7f292ce..d13bc4c 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-fb.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-fb.h
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  #include "nvidia-drm-gem-nvkms-memory.h"
  #include "nvkms-kapi.h"
  
@@ -330,15 +278,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-gem.h b/kernel-dkms/nvidia-drm/nv
 index b621969..326f810 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-gem.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-gem.h
-@@ -29,7 +29,11 @@
+@@ -29,7 +29,7 @@
  
  #include "nvidia-drm-priv.h"
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  #include "nvkms-kapi.h"
  
  #if defined(NV_DRM_DRIVER_HAS_GEM_PRIME_RES_OBJ)
@@ -346,15 +291,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-helper.c b/kernel-dkms/nvidia-drm
 index da602ac..e5d6daa 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-helper.c
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-helper.c
-@@ -31,7 +31,11 @@
+@@ -31,7 +31,7 @@
  
  #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  #if defined(NV_DRM_DRM_ATOMIC_UAPI_H_PRESENT)
  #include <drm/drm_atomic_uapi.h>
  #endif
@@ -362,24 +304,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-helper.h b/kernel-dkms/nvidia-drm
 index 8f050d8..71c4b90 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-helper.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-helper.h
-@@ -20,6 +20,8 @@
-  * DEALINGS IN THE SOFTWARE.
-  */
- 
-+#include <linux/version.h>
-+
- #ifndef __NVIDIA_DRM_HELPER_H__
- #define __NVIDIA_DRM_HELPER_H__
- 
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  /*
   * drm_dev_put() is added by commit 9a96f55034e41b4e002b767e9218d55f03bdff7d
@@ -387,15 +317,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-modeset.h b/kernel-dkms/nvidia-dr
 index 06659c5..e9d7b70 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-modeset.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-modeset.h
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  struct drm_atomic_state *nv_drm_atomic_state_alloc(struct drm_device *dev);
  void nv_drm_atomic_state_clear(struct drm_atomic_state *state);
@@ -403,15 +330,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-os-interface.h b/kernel-dkms/nvid
 index f43f851..7f4ff8b 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-os-interface.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-os-interface.h
-@@ -29,7 +29,11 @@
+@@ -29,7 +29,7 @@
  
  #if defined(NV_DRM_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  /* Set to true when the atomic modeset feature is enabled. */
  extern bool nv_drm_modeset_module_param;
@@ -419,15 +343,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-prime-fence.h b/kernel-dkms/nvidi
 index 20da923..f3cc2b4 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-prime-fence.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-prime-fence.h
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  #if defined(NV_DRM_DRIVER_HAS_GEM_PRIME_RES_OBJ)
  
@@ -435,24 +356,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-priv.h b/kernel-dkms/nvidia-drm/n
 index 9076835..77a95f3 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-priv.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-priv.h
-@@ -20,6 +20,8 @@
-  * DEALINGS IN THE SOFTWARE.
-  */
- 
-+#include <linux/version.h>
-+
- #ifndef __NVIDIA_DRM_PRIV_H__
- #define __NVIDIA_DRM_PRIV_H__
- 
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  
  #if defined(NV_DRM_DRM_GEM_H_PRESENT)
  #include <drm/drm_gem.h>
@@ -460,15 +369,12 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-utils.h b/kernel-dkms/nvidia-drm/
 index 6d24120..95190c4 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-utils.h
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-utils.h
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,7 @@
  
  #if defined(NV_DRM_ATOMIC_MODESET_AVAILABLE)
  
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
- #include <drm/drmP.h>
-+#else
+-#include <drm/drmP.h>
 +#include "nv-drm.h"
-+#endif
  #include "nvkms-kapi.h"
  
  struct NvKmsKapiConnectorInfo*
