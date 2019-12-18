@@ -632,10 +632,10 @@ index 21fb5a5662b5..cab4e5c5b38e 100644
  obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..6c52f2d5b797
+index 000000000000..5c5603249b78
 --- /dev/null
 +++ b/kernel/sched/bmq.c
-@@ -0,0 +1,6098 @@
+@@ -0,0 +1,6102 @@
 +/*
 + *  kernel/sched/bmq.c
 + *
@@ -706,7 +706,7 @@ index 000000000000..6c52f2d5b797
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.4-r0 by Alfred Chen.\n");
++	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.4-r1 by Alfred Chen.\n");
 +}
 +
 +/**
@@ -721,7 +721,7 @@ index 000000000000..6c52f2d5b797
 +#define boost_threshold(p)	(SCHED_TIMESLICE_NS >>\
 +				 (10 - MAX_PRIORITY_ADJ -  (p)->boost_prio))
 +
-+static inline void boost_task(struct task_struct *p, struct rq *rq)
++static inline void boost_task(struct task_struct *p)
 +{
 +	int limit;
 +
@@ -737,7 +737,7 @@ index 000000000000..6c52f2d5b797
 +		return;
 +	}
 +
-+	if (p->boost_prio > limit && rq_switch_time(rq) < boost_threshold(p))
++	if (p->boost_prio > limit)
 +		p->boost_prio--;
 +}
 +
@@ -2299,6 +2299,9 @@ index 000000000000..6c52f2d5b797
 +		atomic_dec(&task_rq(p)->nr_iowait);
 +	}
 +
++	if(cpu_rq(smp_processor_id())->clock - p->last_ran > SCHED_TIMESLICE_NS)
++		boost_task(p);
++
 +	cpu = select_task_rq(p);
 +
 +	if (cpu != task_cpu(p)) {
@@ -2402,7 +2405,8 @@ index 000000000000..6c52f2d5b797
 +		p->sched_reset_on_fork = 0;
 +	}
 +
-+	p->boost_prio = MAX_PRIORITY_ADJ;
++	p->boost_prio = (p->boost_prio < 0) ?
++		p->boost_prio + MAX_PRIORITY_ADJ : MAX_PRIORITY_ADJ;
 +	/*
 +	 * Share the timeslice between parent and child, thus the
 +	 * total amount of pending timeslices in the system doesn't change,
@@ -3024,7 +3028,6 @@ index 000000000000..6c52f2d5b797
 +	p->sched_time += ns;
 +	account_group_exec_runtime(p, ns);
 +
-+	/* time_slice accounting is done in usecs to avoid overflow on 32bit */
 +	p->time_slice -= ns;
 +	p->last_ran = rq->clock_task;
 +}
@@ -3700,7 +3703,8 @@ index 000000000000..6c52f2d5b797
 +		if (signal_pending_state(prev->state, prev)) {
 +			prev->state = TASK_RUNNING;
 +		} else {
-+			boost_task(prev, rq);
++			if (rq_switch_time(rq) < boost_threshold(prev))
++				boost_task(prev);
 +			deactivate_task(prev, rq);
 +
 +			if (prev->in_iowait) {

@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=rc2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=2
+pkgrel=3
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -142,7 +142,7 @@ sha256sums=('aca303b87c818cb41c2ddfd4c06d3fcaa85e935fbd61ea203232ccd2a81844bb'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             'e27ad5ff23a81b5be73a642db5186b447f336956a427d1300e8ccc49abf0dd74'
             '965a517a283f265a012545fbb5cc9e516efc9f6166d2aa1baf7293a32a1086b7'
-            '37398885bd8394e27da16cf604ef5d0e14bc93568f56f5d2e7fea77d3ade9c91'
+            'be4c8e227729e2481cbc48e6e21e938abcb2fe036d3c5c7c55d292100b86e054'
             '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
