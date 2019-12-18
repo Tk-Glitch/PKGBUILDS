@@ -161,13 +161,17 @@ else
     cp -rv liberation-fonts-ttf*/Liberation{Sans-Regular,Sans-Bold,Serif-Regular,Mono-Regular}.ttf "$_nowhere/proton_template/share/fonts"/
     cd "$_nowhere"
 
-    # Clone Proton tree as we need to build some tools from it
-    git clone https://github.com/ValveSoftware/Proton || true # It'll complain the path already exists on subsequent builds
-    cd Proton
-    git reset --hard HEAD
-    git clean -xdf
-    git pull
-    git checkout "$_proton_branch"
+    if [ "$_NUKR" != "debug" ]; then
+      # Clone Proton tree as we need to build some tools from it
+      git clone https://github.com/ValveSoftware/Proton || true # It'll complain the path already exists on subsequent builds
+      cd Proton
+      git reset --hard HEAD
+      git clean -xdf
+      git pull
+      git checkout "$_proton_branch"
+    else
+      cd Proton
+    fi
 
     # Embed fake data to spoof desired fonts
     fontforge -script "$_nowhere/Proton/fonts/scripts/generatefont.pe" "$_nowhere/proton_template/share/fonts/LiberationSans-Regular" "Arial" "Arial" "Arial"
