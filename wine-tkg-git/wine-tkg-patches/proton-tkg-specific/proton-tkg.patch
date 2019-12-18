@@ -3245,20 +3245,9 @@ diff --git a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
 index 3d1817a36bb..899a3b3d5d9 100644
 --- a/tools/winegcc/winegcc.c
 +++ b/tools/winegcc/winegcc.c
-@@ -408,6 +408,10 @@ static strarray *get_link_args( struct options *opts, const char *output_name )
-             strarray_add( flags, "-image_base" );
-             strarray_add( flags, opts->image_base );
-         }
-+        /* On Mac, change -s into -Wl,-x. ld's -s switch
-+         * is deprecated, and it doesn't work on Tiger with
-+         * MH_BUNDLEs anyway
-+         */
-         if (opts->strip) strarray_add( flags, "-Wl,-x" );
-         return flags;
- 
 @@ -1162,9 +1166,21 @@ static void build(struct options* opts)
  
-     if (opts->nodefaultlibs && is_pe) strarray_add( link_args, "-lgcc" );
+     if (libgcc) strarray_add(link_args, libgcc);
  
 +    if (opts->target_platform != PLATFORM_APPLE && !is_pe && opts->strip)
 +        strarray_add(link_args, "-s");
@@ -3275,7 +3264,7 @@ index 3d1817a36bb..899a3b3d5d9 100644
 +        strarray_free(strip_args);
 +    }
 +
-     if (is_pe && opts->wine_builtin) make_wine_builtin( output_path );
+     if (is_pe && opts->wine_builtin) make_wine_builtin( opts, output_path );
  
      /* set the base address with prelink if linker support is not present */
 @@ -1555,12 +1571,8 @@ int main(int argc, char **argv)

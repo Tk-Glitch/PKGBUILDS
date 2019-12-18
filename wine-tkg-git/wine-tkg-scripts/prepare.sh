@@ -1136,7 +1136,7 @@ EOM
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
-	  if git merge-base --is-ancestor 477ff7e034e882cf0dc24aa0b459ec957608a1c3 HEAD; then
+	  if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
 	    if [ "$_steamclient_noswap" != "true" ]; then
 	      _patchname='proton-tkg-steamclient-swap.patch' && _patchmsg="Applied steamclient substitution hack" && nonuser_patcher
 	    fi
@@ -1148,7 +1148,10 @@ EOM
 	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/2" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor aa827393311987319998a5dc1860e4696d495114 HEAD; then
+	    if git merge-base --is-ancestor 477ff7e034e882cf0dc24aa0b459ec957608a1c3 HEAD; then
+	      _lastcommit="51ffea5"
+	      _rpc="1"
+	    elif git merge-base --is-ancestor aa827393311987319998a5dc1860e4696d495114 HEAD; then
 	      _lastcommit="477ff7e"
 	      _rpc="1"
 	    elif git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
