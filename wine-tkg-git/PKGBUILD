@@ -5,7 +5,7 @@ pkgver=5.0rc1.r6.g088d7f9d
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=229
+eval pkgrel=230
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -182,6 +182,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'f4skyrimse-fix-2.patch' # Fo4 & Skyrim SE Script Extender fix 2/2 (Fixed in 6672fc9+)
 		'fortnite.patch' # Fortnite crashfix - Doesn't fix EAC/BE
 		'mtga.patch' # Magic The Gathering: Arena crashfix
+		'mtga-legacy-addition.patch' # Hack to allow for msi installers of Magic The Gathering: Arena to succeed (on older than 5.0rc1)
 		'sims_2-fix-legacy.patch' # Sims 2 fix for <4.1
 		'sims_2-fix-4.2-.patch' # Sims 2 fix for 4.2 and lower
 		'sims_2-fix.patch' # Sims 2 fix for 4.3+
@@ -346,7 +347,8 @@ md5sums=('SKIP'
          '134937095639e80fe7fb5aac12177686'
          '496204bf74c34db41dfc3f4075375145'
          'f50501943759c8731d40eb521e36e6da'
-         'af6b455bdace212157b9a6652ee88d41'
+         '8dba1e638cf96b43a991046807f3277a'
+         '981ec68c116eed8a8e388b95401c3db8'
          '6e301f262f004b930ffc3000839d837b'
          'cd52a9b26c15fd210cd5ed1da178dcb1'
          '65906da954430bde504dd47a69f23f6f'

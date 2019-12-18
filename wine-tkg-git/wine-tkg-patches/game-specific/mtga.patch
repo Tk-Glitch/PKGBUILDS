@@ -1,16 +1,3 @@
-diff --git a/dlls/msi/files.c b/dlls/msi/files.c
-index 5a88c147e0..47c0de61e0 100644
---- a/dlls/msi/files.c
-+++ b/dlls/msi/files.c
-@@ -87,6 +87,8 @@ static BOOL is_obsoleted_by_patch( MSIPACKAGE *package, MSIFILE *file )
- 
- static msi_file_state calculate_install_state( MSIPACKAGE *package, MSIFILE *file )
- {
-+    return msifs_overwrite;
-+
-     MSICOMPONENT *comp = file->Component;
-     VS_FIXEDFILEINFO *file_version;
-     WCHAR *font_version;
 diff --git a/dlls/ntdll/thread.c b/dlls/ntdll/thread.c
 index 9f4a08fdb9..035ad680eb 100644
 --- a/dlls/ntdll/thread.c

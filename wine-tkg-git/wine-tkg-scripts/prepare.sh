@@ -609,6 +609,9 @@ _prepare() {
 
 	# Magic The Gathering: Arena crash fix
 	if [ "$_mtga_fix" == "true" ]; then
+	  if ! git merge-base --is-ancestor ce7e10868a1279573acc5be5a9659d254e936b27 HEAD; then
+	    _patchname='mtga-legacy-addition.patch' && _patchmsg="Applied MTGA msi installers hack" && nonuser_patcher
+	  fi
 	  _patchname='mtga.patch' && _patchmsg="Applied MTGA crashfix" && nonuser_patcher
 	fi
 
