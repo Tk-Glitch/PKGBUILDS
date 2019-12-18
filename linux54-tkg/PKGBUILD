@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=5
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=13
+pkgrel=14
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -122,7 +122,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0007-v5.4-fsync.patch
         #0008-5.4-bcachefs.patch
         0009-glitched-bmq.patch
-        0009-bmq_v5.4-r0.patch
+        0009-bmq_v5.4-r1.patch
         0011-ZFS-fix.patch
         #0012-linux-hardened.patch
 )
@@ -142,7 +142,7 @@ sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '90917e09bb06fbed6853efe9e52f8c2ba4066fca44accdf7608222212561104a'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
-            'd3405db8ab0557a8d4ca28c15052413abefe0ae267016c3708dfaed2dae8a858'
+            '0b770209a72171dfd46401d67d13204a767eb1749ef522df7ea7292b83046537'
             '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
@@ -240,7 +240,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0009-bmq_v5.4-r0.patch
+    patch -Np1 -i ../0009-bmq_v5.4-r1.patch
     patch -Np1 -i ../0009-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
