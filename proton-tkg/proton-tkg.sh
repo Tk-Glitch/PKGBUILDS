@@ -10,7 +10,12 @@
 set -e
 
 _nowhere=$PWD
-_wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
+
+if [ "$_ispkgbuild" != "true" ]; then
+  _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
+else
+  _wine_tkg_git_path="${_nowhere}/../../wine-tkg-git"
+fi
 
 # Enforce not using makepkg even if available with --nomakepkg
 if [ "$1" == "--nomakepkg" ]; then
@@ -124,7 +129,7 @@ else
   cd "$_nowhere"
 
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
-  echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "$_wine_tkg_git_path"/
+  echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "${_wine_tkg_git_path}/"
 
   # Now let's build
   cd "$_wine_tkg_git_path"
@@ -324,30 +329,32 @@ else
 
     cd $_nowhere
 
-    steam_is_running
+    if [ "$_ispkgbuild" != "true" ]; then
+      steam_is_running
 
-    # Create custom compat tools dir if needed
-    mkdir -p "$_steampath/compatibilitytools.d"
+      # Create custom compat tools dir if needed
+      mkdir -p "$_steampath/compatibilitytools.d"
 
-    # Nuke same version if exists before copying new build
-    if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
-      rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
-    fi
+      # Nuke same version if exists before copying new build
+      if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
+        rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
+      fi
 
-    # Get rid of the token
-    rm -f proton_tkg_token
+      # Get rid of the token
+      rm -f proton_tkg_token
 
-    mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
-    echo "####################################################################################################"
-    echo ""
-    echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
-    echo ""
-    echo "####################################################################################################"
-    if [ "$_skip_uninstaller" != "true" ]; then
+      mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
+      echo "####################################################################################################"
       echo ""
-      read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
-      if [ "$_ask_uninstall" == "y" ]; then
-        proton_tkg_uninstaller
+      echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
+      echo ""
+      echo "####################################################################################################"
+      if [ "$_skip_uninstaller" != "true" ]; then
+        echo ""
+        read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
+        if [ "$_ask_uninstall" == "y" ]; then
+          proton_tkg_uninstaller
+        fi
       fi
     fi
   else
