@@ -2521,3 +2521,268 @@ index 524a989401..f3150b607a 100644
      "get_suspend_context",
      "set_suspend_context",
      "create_job",
+From e356bcaf352618618e15d1ded10183852a59c7bf Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 17 Dec 2019 08:19:04 -0600
+Subject: [PATCH] winex11: Apply X pointer mapping to RawButton events
+
+---
+ dlls/winex11.drv/keyboard.c    | 23 +++++++++++++++++------
+ dlls/winex11.drv/mouse.c       | 34 +++++++++++++++++++++++++++++++++-
+ dlls/winex11.drv/x11drv.h      |  1 +
+ dlls/winex11.drv/x11drv_main.c |  1 +
+ 4 files changed, 52 insertions(+), 7 deletions(-)
+
+diff --git a/dlls/winex11.drv/keyboard.c b/dlls/winex11.drv/keyboard.c
+index 73670adbe32..cfffad03ed6 100644
+--- a/dlls/winex11.drv/keyboard.c
++++ b/dlls/winex11.drv/keyboard.c
+@@ -1977,13 +1977,24 @@ BOOL X11DRV_MappingNotify( HWND dummy, XEvent *event )
+ {
+     HWND hwnd;
+ 
+-    XRefreshKeyboardMapping(&event->xmapping);
+-    X11DRV_InitKeyboard( event->xmapping.display );
++    switch (event->xmapping.request)
++    {
++    case MappingModifier:
++    case MappingKeyboard:
++        XRefreshKeyboardMapping( &event->xmapping );
++        X11DRV_InitKeyboard( event->xmapping.display );
++
++        hwnd = GetFocus();
++        if (!hwnd) hwnd = GetActiveWindow();
++        PostMessageW(hwnd, WM_INPUTLANGCHANGEREQUEST,
++                     0 /*FIXME*/, (LPARAM)X11DRV_GetKeyboardLayout(0));
++        break;
++
++    case MappingPointer:
++        X11DRV_InitMouse( event->xmapping.display );
++        break;
++    }
+ 
+-    hwnd = GetFocus();
+-    if (!hwnd) hwnd = GetActiveWindow();
+-    PostMessageW(hwnd, WM_INPUTLANGCHANGEREQUEST,
+-                 0 /*FIXME*/, (LPARAM)X11DRV_GetKeyboardLayout(0));
+     return TRUE;
+ }
+ 
+diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
+index cb3cd4b4fd0..b8282532855 100644
+--- a/dlls/winex11.drv/mouse.c
++++ b/dlls/winex11.drv/mouse.c
+@@ -120,6 +120,8 @@ static const UINT button_up_data[NB_BUTTONS] =
+     XBUTTON2
+ };
+ 
++static unsigned char *x_pointer_map;
++
+ XContext cursor_context = 0;
+ 
+ static HWND cursor_window;
+@@ -140,6 +142,26 @@ MAKE_FUNCPTR(XISelectEvents);
+ #undef MAKE_FUNCPTR
+ #endif
+ 
++void X11DRV_InitMouse( Display *display )
++{
++    int i, n_buttons;
++    unsigned char *new_map, *old_map;
++
++    n_buttons = XGetPointerMapping(display, NULL, 0);
++
++    new_map = HeapAlloc(GetProcessHeap(), 0, sizeof(*new_map) * n_buttons);
++
++    /* default mapping */
++    for (i = 0; i < n_buttons; ++i)
++        new_map[i] = i + 1;
++
++    XGetPointerMapping(display, new_map, n_buttons);
++
++    old_map = InterlockedExchangePointer((void**)&x_pointer_map, new_map);
++
++    HeapFree(GetProcessHeap(), 0, old_map);
++}
++
+ /***********************************************************************
+  *		X11DRV_Xcursor_Init
+  *
+@@ -1886,6 +1908,16 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+     return TRUE;
+ }
+ 
++/* apply current X pointer map to raw button event */
++static unsigned char translate_raw_button(int from)
++{
++    unsigned char *cur_map = x_pointer_map;
++
++    if (!cur_map) return from;
++
++    return cur_map[from - 1];
++}
++
+ /***********************************************************************
+  *           X11DRV_RawButtonEvent
+  */
+@@ -1893,7 +1925,7 @@ static BOOL X11DRV_RawButtonEvent( XGenericEventCookie *cookie )
+ {
+     struct x11drv_thread_data *thread_data = x11drv_thread_data();
+     XIRawEvent *event = cookie->data;
+-    int button = event->detail - 1;
++    int button = translate_raw_button(event->detail) - 1;
+     INPUT input;
+ 
+     if (button >= NB_BUTTONS) return FALSE;
+diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
+index 08a424740ce..7a6c8596d9a 100644
+--- a/dlls/winex11.drv/x11drv.h
++++ b/dlls/winex11.drv/x11drv.h
+@@ -661,6 +661,7 @@ extern void reset_clipping_window(void) DECLSPEC_HIDDEN;
+ extern BOOL clip_fullscreen_window( HWND hwnd, BOOL reset ) DECLSPEC_HIDDEN;
+ extern void move_resize_window( HWND hwnd, int dir ) DECLSPEC_HIDDEN;
+ extern void X11DRV_InitKeyboard( Display *display ) DECLSPEC_HIDDEN;
++extern void X11DRV_InitMouse( Display *display ) DECLSPEC_HIDDEN;
+ extern DWORD CDECL X11DRV_MsgWaitForMultipleObjectsEx( DWORD count, const HANDLE *handles, DWORD timeout,
+                                                        DWORD mask, DWORD flags ) DECLSPEC_HIDDEN;
+ 
+diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
+index c031a5639aa..c8b3fdeeed8 100644
+--- a/dlls/winex11.drv/x11drv_main.c
++++ b/dlls/winex11.drv/x11drv_main.c
+@@ -601,6 +601,7 @@ static BOOL process_attach(void)
+     if (use_xkb) use_xkb = XkbUseExtension( gdi_display, NULL, NULL );
+ #endif
+     X11DRV_InitKeyboard( gdi_display );
++    X11DRV_InitMouse( gdi_display );
+     if (use_xim) use_xim = X11DRV_InitXIM( input_style );
+ 
+     X11DRV_DisplayDevices_Init(FALSE);
+From 08cdf3ab0a650876f1e326f2d66b3f1e4acb4208 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Tue, 17 Dec 2019 12:27:44 -0600
+Subject: [PATCH] winex11: Apply device mapping to RawButton events
+
+---
+ dlls/winex11.drv/mouse.c | 71 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 64 insertions(+), 7 deletions(-)
+
+diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
+index b8282532855..110edc8ce75 100644
+--- a/dlls/winex11.drv/mouse.c
++++ b/dlls/winex11.drv/mouse.c
+@@ -25,6 +25,9 @@
+ #include <X11/Xlib.h>
+ #include <X11/cursorfont.h>
+ #include <stdarg.h>
++#ifdef HAVE_X11_EXTENSIONS_XINPUT_H
++#include <X11/extensions/XInput.h>
++#endif
+ #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
+ #include <X11/extensions/XInput2.h>
+ #endif
+@@ -139,6 +142,9 @@ MAKE_FUNCPTR(XIFreeDeviceInfo);
+ MAKE_FUNCPTR(XIQueryDevice);
+ MAKE_FUNCPTR(XIQueryVersion);
+ MAKE_FUNCPTR(XISelectEvents);
++MAKE_FUNCPTR(XOpenDevice);
++MAKE_FUNCPTR(XCloseDevice);
++MAKE_FUNCPTR(XGetDeviceButtonMapping);
+ #undef MAKE_FUNCPTR
+ #endif
+ 
+@@ -1908,14 +1914,62 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+     return TRUE;
+ }
+ 
+-/* apply current X pointer map to raw button event */
+-static unsigned char translate_raw_button(int from)
++struct device_map {
++    int id, btn_count;
++    unsigned char map[256];
++
++    struct list entry;
++};
++
++static const unsigned char *get_device_map(Display *display, int device_id)
++{
++    static struct list cache = LIST_INIT(cache);
++
++    struct device_map *device_map;
++    XDevice *device;
++
++    /* TODO: We should ask for DeviceMappingNotify events and update the cache. */
++
++    LIST_FOR_EACH_ENTRY(device_map, &cache, struct device_map, entry)
++    {
++        if (device_map->id == device_id)
++            return device_map->map;
++    }
++
++    device = pXOpenDevice(display, device_id);
++    if (!device)
++    {
++        WARN("unable to open cursor source device? %u\n", device_id);
++        return NULL;
++    }
++
++    device_map = HeapAlloc(GetProcessHeap(), 0, sizeof(*device_map));
++    device_map->id = device_id;
++
++    device_map->btn_count = pXGetDeviceButtonMapping(display, device,
++            device_map->map, ARRAY_SIZE(device_map->map));
++
++    pXCloseDevice(display, device);
++
++    list_add_tail(&cache, &device_map->entry);
++
++    return device_map->map;
++}
++
++/* apply button maps to raw button event */
++static unsigned char translate_raw_button(XIRawEvent *event)
+ {
+-    unsigned char *cur_map = x_pointer_map;
++    const unsigned char *device_map = get_device_map(event->display, event->sourceid);
++    const unsigned char *pointer_map = x_pointer_map;
++    int from = event->detail;
++
++    if (device_map)
++        from = device_map[from - 1];
+ 
+-    if (!cur_map) return from;
++    if (pointer_map)
++        from = pointer_map[from - 1];
+ 
+-    return cur_map[from - 1];
++    return from;
+ }
+ 
+ /***********************************************************************
+@@ -1925,14 +1979,14 @@ static BOOL X11DRV_RawButtonEvent( XGenericEventCookie *cookie )
+ {
+     struct x11drv_thread_data *thread_data = x11drv_thread_data();
+     XIRawEvent *event = cookie->data;
+-    int button = translate_raw_button(event->detail) - 1;
++    int button = translate_raw_button(event) - 1;
+     INPUT input;
+ 
+     if (button >= NB_BUTTONS) return FALSE;
+     if (thread_data->xi2_state != xi_enabled) return FALSE;
+     if (event->deviceid != thread_data->xi2_core_pointer) return FALSE;
+ 
+-    TRACE( "raw button %u %s\n", button, event->evtype == XI_RawButtonRelease ? "up" : "down" );
++    TRACE( "raw button %u (was: %u) %s\n", button, event->detail, event->evtype == XI_RawButtonRelease ? "up" : "down" );
+ 
+     input.type             = INPUT_MOUSE;
+     input.u.mi.dx          = 0;
+@@ -1975,6 +2029,9 @@ void X11DRV_XInput2_Init(void)
+     LOAD_FUNCPTR(XIQueryDevice);
+     LOAD_FUNCPTR(XIQueryVersion);
+     LOAD_FUNCPTR(XISelectEvents);
++    LOAD_FUNCPTR(XOpenDevice);
++    LOAD_FUNCPTR(XCloseDevice);
++    LOAD_FUNCPTR(XGetDeviceButtonMapping);
+ #undef LOAD_FUNCPTR
+ 
+     xinput2_available = XQueryExtension( gdi_display, "XInputExtension", &xinput2_opcode, &event, &error );
