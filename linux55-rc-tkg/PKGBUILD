@@ -822,7 +822,7 @@ prepare() {
       if [ -z "$_diffconfig_name" ]; then
         echo 'No file name given, not saving config changes.'
       else
-        ( cd "$_where"; "${srcdir}/linux-${_basekernel}/scripts/diffconfig" -m "${srcdir}/linux-${_basekernel}/.config.orig" "${srcdir}/linux-${_basekernel}/.config" > "$_diffconfig_name" )
+        ( cd "$_where"; "${srcdir}/linux-${_basekernel}-${_sub}/scripts/diffconfig" -m "${srcdir}/linux-${_basekernel}-${_sub}/.config.orig" "${srcdir}/linux-${_basekernel}-${_sub}/.config" > "$_diffconfig_name" )
       fi
     fi
     rm .config.orig
