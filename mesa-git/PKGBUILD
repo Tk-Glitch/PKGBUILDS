@@ -34,9 +34,10 @@ pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
              'libomxil-bellagio' 'libxrandr' 'ocl-icd' 'vulkan-icd-loader' 'libgcrypt'  'wayland'
-             'wayland-protocols' 'meson' 'ninja' 'libdrm' 'glproto' 'libdrm' 'dri2proto' 'dri3proto'
-             'presentproto' 'libxshmfence' 'libxxf86vm' 'libxdamage' 'libclc' 'libglvnd'
-             'libunwind' 'lm_sensors' 'libxrandr' 'valgrind' 'glslang')
+             'wayland-protocols' 'meson' 'ninja' 'libdrm' 'xorgproto' 'libdrm' 'libxshmfence' 
+             'libxxf86vm' 'libxdamage' 'libclc' 'libglvnd' 'libunwind' 'lm_sensors' 'libxrandr'
+             'valgrind' 'glslang')
+
 if [ "$_lib32" == "true" ]; then
   makedepends+=('lib32-libxml2' 'lib32-libx11' 'lib32-libdrm' 'lib32-libxshmfence' 'lib32-libxxf86vm'
                 'lib32-gcc-libs' 'lib32-libvdpau' 'lib32-libelf' 'lib32-libgcrypt' 'lib32-systemd'
