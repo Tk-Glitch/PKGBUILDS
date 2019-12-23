@@ -550,6 +550,7 @@ _prepare() {
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
+	    _proton_rawinput="true"
 	    _staging_args+=(-W winex11.drv-mouse-coorrds -W winex11-MWM_Decorations)
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
