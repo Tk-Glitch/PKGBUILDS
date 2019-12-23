@@ -696,6 +696,13 @@ _prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
+	# Proton compatible rawinput patchset
+	if [ "$_proton_rawinput" == "true" ] && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  if git merge-base --is-ancestor 6d7828e8df68178ca662bc618f7598254afcfbe1 HEAD; then
+	    _staging_args+=(-W user32-rawinput-mouse -W user32-rawinput-nolegacy -W user32-rawinput-mouse-experimental -W user32-rawinput-hid -W user32-rawinput-keyboard -W winex11-key_translation)
+	  fi
+	fi
+
 	if [ "$_use_staging" == "true" ] && [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW2" == "y" ]; then
 	  msg2 "Applying wine-staging patches..." && echo "Staging overrides, if any: ${_staging_args[@]}" >> "$_where"/last_build_config.log
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all "${_staging_args[@]}"
