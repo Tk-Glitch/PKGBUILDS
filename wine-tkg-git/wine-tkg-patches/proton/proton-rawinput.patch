@@ -2786,3 +2786,384 @@ index b8282532855..110edc8ce75 100644
  #undef LOAD_FUNCPTR
  
      xinput2_available = XQueryExtension( gdi_display, "XInputExtension", &xinput2_opcode, &event, &error );
+
+diff --git a/dlls/user32/message.c b/dlls/user32/message.c
+index b6adddc99b..ce0fd78d75 100644
+--- a/dlls/user32/message.c
++++ b/dlls/user32/message.c
+@@ -2318,7 +2318,12 @@ static BOOL process_rawinput_message( MSG *msg, const struct hardware_msg_data *
+         rawinput->header.hDevice = WINE_MOUSE_HANDLE;
+         rawinput->header.wParam  = 0;
+ 
+-        rawinput->data.mouse.usFlags           = MOUSE_MOVE_RELATIVE;
++        if (msg_data->flags & MOUSEEVENTF_ABSOLUTE)
++            rawinput->data.mouse.usFlags = MOUSE_MOVE_ABSOLUTE;
++        else
++            rawinput->data.mouse.usFlags = MOUSE_MOVE_RELATIVE;
++        if (msg_data->flags & MOUSEEVENTF_VIRTUALDESK)
++            rawinput->data.mouse.usFlags |= MOUSE_VIRTUAL_DESKTOP;
+         rawinput->data.mouse.u.s.usButtonFlags = 0;
+         rawinput->data.mouse.u.s.usButtonData  = 0;
+         for (i = 1; i < ARRAY_SIZE(button_flags); ++i)
+diff --git a/dlls/user32/rawinput.c b/dlls/user32/rawinput.c
+index c6af2faa2a..850028ed2b 100644
+--- a/dlls/user32/rawinput.c
++++ b/dlls/user32/rawinput.c
+@@ -345,7 +345,7 @@ BOOL WINAPI DECLSPEC_HOTPATCH RegisterRawInputDevices(RAWINPUTDEVICE *devices, U
+         TRACE("device %u: page %#x, usage %#x, flags %#x, target %p.\n",
+                 i, devices[i].usUsagePage, devices[i].usUsage,
+                 devices[i].dwFlags, devices[i].hwndTarget);
+-        if (devices[i].dwFlags & ~RIDEV_REMOVE)
++        if (devices[i].dwFlags & ~(RIDEV_REMOVE|RIDEV_NOLEGACY))
+             FIXME("Unhandled flags %#x for device %u.\n", devices[i].dwFlags, i);
+ 
+         d[i].usage_page = devices[i].usUsagePage;
+diff --git a/dlls/winex11.drv/mouse.c b/dlls/winex11.drv/mouse.c
+index 110edc8ce7..aea6cc8b92 100644
+--- a/dlls/winex11.drv/mouse.c
++++ b/dlls/winex11.drv/mouse.c
+@@ -283,34 +283,43 @@ static void update_relative_valuators(XIAnyClassInfo **valuators, int n_valuator
+     struct x11drv_thread_data *thread_data = x11drv_thread_data();
+     int i;
+ 
+-    thread_data->x_rel_valuator.number = -1;
+-    thread_data->y_rel_valuator.number = -1;
+-    thread_data->x_rel_valuator.accum = 0;
+-    thread_data->y_rel_valuator.accum = 0;
++    thread_data->x_pos_valuator.number = -1;
++    thread_data->y_pos_valuator.number = -1;
+ 
+     for (i = 0; i < n_valuators; i++)
+     {
+         XIValuatorClassInfo *class = (XIValuatorClassInfo *)valuators[i];
+-        struct x11drv_valuator_data *valuator_data = NULL;
+ 
+-        if (valuators[i]->type != XIValuatorClass) continue;
+-        if (class->label == x11drv_atom( Rel_X ) ||
+-            (!class->label && class->number == 0 && class->mode == XIModeRelative))
+-        {
+-            valuator_data = &thread_data->x_rel_valuator;
+-        }
++        if (valuators[i]->type != XIValuatorClass)
++            continue;
++        else if (class->label == x11drv_atom( Rel_X ) ||
++                 class->label == x11drv_atom( Abs_X ) ||
++                 (!class->label && class->number == 0))
++            thread_data->x_pos_valuator = *class;
+         else if (class->label == x11drv_atom( Rel_Y ) ||
+-                 (!class->label && class->number == 1 && class->mode == XIModeRelative))
+-        {
+-            valuator_data = &thread_data->y_rel_valuator;
+-        }
++                 class->label == x11drv_atom( Abs_Y ) ||
++                 (!class->label && class->number == 1))
++            thread_data->y_pos_valuator = *class;
++    }
+ 
+-        if (valuator_data) {
+-            valuator_data->number = class->number;
+-            valuator_data->min = class->min;
+-            valuator_data->max = class->max;
+-        }
++    if (thread_data->x_pos_valuator.number < 0 || thread_data->y_pos_valuator.number < 0)
++    {
++        WARN("Only one X/Y axis found, ignoring RawMotion events\n");
+     }
++    else if (thread_data->x_pos_valuator.mode != thread_data->y_pos_valuator.mode)
++    {
++        WARN("Relative/Absolute mismatch between X/Y axis, ignoring RawMotion events\n");
++        thread_data->y_pos_valuator.number = -1;
++        thread_data->y_pos_valuator.number = -1;
++    }
++
++    if (thread_data->x_pos_valuator.min >= thread_data->x_pos_valuator.max)
++        thread_data->x_pos_valuator.min = thread_data->x_pos_valuator.max = 0;
++    if (thread_data->y_pos_valuator.min >= thread_data->y_pos_valuator.max)
++        thread_data->y_pos_valuator.min = thread_data->y_pos_valuator.max = 0;
++
++    thread_data->x_pos_valuator.value = 0;
++    thread_data->y_pos_valuator.value = 0;
+ }
+ #endif
+ 
+@@ -395,10 +404,8 @@ void X11DRV_XInput2_Disable(void)
+     mask.deviceid = XIAllMasterDevices;
+ 
+     pXISelectEvents( data->display, DefaultRootWindow( data->display ), &mask, 1 );
+-    data->x_rel_valuator.number = -1;
+-    data->y_rel_valuator.number = -1;
+-    data->x_rel_valuator.accum = 0;
+-    data->y_rel_valuator.accum = 0;
++    data->x_pos_valuator.number = -1;
++    data->y_pos_valuator.number = -1;
+     data->xi2_core_pointer = 0;
+ #endif
+ }
+@@ -1827,21 +1834,28 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+ {
+     XIRawEvent *event = xev->data;
+     const double *values = event->valuators.values;
++    const double *raw_values = event->raw_values;
+     RECT virtual_rect;
+     INPUT input;
+     POINT pt;
+     int i;
+     double dx = 0, dy = 0, val;
++    double raw_dx = 0, raw_dy = 0, raw_val;
++    double x_scale = 1, y_scale = 1;
++    double x_accum = 0, y_accum = 0;
+     struct x11drv_thread_data *thread_data = x11drv_thread_data();
+-    struct x11drv_valuator_data *x_rel, *y_rel;
++    XIValuatorClassInfo *x_pos, *y_pos;
+ 
+-    if (thread_data->x_rel_valuator.number < 0 || thread_data->y_rel_valuator.number < 0) return FALSE;
++    if (thread_data->x_pos_valuator.number < 0 || thread_data->y_pos_valuator.number < 0) return FALSE;
+     if (!event->valuators.mask_len) return FALSE;
+     if (thread_data->xi2_state != xi_enabled) return FALSE;
+     if (event->deviceid != thread_data->xi2_core_pointer) return FALSE;
+ 
+-    x_rel = &thread_data->x_rel_valuator;
+-    y_rel = &thread_data->y_rel_valuator;
++    x_pos = &thread_data->x_pos_valuator;
++    y_pos = &thread_data->y_pos_valuator;
++
++    x_accum = x_pos->value;
++    y_accum = y_pos->value;
+ 
+     input.type             = INPUT_MOUSE;
+     input.u.mi.mouseData   = 0;
+@@ -1852,42 +1866,48 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+     input.u.mi.dy          = 0;
+ 
+     virtual_rect = get_virtual_screen_rect();
++    if (x_pos->min < x_pos->max)
++        x_scale = (virtual_rect.right - virtual_rect.left) / (x_pos->max - x_pos->min);
++    if (y_pos->min < y_pos->max)
++        y_scale = (virtual_rect.bottom - virtual_rect.top) / (y_pos->max - y_pos->min);
+ 
+-    for (i = 0; i <= max ( x_rel->number, y_rel->number ); i++)
++    for (i = 0; i <= max( x_pos->number, y_pos->number ); i++)
+     {
+-        if (!XIMaskIsSet( event->valuators.mask, i ))
+-            continue;
++        if (!XIMaskIsSet( event->valuators.mask, i )) continue;
+         val = *values++;
+-        if (i == x_rel->number)
++        raw_val = *raw_values++;
++        if (i == x_pos->number)
+         {
+             dx = val;
+-            if (x_rel->min < x_rel->max)
+-                dx = val * (virtual_rect.right - virtual_rect.left)
+-                         / (x_rel->max - x_rel->min);
++            raw_dx = raw_val;
++            input.u.mi.dwFlags |= (x_pos->min < x_pos->max ? MOUSEEVENTF_VIRTUALDESK : 0) |
++                                  (x_pos->mode == XIModeAbsolute ? MOUSEEVENTF_ABSOLUTE : 0);
++            if (x_pos->mode == XIModeAbsolute)
++                x_accum = virtual_rect.left + (dx - x_pos->min) * x_scale;
++            else
++                x_accum += dx * x_scale;
+         }
+-        if (i == y_rel->number)
++        if (i == y_pos->number)
+         {
+             dy = val;
+-            if (y_rel->min < y_rel->max)
+-                dy = val * (virtual_rect.bottom - virtual_rect.top)
+-                         / (y_rel->max - y_rel->min);
++            raw_dy = raw_val;
++            input.u.mi.dwFlags |= (y_pos->min < y_pos->max ? MOUSEEVENTF_VIRTUALDESK : 0) |
++                                  (y_pos->mode == XIModeAbsolute ? MOUSEEVENTF_ABSOLUTE : 0);
++            if (y_pos->mode == XIModeAbsolute)
++                y_accum = virtual_rect.top + (dy - y_pos->min) * y_scale;
++            else
++                y_accum += dy * y_scale;
+         }
+     }
+ 
+-    /* Accumulate the *double* dx/dy motions so sub-pixel motions wont be lost
+-     * when sent/cast to *LONG* input.u.mi.dx/dy.
++    /* Accumulate the fractional parts so they aren't lost after casting
++     * successive motion values to integral fields.
++     *
++     * Note: It looks like raw_dx, raw_dy are already
++     * integral values but that may be wrong.
+      */
+-    x_rel->accum += dx;
+-    y_rel->accum += dy;
+-    if (fabs(x_rel->accum) < 1.0 && fabs(y_rel->accum) < 1.0)
+-    {
+-        TRACE( "accumulating raw motion (event %f,%f, accum %f,%f)\n", dx, dy, x_rel->accum, y_rel->accum );
+-        return TRUE;
+-    }
+-    input.u.mi.dx = x_rel->accum;
+-    input.u.mi.dy = y_rel->accum;
+-    x_rel->accum -= input.u.mi.dx;
+-    y_rel->accum -= input.u.mi.dy;
++    input.u.mi.dx = (LONG)x_accum;
++    input.u.mi.dy = (LONG)y_accum;
+ 
+     if (broken_rawevents && is_old_motion_event( xev->serial ))
+     {
+@@ -1901,14 +1921,31 @@ static BOOL X11DRV_RawMotion( XGenericEventCookie *xev )
+     input.u.mi.dx = pt.x;
+     input.u.mi.dy = pt.y;
+ 
+-    if (!thread_data->xi2_rawinput_only)
++    x_pos->value = x_accum - input.u.mi.dx;
++    y_pos->value = y_accum - input.u.mi.dy;
++
++    if (x_pos->mode == XIModeAbsolute)
++    {
++        TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
++        __wine_send_input( 0, &input, SEND_HWMSG_RAWINPUT );
++    }
++    else if (!thread_data->xi2_rawinput_only)
+     {
+-        TRACE( "pos %d,%d (event %f,%f, accum %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy, x_rel->accum, y_rel->accum );
+-        __wine_send_input( 0, &input, SEND_HWMSG_WINDOW );
++        if ((dy || dy) && !(input.u.mi.dx || input.u.mi.dy))
++        {
++            TRACE( "accumulating raw motion (event %f,%f accum %f,%f)\n", dx, dy, x_pos->value, y_pos->value );
++        }
++        else
++        {
++            TRACE( "pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy );
++            __wine_send_input( 0, &input, SEND_HWMSG_WINDOW );
++        }
+     }
+     else
+     {
+-        TRACE( "raw pos %d,%d (event %f,%f, accum %f,%f)\n", input.u.mi.dx, input.u.mi.dy, dx, dy, x_rel->accum, y_rel->accum );
++        input.u.mi.dx = raw_dx;
++        input.u.mi.dy = raw_dy;
++        TRACE( "raw pos %d,%d (event %f,%f)\n", input.u.mi.dx, input.u.mi.dy, raw_dx, raw_dy );
+         __wine_send_input( 0, &input, SEND_HWMSG_RAWINPUT );
+     }
+     return TRUE;
+diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
+index f1ce5696df..d2412ed4a4 100644
+--- a/dlls/winex11.drv/x11drv.h
++++ b/dlls/winex11.drv/x11drv.h
+@@ -32,6 +32,9 @@
+ #include <X11/Xresource.h>
+ #include <X11/Xutil.h>
+ #include <X11/Xatom.h>
++#ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
++#include <X11/extensions/XInput2.h>
++#endif
+ 
+ #define BOOL X_BOOL
+ #define BYTE X_BYTE
+@@ -322,14 +325,6 @@ struct x11drv_escape_flush_gl_drawable
+  * X11 USER driver
+  */
+ 
+-struct x11drv_valuator_data
+-{
+-    double min;
+-    double max;
+-    int number;
+-    double accum;
+-};
+-
+ struct x11drv_thread_data
+ {
+     Display *display;
+@@ -345,11 +340,13 @@ struct x11drv_thread_data
+     HWND     clip_hwnd;            /* message window stored in desktop while clipping is active */
+     DWORD    clip_reset;           /* time when clipping was last reset */
+     HKL      kbd_layout;           /* active keyboard layout */
++#ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
+     enum { xi_unavailable = -1, xi_unknown, xi_disabled, xi_enabled } xi2_state; /* XInput2 state */
+-    struct x11drv_valuator_data x_rel_valuator;
+-    struct x11drv_valuator_data y_rel_valuator;
++    XIValuatorClassInfo x_pos_valuator;
++    XIValuatorClassInfo y_pos_valuator;
+     int      xi2_core_pointer;     /* XInput2 core pointer id */
+     int      xi2_rawinput_only;
++#endif
+ };
+ 
+ extern struct x11drv_thread_data *x11drv_init_thread_data(void) DECLSPEC_HIDDEN;
+@@ -434,6 +431,8 @@ enum x11drv_atoms
+     XATOM_RAW_CAP_HEIGHT,
+     XATOM_Rel_X,
+     XATOM_Rel_Y,
++    XATOM_Abs_X,
++    XATOM_Abs_Y,
+     XATOM_WM_PROTOCOLS,
+     XATOM_WM_DELETE_WINDOW,
+     XATOM_WM_STATE,
+diff --git a/dlls/winex11.drv/x11drv_main.c b/dlls/winex11.drv/x11drv_main.c
+index 8908e84458..1e2f7f2d36 100644
+--- a/dlls/winex11.drv/x11drv_main.c
++++ b/dlls/winex11.drv/x11drv_main.c
+@@ -144,6 +144,8 @@ static const char * const atom_names[NB_XATOMS - FIRST_XATOM] =
+     "RAW_CAP_HEIGHT",
+     "Rel X",
+     "Rel Y",
++    "Abs X",
++    "Abs Y",
+     "WM_PROTOCOLS",
+     "WM_DELETE_WINDOW",
+     "WM_STATE",
+diff --git a/server/queue.c b/server/queue.c
+index 848089dca7..c0094379da 100644
+--- a/server/queue.c
++++ b/server/queue.c
+@@ -438,6 +438,9 @@ static void set_cursor_pos( struct desktop *desktop, int x, int y )
+     static const struct hw_msg_source source = { IMDT_UNAVAILABLE, IMO_SYSTEM };
+     struct message *msg;
+ 
++    if (current->process->rawinput_mouse &&
++        current->process->rawinput_mouse->flags & RIDEV_NOLEGACY) return;
++
+     if (!(msg = alloc_hardware_message( 0, source, get_tick_count(), 0 ))) return;
+ 
+     msg->msg = WM_MOUSEMOVE;
+@@ -1829,6 +1832,7 @@ done:
+ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, const hw_input_t *input,
+                                 unsigned int origin, struct msg_queue *sender, unsigned int req_flags )
+ {
++    const struct rawinput_device *device;
+     struct hardware_msg_data *msg_data;
+     struct rawinput_message raw_msg;
+     struct message *msg;
+@@ -1892,8 +1896,8 @@ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, cons
+         msg_data->info                = input->mouse.info;
+         msg_data->flags               = flags;
+         msg_data->rawinput.type       = RIM_TYPEMOUSE;
+-        msg_data->rawinput.mouse.x    = x - desktop->cursor.x;
+-        msg_data->rawinput.mouse.y    = y - desktop->cursor.y;
++        msg_data->rawinput.mouse.x    = input->mouse.x;
++        msg_data->rawinput.mouse.y    = input->mouse.y;
+         msg_data->rawinput.mouse.data = input->mouse.data;
+ 
+         if (req_flags == SEND_HWMSG_RAWINPUT)
+@@ -1904,6 +1908,8 @@ static int queue_mouse_message( struct desktop *desktop, user_handle_t win, cons
+ 
+     if (!(req_flags & SEND_HWMSG_WINDOW))
+         return 0;
++    if ((device = current->process->rawinput_mouse) && (device->flags & RIDEV_NOLEGACY))
++        return 0;
+ 
+     for (i = 0; i < ARRAY_SIZE( messages ); i++)
+     {
+@@ -1939,6 +1945,7 @@ static int queue_keyboard_message( struct desktop *desktop, user_handle_t win, c
+                                    unsigned int origin, struct msg_queue *sender, unsigned int req_flags )
+ {
+     struct hw_msg_source source = { IMDT_KEYBOARD, origin };
++    const struct rawinput_device *device;
+     struct hardware_msg_data *msg_data;
+     struct rawinput_message raw_msg;
+     struct message *msg;
+@@ -2036,6 +2043,8 @@ static int queue_keyboard_message( struct desktop *desktop, user_handle_t win, c
+ 
+     if (!(req_flags & SEND_HWMSG_WINDOW))
+         return 0;
++    if ((device = current->process->rawinput_kbd) && (device->flags & RIDEV_NOLEGACY))
++        return 0;
+ 
+     if (!(msg = alloc_hardware_message( input->kbd.info, source, time, 0 ))) return 0;
+     msg_data = msg->data;
