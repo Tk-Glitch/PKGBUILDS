@@ -1,0 +1,291 @@
+From 63739df81eb71c56b83bb7b2ff039711ea0dc1f9 Mon Sep 17 00:00:00 2001
+From: Paul Gofman <gofmanp@gmail.com>
+Date: Wed, 25 Dec 2019 15:59:04 +0300
+Subject: [PATCH] ntdll: Don't use fast_wait_cv().
+
+---
+ dlls/ntdll/sync.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
+index f087492143..4d69f5d4de 100644
+--- a/dlls/ntdll/sync.c
++++ b/dlls/ntdll/sync.c
+@@ -2235,7 +2235,8 @@ BOOLEAN WINAPI RtlTryAcquireSRWLockShared( RTL_SRWLOCK *lock )
+     return TRUE;
+ }
+ 
+-#ifdef __linux__
++/*#ifdef __linux__*/
++#if 0
+ static NTSTATUS fast_wait_cv( RTL_CONDITION_VARIABLE *variable, int val, const LARGE_INTEGER *timeout )
+ {
+     struct timespec timespec;
+-- 
+2.24.1
+
+From 787526e19538caa71b23c71f3fe01f6166a3de5a Mon Sep 17 00:00:00 2001
+From: Paul Gofman <gofmanp@gmail.com>
+Date: Tue, 24 Dec 2019 19:24:33 +0300
+Subject: [PATCH] (temp) Detroit Become Human fixes.
+
+---
+ dlls/ntdll/nt.c            | 35 ++++++++++--------
+ dlls/ntdll/signal_x86_64.c | 73 +++++++++++++++++++++++++++++++++++++-
+ dlls/ntdll/version.c       |  4 +++
+ tools/winebuild/spec32.c   |  9 +++--
+ 4 files changed, 103 insertions(+), 18 deletions(-)
+
+diff --git a/dlls/ntdll/nt.c b/dlls/ntdll/nt.c
+index 524e39144b..d39e487842 100644
+--- a/dlls/ntdll/nt.c
++++ b/dlls/ntdll/nt.c
+@@ -1172,6 +1172,7 @@ static inline BOOL have_sse_daz_mode(void)
+ static inline void get_cpuinfo(SYSTEM_CPU_INFORMATION* info)
+ {
+     unsigned int regs[4], regs2[4];
++    BOOL amd_or_intel = FALSE;
+ 
+ #if defined(__i386__)
+     info->Architecture = PROCESSOR_ARCHITECTURE_INTEL;
+@@ -1183,6 +1184,8 @@ static inline void get_cpuinfo(SYSTEM_CPU_INFORMATION* info)
+     info->FeatureSet = CPU_FEATURE_VME | CPU_FEATURE_X86 | CPU_FEATURE_PGE;
+     info->Level = 3;
+ 
++    user_shared_data->ProcessorFeatures[PF_RDWRFSGSBASE_AVAILABLE] = TRUE;
++
+     if (!have_cpuid()) return;
+ 
+     do_cpuid(0x00000000, regs);  /* get standard cpuid level and vendor name */
+@@ -1227,15 +1230,7 @@ static inline void get_cpuinfo(SYSTEM_CPU_INFORMATION* info)
+             info->Revision |= ((regs2[0] >> 4 ) & 0xf) << 8;  /* model          */
+             info->Revision |= regs2[0] & 0xf;                 /* stepping       */
+ 
+-            do_cpuid(0x80000000, regs);  /* get vendor cpuid level */
+-            if (regs[0] >= 0x80000001)
+-            {
+-                do_cpuid(0x80000001, regs2);  /* get vendor features */
+-                user_shared_data->ProcessorFeatures[PF_VIRT_FIRMWARE_ENABLED]        = (regs2[2] >> 2) & 1;
+-                user_shared_data->ProcessorFeatures[PF_NX_ENABLED]                   = (regs2[3] >> 20) & 1;
+-                user_shared_data->ProcessorFeatures[PF_3DNOW_INSTRUCTIONS_AVAILABLE] = (regs2[3] >> 31) & 1;
+-                if (regs2[3] >> 31) info->FeatureSet |= CPU_FEATURE_3DNOW;
+-            }
++            amd_or_intel = TRUE;
+         }
+         else if (regs[1] == GENU && regs[3] == INEI && regs[2] == NTEL)
+         {
+@@ -1250,12 +1245,7 @@ static inline void get_cpuinfo(SYSTEM_CPU_INFORMATION* info)
+             if(regs2[3] & (1 << 21)) info->FeatureSet |= CPU_FEATURE_DS;
+             user_shared_data->ProcessorFeatures[PF_VIRT_FIRMWARE_ENABLED] = (regs2[2] >> 5) & 1;
+ 
+-            do_cpuid(0x80000000, regs);  /* get vendor cpuid level */
+-            if (regs[0] >= 0x80000001)
+-            {
+-                do_cpuid(0x80000001, regs2);  /* get vendor features */
+-                user_shared_data->ProcessorFeatures[PF_NX_ENABLED] = (regs2[3] >> 20) & 1;
+-            }
++            amd_or_intel = TRUE;
+         }
+         else
+         {
+@@ -1265,6 +1255,21 @@ static inline void get_cpuinfo(SYSTEM_CPU_INFORMATION* info)
+             info->Revision = ((regs2[0] >> 4 ) & 0xf) << 8;  /* model    */
+             info->Revision |= regs2[0] & 0xf;                /* stepping */
+         }
++
++        if (amd_or_intel)
++        {
++            do_cpuid(0x80000000, regs);  /* get vendor cpuid level */
++            if (regs[0] >= 0x80000001)
++            {
++                do_cpuid(0x80000001, regs2);  /* get vendor features */
++                user_shared_data->ProcessorFeatures[PF_VIRT_FIRMWARE_ENABLED]        = (regs2[2] >> 2) & 1;
++                user_shared_data->ProcessorFeatures[PF_NX_ENABLED]                   = (regs2[3] >> 20) & 1;
++                user_shared_data->ProcessorFeatures[PF_3DNOW_INSTRUCTIONS_AVAILABLE] = (regs2[3] >> 31) & 1;
++                user_shared_data->ProcessorFeatures[PF_RDTSC_INSTRUCTION_AVAILABLE] = (regs2[3] >> 27) & 1;
++                if (regs2[3] >> 31) info->FeatureSet |= CPU_FEATURE_3DNOW;
++                if ((regs2[3] >> 27) & 1) info->FeatureSet |= CPU_FEATURE_TSC;
++            }
++        }
+     }
+ }
+ 
+diff --git a/dlls/ntdll/signal_x86_64.c b/dlls/ntdll/signal_x86_64.c
+index 6cde57a0c5..0b9a318112 100644
+--- a/dlls/ntdll/signal_x86_64.c
++++ b/dlls/ntdll/signal_x86_64.c
+@@ -59,6 +59,10 @@
+ # include <mach/mach.h>
+ #endif
+ 
++#include <linux/filter.h>
++#include <linux/seccomp.h>
++#include <sys/prctl.h>
++
+ #define NONAMELESSUNION
+ #define NONAMELESSSTRUCT
+ #include "ntstatus.h"
+@@ -355,7 +359,7 @@ static inline void set_sigcontext( const CONTEXT *context, ucontext_t *sigcontex
+ #endif
+ }
+ 
+-extern void DECLSPEC_NORETURN __wine_syscall_dispatcher( void );
++void DECLSPEC_NORETURN __wine_syscall_dispatcher( void );
+ 
+ /***********************************************************************
+  * Definitions for Win32 unwind tables
+@@ -3097,6 +3101,38 @@ static void usr1_handler( int signal, siginfo_t *siginfo, void *ucontext )
+     restore_context( &context, ucontext );
+ }
+ 
++extern unsigned int __wine_nb_syscalls;
++
++extern void __wine_syscall_dispatcher();
++
++static void sigsys_handler( int signal, siginfo_t *siginfo, void *sigcontext )
++{
++    unsigned int thunk_ret_offset;
++    ucontext_t *ctx = sigcontext;
++    unsigned int syscall_nr;
++    void ***rsp;
++
++    WARN("SIGSYS, rax %#llx.\n", ctx->uc_mcontext.gregs[REG_RAX]);
++
++    syscall_nr = ctx->uc_mcontext.gregs[REG_RAX] - 0xf000;
++    if (syscall_nr >= __wine_nb_syscalls)
++    {
++        ERR("Syscall %u is undefined.\n", syscall_nr);
++        return;
++    }
++
++    rsp = (void ***)&ctx->uc_mcontext.gregs[REG_RSP];
++    *rsp -= 1;
++
++#ifdef __APPLE__
++    thunk_ret_offset = 0xb;
++#else
++    thunk_ret_offset = 0xc;
++#endif
++
++    **rsp = (void *)(ctx->uc_mcontext.gregs[REG_RIP] + thunk_ret_offset);
++    ctx->uc_mcontext.gregs[REG_RIP] = (ULONG64)__wine_syscall_dispatcher;
++}
+ 
+ /***********************************************************************
+  *           __wine_set_signal_handler   (NTDLL.@)
+@@ -3267,6 +3303,38 @@ void signal_init_thread( TEB *teb )
+ #endif
+ }
+ 
++static void install_bpf(struct sigaction *sig_act)
++{
++    static struct sock_filter filter[] =
++    {
++       BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
++                (offsetof(struct seccomp_data, nr))),
++       BPF_JUMP(BPF_JMP | BPF_JGE | BPF_K, 0xf00, 0, 1),
++       BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRAP),
++       BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
++    };
++    struct sock_fprog prog;
++
++    memset(&prog, 0, sizeof(prog));
++    prog.len = ARRAY_SIZE(filter);
++    prog.filter = filter;
++
++    if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
++    {
++        perror("prctl(PR_SET_NO_NEW_PRIVS, ...)");
++        exit(1);
++    }
++
++    if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog, 0, 0))
++    {
++        perror("prctl(PR_SET_SECCOMP, ...)");
++        exit(1);
++    }
++
++    sig_act->sa_sigaction = sigsys_handler;
++    sigaction(SIGSYS, sig_act, NULL);
++}
++
+ /**********************************************************************
+  *		signal_init_process
+  */
+@@ -3299,6 +3367,9 @@ void signal_init_process(void)
+     sig_act.sa_sigaction = trap_handler;
+     if (sigaction( SIGTRAP, &sig_act, NULL ) == -1) goto error;
+ #endif
++
++    install_bpf(&sig_act);
++
+     return;
+ 
+  error:
+diff --git a/dlls/ntdll/version.c b/dlls/ntdll/version.c
+index 61e48f6fbd..cc2b690b61 100644
+--- a/dlls/ntdll/version.c
++++ b/dlls/ntdll/version.c
+@@ -482,6 +482,7 @@ void version_init(void)
+     BOOL got_win_ver = FALSE;
+     const WCHAR *p, *appname = NtCurrentTeb()->Peb->ProcessParameters->ImagePathName.Buffer;
+     WCHAR appversion[MAX_PATH+20];
++    SYSTEM_BASIC_INFORMATION sbi;
+ 
+     current_version = &VersionData[WIN7];
+ 
+@@ -547,6 +548,9 @@ done:
+     user_shared_data->NtMinorVersion     = current_version->dwMinorVersion;
+     user_shared_data->SuiteMask          = current_version->wSuiteMask;
+ 
++    virtual_get_system_info(&sbi);
++    user_shared_data->NumberOfPhysicalPages = sbi.MmNumberOfPhysicalPages;
++
+     TRACE( "got %d.%d platform %d build %x name %s service pack %d.%d product %d\n",
+            current_version->dwMajorVersion, current_version->dwMinorVersion,
+            current_version->dwPlatformId, current_version->dwBuildNumber,
+diff --git a/tools/winebuild/spec32.c b/tools/winebuild/spec32.c
+index 05f5be6e48..0107f327cc 100644
+--- a/tools/winebuild/spec32.c
++++ b/tools/winebuild/spec32.c
+@@ -531,7 +531,7 @@ static void output_syscall_thunks_x64( DLLSPEC *spec )
+         output_cfi( ".cfi_startproc" );
+         output( "\t.byte 0x4c,0x8b,0xd1\n" );                               /* mov r10, rcx */
+         output( "\t.byte 0xb8\n" );                                         /* mov eax, SYSCALL */
+-        output( "\t.long %d\n", i );
++        output( "\t.long %d\n", i + 0xf000 );
+         output( "\t.byte 0xf6,0x04,0x25,0x08,0x03,0xfe,0x7f,0x01\n" );      /* test byte ptr [0x7ffe0308], 1 */
+         output( "\t.byte 0x75,0x03\n" );                                    /* jne (over syscall) */
+         output( "\t.byte 0x0f,0x05\n" );                                    /* syscall */
+@@ -576,6 +576,9 @@ static void output_syscall_thunks_x64( DLLSPEC *spec )
+         output( "\t.byte %d\n", max(get_args_size(odp), 32) - 32 );
+     }
+ 
++    output( "%s\n", asm_globl("__wine_nb_syscalls") );
++    output( "\t.long %u\n", spec->nb_syscalls );
++
+     output( "\n/* syscall dispatcher */\n\n" );
+     output( "\t.text\n" );
+     output( "\t.align %d\n", get_alignment(16) );
+@@ -601,6 +604,8 @@ static void output_syscall_thunks_x64( DLLSPEC *spec )
+     else
+         output( "\tsubq $0xc,0x8(%%rbp)\n" );
+ 
++    output( "\tsub $0xf000,%%rax\n" );
++
+     /* copy over any arguments on the stack */
+     output( "\tleaq 0x38(%%rbp),%%rsi\n" );
+     if (UsePIC)
+@@ -1233,7 +1238,7 @@ static void create_stub_exports_text_x64( DLLSPEC *spec )
+         align_output_rva( 16, 16 );
+         put_label( odp->link_name );
+         put_byte( 0x4c ); put_byte( 0x8b ); put_byte( 0xd1 );  /* mov r10, rcx */
+-        put_byte( 0xb8 ); put_dword( i );                      /* mov eax, SYSCALL */
++        put_byte( 0xb8 ); put_dword( i + 0xf000 );              /* mov eax, SYSCALL */
+         put_byte( 0xf6 ); put_byte( 0x04 ); put_byte( 0x25 );  /* test byte ptr [0x7ffe0308], 1 */
+                 put_byte( 0x08 ); put_byte( 0x03 ); put_byte( 0xfe );
+                 put_byte( 0x7f ); put_byte( 0x01 );
+-- 
+2.24.1
+
+ 
