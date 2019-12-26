@@ -1,26 +1,125 @@
-From 63739df81eb71c56b83bb7b2ff039711ea0dc1f9 Mon Sep 17 00:00:00 2001
+From a5c60a750e5a340a095b1abd32a2aeded6e7252c Mon Sep 17 00:00:00 2001
 From: Paul Gofman <gofmanp@gmail.com>
 Date: Wed, 25 Dec 2019 15:59:04 +0300
-Subject: [PATCH] ntdll: Don't use fast_wait_cv().
+Subject: [PATCH] ntdll: Don't use futex based waits for unaligned addresses.
 
+Signed-off-by: Paul Gofman <gofmanp@gmail.com>
 ---
- dlls/ntdll/sync.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ dlls/ntdll/sync.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index f087492143..4d69f5d4de 100644
+index f087492143..5b18b4ad45 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
-@@ -2235,7 +2235,8 @@ BOOLEAN WINAPI RtlTryAcquireSRWLockShared( RTL_SRWLOCK *lock )
-     return TRUE;
+@@ -100,7 +100,7 @@ static inline int futex_wake_bitset( const int *addr, int val, int mask )
+     return syscall( __NR_futex, addr, FUTEX_WAKE_BITSET | futex_private, val, NULL, 0, mask );
  }
  
--#ifdef __linux__
-+/*#ifdef __linux__*/
-+#if 0
- static NTSTATUS fast_wait_cv( RTL_CONDITION_VARIABLE *variable, int val, const LARGE_INTEGER *timeout )
+-static inline int use_futexes(void)
++static inline int use_futexes(const void *addr)
  {
+     static int supported = -1;
+ 
+@@ -114,7 +114,7 @@ static inline int use_futexes(void)
+         }
+         supported = (errno != ENOSYS);
+     }
+-    return supported;
++    return supported && !((ULONG_PTR)addr & 0x3);
+ }
+ 
+ static void timespec_from_timeout( struct timespec *timespec, const LARGE_INTEGER *timeout )
+@@ -1748,7 +1748,7 @@ static NTSTATUS fast_try_acquire_srw_exclusive( RTL_SRWLOCK *lock )
+     int old, new;
+     NTSTATUS ret;
+ 
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(lock)) return STATUS_NOT_IMPLEMENTED;
+ 
+     do
+     {
+@@ -1776,7 +1776,7 @@ static NTSTATUS fast_acquire_srw_exclusive( RTL_SRWLOCK *lock )
+     int old, new;
+     BOOLEAN wait;
+ 
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(lock)) return STATUS_NOT_IMPLEMENTED;
+ 
+     /* Atomically increment the exclusive waiter count. */
+     do
+@@ -1822,7 +1822,7 @@ static NTSTATUS fast_try_acquire_srw_shared( RTL_SRWLOCK *lock )
+     int new, old;
+     NTSTATUS ret;
+ 
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(lock)) return STATUS_NOT_IMPLEMENTED;
+ 
+     do
+     {
+@@ -1852,7 +1852,7 @@ static NTSTATUS fast_acquire_srw_shared( RTL_SRWLOCK *lock )
+     int old, new;
+     BOOLEAN wait;
+ 
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(lock)) return STATUS_NOT_IMPLEMENTED;
+ 
+     for (;;)
+     {
+@@ -1889,7 +1889,7 @@ static NTSTATUS fast_release_srw_exclusive( RTL_SRWLOCK *lock )
+ {
+     int old, new;
+ 
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(lock)) return STATUS_NOT_IMPLEMENTED;
+ 
+     do
+     {
+@@ -1919,7 +1919,7 @@ static NTSTATUS fast_release_srw_shared( RTL_SRWLOCK *lock )
+ {
+     int old, new;
+ 
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(lock)) return STATUS_NOT_IMPLEMENTED;
+ 
+     do
+     {
+@@ -2241,7 +2241,7 @@ static NTSTATUS fast_wait_cv( RTL_CONDITION_VARIABLE *variable, int val, const L
      struct timespec timespec;
+     int ret;
+ 
+-    if (!use_futexes())
++    if (!use_futexes(&variable->Ptr))
+         return STATUS_NOT_IMPLEMENTED;
+ 
+     if (timeout && timeout->QuadPart != TIMEOUT_INFINITE)
+@@ -2259,7 +2259,7 @@ static NTSTATUS fast_wait_cv( RTL_CONDITION_VARIABLE *variable, int val, const L
+ 
+ static NTSTATUS fast_wake_cv( RTL_CONDITION_VARIABLE *variable, int count )
+ {
+-    if (!use_futexes()) return STATUS_NOT_IMPLEMENTED;
++    if (!use_futexes(&variable->Ptr)) return STATUS_NOT_IMPLEMENTED;
+ 
+     futex_wake( (int *)&variable->Ptr, count );
+     return STATUS_SUCCESS;
+@@ -2446,7 +2446,7 @@ static inline NTSTATUS fast_wait_addr( const void *addr, const void *cmp, SIZE_T
+     struct timespec timespec;
+     int ret;
+ 
+-    if (!use_futexes())
++    if (!use_futexes(addr))
+         return STATUS_NOT_IMPLEMENTED;
+ 
+     futex = hash_addr( addr );
+@@ -2477,7 +2477,7 @@ static inline NTSTATUS fast_wake_addr( const void *addr )
+ {
+     int *futex;
+ 
+-    if (!use_futexes())
++    if (!use_futexes(addr))
+         return STATUS_NOT_IMPLEMENTED;
+ 
+     futex = hash_addr( addr );
 -- 
 2.24.1
 
