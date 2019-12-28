@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.0.0_devel.118793.baa064f0f58
+pkgver=20.0.0_devel.118800.dcba7731e60
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -218,7 +218,7 @@ prepare() {
     git clean -xdf
     msg2 "Tree cleaned"
 
-    cp "$_where"/mesa-userpatches/*.mymesa* "$_where" >/dev/null 2>&1 # copy userpatches inside the PKGBUILD's dir
+    cp "$_where"/mesa-userpatches/*.mymesa* "$_where" || true # copy userpatches inside the PKGBUILD's dir
 
     # Community patches
     if [ -n "$_community_patches" ]; then
