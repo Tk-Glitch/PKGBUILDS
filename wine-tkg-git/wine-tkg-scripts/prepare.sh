@@ -857,11 +857,6 @@ _prepare() {
 	  _patchname='lowlatency_audio.patch' && _patchmsg="Applied low latency alsa audio patch" && nonuser_patcher
 	fi
 
-	# Fortnite Fix - Currently not working anymore
-	if [ "$_fortnite_fix" == "true" ]; then
-	  _patchname='fortnite.patch' && _patchmsg="Applied Fortnite crashfix" && nonuser_patcher
-	fi
-
 	# The Sims 2 fix - https://bugs.winehq.org/show_bug.cgi?id=8051
 	if [ "$_sims2_fix" == "true" ]; then
 	  if git merge-base --is-ancestor d88f12950761e9ff8d125a579de6e743979f4945 HEAD; then
