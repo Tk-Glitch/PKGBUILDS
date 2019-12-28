@@ -99,11 +99,6 @@ msg2 ''
     source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values." && msg2 ""
   fi
 
-  # Load preset configuration files if present and selected. All values will overwrite customization.cfg ones.
-  if [ -n "$_LOCAL_PRESET" ] && [ -e "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg ]; then
-    source "$_where"/wine-tkg-profiles/wine-tkg.cfg && source "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg && msg2 "Preset configuration $_LOCAL_PRESET will be used to override customization.cfg values." && msg2 ""
-  fi
-
   if [ "$_NOINITIALPROMPT" == "true" ] || [ -n "$_LOCAL_PRESET" ] || [ -n "$_DEPSHELPER" ]; then
     msg2 'Initial prompt skipped. Do you remember what it said? 8)'
   else
@@ -149,6 +144,11 @@ msg2 ''
         fi
       fi
     fi
+  fi
+
+  # Load preset configuration files if present and selected. All values will overwrite customization.cfg ones.
+  if [ -n "$_LOCAL_PRESET" ] && [ -e "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg ]; then
+    source "$_where"/wine-tkg-profiles/wine-tkg.cfg && source "$_where"/wine-tkg-profiles/wine-tkg-"$_LOCAL_PRESET".cfg && msg2 "Preset configuration $_LOCAL_PRESET will be used to override customization.cfg values." && msg2 ""
   fi
 
   # Check for proton-tkg token to prevent broken state as we need to enforce some defaults
