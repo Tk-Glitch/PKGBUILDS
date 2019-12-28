@@ -35,7 +35,6 @@ With other patches available such as (but not limited to - see [customization.cf
 - Steam --no-sandbox auto fix (for store support on higher than winxp mode)
 - The Sims 2 fix
 - Magic: The Gathering Arena fix
-- Fortnite crash fix - https://github.com/Guy1524/fortnite-wine - "Working once every fortnite" ~FeetOnGrass
 - Fallout 4 and Skyrim SE Script Extender fix - https://github.com/hdmap/wine-hackery/tree/master/f4se
 - Winepulse disable patch (fix for various sound issues related to winepulse/pulsaudio)
 - Lowlatency audio patch for osu! - https://blog.thepoon.fr/osuLinuxAudioLatency
