@@ -204,11 +204,13 @@ build_wine_tkg() {
   #  _configure_args32+=(--libdir="$_prefix/$_lib32name")
   fi
 
-  if [ "$_SKIPBUILDING" != "true" ]; then
+  if [ "$_SKIPBUILDING" != "true" ] && [ "$_NOCOMPILE" != "true" ]; then
     _build
   fi
 
-  _package_nomakepkg
+  if [ "$_NOCOMPILE" != "true" ]; then
+    _package_nomakepkg
+  fi
 }
 
 if [ "$1" == "--deps64" ]; then

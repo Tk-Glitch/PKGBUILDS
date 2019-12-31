@@ -5,7 +5,7 @@ pkgver=5.0rc3.r4.g0f52b315
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=234
+eval pkgrel=235
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -594,11 +594,15 @@ build() {
     _configure_args32+=(--libdir="$_prefix/$_lib32name")
   fi
 
-  _build
+  if [ "$_SKIPBUILDING" != "true" ] && [ "$_NOCOMPILE" != "true" ]; then
+    _build
+  fi
 }
 
 package() {
-  _package_makepkg
+  if [ "$_NOCOMPILE" != "true" ]; then
+    _package_makepkg
+  fi
 }
 
 trap exit_cleanup EXIT

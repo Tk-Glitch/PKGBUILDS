@@ -1319,8 +1319,6 @@ EOM
 	# no compilation
 	if [ "$_NOCOMPILE" == "true" ]; then
 	  cp "$_where"/last_build_config.log "${srcdir}"/"${_winesrcdir}"/wine-tkg-config.txt
-	  msg2 'make prepare function fail by using Gandalf'
-	  YOU_SHALL_NOT_PASS
 	fi
 
 	cd "$_where" # this is needed on version update not to get lost in srcdir
