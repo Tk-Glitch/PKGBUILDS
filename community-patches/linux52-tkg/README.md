@@ -6,3 +6,4 @@
 - amdgpu_dyn_mem_clock_75Hz_fix.mypatch : Allows dynamic video memory clocking with amdgpu and 75Hz display (https://cgit.freedesktop.org/~agd5f/linux/commit/?h=amd-staging-drm-next&id=b396b001487db18ac84d8d773d0234ac6b376dea)
 - amdgpu_extratemps-5.2.mypatch : Adds GPU hotspot temp reading on some AMD GPUs (https://github.com/matszpk/amdgpu-vega-hotspot)
 - zstd.mypatch : Add support for ZSTD-compressed kernel
+- uksm-5.2.mypatch - UKSM support from https://github.com/dolohow/uksm

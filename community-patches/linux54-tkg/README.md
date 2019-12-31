@@ -7,3 +7,4 @@
 - le9i.mypatch : An attempt to improve Linux's OOM behaviour - https://web.archive.org/web/20191018064145/https://gist.github.com/howaboutsynergy/04fd9be927835b055ac15b8b64658e85
 - zstd.mypatch : Add support for ZSTD-compressed kernel
 - new_slab.mypatch : Slab memory controller changes from Roman Gushchin - https://lkml.org/lkml/2019/9/5/1132
+- uksm-5.4.mypatch - UKSM support from https://github.com/dolohow/uksm

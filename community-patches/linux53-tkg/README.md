@@ -9,3 +9,4 @@
 - ffb_regression_fix.mypatch : Fixes force feedback on g920 and similar (https://bugzilla.kernel.org/show_bug.cgi?id=204191)
 - zstd.mypatch : Add support for ZSTD-compressed kernel
 - mm_proactive_compaction.mypatch : https://lkml.org/lkml/2019/10/30/1076
+- uksm-5.3.mypatch - UKSM support from https://github.com/dolohow/uksm
