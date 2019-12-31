@@ -11,7 +11,6 @@
 - FinalFantasyXVHack.mypatch : Hack enabling Final Fantasy XV Steam to run - https://github.com/ValveSoftware/Proton/issues/74#issuecomment-553084621
 - MWSE_hack.mypatch : Hack to allow Morrowind Script Extender to work - https://bugs.winehq.org/show_bug.cgi?id=47940#c24
 - 0001-wined3d-Support-SRGB-read-for-B5G6R5-textures.mypatch : Fix for very bright ground in Warhammer Online - Only affects wined3d - https://bugs.winehq.org/show_bug.cgi?id=48302
-- detroit_BH.mypatch : Allows Detroit: Become Human to run and fix low performance - https://bugs.winehq.org/show_bug.cgi?id=48291
 - star-citizen-NAN.mypatch : Fixes a crash case on Star Citizen 3.8 - https://bugs.winehq.org/show_bug.cgi?id=48323
 
 WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile patch](https://github.com/Tk-Glitch/PKGBUILDS/blob/master/community-patches/vkd3d-git/Support_RS_1.0_Volatile.mypatch)** :
@@ -19,7 +18,6 @@ WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile p
 - D3D12CreateVersionedRootSignatureDeserializer.mypatch : 2/2 patch to enable WoW to run correctly in d3d12 mode - https://www.winehq.org/pipermail/wine-devel/2019-October/152357.html
 
 ## Misc
-- rem-rawinput.mypatch : Remi Bernon raw input implementation, pending for merge. Requires `_proton_fs_hack="false"` in your .cfg - https://github.com/rbernon/wine/tree/wip/rawinput
 - rockstarlauncher_install_fix.mypatch : Fix for rockstar launcher installer crashing - https://github.com/ValveSoftware/wine/commit/e485252dfad51a7e463643d56fe138129597e4b6 - Doesn't apply to proton-tkg (already included)
 - rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843
 - origin_downloads_e4ca5dbe_revert.mypatch : Workaround for Origin client game downloading issues - https://bugs.winehq.org/show_bug.cgi?id=48032
