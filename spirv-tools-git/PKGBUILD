@@ -37,7 +37,7 @@ sha1sums=('SKIP'
           'SKIP'
           '5b3c5b02327d8ce5fe0b0f211af62587969735ae'
           'fc22fe8db8276b828dbef2467419195b0c2dd45b')
-makedepends=('cmake' 'git' 'python' 'gcc-libs')
+makedepends=('cmake' 'git' 'python' 'gcc-libs' 'lib32-gcc-libs')
 options=('staticlibs')
 
 pkgver() {
