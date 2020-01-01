@@ -94,7 +94,8 @@ pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
 license=('GPL2')
-makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'libelf' 'schedtool' 'patchutils' 'flex' 'python-sphinx' 'python-sphinx_rtd_theme' 'graphviz' 'imagemagick' 'git')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'libelf' 'patchutils' 'flex' 'python-sphinx' 'python-sphinx_rtd_theme' 'graphviz' 'imagemagick' 'git')
+optdepends=('schedtool')
 if pacman -Qq ccache &> /dev/null; then
   msg2 'ccache was found and will be used'
   options=('!strip' 'ccache')
@@ -844,7 +845,7 @@ build() {
   fi
 
   # build!
-  _runtime=$( time ( schedtool -B -n 1 -e ionice -n 1 make $_force_all_threads LOCALVERSION= bzImage modules 2>&1 ) 3>&1 1>&2 2>&3 )
+  _runtime=$( time ( schedtool -B -n 1 -e ionice -n 1 make $_force_all_threads LOCALVERSION= bzImage modules 2>&1 ) 3>&1 1>&2 2>&3 ) || _runtime=$( time ( make $_force_all_threads LOCALVERSION= bzImage modules 2>&1 ) 3>&1 1>&2 2>&3 )
 }
 
 hackbase() {

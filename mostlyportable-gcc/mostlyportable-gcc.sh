@@ -2,7 +2,7 @@
 
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
-# This script creates portable x86_64 GCC/MingW builds - You'll need basic development tools installed (base-devel, build-essential or similar for your distro as well as schedtool)
+# This script creates portable x86_64 GCC/MingW builds - You'll need basic development tools installed (base-devel, build-essential or similar for your distro)
 # It is bound to the libc/binutils version of the host system, so cross-distro portability only works for a given libc/binutils version combo
 
 cat << 'EOM'
@@ -94,7 +94,8 @@ fi
   trap _exit_cleanup EXIT
 
   _makeandinstall() {
-    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) && make install
+    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) || make -j$(nproc)
+    make install
   }
 
   _init() {

@@ -46,10 +46,12 @@ depends=(
 )
 
 makedepends=('git' 'autoconf' 'ncurses' 'bison' 'perl' 'fontforge' 'flex'
-    'gcc>=4.5.0-2'     'schedtool'
-    'spirv-headers-git'     'vulkan-headers'
-    'vulkan-icd-loader'     'lib32-vulkan-icd-loader'
+    'gcc>=4.5.0-2' 'spirv-headers-git'
+    'vulkan-headers' 'vulkan-icd-loader'
+    'lib32-vulkan-icd-loader'
 )
+
+optdepends=('schedtool')
 
 source=("$_vkd3dsrcdir"::"git+${_vkd3d_source}.git${_vkd3d_commit}"
 )
@@ -173,7 +175,7 @@ build() {
 	  --with-spirv-tools
 
 	# make using all available threads
-	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/lib32-vkd3d-tkg-git
+	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/lib32-vkd3d-tkg-git || make -j$(nproc) -C "${srcdir}"/lib32-vkd3d-tkg-git
 
 	export CC='gcc -m64'
 	export CXX='g++ -m64'
@@ -186,7 +188,7 @@ build() {
 	  --with-spirv-tools
 
 	# make using all available threads
-	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/vkd3d-tkg-git
+	schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) -C "${srcdir}"/vkd3d-tkg-git || make -j$(nproc) -C "${srcdir}"/vkd3d-tkg-git
 }
 
 package_vkd3d-tkg-git() {
