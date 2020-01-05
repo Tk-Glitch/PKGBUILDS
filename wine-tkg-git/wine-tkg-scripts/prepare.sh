@@ -552,7 +552,6 @@ _prepare() {
 	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
 	    _staging_args+=(-W winex11.drv-mouse-coorrds -W winex11-MWM_Decorations)
 	    if git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD; then # enable proton rawinput when fs hack is enabled
-	      _proton_rawinput="true"
 	      _staging_args+=(-W user32-rawinput-mouse -W user32-rawinput-nolegacy -W user32-rawinput-mouse-experimental -W user32-rawinput-hid -W user32-rawinput-keyboard -W winex11-key_translation)
 	    fi
 	  fi
