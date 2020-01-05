@@ -221,6 +221,10 @@ prepare() {
 
     cp "$_where"/mesa-userpatches/*.mymesa* "$_where" || true # copy userpatches inside the PKGBUILD's dir
 
+    if [ "$_mangohud" == "true" ]; then
+      wget -O "$_where"/mesa_mangohud.mymesapatch https://github.com/mesa3d/mesa/compare/master...flightlessmango:mango.diff
+    fi
+
     # Community patches
     if [ -n "$_community_patches" ]; then
       _community_patches=($_community_patches)
