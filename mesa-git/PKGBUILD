@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.0.0_devel.118876.645b195312e
+pkgver=20.0.0_devel.118906.c5ae64ebc71
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -403,6 +403,12 @@ package_lib32-mesa-tkg-git() {
   fi
 
   install -Dt "$pkgdir"/usr/share/licenses/$pkgname "$srcdir"/LICENSE
+
+  msg2 '#############################################################################################'
+  msg2 ''
+  msg2 '   Reminder: You can enable ACO at runtime with the `RADV_PERFTEST=aco` environment variable.'
+  msg2 ''
+  msg2 '#############################################################################################'
 }
  
 trap exit_cleanup EXIT

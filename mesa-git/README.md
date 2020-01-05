@@ -2,6 +2,8 @@
 
 https://gitlab.freedesktop.org/mesa/mesa
 
+You can enable ACO at runtime with the `RADV_PERFTEST=aco` environment variable.
+
 You can customize key features in the `customization.cfg` file such as :
 - Selecting which LLVM backend version to use (respecting Lone_Wolf's MESA_WHICH_LLVM variable values)
 - Enabling/disabling compilation of the lib32 package
