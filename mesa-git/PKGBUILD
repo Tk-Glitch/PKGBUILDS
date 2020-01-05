@@ -225,6 +225,12 @@ prepare() {
       wget -O "$_where"/mesa_mangohud.mymesapatch https://github.com/mesa3d/mesa/compare/master...flightlessmango:mango.diff
     fi
 
+    if [ -n "$_mesa_prs" ]; then
+      for _pr in ${_mesa_prs[@]}; do
+        wget -O "$_where"/"$_pr".mymesapatch https://gitlab.freedesktop.org/mesa/mesa/merge_requests/"$_pr".diff
+      done
+    fi
+
     # Community patches
     if [ -n "$_community_patches" ]; then
       _community_patches=($_community_patches)
