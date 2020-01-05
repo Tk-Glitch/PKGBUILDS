@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=86
+pkgrel=87
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -182,6 +182,7 @@ source=($_source_name
         'kernel-5.3.patch' # 5.3 workaround
         'kernel-5.4.patch' # 5.4 workaround
         'kernel-5.4-symver.diff' # 5.4 symver fix only
+        'kernel-5.4-prime.diff' # 5.4+ PRIME fixing attempt
         'kernel-5.5.patch' # 5.5 workaround
 )
 
@@ -203,6 +204,7 @@ md5sums=("$_md5sum"
          '6f9a62ef76ac86f299b0174f44488987'
          '97298693767cd1223792e7505da7ac26'
          '0d9aa49647cc73a4522246cc22ae15e1'
+         'e6270c2d19afd982efc92bdecd9f48f0'
          '1c1966d6ee6f3cd381ebcc92f1488c68')
 
 if [ $_autoaddpatch == "true" ]; then
@@ -370,7 +372,15 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       _whitelist54=( 396* 410* 415* 418.3* 418.4* 418.5* 418.7* 418.8* 430.0* 430.1* 430.2* 430.3* 430.4* 430.5* 435.1* 435.21* 435.24* 435.27.01 )
       if [[ $pkgver = 435.27.02 ]] || [[ $pkgver = 435.27.03 ]] || [[ $pkgver = 435.27.06 ]] || [[ $pkgver = 435.27.07 ]] || [[ $pkgver = 435.27.08 ]] || [[ $pkgver = 440.26 ]]; then
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
+        msg2 "Applying kernel-5.4-symver.diff for $_kernel..."
         patch -Np2 -i "$srcdir"/kernel-5.4-symver.diff
+        cd ..
+      fi
+      if [ "$_54_prime_fixing_attempt" == "true" ]; then
+        _54_prime="true"
+        cd "$srcdir"/"$_pkg"/kernel-$_kernel
+        msg2 "Applying kernel-5.4-prime.diff for $_kernel..."
+        patch -Np2 -i "$srcdir"/kernel-5.4-prime.diff
         cd ..
       fi
     fi
@@ -575,6 +585,10 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     if [ "$_youngeryetoldstuff" == "1" ]; then
       msg2 "Applying 02-ipmi-vm.diff for dkms..."
       patch -Np1 -i "$srcdir"/02-ipmi-vm.diff
+    fi
+    if [ "$_54_prime" == "true" ]; then
+      msg2 "Applying kernel-5.4-prime.diff for dkms..."
+      patch -Np1 -i "$srcdir"/kernel-5.4-prime.diff
     fi
   fi
 }
