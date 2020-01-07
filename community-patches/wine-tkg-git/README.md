@@ -11,7 +11,6 @@
 - FinalFantasyXVHack.mypatch : Hack enabling Final Fantasy XV Steam to run - https://github.com/ValveSoftware/Proton/issues/74#issuecomment-553084621
 - MWSE_hack.mypatch : Hack to allow Morrowind Script Extender to work - https://bugs.winehq.org/show_bug.cgi?id=47940#c24
 - 0001-wined3d-Support-SRGB-read-for-B5G6R5-textures.mypatch : Fix for very bright ground in Warhammer Online - Only affects wined3d - https://bugs.winehq.org/show_bug.cgi?id=48302
-- star-citizen-NAN.mypatch : Fixes a crash case on Star Citizen 3.8 - https://bugs.winehq.org/show_bug.cgi?id=48323
 - detroit_BH.mypatch : Allows Detroit: Become Human to run and fix low performance - https://bugs.winehq.org/show_bug.cgi?id=48291
 - warframe-mouse_interactions_fix-5.0rc4.myrevert : Reverts msvcrt patch series breaking various mouse interactions in Warframe (b12d6d4, 66c9c35, f99d307, 1d91c19, 1366dd6, c4ad739)
 
@@ -23,4 +22,3 @@ WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile p
 - rockstarlauncher_install_fix.mypatch : Fix for rockstar launcher installer crashing - https://github.com/ValveSoftware/wine/commit/e485252dfad51a7e463643d56fe138129597e4b6 - Doesn't apply to proton-tkg (already included)
 - rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843
 - origin_downloads_e4ca5dbe_revert.mypatch : Workaround for Origin client game downloading issues - https://bugs.winehq.org/show_bug.cgi?id=48032
-- origin_wine5.0rc2_regression.mypatch : Reverts b4a1d80ae35d35f5c170e101922bf1563488be18 that introduced a regression preventing origin to connect to servers - https://bugs.winehq.org/show_bug.cgi?id=48357
