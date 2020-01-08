@@ -233,17 +233,17 @@ index fdcf45da29..cbd1106b7d 100644
 +++ b/test/Driver/ppc-abi.c
 @@ -26,11 +26,11 @@
  
- // CHECK-ELFv1: "-mrelocation-model" "pic" "-pic-level" "2"
+ // CHECK-ELFv1: "-mrelocation-model" "static"
  // CHECK-ELFv1: "-target-abi" "elfv1"
 -// CHECK-ELFv1-LE: "-mrelocation-model" "static"
 +// CHECK-ELFv1-LE: "-mrelocation-model" "pic" "-pic-level" "2"
  // CHECK-ELFv1-LE: "-target-abi" "elfv1"
- // CHECK-ELFv1-QPX: "-mrelocation-model" "pic" "-pic-level" "2"
+ // CHECK-ELFv1-QPX: "-mrelocation-model" "static"
  // CHECK-ELFv1-QPX: "-target-abi" "elfv1-qpx"
 -// CHECK-ELFv2: "-mrelocation-model" "static"
 +// CHECK-ELFv2: "-mrelocation-model" "pic" "-pic-level" "2"
  // CHECK-ELFv2: "-target-abi" "elfv2"
- // CHECK-ELFv2-BE: "-mrelocation-model" "pic" "-pic-level" "2"
+ // CHECK-ELFv2-BE: "-mrelocation-model" "static"
  // CHECK-ELFv2-BE: "-target-abi" "elfv2"
 diff --git a/test/Driver/riscv32-toolchain.c b/test/Driver/riscv32-toolchain.c
 index 117c773ec9..9fffbf2aaf 100644
