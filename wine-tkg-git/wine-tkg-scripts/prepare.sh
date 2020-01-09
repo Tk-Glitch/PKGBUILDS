@@ -551,11 +551,16 @@ _prepare() {
 	  cd "${srcdir}"/"${_stgsrcdir}"
 	  if git merge-base --is-ancestor 7cc69d770780b8fb60fb249e007f1a777a03e51a HEAD; then
 	    _staging_args+=(-W winex11.drv-mouse-coorrds -W winex11-MWM_Decorations)
-	    if git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD; then # enable proton rawinput when fs hack is enabled
+	    if git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD; then
 	      _staging_args+=(-W user32-rawinput-mouse -W user32-rawinput-nolegacy -W user32-rawinput-mouse-experimental -W user32-rawinput-hid -W user32-rawinput-keyboard -W winex11-key_translation)
 	    fi
 	  fi
 	  cd "${srcdir}"/"${_winesrcdir}"
+	fi
+
+	# Specifically for proton-tkg, our meta patchset breaks with stock staging rawinput patchset, so disable for now, and apply a corresponding fixed winex11-key_translation patchset at a later stage
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_use_staging" == "true" ] && [ "$_proton_fs_hack" != "true" ] && $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD && cd "${srcdir}"/"${_winesrcdir}"); then
+	  _staging_args+=(-W user32-rawinput-mouse -W user32-rawinput-nolegacy -W user32-rawinput-mouse-experimental -W user32-rawinput-hid -W user32-rawinput-keyboard -W winex11-key_translation)
 	fi
 
 	# Disable some staging patchsets to prevent bad interactions with proton gamepad additions
@@ -1140,6 +1145,9 @@ EOM
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
+	  if [ "$_proton_fs_hack" != "true" ] && [ "$_use_staging" == "true" ]; then
+	    _patchname='staging-winex11-key_translation.patch' && _patchmsg="Applied non-fshack friendly staging winex11-key_translation patchset" && nonuser_patcher
+	  fi
 	  if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
 	    if [ "$_steamclient_noswap" != "true" ]; then
 	      _patchname='proton-tkg-steamclient-swap.patch' && _patchmsg="Applied steamclient substitution hack" && nonuser_patcher

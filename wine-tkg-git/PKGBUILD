@@ -5,7 +5,7 @@ pkgver=5.0rc4.r6.gf05f084d
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=236
+eval pkgrel=237
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -338,6 +338,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton_mf_hacks-7c5fcff.patch' # Workarounds to prevent crashes on some mf functions (<7c5fcff)
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
 		'proton-wined3d-additions.patch' # Proton non-vr-related wined3d additions
+		'staging-winex11-key_translation.patch' # Older version of that staging patchset specifically for proton-tkg with fs hack disabled
 )
 
 md5sums=('SKIP'
@@ -501,7 +502,8 @@ md5sums=('SKIP'
          'eea40375be4cd3615eaef5412802274b'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'
          '7857d05adb1227532f11b1c103f67126'
-         '6a3515ac9aef8948d8be01a110a5c066')
+         '6a3515ac9aef8948d8be01a110a5c066'
+         'c5f18404f3317850be70751942d425c0')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
