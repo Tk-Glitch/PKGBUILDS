@@ -1280,7 +1280,7 @@ EOM
 	fi
 
 	tools/make_requests
-	autoreconf
+	autoreconf -f
 
 	# Disable tests by default, enable back with _enable_tests="true"
 	if [ "$_ENABLE_TESTS" != "true" ]; then
