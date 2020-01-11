@@ -1,5 +1,9 @@
 # wine-tkg-git patches
 
+**More userpatches for wine-tkg are also made available by @openglfreak : https://github.com/openglfreak/wine-tkg-userpatches**
+
+*Thank you!*
+
 ## Proton patches
 - amdags.mypatch : Add amdags dll (proton patch)
 - GNUTLShack.mypatch : Fixes Sword Art Online: Fatal Bullet, and others, on gnutls 3.5 (proton patch)
