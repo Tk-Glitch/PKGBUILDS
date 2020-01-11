@@ -3897,3 +3897,85 @@ index b5fed6177ad6..e4baa13b3cda 100644
  			/* update snapshot of PHY registers on LSC */
  			e1000_phy_read_status(adapter);
  			mac->ops.get_link_up_info(&adapter->hw,
+From adb1f9df27f08e6488bcd80b1607987c6114a77a Mon Sep 17 00:00:00 2001
+From: Alexandre Frade <admfrade@gmail.com>
+Date: Mon, 25 Nov 2019 15:13:06 -0300
+Subject: [PATCH] elevator: set default scheduler to bfq for blk-mq
+
+Signed-off-by: Alexandre Frade <admfrade@gmail.com>
+---
+ block/elevator.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/block/elevator.c b/block/elevator.c
+index 076ba7308e65..81f89095aa77 100644
+--- a/block/elevator.c
++++ b/block/elevator.c
+@@ -623,15 +623,15 @@ static inline bool elv_support_iosched(struct request_queue *q)
+ }
+ 
+ /*
+- * For single queue devices, default to using mq-deadline. If we have multiple
+- * queues or mq-deadline is not available, default to "none".
++ * For single queue devices, default to using bfq. If we have multiple
++ * queues or bfq is not available, default to "none".
+  */
+ static struct elevator_type *elevator_get_default(struct request_queue *q)
+ {
+ 	if (q->nr_hw_queues != 1)
+ 		return NULL;
+ 
+-	return elevator_get(q, "mq-deadline", false);
++	return elevator_get(q, "bfq", false);
+ }
+ 
+ /*
+From c3ec05777c46e19a8a26d0fc4ca0c0db8a19de97 Mon Sep 17 00:00:00 2001
+From: Alexandre Frade <admfrade@gmail.com>
+Date: Fri, 10 May 2019 16:45:59 -0300
+Subject: [PATCH] block: set rq_affinity = 2 for full multithreading I/O
+ requests
+
+Signed-off-by: Alexandre Frade <admfrade@gmail.com>
+---
+ include/linux/blkdev.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index f3ea78b0c91c..4dbacc6b073b 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -621,7 +621,8 @@ struct request_queue {
+ #define QUEUE_FLAG_RQ_ALLOC_TIME 27	/* record rq->alloc_time_ns */
+ 
+ #define QUEUE_FLAG_MQ_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+-				 (1 << QUEUE_FLAG_SAME_COMP))
++				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
++				 (1 << QUEUE_FLAG_SAME_FORCE))
+ 
+ void blk_queue_flag_set(unsigned int flag, struct request_queue *q);
+ void blk_queue_flag_clear(unsigned int flag, struct request_queue *q);
+From 8171d33d0b84a953649863538fdbe4c26c035e4f Mon Sep 17 00:00:00 2001
+From: Alexandre Frade <admfrade@gmail.com>
+Date: Fri, 10 May 2019 14:32:50 -0300
+Subject: [PATCH] mm: set 2 megabytes for address_space-level file read-ahead
+ pages size
+
+Signed-off-by: Alexandre Frade <admfrade@gmail.com>
+---
+ include/linux/mm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index a2adf95b3f9c..e804d9f7583a 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2416,7 +2416,7 @@ int __must_check write_one_page(struct page *page);
+ void task_dirty_inc(struct task_struct *tsk);
+ 
+ /* readahead.c */
+-#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
++#define VM_READAHEAD_PAGES	(SZ_2M / PAGE_SIZE)
+ 
+ int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read);
