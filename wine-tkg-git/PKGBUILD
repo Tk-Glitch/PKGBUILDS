@@ -5,7 +5,7 @@ pkgver=5.0rc5.r0.g23960d98
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=238
+eval pkgrel=239
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -196,6 +196,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'overwatch-mfstub.patch' # Overwatch mf crash workaround
 		'assettocorsa_hud_perf.patch' # Fix for Assetto Corsa performance drop when HUD elements are displayed
 		'mk11.patch' # Fix for Mortal Kombat 11
+		'mk11-89af635.patch' # Fix for Mortal Kombat 11 (<89af635 staging)
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
 		'esync-staging-fixes-r2.patch' # For 3.17+
@@ -365,6 +366,7 @@ md5sums=('SKIP'
          '37c1daa7dc989412e5ced603f91ef3d0'
          'cf308e18ad3724e4872280ec35e25338'
          '8a6d9ad92d3becae6bd9dbb05d7d6f48'
+         '358699ebb023e95c72249893276f0535'
          'dbaec8420ff91dcff94f9a4f32dae6e1'
          'dd993e03188c86631e6c2cbdf14113aa'
          'b997bf4bae2d08f7e84870c8c91fb08b'

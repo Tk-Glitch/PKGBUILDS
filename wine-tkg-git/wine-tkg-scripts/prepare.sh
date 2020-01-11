@@ -903,9 +903,12 @@ _prepare() {
 
 	# Fix for Mortal Kombat 11 - Requires staging, native mfplat (win7) and a different GPU driver than RADV
 	if [ "$_mk11_fix" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  if [ "$_large_address_aware" == "true" ]; then
-	    for _f in "$_where"/LAA-stagin*.patch ; do
-	      patch ${_f} << 'EOM'
+	  if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 89af635b941cf450ae371395e7b28d09161f3a36 HEAD && cd "${srcdir}"/"${_winesrcdir}"); then
+	    _patchname='mk11.patch' && _patchmsg="Applied Mortal Kombat 11 fix" && nonuser_patcher
+	  else
+	    if [ "$_large_address_aware" == "true" ]; then
+	      for _f in "$_where"/LAA-stagin*.patch ; do
+	        patch ${_f} << 'EOM'
 @@ -220,15 +220,16 @@ diff --git a/dlls/ntdll/virtual.c b/dlls/ntdll/virtual.c
  index c008db78066..6163761a466 100644
  --- a/dlls/ntdll/virtual.c
@@ -925,9 +928,10 @@ _prepare() {
  +    if (!(nt->FileHeader.Characteristics & IMAGE_FILE_LARGE_ADDRESS_AWARE) && !force_large_address) return;
  +
 EOM
-	    done
+	      done
+	    fi
+	    _patchname='mk11-89af635.patch' && _patchmsg="Applied Mortal Kombat 11 fix" && nonuser_patcher
 	  fi
-	  _patchname='mk11.patch' && _patchmsg="Applied Mortal Kombat 11 fix" && nonuser_patcher
 	fi
 
 	# apply wine-pba patchset
