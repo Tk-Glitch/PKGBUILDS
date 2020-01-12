@@ -53,6 +53,10 @@ _build() {
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
 	    export CROSSCC="ccache x86_64-w64-mingw32-gcc"
 	  fi
+	  # If /usr/lib32 doesn't exist (such as on Fedora), make sure we're using /usr/lib64 for 64-bit pkgconfig path
+	  if [ ! -d '/usr/lib32' ]; then
+	    export PKG_CONFIG_PATH='/usr/lib64/pkgconfig'
+	  fi
 	  msg2 'Building Wine-64...'
 	  cd  "${srcdir}"/"${pkgname}"-64-build
 	  if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW3" == "y" ]; then
@@ -86,12 +90,12 @@ _build() {
 	    export CROSSCC="ccache i686-w64-mingw32-gcc"
 	  fi
 	  # build wine 32-bit
-	  if [ -d '/usr/lib32/pkgconfig' ]; then # Typical Arch path, also used on Fedora
+	  if [ -d '/usr/lib32/pkgconfig' ]; then # Typical Arch path
 	    export PKG_CONFIG_PATH='/usr/lib32/pkgconfig'
 	  elif [ -d '/usr/lib/i386-linux-gnu/pkgconfig' ]; then # Ubuntu 18.04/19.04 path
 	    export PKG_CONFIG_PATH='/usr/lib/i386-linux-gnu/pkgconfig'
 	  else
-	    export PKG_CONFIG_PATH='/usr/lib/pkgconfig' # Pretty common path, possibly helpful for OpenSuse
+	    export PKG_CONFIG_PATH='/usr/lib/pkgconfig' # Pretty common path, possibly helpful for OpenSuse & Fedora
 	  fi
 	  msg2 'Building Wine-32...'
 	  cd "${srcdir}/${pkgname}"-32-build
