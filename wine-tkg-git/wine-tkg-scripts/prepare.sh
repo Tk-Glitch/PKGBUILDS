@@ -930,7 +930,7 @@ _prepare() {
 EOM
 	      done
 	    fi
-	    _patchname='mk11-89af635.patch' && _patchmsg="Applied Mortal Kombat 11 fix" && nonuser_patcher
+	    _patchname='mk11-89af635.patch' && _patchmsg="Applied Mortal Kombat 11 fix (<89af635)" && nonuser_patcher
 	  fi
 	fi
 
