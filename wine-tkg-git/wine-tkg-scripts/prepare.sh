@@ -1152,7 +1152,7 @@ EOM
 	  if [ "$_proton_fs_hack" != "true" ] && [ "$_use_staging" == "true" ]; then
 	    _patchname='staging-winex11-key_translation.patch' && _patchmsg="Applied non-fshack friendly staging winex11-key_translation patchset" && nonuser_patcher
 	  fi
-	  if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
+	  if git merge-base --is-ancestor 8000b5415d2c249176bda3d8b49f8fc9978e1623 HEAD; then
 	    if [ "$_steamclient_noswap" != "true" ]; then
 	      _patchname='proton-tkg-steamclient-swap.patch' && _patchmsg="Applied steamclient substitution hack" && nonuser_patcher
 	    fi
@@ -1164,7 +1164,10 @@ EOM
 	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/2" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor 477ff7e034e882cf0dc24aa0b459ec957608a1c3 HEAD; then
+	    if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
+	      _lastcommit="8000b54"
+	      _rpc="1"
+	    elif git merge-base --is-ancestor 477ff7e034e882cf0dc24aa0b459ec957608a1c3 HEAD; then
 	      _lastcommit="51ffea5"
 	      _rpc="1"
 	    elif git merge-base --is-ancestor aa827393311987319998a5dc1860e4696d495114 HEAD; then
