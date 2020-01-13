@@ -194,7 +194,17 @@ build_wine_tkg() {
   # External install
   if [ "$_EXTERNAL_INSTALL" == "true" ]; then
     if [ "$_EXTERNAL_INSTALL_TYPE" != "proton" ]; then
-      _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+      if [ "$_EXTERNAL_NOVER" == "true" ]; then
+        _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname"
+      else
+        if [ "$_use_staging" == "true" ]; then
+          cd "$srcdir/$_stgsrcdir"
+        else
+          cd "$srcdir/$_winesrcdir"
+        fi
+        _realwineversion=$(_describe_wine)
+        _prefix="$_DEFAULT_EXTERNAL_PATH/$pkgname-$_realwineversion"
+      fi
     elif [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
       #_prefix="$_where"
       _configure_args+=(--without-curses)
