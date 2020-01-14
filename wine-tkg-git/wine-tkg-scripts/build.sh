@@ -183,6 +183,9 @@ _package_nomakepkg() {
 
 	# move our build to some subfolder
 	if [ -z "$_nomakepkg_prefix_path" ]; then
+	  # if the target dir already exists, nuke it
+	  rm -rf "$_where/non-makepkg-builds/${pkgname}-${pkgver}"
+
 	  mkdir -p "$_where"/non-makepkg-builds
 	  mv "$_where/${pkgname}-${pkgver}" "$_where"/non-makepkg-builds/
 	  pkgdir="$_where/non-makepkg-builds/${pkgname}-${pkgver}"
