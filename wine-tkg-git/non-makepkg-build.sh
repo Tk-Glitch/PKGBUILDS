@@ -224,10 +224,12 @@ build_wine_tkg() {
 }
 
 if [ "$1" == "--deps64" ]; then
+  _nomakepkgsrcinit
   cd "${srcdir}"/"${_winesrcdir}"
   ./configure --enable-win64
   msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
 elif [ "$1" == "--deps32" ]; then
+  _nomakepkgsrcinit
   cd "${srcdir}"/"${_winesrcdir}"
   ./configure
   msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
