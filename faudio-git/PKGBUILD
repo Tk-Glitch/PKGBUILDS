@@ -46,8 +46,12 @@ if [ "$_lib32" == "true" ]; then
   depends=("${depends[@]}" lib32-sdl2 lib32-ffmpeg)
 fi
 
+if [ -n ${_faudio_commit} ]; then
+  _faudio_commit="#commit=${_faudio_commit}"
+fi
+
 makedepends=('git' 'cmake')
-source=("git+https://github.com/FNA-XNA/FAudio.git#commit=${_faudio_commit}"
+source=("git+https://github.com/FNA-XNA/FAudio.git${_faudio_commit}"
         'force-lib32-sdl2.patch'
         'force-lib32-sdl2-legacy.patch')
 sha256sums=('SKIP'
@@ -107,6 +111,7 @@ prepare() {
   msg "Cleaning source code tree..."
   git reset --hard HEAD
   git clean -xdf
+  git pull origin master
 
   # faudio user patches
   _userpatch_target="faudio"
