@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.0.0_devel.119167.22c5c54a4ff
+pkgver=20.0.0_devel.119185.8775b742ea3
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
