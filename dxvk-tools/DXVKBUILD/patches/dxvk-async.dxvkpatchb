@@ -220,15 +220,16 @@ index 8f82d65a..156f6054 100644
      
      Rc<vk::DeviceFn>  m_vkd;
 @@ -450,6 +481,9 @@ namespace dxvk {
-     DxvkImageViewCreateInfo m_info;
      VkImageView             m_views[ViewCount];
  
+     void createViews();
+     
 +    uint32_t m_rtBindingFrameId    = 0;
 +    uint32_t m_rtBindingFrameCount = 0;
 +
      void createView(VkImageViewType type, uint32_t numLayers);
-     
-   };
+ 
+     void discardViews(const Rc<DxvkImageViewDump>& dump);
 diff --git a/src/dxvk/dxvk_options.cpp b/src/dxvk/dxvk_options.cpp
 index 394feabb..df05ecd8 100644
 --- a/src/dxvk/dxvk_options.cpp
