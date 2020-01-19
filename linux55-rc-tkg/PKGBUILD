@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=rc6
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=6
+pkgrel=7
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -143,7 +143,7 @@ sha256sums=('82312b5b09dce99eb3c3e162ec07b15b411849de6513df75ce17036b7dd79978'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             'e27ad5ff23a81b5be73a642db5186b447f336956a427d1300e8ccc49abf0dd74'
             '965a517a283f265a012545fbb5cc9e516efc9f6166d2aa1baf7293a32a1086b7'
-            'be4c8e227729e2481cbc48e6e21e938abcb2fe036d3c5c7c55d292100b86e054'
+            '95f954f158ffb3ee8f980b7738f7d50524462b72a3d70966bdb439fe8762139f'
             '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
@@ -363,7 +363,7 @@ prepare() {
       plain ""
       plain "MuQSS default: 6ms"
       plain "PDS default: 4ms"
-      plain "BMQ default: 4ms"
+      plain "BMQ default: 2ms"
       read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION1;
     fi
     if [ "$CONDITION1" == "1" ]; then
@@ -392,7 +392,7 @@ prepare() {
       fi
     else
       if [ "${_cpusched}" == "bmq" ]; then
-        echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
+        echo "CONFIG_SCHED_TIMESLICE=2" >> ./.config
       fi
     fi
   fi
