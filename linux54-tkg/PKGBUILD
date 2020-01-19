@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=13
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=24
+pkgrel=25
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -123,7 +123,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0007-v5.4-fsync.patch
         #0008-5.4-bcachefs.patch
         0009-glitched-bmq.patch
-        0009-bmq_v5.4-r1.patch
+        0009-bmq_v5.4-r2.patch
         0011-ZFS-fix.patch
         #0012-linux-hardened.patch
 )
@@ -143,7 +143,7 @@ sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '90917e09bb06fbed6853efe9e52f8c2ba4066fca44accdf7608222212561104a'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
-            '0b770209a72171dfd46401d67d13204a767eb1749ef522df7ea7292b83046537'
+            '6a6a736cf1b3513d108bfd36f60baf50bb36b33aec21ab0d0ffad13602b7ff75'
             '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
@@ -241,7 +241,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0009-bmq_v5.4-r1.patch
+    patch -Np1 -i ../0009-bmq_v5.4-r2.patch
     patch -Np1 -i ../0009-glitched-bmq.patch
   else
     patch -Np1 -i ../0003-glitched-cfs.patch
@@ -360,7 +360,7 @@ prepare() {
       plain ""
       plain "MuQSS default: 6ms"
       plain "PDS default: 4ms"
-      plain "BMQ default: 4ms"
+      plain "BMQ default: 2ms"
       read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION1;
     fi
     if [ "$CONDITION1" == "1" ]; then
@@ -389,7 +389,7 @@ prepare() {
       fi
     else
       if [ "${_cpusched}" == "bmq" ]; then
-        echo "CONFIG_SCHED_TIMESLICE=4" >> ./.config
+        echo "CONFIG_SCHED_TIMESLICE=2" >> ./.config
       fi
     fi
   fi

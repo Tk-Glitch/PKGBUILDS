@@ -1,5 +1,5 @@
 diff --git a/Documentation/admin-guide/sysctl/kernel.rst b/Documentation/admin-guide/sysctl/kernel.rst
-index 032c7cd3cede..2fb0b416d04b 100644
+index 032c7cd3cede..97ea247cc43a 100644
 --- a/Documentation/admin-guide/sysctl/kernel.rst
 +++ b/Documentation/admin-guide/sysctl/kernel.rst
 @@ -105,6 +105,7 @@ show up in /proc/sys/kernel:
@@ -22,8 +22,8 @@ index 032c7cd3cede..2fb0b416d04b 100644
 +sched_yield will perform.
 +
 +  0 - No yield.
-+  1 - Yield only to better priority/deadline tasks. (default)
-+  2 - Expire timeslice and recalculate deadline.
++  1 - Deboost and requeue task. (default)
++  2 - Set run queue skip task.
 diff --git a/Documentation/scheduler/sched-BMQ.txt b/Documentation/scheduler/sched-BMQ.txt
 new file mode 100644
 index 000000000000..05c84eec0f31
@@ -391,12 +391,12 @@ index 4b1c3b664f51..f0f966219695 100644
  #else
  #define sched_exec()   {}
 diff --git a/init/Kconfig b/init/Kconfig
-index b4daad2bac23..c135142a2c85 100644
+index b4daad2bac23..f9faeb82f677 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -73,6 +73,26 @@ config THREAD_INFO_IN_TASK
+@@ -717,9 +717,28 @@ config GENERIC_SCHED_CLOCK
  
- menu "General setup"
+ menu "Scheduler features"
  
 +config SCHED_BMQ
 +	bool "BMQ CPU scheduler"
@@ -404,9 +404,6 @@ index b4daad2bac23..c135142a2c85 100644
 +	  The BitMap Queue CPU scheduler for excellent interactivity and
 +	  responsiveness on the desktop and solid scalability on normal
 +	  hardware and commodity servers.
-+
-+	  Currently incompatible with the Group CPU scheduler, and RCU TORTURE
-+          TEST so these options are disabled.
 +
 +          Say Y here.
 +	default y
@@ -416,12 +413,9 @@ index b4daad2bac23..c135142a2c85 100644
 +	depends on SCHED_BMQ
 +	help
 +	  Time slice in ms for BMQ CPU scheduler, default 4 ms.
-+	default 4
++	default 2 if PREEMPT
++	default 4 if !PREEMPT
 +
- config BROKEN
- 	bool
- 
-@@ -720,6 +740,7 @@ menu "Scheduler features"
  config UCLAMP_TASK
  	bool "Enable utilization clamping for RT/FAIR tasks"
  	depends on CPU_FREQ_GOV_SCHEDUTIL
@@ -429,7 +423,7 @@ index b4daad2bac23..c135142a2c85 100644
  	help
  	  This feature enables the scheduler to track the clamped utilization
  	  of each CPU based on RUNNABLE tasks scheduled on that CPU.
-@@ -802,6 +823,7 @@ config NUMA_BALANCING
+@@ -802,6 +821,7 @@ config NUMA_BALANCING
  	depends on ARCH_SUPPORTS_NUMA_BALANCING
  	depends on !ARCH_WANT_NUMA_VARIABLE_LOCALITY
  	depends on SMP && NUMA && MIGRATION
@@ -437,7 +431,7 @@ index b4daad2bac23..c135142a2c85 100644
  	help
  	  This option adds support for automatic NUMA aware memory/task placement.
  	  The mechanism is quite primitive and is based on migrating memory when
-@@ -903,7 +925,7 @@ menuconfig CGROUP_SCHED
+@@ -903,7 +923,7 @@ menuconfig CGROUP_SCHED
  	  bandwidth allocation to such task groups. It uses cgroups to group
  	  tasks.
  
@@ -446,7 +440,7 @@ index b4daad2bac23..c135142a2c85 100644
  config FAIR_GROUP_SCHED
  	bool "Group scheduling for SCHED_OTHER"
  	depends on CGROUP_SCHED
-@@ -1150,6 +1172,7 @@ config CHECKPOINT_RESTORE
+@@ -1150,6 +1170,7 @@ config CHECKPOINT_RESTORE
  
  config SCHED_AUTOGROUP
  	bool "Automatic process group scheduling"
@@ -632,7 +626,7 @@ index 21fb5a5662b5..cab4e5c5b38e 100644
  obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..5c5603249b78
+index 000000000000..42a2a5b3d172
 --- /dev/null
 +++ b/kernel/sched/bmq.c
 @@ -0,0 +1,6102 @@
@@ -706,7 +700,7 @@ index 000000000000..5c5603249b78
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.4-r1 by Alfred Chen.\n");
++	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.4-r2 by Alfred Chen.\n");
 +}
 +
 +/**
