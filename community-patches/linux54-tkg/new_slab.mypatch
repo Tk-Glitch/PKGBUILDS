@@ -632,7 +632,7 @@ diff --git a/mm/memcontrol.c b/mm/memcontrol.c
 index c3bdb8d4c355..cd8ac747827e 100644
 --- a/mm/memcontrol.c
 +++ b/mm/memcontrol.c
-@@ -258,6 +258,77 @@ struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr)
+@@ -258,6 +258,46 @@ struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr)
  }
  
  #ifdef CONFIG_MEMCG_KMEM
@@ -676,37 +676,6 @@ index c3bdb8d4c355..cd8ac747827e 100644
 +	return 0;
 +}
 +
-+static void memcg_reparent_kmem_memcg_ptr(struct mem_cgroup *memcg,
-+					  struct mem_cgroup *parent)
-+{
-+	unsigned int nr_reparented = 0;
-+	struct mem_cgroup_ptr *memcg_ptr = NULL;
-+
-+	rcu_swap_protected(memcg->kmem_memcg_ptr, memcg_ptr, true);
-+	percpu_ref_kill(&memcg_ptr->refcnt);
-+
-+	/*
-+	 * kmem_memcg_ptr is initialized before css refcounter, so until now
-+	 * it doesn't hold a reference to the memcg. Bump it here.
-+	 */
-+	css_get(&memcg->css);
-+
-+	spin_lock_irq(&css_set_lock);
-+	list_for_each_entry(memcg_ptr, &memcg->kmem_memcg_ptr_list, list) {
-+		xchg(&memcg_ptr->memcg, parent);
-+		nr_reparented++;
-+	}
-+	if (nr_reparented)
-+		list_splice(&memcg->kmem_memcg_ptr_list,
-+			    &parent->kmem_memcg_ptr_list);
-+	spin_unlock_irq(&css_set_lock);
-+
-+	if (nr_reparented) {
-+		css_get_many(&parent->css, nr_reparented);
-+		css_put_many(&memcg->css, nr_reparented);
-+	}
-+}
-+
  /*
   * This will be the memcg's index in each cache's ->memcg_params.memcg_caches.
   * The main reason for not using cgroup id for this:
@@ -732,23 +701,6 @@ index c3bdb8d4c355..cd8ac747827e 100644
  	static_branch_inc(&memcg_kmem_enabled_key);
  	/*
  	 * A memory cgroup is considered kmem-online as soon as it gets
-@@ -3619,12 +3696,13 @@ static void memcg_offline_kmem(struct mem_cgroup *memcg)
- 		parent = root_mem_cgroup;
- 
- 	/*
--	 * Deactivate and reparent kmem_caches. Then flush percpu
--	 * slab statistics to have precise values at the parent and
--	 * all ancestor levels. It's required to keep slab stats
-+	 * Deactivate and reparent kmem_caches and reparent kmem_memcg_ptr.
-+	 * Then flush percpu slab statistics to have precise values at the
-+	 * parent and all ancestor levels. It's required to keep slab stats
- 	 * accurate after the reparenting of kmem_caches.
- 	 */
- 	memcg_deactivate_kmem_caches(memcg, parent);
-+	memcg_reparent_kmem_memcg_ptr(memcg, parent);
- 	memcg_flush_percpu_vmstats(memcg, true);
- 
- 	kmemcg_id = memcg->kmemcg_id;
 @@ -5180,6 +5258,7 @@ static struct mem_cgroup *mem_cgroup_alloc(void)
  	memcg->socket_pressure = jiffies;
  #ifdef CONFIG_MEMCG_KMEM
@@ -1159,13 +1111,13 @@ index 4d8adaa5d59c..e20c200bff95 100644
  	NR_INACTIVE_FILE,	/*  "     "     "   "       "         */
  	NR_ACTIVE_FILE,		/*  "     "     "   "       "         */
  	NR_UNEVICTABLE,		/*  "     "     "   "       "         */
--	NR_SLAB_RECLAIMABLE,	/* Please do not reorder this item */
--	NR_SLAB_UNRECLAIMABLE,	/* and this one without looking at
-+	NR_SLAB_RECLAIMABLE_B,	/* Please do not reorder this item */
-+	NR_SLAB_UNRECLAIMABLE_B,/* and this one without looking at
- 				 * memcg_flush_percpu_vmstats() first. */
+-	NR_SLAB_RECLAIMABLE,
+-	NR_SLAB_UNRECLAIMABLE,
++	NR_SLAB_RECLAIMABLE_B,
++	NR_SLAB_UNRECLAIMABLE_B,
  	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
  	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+ 	WORKINGSET_NODES,
 @@ -247,6 +247,12 @@ enum node_stat_item {
  	NR_VM_NODE_STAT_ITEMS
  };
@@ -1289,17 +1241,6 @@ index cd8ac747827e..9303e98b0718 100644
  
  	/* Accumulated memory events */
  
-@@ -3582,8 +3585,8 @@ static void memcg_flush_percpu_vmstats(struct mem_cgroup *memcg, bool slab_only)
- 	int min_idx, max_idx;
- 
- 	if (slab_only) {
--		min_idx = NR_SLAB_RECLAIMABLE;
--		max_idx = NR_SLAB_UNRECLAIMABLE;
-+		min_idx = NR_SLAB_RECLAIMABLE_B;
-+		max_idx = NR_SLAB_UNRECLAIMABLE_B;
- 	} else {
- 		min_idx = 0;
- 		max_idx = MEMCG_NR_STAT;
 diff --git a/mm/oom_kill.c b/mm/oom_kill.c
 index 314ce1a3cf25..61476bf0f147 100644
 --- a/mm/oom_kill.c
@@ -4507,22 +4448,18 @@ index 0c9698f03cfe..b0d0c833150c 100644
  	memcg->kmem_state = KMEM_ALLOCATED;
  
  	parent = parent_mem_cgroup(memcg);
-@@ -3695,12 +3609,10 @@ static void memcg_offline_kmem(struct mem_cgroup *memcg)
+@@ -3695,11 +3609,6 @@ static void memcg_offline_kmem(struct mem_cgroup *memcg)
+ 	parent = parent_mem_cgroup(memcg);
+ 	if (!parent)
  		parent = root_mem_cgroup;
- 
- 	/*
--	 * Deactivate and reparent kmem_caches and reparent kmem_memcg_ptr.
--	 * Then flush percpu slab statistics to have precise values at the
--	 * parent and all ancestor levels. It's required to keep slab stats
--	 * accurate after the reparenting of kmem_caches.
-+	 * Reparent kmem_memcg_ptr. Then flush percpu slab statistics to have
-+	 * precise values at the parent and all ancestor levels. It's required
-+	 * to keep slab stats accurate after the reparenting of kmem_caches.
- 	 */
+-
+-	/*
+-	 * Deactivate and reparent kmem_caches.
+-	 */
 -	memcg_deactivate_kmem_caches(memcg, parent);
- 	memcg_reparent_kmem_memcg_ptr(memcg, parent);
- 	memcg_flush_percpu_vmstats(memcg, true);
  
+ 	kmemcg_id = memcg->kmemcg_id;
+ 	BUG_ON(kmemcg_id < 0);
 @@ -3736,10 +3648,8 @@ static void memcg_free_kmem(struct mem_cgroup *memcg)
  	if (unlikely(memcg->kmem_state == KMEM_ONLINE))
  		memcg_offline_kmem(memcg);
