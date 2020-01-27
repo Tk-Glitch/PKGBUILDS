@@ -87,9 +87,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
-_sub=rc7
+_sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=8
+pkgrel=1
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -103,7 +103,9 @@ else
   msg2 'ccache was not found and will not be used'
   options=('!strip')
 fi
-source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
+source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}.tar.gz"
+        #"https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
+        #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         'config.x86_64' # stock Arch config
         #'config_hardened.x86_64' # hardened Arch config
         # ARCH Patches
@@ -127,11 +129,11 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         0011-ZFS-fix.patch
         #0012-linux-hardened.patch
 )
-sha256sums=('2089fa202b1e6337b3afbcc1de784284537da27d76204cd6eda58fc31799d281'
+sha256sums=('87c2ecdd31fcf479304e95977c3600b3381df32c58a260c72921a6bb7ea62950'
             'd6bb0fe5150c84c19fe40199e72f708a635271b0b5eeefbf847b9cff3f23143e'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
-            '7a7bc6588e30a9136991bc1b563752a013a294ce0e1cbd22a3a9340011837d7c'
+            'ba6a043b0f1d1c6383330764dbd722cf5d5173e44f5d17f9cea9bdb87b98482a'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             'c605f638d74c61861ebdc36ebd4cb8b6475eae2f6273e1ccb2bbb3e10a2ec3fe'
             'ee44b8acb03fdfbc8bee9c4713d65dad80ed03cd070577bbfbcd200853e6e5af'
@@ -143,7 +145,7 @@ sha256sums=('2089fa202b1e6337b3afbcc1de784284537da27d76204cd6eda58fc31799d281'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             'e27ad5ff23a81b5be73a642db5186b447f336956a427d1300e8ccc49abf0dd74'
             '965a517a283f265a012545fbb5cc9e516efc9f6166d2aa1baf7293a32a1086b7'
-            '95f954f158ffb3ee8f980b7738f7d50524462b72a3d70966bdb439fe8762139f'
+            '20fb5844b6d836eeb5cb5a66e58b4fa581d4edbaec3337f61a50992714c3b0b5'
             '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
@@ -202,7 +204,7 @@ prepare() {
 
   ln -s "${_where}/customization.cfg" "${srcdir}" # workaround
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   msg2 "Setting version..."
   scripts/setlocalversion --save-scmversion
@@ -835,7 +837,7 @@ prepare() {
 }
 
 build() {
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # Use custom compiler paths if defined
   if [ -n "${CUSTOM_GCC_PATH}" ]; then
@@ -863,7 +865,7 @@ hackbase() {
               'update-grub: Simple wrapper around grub-mkconfig.')
   provides=("linux=${pkgver}" "${pkgbase}")
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
 
   # get kernel version
   local _kernver="$(<version)"
@@ -891,7 +893,7 @@ hackheaders() {
   pkgdesc="Headers and scripts for building modules for the $pkgdesc kernel"
   provides=("linux-headers=${pkgver}" "${pkgbase}-headers=${pkgver}")
 
-  cd "${srcdir}/linux-${_basekernel}-${_sub}"
+  cd "${srcdir}/linux-${_basekernel}"
   local builddir="${pkgdir}/usr/lib/modules/$(<version)/build"
 
   msg2 "Installing build files..."

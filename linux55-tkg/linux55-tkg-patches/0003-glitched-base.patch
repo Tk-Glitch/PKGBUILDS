@@ -3979,17 +3979,3 @@ index a2adf95b3f9c..e804d9f7583a 100644
  
  int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
  			pgoff_t offset, unsigned long nr_to_read);
-
-diff --git a/net/hsr/hsr_main.h b/net/hsr/hsr_main.h
-index 6696923fd4bd..d40de84a637f 100644
---- a/net/hsr/hsr_main.h
-+++ b/net/hsr/hsr_main.h
-@@ -185,7 +185,7 @@ static inline u16 hsr_get_skb_sequence_nr(struct sk_buff *skb)
- void hsr_debugfs_create_root(void);
- void hsr_debugfs_remove_root(void);
- #else
--static inline void void hsr_debugfs_rename(struct net_device *dev)
-+static inline void hsr_debugfs_rename(struct net_device *dev)
- {
- }
- static inline void hsr_debugfs_init(struct hsr_priv *priv,
