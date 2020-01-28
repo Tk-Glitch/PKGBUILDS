@@ -18,7 +18,7 @@ license=('BSD 2-Clause "Simplified" License')
 makedepends=('git' 'meson' 'ninja' 'cmake' 'pixman' 'pkgconf' 'xxd')
 pkgdesc="gamescope: the micro-compositor formerly known as steamcompmgr"
 depends=("wayland" "opengl-driver" "xorg-server-xwayland" "libdrm" "libinput"
-         "libxkbcommon" "libcap" "libxcb" "libpng" "glslang")
+         "libxkbcommon" "libcap" "libxcb" "libpng" "glslang" "wlroots")
 provides=(gamescope=$pkgver)
 conflicts=('gamescope')
 
@@ -55,6 +55,9 @@ build() {
 
 package() {
      DESTDIR="$pkgdir" ninja -C _build install
+     rm -rf "${pkgdir}"/usr/include
+     rm -rf "${pkgdir}"/usr/lib/libwlroots*
+     rm -f "${pkgdir}"/usr/lib/pkgconfig/wlroots.pc
 
      install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkgbase}/LICENSE"
 }
