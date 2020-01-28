@@ -143,7 +143,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=89
+pkgrel=90
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -376,7 +376,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         patch -Np2 -i "$srcdir"/kernel-5.4-symver.diff
         cd ..
       fi
-      if [ "$_54_prime_fixing_attempt" == "true" ] && [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.43.* ]] || [[ $pkgver = 440.44 ]]; then
+      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.43.* ]] || [[ $pkgver = 440.44 ]] && [ "$_54_prime_fixing_attempt" == "true" ]; then
         _54_prime="true"
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
         msg2 "Applying kernel-5.4-prime.diff for $_kernel..."
@@ -586,7 +586,7 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       msg2 "Applying 02-ipmi-vm.diff for dkms..."
       patch -Np1 -i "$srcdir"/02-ipmi-vm.diff
     fi
-    if [ "$_54_prime" == "true" ] && [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.43.* ]] || [[ $pkgver = 440.44 ]]; then
+    if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.43.* ]] || [[ $pkgver = 440.44 ]] && [ "$_54_prime" == "true" ]; then
       msg2 "Applying kernel-5.4-prime.diff for dkms..."
       patch -Np1 -i "$srcdir"/kernel-5.4-prime.diff
     fi
