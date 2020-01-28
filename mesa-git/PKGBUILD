@@ -23,13 +23,18 @@ plain '             `.-:///////:-.`'
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
 
+# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+if [ -e "$_EXT_CONFIG_PATH" ]; then
+  source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
+fi
+
 pkgname=('mesa-tkg-git')
 if [ "$_lib32" == "true" ]; then
   pkgname+=('lib32-mesa-tkg-git')
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.0.0_devel.119680.63af27bc768
+pkgver=20.0.0_devel.119683.fe5267d3223
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
