@@ -29,7 +29,7 @@ if [ "$_lib32" == "true" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.0.0_devel.119653.4d03e531273
+pkgver=20.0.0_devel.119680.63af27bc768
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -379,7 +379,6 @@ package_mesa-tkg-git() {
   # remove script file from /usr/bin
   # https://gitlab.freedesktop.org/mesa/mesa/issues/2230
   rm "${pkgdir}/usr/bin/mesa-overlay-control.py"
-  rmdir "${pkgdir}/usr/bin"
 
   # indirect rendering
   ln -s /usr/lib/libGLX_mesa.so.0 "${pkgdir}/usr/lib/libGLX_indirect.so.0"
