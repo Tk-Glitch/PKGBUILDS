@@ -82,3 +82,15 @@ index 2a202a846757..1d9c7ed79b11 100644
  
  config SCHED_HRTICK
 
+diff --git a/Makefile b/Makefile
+index 6886f22902c9..5e93d1e8598e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -15,7 +15,6 @@ NAME = Bobtail Squid
+ 
+ CKVERSION = -ck1
+ CKNAME = MuQSS Powered
+-EXTRAVERSION := $(EXTRAVERSION)$(CKVERSION)
+ 
+ # We are using a recursive build, so we need to do a little thinking
+ # to get the ordering right.

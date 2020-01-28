@@ -110,3 +110,15 @@ index 2a202a846757..1d9c7ed79b11 100644
  
  config SCHED_HRTICK
 
+diff --git a/Makefile b/Makefile
+index 69fa5c0310d8..1ddd9dd25e9c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -15,7 +15,6 @@ NAME = "People's Front"
+ 
+ CKVERSION = -ck1
+ CKNAME = MuQSS Powered
+-EXTRAVERSION := $(EXTRAVERSION)$(CKVERSION)
+ 
+ # o Do not use make's built-in rules and variables
+ #   (this increases performance and avoids hard-to-debug behaviour);

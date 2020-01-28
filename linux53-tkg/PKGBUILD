@@ -91,7 +91,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.3
 _sub=18
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=32
+pkgrel=33
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -138,7 +138,7 @@ sha256sums=('78f3c397513cf4ff0f96aa7d09a921d003e08fa97c09e0bb71d88211b40567b2'
             '17cf4dfcd5b10a3ebd0521aff253d2a72133a959e1f4c77113f61d06818866f4'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             '8e7b98412f110f3e95637a82c7536c0ca7f1169a892f041b8d30327995e0e98f'
-            '384770c97e982529ea20f09fac0c691f9d5eb79b614a0564dcb836f8bb7bb3b1'
+            'd6ae7967a464fdb902c03c1babebd6c741585cdda42134e896eabd8214a9f1e9'
             'a6d6faca095342ec95a04512a400fdea65fb68d2fa758ad691ba8454350342e7'
             '703059b0b74ccc0cc839bba41f204a654be383072f8a880cce7eb5ac4a8f116d'
             'b1e2cda2769a6e98e10910cf57bbc91528ed75310747fbe554826fb7010900b2'
