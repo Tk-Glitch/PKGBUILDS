@@ -38,6 +38,7 @@ gst-libav/ffmpeg/
 gst-libav/gas-preprocessor/
 gst-libav/gst-common/
 faudio-git/FAudio/
+gamescope-git/gamescope/
 spirv-tools-git/SPIRV-Headers/
 spirv-tools-git/SPIRV-Tools/
 vkd3d-git/vkd3d/
