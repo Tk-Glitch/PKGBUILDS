@@ -3999,3 +3999,15 @@ index d2fa3e9ccd97c..bd10cb02fc0ff 100644
  	if (!strcmp(str, "force"))
  		force_load = 1;
  	if (!strcmp(str, "hwp_only"))
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+index 2c64d2a83d61..c2453532fd95 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -2851,6 +2851,7 @@  int amdgpu_device_init(struct amdgpu_device *adev,
+ 	hash_init(adev->mn_hash);
+ 	mutex_init(&adev->lock_reset);
+ 	mutex_init(&adev->psp.mutex);
++	mutex_init(&adev->notifier_lock);
+ 
+ 	r = amdgpu_device_check_arguments(adev);
+ 	if (r)
