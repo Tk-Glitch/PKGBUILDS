@@ -1,4 +1,4 @@
-# Only the vulkan part of AMDGPU-PRO 19.30-855429 drivers
+# Only the vulkan part of AMDGPU-PRO drivers
 
 Can live next to RADV
 
