@@ -19,10 +19,10 @@ index 87f1fc9..b3be470 100755
  UTS_VERSION="$UTS_VERSION $CONFIG_FLAGS $TIMESTAMP"
 
 diff --git a/arch/x86/Kconfig.cpu b/arch/x86/Kconfig.cpu
-index 6adce15268bd..f8612b07d32f 100644
+index af9c967782f6..bf07a8c0f495 100644
 --- a/arch/x86/Kconfig.cpu
 +++ b/arch/x86/Kconfig.cpu
-@@ -116,6 +116,7 @@ config MPENTIUMM
+@@ -123,6 +123,7 @@ config MPENTIUMM
  config MPENTIUM4
  	bool "Pentium-4/Celeron(P4-based)/Pentium-4 M/older Xeon"
  	depends on X86_32
@@ -30,7 +30,7 @@ index 6adce15268bd..f8612b07d32f 100644
  	---help---
  	  Select this for Intel Pentium 4 chips.  This includes the
  	  Pentium 4, Pentium D, P4-based Celeron and Xeon, and
-@@ -148,9 +149,8 @@ config MPENTIUM4
+@@ -155,9 +156,8 @@ config MPENTIUM4
  		-Paxville
  		-Dempsey
  
@@ -41,7 +41,7 @@ index 6adce15268bd..f8612b07d32f 100644
  	depends on X86_32
  	---help---
  	  Select this for an AMD K6-family processor.  Enables use of
-@@ -158,7 +158,7 @@ config MK6
+@@ -165,7 +165,7 @@ config MK6
  	  flags to GCC.
  
  config MK7
@@ -50,7 +50,7 @@ index 6adce15268bd..f8612b07d32f 100644
  	depends on X86_32
  	---help---
  	  Select this for an AMD Athlon K7-family processor.  Enables use of
-@@ -166,12 +166,83 @@ config MK7
+@@ -173,12 +173,90 @@ config MK7
  	  flags to GCC.
  
  config MK8
@@ -132,10 +132,17 @@ index 6adce15268bd..f8612b07d32f 100644
 +
 +	  Enables -march=znver1
 +
++config MZEN2
++	bool "AMD Zen 2"
++	---help---
++	  Select this for AMD Family 17h Zen 2 processors.
++
++	  Enables -march=znver2
++
  config MCRUSOE
  	bool "Crusoe"
  	depends on X86_32
-@@ -253,6 +324,7 @@ config MVIAC7
+@@ -260,6 +338,7 @@ config MVIAC7
  
  config MPSC
  	bool "Intel P4 / older Netburst based Xeon"
@@ -143,7 +150,7 @@ index 6adce15268bd..f8612b07d32f 100644
  	depends on X86_64
  	---help---
  	  Optimize for Intel Pentium 4, Pentium D and older Nocona/Dempsey
-@@ -262,8 +334,19 @@ config MPSC
+@@ -269,8 +348,19 @@ config MPSC
  	  using the cpu family field
  	  in /proc/cpuinfo. Family 15 is an older Xeon, Family 6 a newer one.
  
@@ -164,7 +171,7 @@ index 6adce15268bd..f8612b07d32f 100644
  	---help---
  
  	  Select this for Intel Core 2 and newer Core 2 Xeons (Xeon 51xx and
-@@ -271,14 +354,106 @@ config MCORE2
+@@ -278,14 +368,133 @@ config MCORE2
  	  family in /proc/cpuinfo. Newer ones have 6 and older ones 15
  	  (not a typo)
  
@@ -202,6 +209,24 @@ index 6adce15268bd..f8612b07d32f 100644
 +	  Select this for the Intel Silvermont platform.
 +
 +	  Enables -march=silvermont
++
++config MGOLDMONT
++	bool "Intel Goldmont"
++	select X86_P6_NOP
++	---help---
++
++	  Select this for the Intel Goldmont platform including Apollo Lake and Denverton.
++
++	  Enables -march=goldmont
++
++config MGOLDMONTPLUS
++	bool "Intel Goldmont Plus"
++	select X86_P6_NOP
++	---help---
++
++	  Select this for the Intel Goldmont Plus platform including Gemini Lake.
++
++	  Enables -march=goldmont-plus
 +
 +config MSANDYBRIDGE
 +	bool "Intel Sandy Bridge"
@@ -271,13 +296,22 @@ index 6adce15268bd..f8612b07d32f 100644
 +	select X86_P6_NOP
 +	---help---
 +
-+	  Select this for 8th Gen Core processors in the Ice Lake family.
++	  Select this for 10th Gen Core processors in the Ice Lake family.
 +
-+	  Enables -march=icelake
++	  Enables -march=icelake-client
++
++config MCASCADELAKE
++	bool "Intel Cascade Lake"
++	select X86_P6_NOP
++	---help---
++
++	  Select this for Xeon processors in the Cascade Lake family.
++
++	  Enables -march=cascadelake
  
  config GENERIC_CPU
  	bool "Generic-x86-64"
-@@ -287,6 +462,19 @@ config GENERIC_CPU
+@@ -294,6 +503,19 @@ config GENERIC_CPU
  	  Generic x86-64 CPU.
  	  Run equally well on all x86-64 CPUs.
  
@@ -297,26 +331,26 @@ index 6adce15268bd..f8612b07d32f 100644
  endchoice
  
  config X86_GENERIC
-@@ -311,7 +499,7 @@ config X86_INTERNODE_CACHE_SHIFT
+@@ -318,7 +540,7 @@ config X86_INTERNODE_CACHE_SHIFT
  config X86_L1_CACHE_SHIFT
  	int
  	default "7" if MPENTIUM4 || MPSC
 -	default "6" if MK7 || MK8 || MPENTIUMM || MCORE2 || MATOM || MVIAC7 || X86_GENERIC || GENERIC_CPU
-+	default "6" if MK7 || MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MJAGUAR || MPENTIUMM || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE || MATOM || MVIAC7 || X86_GENERIC || GENERIC_CPU
++	default "6" if MK7 || MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MZEN2 || MJAGUAR || MPENTIUMM || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MGOLDMONT || MGOLDMONTPLUS || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MCASCADELAKE || MNATIVE || MATOM || MVIAC7 || X86_GENERIC || GENERIC_CPU
  	default "4" if MELAN || M486SX || M486 || MGEODEGX1
  	default "5" if MWINCHIP3D || MWINCHIPC6 || MCRUSOE || MEFFICEON || MCYRIXIII || MK6 || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || M586 || MVIAC3_2 || MGEODE_LX
  
-@@ -329,35 +517,36 @@ config X86_ALIGNMENT_16
+@@ -336,35 +558,36 @@ config X86_ALIGNMENT_16
  
  config X86_INTEL_USERCOPY
  	def_bool y
 -	depends on MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M586MMX || X86_GENERIC || MK8 || MK7 || MEFFICEON || MCORE2
-+	depends on MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M586MMX || X86_GENERIC || MK8 || MK8SSE3 || MK7 || MEFFICEON || MCORE2 || MK10 || MBARCELONA || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE
++	depends on MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M586MMX || X86_GENERIC || MK8 || MK8SSE3 || MK7 || MEFFICEON || MCORE2 || MK10 || MBARCELONA || MNEHALEM || MWESTMERE || MSILVERMONT || MGOLDMONT || MGOLDMONTPLUS || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MCASCADELAKE || MNATIVE
  
  config X86_USE_PPRO_CHECKSUM
  	def_bool y
 -	depends on MWINCHIP3D || MWINCHIPC6 || MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MK8 || MVIAC3_2 || MVIAC7 || MEFFICEON || MGEODE_LX || MCORE2 || MATOM
-+	depends on MWINCHIP3D || MWINCHIPC6 || MCYRIXIII || MK7 || MK6 || MK10 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MK8 || MK8SSE3 || MVIAC3_2 || MVIAC7 || MEFFICEON || MGEODE_LX || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MATOM || MNATIVE
++	depends on MWINCHIP3D || MWINCHIPC6 || MCYRIXIII || MK7 || MK6 || MK10 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MK8 || MK8SSE3 || MVIAC3_2 || MVIAC7 || MEFFICEON || MGEODE_LX || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MGOLDMONT || MGOLDMONTPLUS || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MCASCADELAKE || MATOM || MNATIVE
  
  config X86_USE_3DNOW
  	def_bool y
@@ -339,7 +373,7 @@ index 6adce15268bd..f8612b07d32f 100644
 -	depends on (MCORE2 || MPENTIUM4 || MPSC)
 +	default n
 +	bool "Support for P6_NOPs on Intel chips"
-+	depends on (MCORE2 || MPENTIUM4 || MPSC || MATOM || MNEHALEM || MWESTMERE || MSILVERMONT  || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE)
++	depends on (MCORE2 || MPENTIUM4 || MPSC || MATOM || MNEHALEM || MWESTMERE || MSILVERMONT || MGOLDMONT || MGOLDMONTPLUS  || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MCASCADELAKE || MNATIVE)
 +	---help---
 +	P6_NOPs are a relatively minor optimization that require a family >=
 +	6 processor, except that it is broken on certain VIA chips.
@@ -356,24 +390,24 @@ index 6adce15268bd..f8612b07d32f 100644
  config X86_TSC
  	def_bool y
 -	depends on (MWINCHIP3D || MCRUSOE || MEFFICEON || MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || MK8 || MVIAC3_2 || MVIAC7 || MGEODEGX1 || MGEODE_LX || MCORE2 || MATOM) || X86_64
-+	depends on (MWINCHIP3D || MCRUSOE || MEFFICEON || MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || MK8 || MK8SSE3 || MVIAC3_2 || MVIAC7 || MGEODEGX1 || MGEODE_LX || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE || MATOM) || X86_64
++	depends on (MWINCHIP3D || MCRUSOE || MEFFICEON || MCYRIXIII || MK7 || MK6 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || MK8 || MK8SSE3 || MVIAC3_2 || MVIAC7 || MGEODEGX1 || MGEODE_LX || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MGOLDMONT || MGOLDMONTPLUS || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MCASCADELAKE || MNATIVE || MATOM) || X86_64
  
  config X86_CMPXCHG64
  	def_bool y
-@@ -367,7 +556,7 @@ config X86_CMPXCHG64
+@@ -374,7 +597,7 @@ config X86_CMPXCHG64
  # generates cmov.
  config X86_CMOV
  	def_bool y
 -	depends on (MK8 || MK7 || MCORE2 || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MCRUSOE || MEFFICEON || X86_64 || MATOM || MGEODE_LX)
-+	depends on (MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MJAGUAR || MK7 || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MCRUSOE || MEFFICEON || X86_64 || MNATIVE || MATOM || MGEODE_LX)
++	depends on (MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MZEN2 || MJAGUAR || MK7 || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MGOLDMONT || MGOLDMONTPLUS || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MCASCADELAKE || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MCRUSOE || MEFFICEON || X86_64 || MNATIVE || MATOM || MGEODE_LX)
  
  config X86_MINIMUM_CPU_FAMILY
  	int
 diff --git a/arch/x86/Makefile b/arch/x86/Makefile
-index 85a66c4a8b65..1cdf77b9800e 100644
+index 94df0868804b..dcbed7e3a070 100644
 --- a/arch/x86/Makefile
 +++ b/arch/x86/Makefile
-@@ -118,13 +118,46 @@ else
+@@ -119,13 +119,53 @@ else
  	KBUILD_CFLAGS += $(call cc-option,-mskip-rax-setup)
  
          # FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
@@ -389,6 +423,7 @@ index 85a66c4a8b65..1cdf77b9800e 100644
 +        cflags-$(CONFIG_MSTEAMROLLER) += $(call cc-option,-march=bdver3)
 +        cflags-$(CONFIG_MEXCAVATOR) += $(call cc-option,-march=bdver4)
 +        cflags-$(CONFIG_MZEN) += $(call cc-option,-march=znver1)
++        cflags-$(CONFIG_MZEN2) += $(call cc-option,-march=znver2)
          cflags-$(CONFIG_MPSC) += $(call cc-option,-march=nocona)
  
          cflags-$(CONFIG_MCORE2) += \
@@ -402,6 +437,10 @@ index 85a66c4a8b65..1cdf77b9800e 100644
 +                $(call cc-option,-march=westmere,$(call cc-option,-mtune=westmere))
 +        cflags-$(CONFIG_MSILVERMONT) += \
 +                $(call cc-option,-march=silvermont,$(call cc-option,-mtune=silvermont))
++        cflags-$(CONFIG_MGOLDMONT) += \
++                $(call cc-option,-march=goldmont,$(call cc-option,-mtune=goldmont))
++        cflags-$(CONFIG_MGOLDMONTPLUS) += \
++                $(call cc-option,-march=goldmont-plus,$(call cc-option,-mtune=goldmont-plus))
 +        cflags-$(CONFIG_MSANDYBRIDGE) += \
 +                $(call cc-option,-march=sandybridge,$(call cc-option,-mtune=sandybridge))
 +        cflags-$(CONFIG_MIVYBRIDGE) += \
@@ -417,17 +456,19 @@ index 85a66c4a8b65..1cdf77b9800e 100644
 +        cflags-$(CONFIG_MCANNONLAKE) += \
 +                $(call cc-option,-march=cannonlake,$(call cc-option,-mtune=cannonlake))
 +        cflags-$(CONFIG_MICELAKE) += \
-+                $(call cc-option,-march=icelake,$(call cc-option,-mtune=icelake))
++                $(call cc-option,-march=icelake-client,$(call cc-option,-mtune=icelake-client))
++        cflags-$(CONFIG_MCASCADELAKE) += \
++                $(call cc-option,-march=cascadelake,$(call cc-option,-mtune=cascadelake))
 +        cflags-$(CONFIG_MATOM) += $(call cc-option,-march=bonnell) \
 +                $(call cc-option,-mtune=bonnell,$(call cc-option,-mtune=generic))
          cflags-$(CONFIG_GENERIC_CPU) += $(call cc-option,-mtune=generic)
          KBUILD_CFLAGS += $(cflags-y)
  
 diff --git a/arch/x86/Makefile_32.cpu b/arch/x86/Makefile_32.cpu
-index 1f5faf8606b4..14a6d19995cc 100644
+index cd3056759880..2c81838df533 100644
 --- a/arch/x86/Makefile_32.cpu
 +++ b/arch/x86/Makefile_32.cpu
-@@ -23,7 +23,18 @@ cflags-$(CONFIG_MK6)		+= -march=k6
+@@ -24,7 +24,19 @@ cflags-$(CONFIG_MK6)		+= -march=k6
  # Please note, that patches that add -march=athlon-xp and friends are pointless.
  # They make zero difference whatsosever to performance at this time.
  cflags-$(CONFIG_MK7)		+= -march=athlon
@@ -443,10 +484,11 @@ index 1f5faf8606b4..14a6d19995cc 100644
 +cflags-$(CONFIG_MSTEAMROLLER)	+= $(call cc-option,-march=bdver3,-march=athlon)
 +cflags-$(CONFIG_MEXCAVATOR)	+= $(call cc-option,-march=bdver4,-march=athlon)
 +cflags-$(CONFIG_MZEN)	+= $(call cc-option,-march=znver1,-march=athlon)
++cflags-$(CONFIG_MZEN2)	+= $(call cc-option,-march=znver2,-march=athlon)
  cflags-$(CONFIG_MCRUSOE)	+= -march=i686 -falign-functions=0 -falign-jumps=0 -falign-loops=0
  cflags-$(CONFIG_MEFFICEON)	+= -march=i686 $(call tune,pentium3) -falign-functions=0 -falign-jumps=0 -falign-loops=0
  cflags-$(CONFIG_MWINCHIPC6)	+= $(call cc-option,-march=winchip-c6,-march=i586)
-@@ -32,8 +43,19 @@ cflags-$(CONFIG_MCYRIXIII)	+= $(call cc-option,-march=c3,-march=i486) -falign-fu
+@@ -33,8 +45,22 @@ cflags-$(CONFIG_MCYRIXIII)	+= $(call cc-option,-march=c3,-march=i486) -falign-fu
  cflags-$(CONFIG_MVIAC3_2)	+= $(call cc-option,-march=c3-2,-march=i686)
  cflags-$(CONFIG_MVIAC7)		+= -march=i686
  cflags-$(CONFIG_MCORE2)		+= -march=i686 $(call tune,core2)
@@ -455,6 +497,8 @@ index 1f5faf8606b4..14a6d19995cc 100644
 +cflags-$(CONFIG_MNEHALEM)	+= -march=i686 $(call tune,nehalem)
 +cflags-$(CONFIG_MWESTMERE)	+= -march=i686 $(call tune,westmere)
 +cflags-$(CONFIG_MSILVERMONT)	+= -march=i686 $(call tune,silvermont)
++cflags-$(CONFIG_MGOLDMONT)	+= -march=i686 $(call tune,goldmont)
++cflags-$(CONFIG_MGOLDMONTPLUS)	+= -march=i686 $(call tune,goldmont-plus)
 +cflags-$(CONFIG_MSANDYBRIDGE)	+= -march=i686 $(call tune,sandybridge)
 +cflags-$(CONFIG_MIVYBRIDGE)	+= -march=i686 $(call tune,ivybridge)
 +cflags-$(CONFIG_MHASWELL)	+= -march=i686 $(call tune,haswell)
@@ -462,17 +506,18 @@ index 1f5faf8606b4..14a6d19995cc 100644
 +cflags-$(CONFIG_MSKYLAKE)	+= -march=i686 $(call tune,skylake)
 +cflags-$(CONFIG_MSKYLAKEX)	+= -march=i686 $(call tune,skylake-avx512)
 +cflags-$(CONFIG_MCANNONLAKE)	+= -march=i686 $(call tune,cannonlake)
-+cflags-$(CONFIG_MICELAKE)	+= -march=i686 $(call tune,icelake)
++cflags-$(CONFIG_MICELAKE)	+= -march=i686 $(call tune,icelake-client)
++cflags-$(CONFIG_MCASCADELAKE)	+= -march=i686 $(call tune,cascadelake)
 +cflags-$(CONFIG_MATOM)		+= $(call cc-option,-march=bonnell,$(call cc-option,-march=core2,-march=i686)) \
 +	$(call cc-option,-mtune=bonnell,$(call cc-option,-mtune=generic))
  
  # AMD Elan support
  cflags-$(CONFIG_MELAN)		+= -march=i486
 diff --git a/arch/x86/include/asm/module.h b/arch/x86/include/asm/module.h
-index 7948a17febb4..44b776297dc3 100644
+index c215d2762488..a4fddfe3d4fb 100644
 --- a/arch/x86/include/asm/module.h
 +++ b/arch/x86/include/asm/module.h
-@@ -25,6 +25,30 @@ struct mod_arch_specific {
+@@ -27,6 +27,36 @@ struct mod_arch_specific {
  #define MODULE_PROC_FAMILY "586MMX "
  #elif defined CONFIG_MCORE2
  #define MODULE_PROC_FAMILY "CORE2 "
@@ -484,6 +529,10 @@ index 7948a17febb4..44b776297dc3 100644
 +#define MODULE_PROC_FAMILY "WESTMERE "
 +#elif defined CONFIG_MSILVERMONT
 +#define MODULE_PROC_FAMILY "SILVERMONT "
++#elif defined CONFIG_MGOLDMONT
++#define MODULE_PROC_FAMILY "GOLDMONT "
++#elif defined CONFIG_MGOLDMONTPLUS
++#define MODULE_PROC_FAMILY "GOLDMONTPLUS "
 +#elif defined CONFIG_MSANDYBRIDGE
 +#define MODULE_PROC_FAMILY "SANDYBRIDGE "
 +#elif defined CONFIG_MIVYBRIDGE
@@ -500,10 +549,12 @@ index 7948a17febb4..44b776297dc3 100644
 +#define MODULE_PROC_FAMILY "CANNONLAKE "
 +#elif defined CONFIG_MICELAKE
 +#define MODULE_PROC_FAMILY "ICELAKE "
++#elif defined CONFIG_MCASCADELAKE
++#define MODULE_PROC_FAMILY "CASCADELAKE "
  #elif defined CONFIG_MATOM
  #define MODULE_PROC_FAMILY "ATOM "
  #elif defined CONFIG_M686
-@@ -43,6 +67,26 @@ struct mod_arch_specific {
+@@ -45,6 +75,28 @@ struct mod_arch_specific {
  #define MODULE_PROC_FAMILY "K7 "
  #elif defined CONFIG_MK8
  #define MODULE_PROC_FAMILY "K8 "
@@ -527,84 +578,11 @@ index 7948a17febb4..44b776297dc3 100644
 +#define MODULE_PROC_FAMILY "EXCAVATOR "
 +#elif defined CONFIG_MZEN
 +#define MODULE_PROC_FAMILY "ZEN "
- #elif defined CONFIG_MELAN
- #define MODULE_PROC_FAMILY "ELAN "
- #elif defined CONFIG_MCRUSOE
-
-diff --git a/arch/x86/Kconfig.cpu b/arch/x86/Kconfig.cpu
-index f8612b07d32ff98381b61cbb21a116af6317c5e9..40f651bb363a0c368bc28c3ff0112d60c757003f 100644
---- a/arch/x86/Kconfig.cpu
-+++ b/arch/x86/Kconfig.cpu
-@@ -243,6 +243,13 @@ config MZEN
- 
- 	  Enables -march=znver1
- 
-+config MZEN2
-+	bool "AMD Zen 2"
-+	---help---
-+	  Select this for AMD Family 17h Zen 2 processors.
-+
-+	  Enables -march=znver2
-+
- config MCRUSOE
- 	bool "Crusoe"
- 	depends on X86_32
-@@ -499,7 +506,7 @@ config X86_INTERNODE_CACHE_SHIFT
- config X86_L1_CACHE_SHIFT
- 	int
- 	default "7" if MPENTIUM4 || MPSC
--	default "6" if MK7 || MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MJAGUAR || MPENTIUMM || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE || MATOM || MVIAC7 || X86_GENERIC || GENERIC_CPU
-+	default "6" if MK7 || MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MZEN2 || MJAGUAR || MPENTIUMM || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MNATIVE || MATOM || MVIAC7 || X86_GENERIC || GENERIC_CPU
- 	default "4" if MELAN || M486SX || M486 || MGEODEGX1
- 	default "5" if MWINCHIP3D || MWINCHIPC6 || MCRUSOE || MEFFICEON || MCYRIXIII || MK6 || MPENTIUMIII || MPENTIUMII || M686 || M586MMX || M586TSC || M586 || MVIAC3_2 || MGEODE_LX
- 
-@@ -556,7 +563,7 @@ config X86_CMPXCHG64
- # generates cmov.
- config X86_CMOV
- 	def_bool y
--	depends on (MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MJAGUAR || MK7 || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MCRUSOE || MEFFICEON || X86_64 || MNATIVE || MATOM || MGEODE_LX)
-+	depends on (MK8 || MK8SSE3 || MK10 || MBARCELONA || MBOBCAT || MBULLDOZER || MPILEDRIVER || MSTEAMROLLER || MEXCAVATOR || MZEN || MZEN2 || MJAGUAR || MK7 || MCORE2 || MNEHALEM || MWESTMERE || MSILVERMONT || MSANDYBRIDGE || MIVYBRIDGE || MHASWELL || MBROADWELL || MSKYLAKE || MSKYLAKEX || MCANNONLAKE || MICELAKE || MPENTIUM4 || MPENTIUMM || MPENTIUMIII || MPENTIUMII || M686 || MVIAC3_2 || MVIAC7 || MCRUSOE || MEFFICEON || X86_64 || MNATIVE || MATOM || MGEODE_LX)
- 
- config X86_MINIMUM_CPU_FAMILY
- 	int
-diff --git a/arch/x86/Makefile b/arch/x86/Makefile
-index 29eb64851528d79f0838cdeb73789d940090cad2..7204717ac8e210f1150073f80ccfe51ce83443fe 100644
---- a/arch/x86/Makefile
-+++ b/arch/x86/Makefile
-@@ -130,6 +130,7 @@ else
-         cflags-$(CONFIG_MSTEAMROLLER) += $(call cc-option,-march=bdver3)
-         cflags-$(CONFIG_MEXCAVATOR) += $(call cc-option,-march=bdver4)
-         cflags-$(CONFIG_MZEN) += $(call cc-option,-march=znver1)
-+        cflags-$(CONFIG_MZEN2) += $(call cc-option,-march=znver2)
-         cflags-$(CONFIG_MPSC) += $(call cc-option,-march=nocona)
- 
-         cflags-$(CONFIG_MCORE2) += \
-diff --git a/arch/x86/Makefile_32.cpu b/arch/x86/Makefile_32.cpu
-index 14a6d19995cc89bec7a3c513c4e9f65678b37228..a4b8484d61da9286d10e1c07272b585268f93067 100644
---- a/arch/x86/Makefile_32.cpu
-+++ b/arch/x86/Makefile_32.cpu
-@@ -35,6 +35,7 @@ cflags-$(CONFIG_MPILEDRIVER)	+= $(call cc-option,-march=bdver2,-march=athlon)
- cflags-$(CONFIG_MSTEAMROLLER)	+= $(call cc-option,-march=bdver3,-march=athlon)
- cflags-$(CONFIG_MEXCAVATOR)	+= $(call cc-option,-march=bdver4,-march=athlon)
- cflags-$(CONFIG_MZEN)	+= $(call cc-option,-march=znver1,-march=athlon)
-+cflags-$(CONFIG_MZEN2)	+= $(call cc-option,-march=znver2,-march=athlon)
- cflags-$(CONFIG_MCRUSOE)	+= -march=i686 -falign-functions=0 -falign-jumps=0 -falign-loops=0
- cflags-$(CONFIG_MEFFICEON)	+= -march=i686 $(call tune,pentium3) -falign-functions=0 -falign-jumps=0 -falign-loops=0
- cflags-$(CONFIG_MWINCHIPC6)	+= $(call cc-option,-march=winchip-c6,-march=i586)
-diff --git a/arch/x86/include/asm/module.h b/arch/x86/include/asm/module.h
-index 44b776297dc3264a2f1241d13bb0f37021f97f13..630aa88f7de38fac27cf164d655c9202bde467ae 100644
---- a/arch/x86/include/asm/module.h
-+++ b/arch/x86/include/asm/module.h
-@@ -87,6 +87,8 @@ struct mod_arch_specific {
- #define MODULE_PROC_FAMILY "EXCAVATOR "
- #elif defined CONFIG_MZEN
- #define MODULE_PROC_FAMILY "ZEN "
 +#elif defined CONFIG_MZEN2
 +#define MODULE_PROC_FAMILY "ZEN2 "
  #elif defined CONFIG_MELAN
  #define MODULE_PROC_FAMILY "ELAN "
  #elif defined CONFIG_MCRUSOE
-
 diff --git a/fs/dcache.c b/fs/dcache.c
 index 2acfc69878f5..3f1131431e06 100644
 --- a/fs/dcache.c

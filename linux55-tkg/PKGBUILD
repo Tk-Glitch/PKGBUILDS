@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=0
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=4
+pkgrel=5
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -132,7 +132,7 @@ sha256sums=('a6fbd4ee903c128367892c2393ee0d9657b6ed3ea90016d4dc6f1f6da20b2330'
             'e967ac8bd663509cc0ca6451a95a9965eb59832e316eec77484960dcedec8c1c'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
-            'f92ff889603ea36cac06dee4fb9476b6f425467b1943e2d16ef6733a5ca2c96a'
+            '2a696c4ff9322d70ee1ab6bd494f41ceef2bef0dda163e4e05176cbe5d286011'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             'c605f638d74c61861ebdc36ebd4cb8b6475eae2f6273e1ccb2bbb3e10a2ec3fe'
             'bc69d6e5ee8172b0242c8fa72d13cfe2b8d2b6601468836908a7dfe8b78a3bbb'
@@ -298,6 +298,9 @@ prepare() {
   echo "# CONFIG_MSKYLAKEX is not set" >> ./.config
   echo "# CONFIG_MCANNONLAKE is not set" >> ./.config
   echo "# CONFIG_MICELAKE is not set" >> ./.config
+  echo "# CONFIG_MGOLDMONT is not set" >> ./.config
+  echo "# CONFIG_MGOLDMONTPLUS is not set" >> ./.config
+  echo "# CONFIG_MCASCADELAKE is not set" >> ./.config
 
   # Disable some debugging
   if [ "${_debugdisable}" == "true" ]; then
@@ -483,6 +486,12 @@ prepare() {
     sed -i -e 's/# CONFIG_MCANNONLAKE is not set/CONFIG_MCANNONLAKE=y/' ./.config
   elif [ "$_processor_opt" == "icelake" ]; then
     sed -i -e 's/# CONFIG_MICELAKE is not set/CONFIG_MICELAKE=y/' ./.config
+  elif [ "$_processor_opt" == "goldmont" ]; then
+    sed -i -e 's/# CONFIG_MGOLDMONT is not set/CONFIG_MGOLDMONT=y/' ./.config
+  elif [ "$_processor_opt" == "goldmontplus" ]; then
+    sed -i -e 's/# CONFIG_MGOLDMONTPLUS is not set/CONFIG_MGOLDMONTPLUS=y/' ./.config
+  elif [ "$_processor_opt" == "cascadelake" ]; then
+    sed -i -e 's/# CONFIG_MCASCADELAKE is not set/CONFIG_MCASCADELAKE=y/' ./.config
   fi
 
   # irq threading
