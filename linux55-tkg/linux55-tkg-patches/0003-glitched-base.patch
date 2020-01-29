@@ -3964,3 +3964,60 @@ index 46128a2a9c6e..e98ce380c7b9 100644
  			IWL_ERR(mvm,
  				"Can't parse phy_sku in B0, empty sections\n");
  			return NULL;
+From de7119e3db9fdb4c704355854a02a7e9fad931d4 Mon Sep 17 00:00:00 2001
+From: Steven Barrett <steven@liquorix.net>
+Date: Wed, 15 Jan 2020 20:43:56 -0600
+Subject: [PATCH] ZEN: intel-pstate: Implement "enable" parameter
+
+If intel-pstate is compiled into the kernel, it will preempt the loading
+of acpi-cpufreq so you can take advantage of hardware p-states without
+any friction.
+
+However, intel-pstate is not completely superior to cpufreq's ondemand
+for one reason.  There's no concept of an up_threshold property.
+
+In ondemand, up_threshold essentially reduces the maximum utilization to
+compare against, allowing you to hit max frequencies and turbo boost
+from a much lower core utilization.
+
+With intel-pstate, you have the concept of minimum and maximum
+performance, but no tunable that lets you define, maximum frequency
+means 50% core utilization.  For just this oversight, there's reasons
+you may want ondemand.
+
+Lets support setting "enable" in kernel boot parameters.  This lets
+kernel maintainers include "intel_pstate=disable" statically in the
+static boot parameters, but let users of the kernel override this
+selection.
+---
+ Documentation/admin-guide/kernel-parameters.txt | 3 +++
+ drivers/cpufreq/intel_pstate.c                  | 2 ++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index ade4e6ec23e03..0b613370d28d8 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -1765,6 +1765,9 @@
+ 			disable
+ 			  Do not enable intel_pstate as the default
+ 			  scaling driver for the supported processors
++			enable
++			  Enable intel_pstate in-case "disable" was passed
++			  previously in the kernel boot parameters
+ 			passive
+ 			  Use intel_pstate as a scaling driver, but configure it
+ 			  to work with generic cpufreq governors (instead of
+diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+index d2fa3e9ccd97c..bd10cb02fc0ff 100644
+--- a/drivers/cpufreq/intel_pstate.c
++++ b/drivers/cpufreq/intel_pstate.c
+@@ -2826,6 +2826,8 @@ static int __init intel_pstate_setup(char *str)
+ 		pr_info("HWP disabled\n");
+ 		no_hwp = 1;
+ 	}
++	if (!strcmp(str, "enable"))
++		no_load = 0;
+ 	if (!strcmp(str, "force"))
+ 		force_load = 1;
+ 	if (!strcmp(str, "hwp_only"))

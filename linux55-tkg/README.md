@@ -1,4 +1,4 @@
-**intel_pstate seems to perform poorly lately. If you are affected, you can add `intel_pstate=passive` to your kernel command line (in GRUB for example) to make use of acpi_cpufreq governors while keeping full support for turbo frequencies.**
+**Due to intel_pstate poor performances as of late, I have decided to disable it by default. It is still builtin though, and you can add `intel_pstate=enable` or `intel_pstate=passive` to your kernel command line (in GRUB for example) to either use plain intel_pstate governors or make use of acpi_cpufreq governors while keeping full support for turbo frequencies, respectively.**
 
 A custom Linux kernel 5.5.y with specific PDS, MuQSS and BMQ CPU schedulers related patchsets selector (stock CFS is also an option) and added tweaks for a nice interactivity/performance balance, aiming for the best gaming experience.
 
