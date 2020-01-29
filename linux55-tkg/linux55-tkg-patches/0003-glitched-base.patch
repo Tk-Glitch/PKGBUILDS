@@ -4108,23 +4108,98 @@ index c8f09874c2ec..d2d45181ae23 100644
  		break;
  	default:
  		break;
+diff --git a/drivers/gpu/drm/amd/powerplay/inc/amdgpu_smu.h b/drivers/gpu/drm/amd/powerplay/inc/amdgpu_smu.h
+index b0591a8dda41..1e33c3e9b98d 100644
+--- a/drivers/gpu/drm/amd/powerplay/inc/amdgpu_smu.h
++++ b/drivers/gpu/drm/amd/powerplay/inc/amdgpu_smu.h
+@@ -273,6 +273,7 @@  struct smu_table_context
+ 	uint8_t                         thermal_controller_type;
+ 
+ 	void				*overdrive_table;
++	void                            *boot_overdrive_table;
+ };
+ 
+ struct smu_dpm_context {
 diff --git a/drivers/gpu/drm/amd/powerplay/navi10_ppt.c b/drivers/gpu/drm/amd/powerplay/navi10_ppt.c
-index d2d45181ae23..f60762f9b143 100644
+index d2d45181ae23..26cfccc57331 100644
 --- a/drivers/gpu/drm/amd/powerplay/navi10_ppt.c
 +++ b/drivers/gpu/drm/amd/powerplay/navi10_ppt.c
-@@ -2062,6 +2062,14 @@  static int navi10_od_edit_dpm_table(struct smu_context *smu, enum PP_OD_DPM_TABL
- 		if (ret)
+@@ -2063,6 +2063,13 @@  static int navi10_od_edit_dpm_table(struct smu_context *smu, enum PP_OD_DPM_TABL
  			return ret;
  		od_table->UclkFmax = input[1];
-+		break;
-+	case PP_OD_RESTORE_DEFAULT_TABLE:
-+		ret = smu_update_table(smu, SMU_TABLE_OVERDRIVE, 0, table_context->overdrive_table, false);
-+		if (ret) {
-+			pr_err("Failed to export over drive table!\n");
-+			return ret;
-+		}
-+
  		break;
++	case PP_OD_RESTORE_DEFAULT_TABLE:
++		if (!(table_context->overdrive_table && table_context->boot_overdrive_table)) {
++			pr_err("Overdrive table was not initialized!\n");
++			return -EINVAL;
++		}
++		memcpy(table_context->overdrive_table, table_context->boot_overdrive_table, sizeof(OverDriveTable_t));
++		break;
  	case PP_OD_COMMIT_DPM_TABLE:
  		navi10_dump_od_table(od_table);
-
+ 		ret = smu_update_table(smu, SMU_TABLE_OVERDRIVE, 0, (void *)od_table, true);
+diff --git a/drivers/gpu/drm/amd/powerplay/smu_v11_0.c b/drivers/gpu/drm/amd/powerplay/smu_v11_0.c
+index 02f8c9cb89d9..0dc49479a7eb 100644
+--- a/drivers/gpu/drm/amd/powerplay/smu_v11_0.c
++++ b/drivers/gpu/drm/amd/powerplay/smu_v11_0.c
+@@ -1882,6 +1882,12 @@  int smu_v11_0_set_default_od_settings(struct smu_context *smu, bool initialize,
+ 			pr_err("Failed to export overdrive table!\n");
+ 			return ret;
+ 		}
++		if (!table_context->boot_overdrive_table) {
++			table_context->boot_overdrive_table = kmemdup(table_context->overdrive_table, overdrive_table_size, GFP_KERNEL);
++			if (!table_context->boot_overdrive_table) {
++				return -ENOMEM;
++			}
++		}
+ 	}
+ 	ret = smu_update_table(smu, SMU_TABLE_OVERDRIVE, 0, table_context->overdrive_table, true);
+ 	if (ret) {
+diff --git a/drivers/gpu/drm/amd/powerplay/vega20_ppt.c b/drivers/gpu/drm/amd/powerplay/vega20_ppt.c
+index 38febd5ca4da..4ad8d6c14ee5 100644
+--- a/drivers/gpu/drm/amd/powerplay/vega20_ppt.c
++++ b/drivers/gpu/drm/amd/powerplay/vega20_ppt.c
+@@ -1706,22 +1706,11 @@  static int vega20_set_default_od_settings(struct smu_context *smu,
+ 	struct smu_table_context *table_context = &smu->smu_table;
+ 	int ret;
+ 
+-	if (initialize) {
+-		if (table_context->overdrive_table)
+-			return -EINVAL;
+-
+-		table_context->overdrive_table = kzalloc(sizeof(OverDriveTable_t), GFP_KERNEL);
+-
+-		if (!table_context->overdrive_table)
+-			return -ENOMEM;
+-
+-		ret = smu_update_table(smu, SMU_TABLE_OVERDRIVE, 0,
+-				       table_context->overdrive_table, false);
+-		if (ret) {
+-			pr_err("Failed to export over drive table!\n");
+-			return ret;
+-		}
++	ret = smu_v11_0_set_default_od_settings(smu, initialize, sizeof(OverDriveTable_t));
++	if (ret)
++		return ret;
+ 
++	if (initialize) {
+ 		ret = vega20_set_default_od8_setttings(smu);
+ 		if (ret)
+ 			return ret;
+@@ -2778,12 +2767,11 @@  static int vega20_odn_edit_dpm_table(struct smu_context *smu,
+ 		break;
+ 
+ 	case PP_OD_RESTORE_DEFAULT_TABLE:
+-		ret = smu_update_table(smu, SMU_TABLE_OVERDRIVE, 0, table_context->overdrive_table, false);
+-		if (ret) {
+-			pr_err("Failed to export over drive table!\n");
+-			return ret;
++		if (!(table_context->overdrive_table && table_context->boot_overdrive_table)) {
++			pr_err("Overdrive table was not initialized!\n");
++			return -EINVAL;
+ 		}
+-
++		memcpy(table_context->overdrive_table, table_context->boot_overdrive_table, sizeof(OverDriveTable_t));
+ 		break;
+ 
+ 	case PP_OD_COMMIT_DPM_TABLE:
