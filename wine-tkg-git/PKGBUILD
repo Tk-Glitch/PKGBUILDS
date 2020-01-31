@@ -343,6 +343,9 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton_mf_hacks.patch' # Workarounds to prevent crashes on some mf functions
 		'proton-wined3d-additions.patch' # Proton non-vr-related wined3d additions
 		'staging-winex11-key_translation.patch' # Older version of that staging patchset specifically for proton-tkg with fs hack disabled
+		'proton-staging_winex11-MWM_Decorations.patch' # Proton friendly version of that staging patchset
+		'proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' # Proton friendly version of that staging patchset
+		'proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' # Proton friendly version of that staging patchset
 )
 
 md5sums=('SKIP'
@@ -511,7 +514,10 @@ md5sums=('SKIP'
          '9b74ad2e9c6881f27c7eab0299ecc2c2'
          '7857d05adb1227532f11b1c103f67126'
          '6a3515ac9aef8948d8be01a110a5c066'
-         'c5f18404f3317850be70751942d425c0')
+         'c5f18404f3317850be70751942d425c0'
+         '0ff98b5896960aaac59b3977f2b869ac'
+         'ce109248a0e6afb2102b5afd19309e66'
+         'affd3acc5eae191caa514bed8e498bab')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
