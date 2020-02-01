@@ -3,7 +3,7 @@
 A simple distro-agnostic script to make portable x86_64 GCC/MinGW builds, handy to use custom or devel GCC. You can have as many as you want, unlike candy :frog: and move them wherever you see fit.
 
 ## Requirements:
-You'll need basic development tools installed (base-devel, build-essential or similar for your distro as well as schedtool) to use it.
+You'll need basic development tools installed (`base-devel`, `build-essential` or similar for your distro as well as `texlive-core`, and optionally `schedtool` to speedup compilation) to use it.
 **It is bound to the libc version of the host system, so cross-distro portability will only work with a corresponding libc version**
 
 ## Customization:
