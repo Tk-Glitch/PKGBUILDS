@@ -87,9 +87,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
-_sub=0
+_sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=7
+pkgrel=8
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -104,7 +104,7 @@ else
   options=('!strip')
 fi
 source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
-        #"https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
+        "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         'config.x86_64' # stock Arch config
         #'config_hardened.x86_64' # hardened Arch config
         # ARCH Patches
@@ -129,6 +129,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0012-linux-hardened.patch
 )
 sha256sums=('a6fbd4ee903c128367892c2393ee0d9657b6ed3ea90016d4dc6f1f6da20b2330'
+            'db575e6dfabeb2ab409e2c56f826a6d52d56b8a3b0c004ae261cabd5af220688'
             'e967ac8bd663509cc0ca6451a95a9965eb59832e316eec77484960dcedec8c1c'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
@@ -211,7 +212,7 @@ prepare() {
   echo "${pkgbase#linux55}" > localversion.20-pkgname
 
   # add upstream patch
-  #patch -p1 -i ../patch-"${pkgver}"
+  patch -p1 -i ../patch-"${pkgver}"
 
   # ARCH Patches
   if [ "${_configfile}" == "config_hardened.x86_64" ] && [ "${_cpusched}" == "cfs" ]; then
