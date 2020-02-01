@@ -18,7 +18,6 @@
 - detroit_BH.mypatch : Allows Detroit: Become Human to run and fix low performance - https://bugs.winehq.org/show_bug.cgi?id=48291
 - monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695
 - blackops2_unhandled_exception_fix.mypatch : Fix for the Unhandled Exception crash of Call of Duty - Black Ops 2 on start up - https://bugs.winehq.org/show_bug.cgi?id=46472
-- AssCreed_BF.mypatch : Fix for a crash on Assassin's Creed Black Flag - https://bugs.winehq.org/show_bug.cgi?id=39731
 
 
 WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile patch](https://github.com/Tk-Glitch/PKGBUILDS/blob/master/community-patches/vkd3d-git/Support_RS_1.0_Volatile.mypatch)** :
