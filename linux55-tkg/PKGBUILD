@@ -130,7 +130,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
 )
 sha256sums=('a6fbd4ee903c128367892c2393ee0d9657b6ed3ea90016d4dc6f1f6da20b2330'
             'db575e6dfabeb2ab409e2c56f826a6d52d56b8a3b0c004ae261cabd5af220688'
-            'e967ac8bd663509cc0ca6451a95a9965eb59832e316eec77484960dcedec8c1c'
+            '63141b88e5ffb583617d51364ebc1378fd3a73b8352e13450e982851d40fbaf2'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
             'acb95ed927cae6cba8118690478ce09770f009efc8126ea05b48e856b6423864'
