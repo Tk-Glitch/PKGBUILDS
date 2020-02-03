@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=1
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=8
+pkgrel=9
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -270,7 +270,7 @@ prepare() {
   sed -i -e 's/CONFIG_CRYPTO_LZ4HC=m/CONFIG_CRYPTO_LZ4HC=y/' ./.config
   sed -i -e 's/CONFIG_LZ4_COMPRESS=m/CONFIG_LZ4_COMPRESS=y/' ./.config
   sed -i -e 's/CONFIG_LZ4HC_COMPRESS=m/CONFIG_LZ4HC_COMPRESS=y/' ./.config
-  sed -i -e 's/CONFIG_RCU_BOOST_DELAY=500/CONFIG_RCU_BOOST_DELAY=0/' ./.config
+  #sed -i -e 's/CONFIG_RCU_BOOST_DELAY=500/CONFIG_RCU_BOOST_DELAY=0/' ./.config
   sed -i -e 's/# CONFIG_CMDLINE_BOOL is not set/CONFIG_CMDLINE_BOOL=y/' ./.config
   echo "CONFIG_CMDLINE=\"${_custom_commandline}\"" >> ./.config
   echo "# CONFIG_CMDLINE_OVERRIDE is not set" >> ./.config
@@ -329,8 +329,6 @@ prepare() {
     # Disable CFS
     sed -i -e 's/CONFIG_FAIR_GROUP_SCHED=y/# CONFIG_FAIR_GROUP_SCHED is not set/' ./.config
     sed -i -e 's/CONFIG_CFS_BANDWIDTH=y/# CONFIG_CFS_BANDWIDTH is not set/' ./.config
-    sed -i -e 's/CONFIG_CGROUP_CPUACCT=y/# CONFIG_CGROUP_CPUACCT is not set/' ./.config
-    sed -i -e 's/CONFIG_SCHED_AUTOGROUP=y/# CONFIG_SCHED_AUTOGROUP is not set/' ./.config
     # sched yield type
     if [ -n "$_sched_yield_type" ]; then
       CONDITION0="$_sched_yield_type"
