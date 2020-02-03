@@ -187,6 +187,53 @@ else
     # Grab share template and inject version
     echo "1552061114 proton-tkg-$_protontkg_version" > "$_nowhere/proton_dist_tmp/version" && cp -r "$_nowhere/proton_template/share"/* "$_nowhere/proton_dist_tmp/share"/
 
+    # Create the dxvk dirs
+    mkdir -p "$_nowhere/proton_dist_tmp/lib64/wine/dxvk"
+    mkdir -p "$_nowhere/proton_dist_tmp/lib/wine/dxvk"
+
+    # Build vrclient libs
+    if [ "$_steamvr_support" == "true" ]; then
+      git clone https://github.com/ValveSoftware/openvr.git || true # It'll complain the path already exists on subsequent builds
+      cd openvr
+      git reset --hard HEAD
+      git clean -xdf
+      git pull
+      #git checkout 52065df3d6f3af96300dac98cdf7397f26abfcd7
+      cd ..
+
+      export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -I$_nowhere/proton_dist_tmp/include/wine/"
+      export CFLAGS="-O2 -g"
+      export CXXFLAGS="-Wno-attributes -std=c++0x -O2 -g"
+      PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
+
+      mkdir -p build/vrclient.win64
+      mkdir -p build/vrclient.win32
+
+      cp -a vrclient_x64/* build/vrclient.win64
+      cp -a vrclient_x64/* build/vrclient.win32 && mv build/vrclient.win32/vrclient_x64 build/vrclient.win32/vrclient && mv build/vrclient.win32/vrclient/vrclient_x64.spec build/vrclient.win32/vrclient/vrclient.spec
+
+      cd build/vrclient.win64
+      winemaker $WINEMAKERFLAGS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" -I"$_nowhere/Proton/build/vrclient.win64/vrclient_x64/" -I"$_nowhere/Proton/build/vrclient.win64/" vrclient_x64
+      make -C "$_nowhere/Proton/build/vrclient.win64/vrclient_x64" -j$(nproc) && strip vrclient_x64/vrclient_x64.dll.so
+      winebuild --dll --fake-module -E "$_nowhere/Proton/build/vrclient.win64/vrclient_x64/vrclient_x64.spec" -o vrclient_x64.dll.fake
+      cd ../..
+
+      cd build/vrclient.win32
+      winemaker $WINEMAKERFLAGS --wine32 -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" -I"$_nowhere/Proton/build/vrclient.win32/vrclient/" -I"$_nowhere/Proton/build/vrclient.win32/" vrclient
+      make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/vrclient.win32/vrclient" -j$(nproc) && strip vrclient/vrclient.dll.so
+      winebuild --dll --fake-module -E "$_nowhere/Proton/build/vrclient.win32/vrclient/vrclient.spec" -o vrclient.dll.fake
+      cd $_nowhere
+
+      # Inject vrclient & openvr libs in our wine-tkg-git build
+      cp -v Proton/build/vrclient.win64/vrclient_x64/vrclient_x64.dll.so proton_dist_tmp/lib64/wine/ && cp -v Proton/build/vrclient.win64/vrclient_x64.dll.fake proton_dist_tmp/lib64/wine/fakedlls/vrclient_x64.dll
+      cp -v Proton/build/vrclient.win32/vrclient/vrclient.dll.so proton_dist_tmp/lib/wine/ && cp -v Proton/build/vrclient.win32/vrclient.dll.fake proton_dist_tmp/lib/wine/fakedlls/vrclient.dll
+
+      cp -v Proton/openvr/bin/win32/openvr_api.dll proton_dist_tmp/lib/wine/dxvk/openvr_api_dxvk.dll
+      cp -v Proton/openvr/bin/win64/openvr_api.dll proton_dist_tmp/lib64/wine/dxvk/openvr_api_dxvk.dll
+
+      cd Proton
+    fi
+
     # Build lsteamclient libs
     export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
     export CFLAGS="-O2 -g"
@@ -253,8 +300,8 @@ else
         rm -f dxvk-*.tar.*
         mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
       fi
-      mkdir -p proton_dist_tmp/lib64/wine/dxvk && cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
-      mkdir -p proton_dist_tmp/lib/wine/dxvk && cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
+      cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
+      cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
     fi
 
     echo ''
@@ -271,6 +318,13 @@ else
     if [[ $_proton_branch = proton_4.* ]] && [ "$_proton_use_steamhelper" == "true" ]; then
       cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/steam.exe.patch" && rm -f proton.orig
+      cd "$_nowhere"
+    fi
+
+    # Patch our proton script to allow for VR support
+    if [ "$_steamvr_support" == "true" ]; then
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
+      patch -Np1 < "$_nowhere/proton_template/vr-support.patch" && rm -f proton.orig
       cd "$_nowhere"
     fi
 

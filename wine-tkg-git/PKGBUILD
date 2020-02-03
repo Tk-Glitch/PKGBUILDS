@@ -346,6 +346,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-staging_winex11-MWM_Decorations.patch' # Proton friendly version of that staging patchset
 		'proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' # Proton friendly version of that staging patchset
 		'proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' # Proton friendly version of that staging patchset
+		'proton-vr.patch' # wined3d interop and friends for steamvr support
 )
 
 md5sums=('SKIP'
