@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.4
 _sub=17
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=30
+pkgrel=31
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -106,7 +106,7 @@ fi
 source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
         "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
         'config.x86_64' # stock Arch config
-        #'config_hardened.x86_64' # hardened Arch config
+        'config_hardened.x86_64' # hardened Arch config
         # ARCH Patches
         0001-add-sysctl-to-disallow-unprivileged-CLONE_NEWUSER-by.patch
         # TkG
@@ -125,11 +125,12 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         0009-glitched-bmq.patch
         0009-bmq_v5.4-r2.patch
         0011-ZFS-fix.patch
-        #0012-linux-hardened.patch
+        0012-linux-hardened.patch
 )
 sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '8f7c4628793d6ff225fc5b7d622b8a2ee90ccbaea8eb0dd917821be460a053fe'
             'b7f23bbc09b6c571b76f851f0389386a6f3a64f3d7b1b8509c8550228b0f4537'
+            '8fd3e3e5be7c1f6378959292808769bedea93987f80daf14b6d196741788eea2'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
             '55db7c30c6d5e7d88cf38a4c757e447faf11a7440afbc081c3da12757073cca7'
@@ -144,7 +145,8 @@ sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             '3832f828a9f402b153fc9a6829c5a4eaf6091804bcda3a0423c8e1b57e26420d'
             '6a6a736cf1b3513d108bfd36f60baf50bb36b33aec21ab0d0ffad13602b7ff75'
-            '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
+            '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104'
+            'aeb31404c26ee898d007b1f66cb9572c9884ad8eca14edc4587d68f6cba6de46')
 
 export KBUILD_BUILD_HOST=archlinux
 export KBUILD_BUILD_USER=$pkgbase
