@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=10
+pkgrel=11
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -124,7 +124,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0008-5.5-bcachefs.patch
         0009-glitched-ondemand-bmq.patch
         0009-glitched-bmq.patch
-        0009-bmq_v5.5-r0.patch
+        0009-bmq_v5.5-r1.patch
         0011-ZFS-fix.patch
         #0012-linux-hardened.patch
 )
@@ -145,7 +145,7 @@ sha256sums=('a6fbd4ee903c128367892c2393ee0d9657b6ed3ea90016d4dc6f1f6da20b2330'
             '2d9260b80b43bbd605cf420d6bd53aa7262103dfd77196ba590ece5600b6dc0d'
             'e27ad5ff23a81b5be73a642db5186b447f336956a427d1300e8ccc49abf0dd74'
             '965a517a283f265a012545fbb5cc9e516efc9f6166d2aa1baf7293a32a1086b7'
-            '20fb5844b6d836eeb5cb5a66e58b4fa581d4edbaec3337f61a50992714c3b0b5'
+            '2382fecb1572a309d710d465ca6e66cc718d389246b80158868d1814891ff71a'
             '49262ce4a8089fa70275aad742fc914baa28d9c384f710c9a62f64796d13e104')
 
 export KBUILD_BUILD_HOST=archlinux
@@ -243,7 +243,7 @@ prepare() {
     patch -Np1 -i ../0005-glitched-pds.patch
   elif [ "${_cpusched}" == "bmq" ]; then
     # BMQ
-    patch -Np1 -i ../0009-bmq_v5.5-r0.patch
+    patch -Np1 -i ../0009-bmq_v5.5-r1.patch
     if [ "${_aggressive_ondemand}" == "true" ]; then
       patch -Np1 -i ../0009-glitched-ondemand-bmq.patch
     fi
@@ -394,11 +394,7 @@ prepare() {
       elif [ "${_cpusched}" == "pds" ]; then
         sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
       elif [ "${_cpusched}" == "bmq" ]; then
-        echo "CONFIG_SCHED_TIMESLICE=${_rrvalue}" >> ./.config
-      fi
-    else
-      if [ "${_cpusched}" == "bmq" ]; then
-        echo "CONFIG_SCHED_TIMESLICE=2" >> ./.config
+        sed -i -e "s/u64 sched_timeslice_ns __read_mostly = (4 * 1000 * 1000);/u64 sched_timeslice_ns __read_mostly = (${_rrvalue} * 1000 * 1000);" ./kernel/sched/"${_cpusched}".c
       fi
     fi
   fi

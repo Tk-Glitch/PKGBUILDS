@@ -1,3 +1,19 @@
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index ade4e6ec23e0..80d796db0935 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -432,6 +432,11 @@
+ 			embedded devices based on command line input.
+ 			See Documentation/block/cmdline-partition.rst
+ 
++	bmq.timeslice=	[KNL] Time slice in us for BMQ scheduler.
++			Format: <int> (must be >= 1000)
++			Default: 4000
++			See Documentation/scheduler/sched-BMQ.txt
++
+ 	boot_delay=	Milliseconds to delay each printk during boot.
+ 			Values larger than 10 seconds (10000) are changed to
+ 			no delay (0).
 diff --git a/Documentation/admin-guide/sysctl/kernel.rst b/Documentation/admin-guide/sysctl/kernel.rst
 index def074807cee..e4bc9350f192 100644
 --- a/Documentation/admin-guide/sysctl/kernel.rst
@@ -391,10 +407,10 @@ index f1879884238e..0e961efabeb2 100644
  #else
  #define sched_exec()   {}
 diff --git a/init/Kconfig b/init/Kconfig
-index a34064a031a5..b2ed8e537cf5 100644
+index a34064a031a5..256e555538b7 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -697,9 +697,28 @@ config GENERIC_SCHED_CLOCK
+@@ -697,9 +697,20 @@ config GENERIC_SCHED_CLOCK
  
  menu "Scheduler features"
  
@@ -408,14 +424,6 @@ index a34064a031a5..b2ed8e537cf5 100644
 +          Say Y here.
 +	default y
 +
-+config SCHED_TIMESLICE
-+	int "Scheduler Task time slice"
-+	depends on SCHED_BMQ
-+	help
-+	  Time slice in ms for BMQ CPU scheduler, default 4 ms.
-+	default 2 if PREEMPT
-+	default 4 if !PREEMPT
-+
  config UCLAMP_TASK
  	bool "Enable utilization clamping for RT/FAIR tasks"
  	depends on CPU_FREQ_GOV_SCHEDUTIL
@@ -423,7 +431,7 @@ index a34064a031a5..b2ed8e537cf5 100644
  	help
  	  This feature enables the scheduler to track the clamped utilization
  	  of each CPU based on RUNNABLE tasks scheduled on that CPU.
-@@ -786,6 +805,7 @@ config NUMA_BALANCING
+@@ -786,6 +797,7 @@ config NUMA_BALANCING
  	depends on ARCH_SUPPORTS_NUMA_BALANCING
  	depends on !ARCH_WANT_NUMA_VARIABLE_LOCALITY
  	depends on SMP && NUMA && MIGRATION
@@ -431,7 +439,7 @@ index a34064a031a5..b2ed8e537cf5 100644
  	help
  	  This option adds support for automatic NUMA aware memory/task placement.
  	  The mechanism is quite primitive and is based on migrating memory when
-@@ -887,7 +907,7 @@ menuconfig CGROUP_SCHED
+@@ -887,7 +899,7 @@ menuconfig CGROUP_SCHED
  	  bandwidth allocation to such task groups. It uses cgroups to group
  	  tasks.
  
@@ -440,7 +448,7 @@ index a34064a031a5..b2ed8e537cf5 100644
  config FAIR_GROUP_SCHED
  	bool "Group scheduling for SCHED_OTHER"
  	depends on CGROUP_SCHED
-@@ -1134,6 +1154,7 @@ config CHECKPOINT_RESTORE
+@@ -1134,6 +1146,7 @@ config CHECKPOINT_RESTORE
  
  config SCHED_AUTOGROUP
  	bool "Automatic process group scheduling"
@@ -626,10 +634,10 @@ index 21fb5a5662b5..cab4e5c5b38e 100644
  obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..d60bd88bec7c
+index 000000000000..496af2c57092
 --- /dev/null
 +++ b/kernel/sched/bmq.c
-@@ -0,0 +1,6103 @@
+@@ -0,0 +1,6107 @@
 +/*
 + *  kernel/sched/bmq.c
 + *
@@ -682,7 +690,20 @@ index 000000000000..d60bd88bec7c
 +
 +#define STOP_PRIO		(MAX_RT_PRIO - 1)
 +
-+#define SCHED_TIMESLICE_NS	(CONFIG_SCHED_TIMESLICE * 1000 * 1000)
++/* Default time slice is 4 in ms, can be set via kernel parameter "bmq.timeslice" */
++u64 sched_timeslice_ns __read_mostly = (4 * 1000 * 1000);
++
++static int __init sched_timeslice(char *str)
++{
++	int timeslice_us;
++
++	get_option(&str, &timeslice_us);
++	if (timeslice_us >= 1000)
++		sched_timeslice_ns = timeslice_us * 1000;
++
++	return 0;
++}
++early_param("bmq.timeslice", sched_timeslice);
 +
 +/* Reschedule if less than this many μs left */
 +#define RESCHED_NS		(100 * 1000)
@@ -701,7 +722,7 @@ index 000000000000..d60bd88bec7c
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.5-r0 by Alfred Chen.\n");
++	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.5-r1 by Alfred Chen.\n");
 +}
 +
 +/**
@@ -713,7 +734,7 @@ index 000000000000..d60bd88bec7c
 +int sched_yield_type __read_mostly = 1;
 +
 +#define rq_switch_time(rq)	((rq)->clock - (rq)->last_ts_switch)
-+#define boost_threshold(p)	(SCHED_TIMESLICE_NS >>\
++#define boost_threshold(p)	(sched_timeslice_ns >>\
 +				 (10 - MAX_PRIORITY_ADJ -  (p)->boost_prio))
 +
 +static inline void boost_task(struct task_struct *p)
@@ -2287,7 +2308,7 @@ index 000000000000..d60bd88bec7c
 +		atomic_dec(&task_rq(p)->nr_iowait);
 +	}
 +
-+	if(cpu_rq(smp_processor_id())->clock - p->last_ran > SCHED_TIMESLICE_NS)
++	if(cpu_rq(smp_processor_id())->clock - p->last_ran > sched_timeslice_ns)
 +		boost_task(p);
 +
 +	cpu = select_task_rq(p);
@@ -2408,7 +2429,7 @@ index 000000000000..d60bd88bec7c
 +#endif
 +
 +	if (p->time_slice < RESCHED_NS) {
-+		p->time_slice = SCHED_TIMESLICE_NS;
++		p->time_slice = sched_timeslice_ns;
 +		resched_curr(rq);
 +	}
 +	raw_spin_unlock_irqrestore(&rq->lock, flags);
@@ -3432,7 +3453,7 @@ index 000000000000..d60bd88bec7c
 +	update_curr(rq, p);
 +
 +	if (p->time_slice < RESCHED_NS) {
-+		p->time_slice = SCHED_TIMESLICE_NS;
++		p->time_slice = sched_timeslice_ns;
 +		if (SCHED_FIFO != p->policy && task_on_rq_queued(p)) {
 +			if (SCHED_RR != p->policy)
 +				deboost_task(p);
@@ -3607,7 +3628,7 @@ index 000000000000..d60bd88bec7c
 +{
 +	p->last_ran = rq->clock_task;
 +
-+	if (unlikely(SCHED_TIMESLICE_NS == p->time_slice))
++	if (unlikely(sched_timeslice_ns == p->time_slice))
 +		rq->last_ts_switch = rq->clock;
 +#ifdef CONFIG_HIGH_RES_TIMERS
 +	if (p != rq->idle)
@@ -5421,7 +5442,7 @@ index 000000000000..d60bd88bec7c
 +		goto out_unlock;
 +	rcu_read_unlock();
 +
-+	*t = ns_to_timespec64(SCHED_TIMESLICE_NS);
++	*t = ns_to_timespec64(sched_timeslice_ns);
 +	return 0;
 +
 +out_unlock:
@@ -6237,42 +6258,33 @@ index 000000000000..d60bd88bec7c
 +	for_each_online_cpu(cpu) {
 +		chk = &(per_cpu(sched_cpu_affinity_masks, cpu)[0]);
 +
++		cpumask_complement(chk, cpumask_of(cpu));
 +#ifdef CONFIG_SCHED_SMT
-+		cpumask_setall(chk);
-+		cpumask_clear_cpu(cpu, chk);
-+		if (cpumask_and(chk, chk, topology_sibling_cpumask(cpu))) {
-+			printk(KERN_INFO "bmq: cpu #%d affinity check mask - smt 0x%08lx",
++		if (cpumask_and(chk, chk, topology_sibling_cpumask(cpu)))
++			printk(KERN_INFO "bmq: cpu #%d affinity mask - smt 0x%08lx",
 +			       cpu, (chk++)->bits[0]);
-+		}
 +		cpumask_complement(chk, topology_sibling_cpumask(cpu));
-+#else
-+		cpumask_clear_cpu(cpu, chk);
 +#endif
++		/* Set up sd_llc_id per CPU */
++		per_cpu(sd_llc_id, cpu) =
 +#ifdef CONFIG_SCHED_MC
++			cpumask_first(cpu_coregroup_mask(cpu));
++
 +		if (cpumask_and(chk, chk, cpu_coregroup_mask(cpu)))
-+			printk(KERN_INFO "bmq: cpu #%d affinity check mask - coregroup 0x%08lx",
++			printk(KERN_INFO "bmq: cpu #%d affinity mask - coregroup 0x%08lx",
 +			       cpu, (chk++)->bits[0]);
 +		cpumask_complement(chk, cpu_coregroup_mask(cpu));
-+
-+		/**
-+		 * Set up sd_llc_id per CPU
-+		 */
-+		per_cpu(sd_llc_id, cpu) =
-+			cpumask_first(cpu_coregroup_mask(cpu));
 +#else
-+		per_cpu(sd_llc_id, cpu) =
 +			cpumask_first(topology_core_cpumask(cpu));
++#endif
 +
-+		cpumask_setall(chk);
-+		cpumask_clear_cpu(cpu, chk);
-+#endif /* NOT CONFIG_SCHED_MC */
 +		if (cpumask_and(chk, chk, topology_core_cpumask(cpu)))
-+			printk(KERN_INFO "bmq: cpu #%d affinity check mask - core 0x%08lx",
++			printk(KERN_INFO "bmq: cpu #%d affinity mask - core 0x%08lx",
 +			       cpu, (chk++)->bits[0]);
 +		cpumask_complement(chk, topology_core_cpumask(cpu));
 +
 +		if (cpumask_and(chk, chk, cpu_online_mask))
-+			printk(KERN_INFO "bmq: cpu #%d affinity check mask - others 0x%08lx",
++			printk(KERN_INFO "bmq: cpu #%d affinity mask - others 0x%08lx",
 +			       cpu, (chk++)->bits[0]);
 +
 +		per_cpu(sched_cpu_affinity_end_mask, cpu) = chk;

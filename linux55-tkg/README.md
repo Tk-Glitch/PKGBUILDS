@@ -8,6 +8,8 @@ MuQSS : http://ck-hack.blogspot.com/
 
 BMQ : http://cchalpha.blogspot.com/
 
+*As of BMQ 5.5r1, timeslice can be adjusted through kernel boot parameter `bmq.timeslice=` (value should be >=1000, default is 4000)*
+
 PDS-mq was originally created by Alfred Chen : http://cchalpha.blogspot.com/
 While he dropped it with kernel 5.1 in favor of its BMQ evolution/rework, my pretty bad gaming experiences with BMQ up to this point convinced me to keep PDS afloat for as long as it'll make sense/I'll be able to.
 
