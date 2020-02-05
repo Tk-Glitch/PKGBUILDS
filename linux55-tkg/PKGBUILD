@@ -369,7 +369,7 @@ prepare() {
       plain ""
       plain "MuQSS default: 6ms"
       plain "PDS default: 4ms"
-      plain "BMQ default: 2ms"
+      plain "BMQ default: 4ms"
       read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION1;
     fi
     if [ "$CONDITION1" == "1" ]; then
