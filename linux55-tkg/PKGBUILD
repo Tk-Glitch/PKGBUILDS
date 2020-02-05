@@ -827,10 +827,10 @@ prepare() {
     fi
     if [ true = "$_diffconfig" ]; then
       if [ -z "$_diffconfig_name" ]; then
-        IFS= read -r -p 'Filename for the config fragment [leave empty to abort]: ' _diffconfig_name
+        IFS= read -r -p 'Filename for the config fragment [leave empty to not generate fragment]: ' _diffconfig_name
       fi
       if [ -z "$_diffconfig_name" ]; then
-        echo 'No file name given, not saving config changes.'
+        echo 'No file name given, not generating config fragment.'
       else
         ( cd "$_where"; "${srcdir}/linux-${_basekernel}-${_sub}/scripts/diffconfig" -m "${srcdir}/linux-${_basekernel}-${_sub}/.config.orig" "${srcdir}/linux-${_basekernel}-${_sub}/.config" > "$_diffconfig_name" )
       fi
