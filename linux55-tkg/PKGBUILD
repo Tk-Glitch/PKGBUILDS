@@ -394,7 +394,7 @@ prepare() {
       elif [ "${_cpusched}" == "pds" ]; then
         sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
       elif [ "${_cpusched}" == "bmq" ]; then
-        sed -i -e "s/u64 sched_timeslice_ns __read_mostly = (4 * 1000 * 1000);/u64 sched_timeslice_ns __read_mostly = (${_rrvalue} * 1000 * 1000);" ./kernel/sched/"${_cpusched}".c
+        sed -i -e "s/u64 sched_timeslice_ns __read_mostly = (4 * 1000 * 1000);/u64 sched_timeslice_ns __read_mostly = (${_rrvalue} * 1000 * 1000);/" ./kernel/sched/"${_cpusched}".c
       fi
     fi
   fi
