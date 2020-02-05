@@ -87,7 +87,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
-_sub=1
+_sub=2
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=10
 pkgdesc='Linux-tkg'
@@ -129,7 +129,7 @@ source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.x
         #0012-linux-hardened.patch
 )
 sha256sums=('a6fbd4ee903c128367892c2393ee0d9657b6ed3ea90016d4dc6f1f6da20b2330'
-            'db575e6dfabeb2ab409e2c56f826a6d52d56b8a3b0c004ae261cabd5af220688'
+            '07cbd21a049b0bf5a96d7e0b8272db8e53e9947f0eff06fa2a765bb3b34bc8fa'
             '63141b88e5ffb583617d51364ebc1378fd3a73b8352e13450e982851d40fbaf2'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
