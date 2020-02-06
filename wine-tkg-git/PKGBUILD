@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=5.1.r4.ge55a3a3f
+pkgver=5.1.r7.g991bebfe
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -247,6 +247,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'GLSL-toggle.patch' # Toggles OpenGL shading language
 		'launch-with-dedicated-gpu-desktop-entry.patch'
 		'plasma_systray_fix.patch' # Systray fix for winex11
+		'plasma_systray_fix-473914f.patch' # Systray fix for winex11 (<473914f)
 		'faudio-exp.patch' # Faudio experimental support
 		'enable_stg_shared_mem_def.patch' # Enable STAGING_SHARED_MEMORY by default
 		'legacy-LAA.patch' # IMAGE_FILE_LARGE_ADDRESS_AWARE override (<4.2)
@@ -420,6 +421,7 @@ md5sums=('SKIP'
          '830a78ea35e124536cdbc8291102ffaa'
          '65d47ea14d7c666d6308fc65a5ccd729'
          '3aafb27f35d4817942085d87904dcfc8'
+         '6b27aa32d15684e58d851f49a53f4909'
          '927f39348cd29ce9876871e4edb15a09'
          '6262b0ff26fd1e00eb6123db5e0a4160'
          '07b48859d0b274c9b35be4de3016ae27'

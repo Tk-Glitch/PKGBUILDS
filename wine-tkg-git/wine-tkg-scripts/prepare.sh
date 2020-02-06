@@ -506,7 +506,11 @@ _prepare() {
 
 	# Fixes (partially) systray on plasma 5 - https://bugs.winehq.org/show_bug.cgi?id=38409
 	if [ "$_plasma_systray_fix" == "true" ]; then
-	  _patchname='plasma_systray_fix.patch' && _patchmsg="Applied plasma 5 systray fix" && nonuser_patcher
+	  if git merge-base --is-ancestor 473914f6a5943c4abfc8d0e394c71f395063d89f HEAD; then
+	    _patchname='plasma_systray_fix.patch' && _patchmsg="Applied plasma 5 systray fix" && nonuser_patcher
+	  else
+	    _patchname='plasma_systray_fix-473914f.patch' && _patchmsg="Applied plasma 5 systray fix (<473914f)" && nonuser_patcher
+	  fi
 	fi
 
 	# Bypass compositor in fullscreen mode - Reduces stuttering and improves performance

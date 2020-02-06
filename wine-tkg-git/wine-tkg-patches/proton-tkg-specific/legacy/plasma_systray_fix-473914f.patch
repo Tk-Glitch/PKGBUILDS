@@ -197,7 +197,7 @@ new file mode 100644
 index 00000000000..d49ffb5e6d8
 --- /dev/null
 +++ b/dlls/winex11.drv/systray_dbus.c
-@@ -0,0 +1,1813 @@
+@@ -0,0 +1,1830 @@
 +/*
 + * DBus StatusNotifierItem system tray management,
 + *
@@ -1044,7 +1044,9 @@ index 00000000000..d49ffb5e6d8
 +    const char *mpath, *mintf, *mmemb, *mdest, *msig;
 +    char *req_intf, *req_prop;
 +    struct tray_icon *icon;
-+    char tiptext_a[128];
++    const int tool_tip_len=4*TOOL_TIP_LEN;
++    char utf8_tool_tip[TOOL_TIP_LEN];
++    int i;
 +    DBusMessageIter iter, arr_iter;
 +
 +    UNREFERENCED_PARAMETER(user_data); /* unused */
@@ -1139,8 +1141,13 @@ index 00000000000..d49ffb5e6d8
 +            } else if(strcmp(req_prop, "Id") == 0) {
 +                reply = create_reply_propget_s(msg, icon->sni_title);
 +            } else if(strcmp(req_prop, "Title") == 0) {
-+                WideCharToMultiByte(CP_ACP, 0, icon->tiptext, -1, tiptext_a, sizeof(tiptext_a), NULL, NULL);
-+                reply = create_reply_propget_s(msg, tiptext_a);
++                if((i = wine_utf8_wcstombs(0, icon->tiptext, strlenW(icon->tiptext)+1, utf8_tool_tip, tool_tip_len)) < 0)
++                {
++                    ERR( "DBus: UTF8 tool tip string conversion failed, code: %d\n", i );
++                    error_reply_failed(msg);
++                    return ret;
++                }
++                reply = create_reply_propget_s(msg, utf8_tool_tip);
 +            } else if(strcmp(req_prop, "Status") == 0) {
 +                reply = create_reply_propget_s(msg, "Active");
 +                /* other values: Active, Passive, NeedsAttention */
@@ -1172,23 +1179,28 @@ index 00000000000..d49ffb5e6d8
 +            } else if(strcmp(req_prop, "AttentionIconPixmap") == 0) {
 +                reply = create_reply_propget_pixmap(msg, 0, 0, NULL);
 +            } else if(strcmp(req_prop, "ToolTip") == 0) {
-+                WideCharToMultiByte(CP_ACP, 0, icon->tiptext, -1, tiptext_a, sizeof(tiptext_a), NULL, NULL);
++                if((i = wine_utf8_wcstombs(0, icon->tiptext, strlenW(icon->tiptext)+1, utf8_tool_tip, tool_tip_len)) < 0)
++                {
++                    ERR( "DBus: UTF8 tool tip string conversion failed, code: %d\n", i );
++                    error_reply_failed(msg);
++                    return ret;
++                }
 +                if (icon->icon_data && (icon->icon_w > 0) && (icon->icon_h > 0))
 +                {
 +                    /* If we have actual icon image data, send empty icon name and real image data */
 +                    reply = create_reply_propget_tooltip(msg,
 +                        "",            /* icon name */
 +                        icon->icon_w, icon->icon_h, icon->icon_data, /* icon data */
-+                        tiptext_a,  /* tip title (szTip member of NOTIFYICONDATA) */
-+                        "");        /* tip text, empty */
++                        utf8_tool_tip, /* tip title (szTip member of NOTIFYICONDATA) */
++                        "");           /* tip text, empty */
 +                }
 +                else
 +                {
 +                    reply = create_reply_propget_tooltip(msg,
 +                        "wine",           /* icon name */
 +                        0, 0, NULL,       /* icon data */
-+                        tiptext_a,  /* tip title (szTip member of NOTIFYICONDATA) */
-+                        "");        /* tip text, empty */
++                        utf8_tool_tip,    /* tip title (szTip member of NOTIFYICONDATA) */
++                        "");              /* tip text, empty */
 +                }
 +            } else {
 +                WARN("DBus: unknown property requested: [%s]\n", req_prop);
@@ -1269,7 +1281,12 @@ index 00000000000..d49ffb5e6d8
 +                return ret;
 +            }
 +
-+            WideCharToMultiByte(CP_ACP, 0, icon->tiptext, -1, tiptext_a, sizeof(tiptext_a), NULL, NULL);
++            if((i = wine_utf8_wcstombs(0, icon->tiptext, strlenW(icon->tiptext)+1, utf8_tool_tip, tool_tip_len)) < 0)
++            {
++                ERR( "DBus: UTF8 tool tip string conversion failed, code: %d\n", i );
++                error_reply_failed(msg);
++                return ret;
++            }
 +
 +            /* create reply */
 +            p_dbus_message_iter_init_append(reply, &iter);
@@ -1277,7 +1294,7 @@ index 00000000000..d49ffb5e6d8
 +            /* insert all object properties, contained in Variants */
 +            reply_propgetall_append_s(&arr_iter, "Category", "ApplicationStatus");
 +            reply_propgetall_append_s(&arr_iter, "Id", icon->sni_title);  /* seems to be unused by KDE 5 */
-+            reply_propgetall_append_s(&arr_iter, "Title", tiptext_a);
++            reply_propgetall_append_s(&arr_iter, "Title", utf8_tool_tip);
 +            /* ^^ this is also an icon identifier used by KDE Plasma 5 systray setting utility */
 +            reply_propgetall_append_s(&arr_iter, "Status", "Active");
 +            reply_propgetall_append_u(&arr_iter, "WindowId", 0);
@@ -1312,7 +1329,7 @@ index 00000000000..d49ffb5e6d8
 +                    icon->icon_w, /* icon width, */
 +                    icon->icon_h, /* icon height, */
 +                    icon->icon_data, /* icon image pixels */
-+                    tiptext_a, /* tooltip title (this is szTip member if NOTIFYICONDATA) */
++                    utf8_tool_tip, /* tooltip title (this is szTip member if NOTIFYICONDATA) */
 +                    "" /* tooltip text, empty */
 +                );
 +            }
@@ -1326,7 +1343,7 @@ index 00000000000..d49ffb5e6d8
 +                    0, /* icon width, */
 +                    0, /* icon height, */
 +                    NULL, /* icon image pixels */
-+                    tiptext_a, /* tooltip title (this is szTip member if NOTIFYICONDATA) */
++                    utf8_tool_tip, /* tooltip title (this is szTip member if NOTIFYICONDATA) */
 +                    "" /* tooltip text, empty */
 +                );
 +            }
