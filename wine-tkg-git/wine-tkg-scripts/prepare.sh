@@ -1075,6 +1075,7 @@ EOM
 	      _patchname='0001-winex11-Match-keyboard-in-Unicode.patch' && _patchmsg="Applied proton friendly winex11-Match-keyboard-in-Unicode" && nonuser_patcher
 	      _patchname='0002-winex11-Fix-more-key-translation.patch' && _patchmsg="Applied proton friendly winex11-Fix-more-key-translation" && nonuser_patcher
 	      _patchname='0003-winex11.drv-Fix-main-Russian-keyboard-layout.patch' && _patchmsg="Applied proton friendly winex11.drv-Fix-main-Russian-keyboard-layout" && nonuser_patcher
+	      _patchname='proton-staging_winex11.drv-mouse-coorrds.patch' && _patchmsg="Applied winex11.drv-mouse-coorrds" && nonuser_patcher
 	    fi
 	  fi
 	fi

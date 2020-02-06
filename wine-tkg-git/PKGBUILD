@@ -5,7 +5,7 @@ pkgver=5.1.r7.g991bebfe
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=241
+eval pkgrel=242
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -348,6 +348,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-staging_winex11-MWM_Decorations.patch' # Proton friendly version of that staging patchset
 		'proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' # Proton friendly version of that staging patchset
 		'proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' # Proton friendly version of that staging patchset
+		'proton-staging_winex11.drv-mouse-coorrds.patch' # FS hack friendly version of that staging patchset
 		'proton-vr.patch' # wined3d interop and friends for steamvr support
 )
 
@@ -523,6 +524,7 @@ md5sums=('SKIP'
          '0ff98b5896960aaac59b3977f2b869ac'
          'ce109248a0e6afb2102b5afd19309e66'
          'affd3acc5eae191caa514bed8e498bab'
+         '94bdbf2c29c4623edc26750c29eb7f23'
          '64dde324c635e4b4cdc271fe11de627b')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
