@@ -14,7 +14,6 @@
 - legoisland_168726.mypatch : Add functions needed by, notably, lego island - https://bugs.winehq.org/show_bug.cgi?id=10729
 - FinalFantasyXVHack.mypatch : Hack enabling Final Fantasy XV Steam to run - https://github.com/ValveSoftware/Proton/issues/74#issuecomment-553084621
 - MWSE_hack.mypatch : Hack to allow Morrowind Script Extender to work - https://bugs.winehq.org/show_bug.cgi?id=47940#c24
-- 0001-wined3d-Support-SRGB-read-for-B5G6R5-textures.mypatch : Fix for very bright ground in Warhammer Online - Only affects wined3d - https://bugs.winehq.org/show_bug.cgi?id=48302
 - detroit_BH.mypatch : Allows Detroit: Become Human to run and fix low performance - https://bugs.winehq.org/show_bug.cgi?id=48291
 - monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695
 - blackops2_unhandled_exception_fix.mypatch : Fix for the Unhandled Exception crash of Call of Duty - Black Ops 2 on start up - https://bugs.winehq.org/show_bug.cgi?id=46472
