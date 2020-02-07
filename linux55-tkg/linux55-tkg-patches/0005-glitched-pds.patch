@@ -93,6 +93,14 @@ diff --git a/init/Kconfig b/init/Kconfig
 index 11fd9b502d06..e9bc34d3019b 100644
 --- a/init/Kconfig
 +++ b/init/Kconfig
+@@ -715,6 +715,7 @@ menu "Scheduler features"
+ config UCLAMP_TASK
+ 	bool "Enable utilization clamping for RT/FAIR tasks"
+ 	depends on CPU_FREQ_GOV_SCHEDUTIL
++	depends on !SCHED_PDS
+ 	help
+ 	  This feature enables the scheduler to track the clamped utilization
+ 	  of each CPU based on RUNNABLE tasks scheduled on that CPU.
 @@ -948,7 +948,6 @@ config CGROUP_DEVICE
  
  config CGROUP_CPUACCT
