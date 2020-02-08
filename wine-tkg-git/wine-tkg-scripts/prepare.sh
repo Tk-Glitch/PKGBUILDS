@@ -10,6 +10,8 @@ _exit_cleanup() {
     fi
     if [[ $pkgver = 3.* ]]; then
       echo '_proton_branch="proton_3.16"' >> "$_proton_tkg_path"/proton_tkg_token
+    elif [[ $pkgver = 4.* ]]; then
+      echo '_proton_branch="proton_4.11"' >> "$_proton_tkg_path"/proton_tkg_token
     else
       echo "_proton_branch=${_proton_branch}" >> "$_proton_tkg_path"/proton_tkg_token
     fi

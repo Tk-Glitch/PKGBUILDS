@@ -266,7 +266,7 @@ else
       cp -a Proton/steam_helper/* Proton/build/steam.win32
       cd Proton/build/steam.win32
 
-      if [ "$_proton_branch" != "proton_4.11" ]; then
+      if [ "$_proton_branch" == "proton_3.7" ] || [ "$_proton_branch" == "proton_3.16" ]; then
         export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
       else
         export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
