@@ -244,6 +244,10 @@ prepare() {
     if [ "$_user_patches" == "true" ]; then
       _userpatch_target="mesa"
       _userpatch_ext="mymesa"
+      echo -e "# Last ${pkgname} ${pkgver} configuration - $(date) :\n" > "$_where"/last_build_config.log
+      echo -e "DRI drivers: ${_dri_drivers}" >> "$_where"/last_build_config.log
+      echo -e "Gallium drivers: ${_gallium_drivers}" >> "$_where"/last_build_config.log
+      echo -e "Vulkan drivers: ${_vulkan_drivers}\n" >> "$_where"/last_build_config.log
       user_patcher
     fi
 
