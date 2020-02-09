@@ -1181,10 +1181,10 @@ EOM
 	    fi
 	    if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then # Proton friendly winex11-MWM_Decorations winex11-_NET_ACTIVE_WINDOW winex11-WM_WINDOWPOSCHANGING
 	      _patchname='proton-staging_winex11-MWM_Decorations.patch' && _patchmsg="Applied proton friendly winex11-MWM_Decorations" && nonuser_patcher
-	      cp "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "$_where"/ && ln -s "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "${srcdir}"/
-	      _patchname='0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch' && _patchmsg="Applied proton friendly winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW" && nonuser_patcher
-	      _patchname='proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' && _patchmsg="Applied staging winex11-_NET_ACTIVE_WINDOW-0002" && nonuser_patcher
-	      _patchname='proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' && _patchmsg="Applied proton friendly winex11-WM_WINDOWPOSCHANGING" && nonuser_patcher
+	      #cp "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "$_where"/ && ln -s "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "${srcdir}"/
+	      #_patchname='0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch' && _patchmsg="Applied proton friendly winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW" && nonuser_patcher
+	      #_patchname='proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' && _patchmsg="Applied staging winex11-_NET_ACTIVE_WINDOW-0002" && nonuser_patcher
+	      #_patchname='proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' && _patchmsg="Applied proton friendly winex11-WM_WINDOWPOSCHANGING" && nonuser_patcher
 	    fi
 	  else
 	    if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
