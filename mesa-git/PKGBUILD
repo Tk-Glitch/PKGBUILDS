@@ -33,6 +33,11 @@ if [ "$_lib32" == "true" ]; then
   pkgname+=('lib32-mesa-tkg-git')
 fi
 
+# custom mesa commit to pass to git
+if [ -n "$_mesa_commit" ]; then
+  _mesa_commit="#commit=${_mesa_commit}"
+fi
+
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
 pkgver=20.1.0_devel.120021.35961b10da2
 pkgrel=1
@@ -68,7 +73,7 @@ options=(${_makepkg_options[@]})
 url="https://www.mesa3d.org"
 license=('custom')
 
-_sourceurl='mesa::git://anongit.freedesktop.org/mesa/mesa'
+_sourceurl="mesa::git://anongit.freedesktop.org/mesa/mesa${_mesa_commit}"
 _mesa_srcdir="mesa"
 
 source=("$_sourceurl"
