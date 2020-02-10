@@ -261,12 +261,12 @@ else
     cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
 
     # Build steam helper
-    if [[ $_proton_branch = proton_4.* ]]; then
+    if [[ $_proton_branch != proton_3.* ]]; then
       mkdir -p Proton/build/steam.win32
       cp -a Proton/steam_helper/* Proton/build/steam.win32
       cd Proton/build/steam.win32
 
-      if [ "$_proton_branch" == "proton_3.7" ] || [ "$_proton_branch" == "proton_3.16" ]; then
+      if [ "$_proton_branch" == "proton_4.2" ]; then
         export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
       else
         export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
@@ -315,7 +315,7 @@ else
     echo "1552061114 proton-tkg-$_protontkg_version" > "proton_tkg_$_protontkg_version/version" && cp "proton_template/conf"/* "proton_tkg_$_protontkg_version"/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" "proton_tkg_$_protontkg_version/compatibilitytool.vdf"
 
     # Patch our proton script to make use of the steam helper on 4.0+
-    if [[ $_proton_branch = proton_4.* ]] && [ "$_proton_use_steamhelper" == "true" ]; then
+    if [[ $_proton_branch != proton_3.* ]] && [ "$_proton_use_steamhelper" == "true" ]; then
       cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/steam.exe.patch" && rm -f proton.orig
       cd "$_nowhere"
