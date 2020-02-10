@@ -1,4 +1,4 @@
-From 157a4b8c0dada5020b73549f2eea4aea6838b1cc Mon Sep 17 00:00:00 2001
+From e65252afaa61067a2700eb78d890b9a46cefaedb Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Wed, 20 Nov 2019 19:02:08 +0000
 Subject: [PATCH] winex11: Implement true integer scaling
@@ -14,7 +14,7 @@ Subject: [PATCH] winex11: Implement true integer scaling
  7 files changed, 43 insertions(+), 9 deletions(-)
 
 diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
-index ddcb95cd422..8324cc7ee1c 100644
+index 58720d41f0b..63665fb7a6f 100644
 --- a/dlls/winevulkan/vulkan.c
 +++ b/dlls/winevulkan/vulkan.c
 @@ -1267,7 +1267,7 @@ VkResult WINAPI wine_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice
@@ -68,7 +68,7 @@ index 145635eea24..00626eff1e3 100644
      VkDescriptorPool descriptor_pool;
      VkDescriptorSetLayout descriptor_set_layout;
 diff --git a/dlls/winex11.drv/opengl.c b/dlls/winex11.drv/opengl.c
-index e237456fbe9..5866ec7a5d2 100644
+index dad5279ba4f..0927991b93a 100644
 --- a/dlls/winex11.drv/opengl.c
 +++ b/dlls/winex11.drv/opengl.c
 @@ -211,6 +211,7 @@ struct wgl_context
@@ -79,7 +79,7 @@ index e237456fbe9..5866ec7a5d2 100644
      GLuint fs_hack_fbo, fs_hack_resolve_fbo;
      GLuint fs_hack_color_texture, fs_hack_ds_texture;
      GLuint fs_hack_color_renderbuffer, fs_hack_color_resolve_renderbuffer, fs_hack_ds_renderbuffer;
-@@ -2091,6 +2092,7 @@ static void fs_hack_setup_context( struct wgl_context *ctx, struct gl_drawable *
+@@ -2066,6 +2067,7 @@ static void fs_hack_setup_context( struct wgl_context *ctx, struct gl_drawable *
  
          ctx->setup_for = p;
          gl->has_scissor_indexed = has_extension(glExtensions, "GL_ARB_viewport_array");
@@ -87,7 +87,7 @@ index e237456fbe9..5866ec7a5d2 100644
          gl->fs_hack_context_set_up = TRUE;
      }
      else
-@@ -2383,7 +2385,9 @@ static void fs_hack_blit_framebuffer( struct gl_drawable *gl, GLenum draw_buffer
+@@ -2358,7 +2360,9 @@ static void fs_hack_blit_framebuffer( struct gl_drawable *gl, GLenum draw_buffer
      opengl_funcs.gl.p_glClear( GL_COLOR_BUFFER_BIT );
      opengl_funcs.gl.p_glClearColor( prev_clear_color[0], prev_clear_color[1], prev_clear_color[2], prev_clear_color[3] );
  
@@ -99,7 +99,7 @@ index e237456fbe9..5866ec7a5d2 100644
      if ( draw_buffer == GL_FRONT )
          pglXSwapBuffers(gdi_display, gl->drawable);
 diff --git a/dlls/winex11.drv/settings.c b/dlls/winex11.drv/settings.c
-index c85a7f5f3bb..a49af35e6b7 100644
+index 0490df719a7..37d0c560bee 100644
 --- a/dlls/winex11.drv/settings.c
 +++ b/dlls/winex11.drv/settings.c
 @@ -24,6 +24,7 @@
@@ -110,7 +110,7 @@ index c85a7f5f3bb..a49af35e6b7 100644
  
  #define NONAMELESSUNION
  #define NONAMELESSSTRUCT
-@@ -273,6 +274,17 @@ BOOL fs_hack_enabled(void)
+@@ -274,6 +275,17 @@ BOOL fs_hack_enabled(void)
          currentMode != realMode;
  }
  
@@ -128,7 +128,7 @@ index c85a7f5f3bb..a49af35e6b7 100644
  BOOL fs_hack_matches_current_mode(int w, int h)
  {
      return fs_hack_enabled() &&
-@@ -410,7 +422,20 @@ static LONG X11DRV_nores_SetCurrentMode(int mode)
+@@ -411,7 +423,20 @@ static LONG X11DRV_nores_SetCurrentMode(int mode)
      }else{
          double w = dd_modes[currentMode].width;
          double h = dd_modes[currentMode].height;
@@ -174,13 +174,13 @@ index 2e2ac8f0b40..7b4c39bee31 100644
  
          if(real_sz){
 diff --git a/dlls/winex11.drv/x11drv.h b/dlls/winex11.drv/x11drv.h
-index 3457149dbd3..41a9aa23cd4 100644
+index d1918153e32..239e72d4b88 100644
 --- a/dlls/winex11.drv/x11drv.h
 +++ b/dlls/winex11.drv/x11drv.h
-@@ -616,6 +616,7 @@ extern BOOL update_clipboard( HWND hwnd ) DECLSPEC_HIDDEN;
- 
+@@ -612,6 +612,7 @@ extern BOOL update_clipboard( HWND hwnd ) DECLSPEC_HIDDEN;
  extern void set_wm_hints( struct x11drv_win_data *data ) DECLSPEC_HIDDEN;
  extern BOOL fs_hack_enabled(void) DECLSPEC_HIDDEN;
+ extern BOOL fs_hack_mapping_required(void) DECLSPEC_HIDDEN;
 +extern BOOL fs_hack_is_integer(void) DECLSPEC_HIDDEN;
  extern BOOL fs_hack_matches_current_mode(int w, int h) DECLSPEC_HIDDEN;
  extern BOOL fs_hack_matches_real_mode(int w, int h) DECLSPEC_HIDDEN;

@@ -428,7 +428,7 @@ _prepare() {
 	fi
 
 	# XRandR display device handler breaks FS hack, so let's get rid of it for now
-	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] && ! git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
 	  if git merge-base --is-ancestor 427152ec7b4ee85631617b693dbf1deea763c0ba HEAD; then
 	    git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba || exit 1
 	  fi
