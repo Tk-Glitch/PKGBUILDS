@@ -208,8 +208,8 @@ prepare() {
 
   msg2 "Setting version..."
   scripts/setlocalversion --save-scmversion
-  echo "-$pkgrel" > localversion.10-pkgrel
-  echo "${pkgbase#linux55}" > localversion.20-pkgname
+  echo "-$pkgrel-tkg-${_cpusched}" > localversion.10-pkgrel
+  echo "" > localversion.20-pkgname
 
   # add upstream patch
   patch -p1 -i ../patch-"${pkgver}"
