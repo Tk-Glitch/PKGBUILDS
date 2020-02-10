@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=2
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=12
+pkgrel=13
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -369,8 +369,8 @@ prepare() {
       plain ""
       plain "MuQSS default: 6ms"
       plain "PDS default: 4ms"
-      plain "BMQ default: 4ms"
-      read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms (worth a shot with MuQSS + yield_type 2)\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION1;
+      plain "BMQ default: 2ms"
+      read -rp "`echo $'\n    > 0.Keep defaults\n      1.2ms\n      2.4ms\n      3.6ms\n      4.8ms\n    [0-4?]: '`" CONDITION1;
     fi
     if [ "$CONDITION1" == "1" ]; then
       msg2 "Using 2ms rr_interval"
@@ -395,6 +395,10 @@ prepare() {
         sed -i -e "s/#define SCHED_DEFAULT_RR (4)/#define SCHED_DEFAULT_RR (${_rrvalue})/" ./kernel/sched/"${_cpusched}".c
       elif [ "${_cpusched}" == "bmq" ]; then
         sed -i -e "s/u64 sched_timeslice_ns __read_mostly = (4 * 1000 * 1000);/u64 sched_timeslice_ns __read_mostly = (${_rrvalue} * 1000 * 1000);/" ./kernel/sched/"${_cpusched}".c
+      fi
+    else
+      if [ "${_cpusched}" == "bmq" ]; then
+        sed -i -e "s/u64 sched_timeslice_ns __read_mostly = (4 * 1000 * 1000);/u64 sched_timeslice_ns __read_mostly = (2 * 1000 * 1000);/" ./kernel/sched/"${_cpusched}".c
       fi
     fi
   fi
@@ -511,7 +515,7 @@ prepare() {
   # rq sharing
   if [ "$_runqueue_sharing" == "none" ]; then
     echo -e "CONFIG_RQ_NONE=y\n# CONFIG_RQ_SMT is not set\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
-  elif [ "$_runqueue_sharing" == "smt" ]; then
+  elif [ -z "$_runqueue_sharing" ] || [ "$_runqueue_sharing" == "smt" ]; then
     echo -e "# CONFIG_RQ_NONE is not set\nCONFIG_RQ_SMT=y\n# CONFIG_RQ_MC is not set\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
   elif [ "$_runqueue_sharing" == "mc" ]; then
     echo -e "# CONFIG_RQ_NONE is not set\n# CONFIG_RQ_SMT is not set\nCONFIG_RQ_MC=y\n# CONFIG_RQ_MC_LLC is not set\n# CONFIG_RQ_SMP is not set\n# CONFIG_RQ_ALL is not set" >> ./.config
@@ -555,7 +559,29 @@ prepare() {
       echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
       echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
       echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
+    elif [ "$_timer_freq" == "100" ]; then
+      sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=100/' ./.config
+      echo "# CONFIG_HZ_500 is not set" >> ./.config
+      echo "# CONFIG_HZ_750 is not set" >> ./.config
+      echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_750_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_500_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
+      echo "CONFIG_HZ_100=y" >> ./.config
+      echo "CONFIG_HZ_100_NODEF=y" >> ./.config
     fi
+  elif [ "${_cpusched}" == "MuQSS" ] && [ -z "$_timer_freq" ]; then
+      sed -i -e 's/CONFIG_HZ=300/CONFIG_HZ=100/' ./.config
+      echo "# CONFIG_HZ_500 is not set" >> ./.config
+      echo "# CONFIG_HZ_750 is not set" >> ./.config
+      echo "# CONFIG_HZ_1000_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_750_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_500_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_250_NODEF is not set" >> ./.config
+      echo "# CONFIG_HZ_300_NODEF is not set" >> ./.config
+      echo "CONFIG_HZ_100=y" >> ./.config
+      echo "CONFIG_HZ_100_NODEF=y" >> ./.config
   else
     sed -i -e 's/CONFIG_HZ_300=y/# CONFIG_HZ_300 is not set/' ./.config
     sed -i -e 's/CONFIG_HZ_300_NODEF=y/# CONFIG_HZ_300_NODEF is not set/' ./.config
@@ -617,8 +643,12 @@ prepare() {
     plain ""
     plain "Use CattaRappa mode (Tickless/Dynticks) ?"
     plain "Can give higher performances in many cases but lower consistency on some hardware."
-    plain "Just tickless idle can perform better on some platforms (mostly AMD based)."
-    read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION4;
+    plain "Just tickless idle can perform better with some platforms (mostly AMD) or CPU schedulers (mostly MuQSS)."
+    if [ "${_cpusched}" == "MuQSS" ]; then
+      read -rp "`echo $'\n      0.No, use periodic ticks\n      1.Yes, full tickless baby!\n    > 2.Just tickless idle plz\n    [0-2?]: '`" CONDITION4;
+    else
+      read -rp "`echo $'\n      0.No, use periodic ticks\n    > 1.Yes, full tickless baby!\n      2.Just tickless idle plz\n    [0-2?]: '`" CONDITION4;
+    fi
   fi
   if [ "$CONDITION4" == "0" ] || [ "$_tickless" == "0" ]; then
     echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
@@ -635,14 +665,23 @@ prepare() {
     sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
     sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
   else
-    echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
-    sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
-    sed -i -e 's/CONFIG_NO_HZ_IDLE=y/# CONFIG_NO_HZ_IDLE is not set/' ./.config
-    sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
-    sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
-    sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
-    echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
-    echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
+    if [ "${_cpusched}" == "MuQSS" ]; then
+      echo "# CONFIG_NO_HZ_FULL_NODEF is not set" >> ./.config
+      sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
+      sed -i -e 's/# CONFIG_NO_HZ_IDLE is not set/CONFIG_NO_HZ_IDLE=y/' ./.config
+      sed -i -e 's/CONFIG_NO_HZ_FULL=y/# CONFIG_NO_HZ_FULL is not set/' ./.config
+      sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
+      sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
+    else
+      echo "CONFIG_NO_HZ_FULL_NODEF=y" >> ./.config
+      sed -i -e 's/CONFIG_HZ_PERIODIC=y/# CONFIG_HZ_PERIODIC is not set/' ./.config
+      sed -i -e 's/CONFIG_NO_HZ_IDLE=y/# CONFIG_NO_HZ_IDLE is not set/' ./.config
+      sed -i -e 's/# CONFIG_NO_HZ_FULL is not set/CONFIG_NO_HZ_FULL=y/' ./.config
+      sed -i -e 's/# CONFIG_NO_HZ is not set/CONFIG_NO_HZ=y/' ./.config
+      sed -i -e 's/# CONFIG_NO_HZ_COMMON is not set/CONFIG_NO_HZ_COMMON=y/' ./.config
+      echo "CONFIG_CONTEXT_TRACKING=y" >> ./.config
+      echo "# CONFIG_CONTEXT_TRACKING_FORCE is not set" >> ./.config
+    fi
   fi
 
   # voluntary preempt
