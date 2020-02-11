@@ -11,35 +11,36 @@ set -e
 
 _nowhere=$PWD
 
-if [ "$_ispkgbuild" != "true" ]; then
-  _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
-else
-  _wine_tkg_git_path="${_nowhere}/../../wine-tkg-git"
-fi
-
 # Enforce not using makepkg even if available with --nomakepkg
 if [ "$1" == "--nomakepkg" ]; then
   _nomakepkg="true"
 fi
 
-# Set Steam root path
-if [ -d "$HOME/.steam/root" ]; then # typical on Arch
-  _steampath="$HOME/.steam/root"
-elif [ -e "$HOME/.steam/steam.sh" ]; then # typical on Ubuntu
-  _steampath="$HOME/.steam"
+if [ "$_ispkgbuild" != "true" ]; then
+  _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
 else
-  echo -e "Your Steam install wasn't found! Exiting.."
-  exit
-fi
+  _wine_tkg_git_path="${_nowhere}/../../wine-tkg-git"
 
-# Set Steam config file path
-if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]; then
-  _config_file="$HOME/.local/share/Steam/config/config.vdf"
-elif [ -e "$_steampath/steam/config/config.vdf" ]; then
-  _config_file="$_steampath/steam/config/config.vdf"
-else
-  echo -e "Your Steam config file path wasn't found! Exiting.."
-  exit
+  # Set Steam root path
+  if [ -d "$HOME/.steam/root" ]; then # typical on Arch
+    _steampath="$HOME/.steam/root"
+  elif [ -e "$HOME/.steam/steam.sh" ]; then # typical on Ubuntu
+    _steampath="$HOME/.steam"
+  else
+    echo -e "Your Steam install wasn't found! Exiting.."
+    exit
+  fi
+
+  # Set Steam config file path
+  if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]; then
+    _config_file="$HOME/.local/share/Steam/config/config.vdf"
+  elif [ -e "$_steampath/steam/config/config.vdf" ]; then
+    _config_file="$_steampath/steam/config/config.vdf"
+  else
+    echo -e "Your Steam config file path wasn't found! Exiting.."
+    exit
+  fi
+
 fi
 
 cat <<'EOF'
