@@ -40,7 +40,7 @@ fi
 
 # Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
 if [ -e "$_EXT_CONFIG_PATH" ]; then
-  source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
+  source "$_EXT_CONFIG_PATH" && echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
 fi
 
   user_patcher() {
