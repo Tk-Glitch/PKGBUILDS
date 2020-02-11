@@ -24,6 +24,16 @@ index 811de5e..028e7dd 100755
              dxvkfiles = ("d3d11", "d3d10", "d3d10core", "d3d10_1")
              def make_dxvk_links(dll_dir, link_dir):
                  for f in dxvkfiles:
+@@ -671,9 +671,6 @@ class Session:
+         if "nowinedbg" in self.compat_config:
+             self.dlloverrides["winedbg.exe"] = "d"
+ 
+-        # Disable openvr lib as we don't support it
+-        self.dlloverrides["openvr_api_dxvk"] = "d"
+-
+         s = ""
+         for dll in self.dlloverrides:
+             setting = self.dlloverrides[dll]
 @@ -696,6 +705,79 @@ class Session:
          else:
              self.env["WINEDLLOVERRIDES"] = s
