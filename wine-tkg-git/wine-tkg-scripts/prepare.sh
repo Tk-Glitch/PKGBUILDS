@@ -427,39 +427,44 @@ _prepare() {
 	  read -rp "Do you want to run configure? You need to run it at least once to populate your build dirs!"$'\n> N/y : ' _DEBUGANSW3;
 	fi
 
-	# XRandR display device handler breaks FS hack, so let's get rid of it for now
-	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] && ! git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
-	  if git merge-base --is-ancestor 427152ec7b4ee85631617b693dbf1deea763c0ba HEAD; then
-	    git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba || exit 1
+	# Reverts for commits known to break specific versions of the FS hack
+	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	  if ! git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
+	    if git merge-base --is-ancestor 427152ec7b4ee85631617b693dbf1deea763c0ba HEAD; then
+	      git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba || exit 1
+	    fi
+	    if git merge-base --is-ancestor b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 HEAD; then
+	      git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 || exit 1
+	    fi
+	    if git merge-base --is-ancestor acf03ed9da0f7d3f94de9b47c44366be3ee47f8e HEAD; then
+	      git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e || exit 1
+	    fi
+	    if git merge-base --is-ancestor 914b5519b1cd96f9ae19f1eec226e94af96354b9 HEAD; then
+	      git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 || exit 1
+	    fi
+	    if git merge-base --is-ancestor 99d047724e768822d6508573cd82a5c75b30bdcb HEAD; then
+	      git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb || exit 1
+	    fi
+	    if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
+	      git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 || exit 1
+	    fi
+	    if git merge-base --is-ancestor 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 HEAD; then
+	      git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 || exit 1
+	    fi
+	    if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
+	      git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 || exit 1
+	    fi
+	    if git merge-base --is-ancestor 6dbb153ede48e77a87dddf37e5276276a701c5c3 HEAD; then
+	      git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 || exit 1
+	    fi
+	    if git merge-base --is-ancestor 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 HEAD; then
+	      git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 || exit 1
+	    fi
+	    echo "FS hack unbreak reverts applied" >> "$_where"/last_build_config.log
+	  elif git merge-base --is-ancestor 2538b0100fbbe1223e7c18a52bade5cfe5f8d3e3 HEAD; then
+	    git revert -n --no-edit 2538b0100fbbe1223e7c18a52bade5cfe5f8d3e3 || exit 1
+	    echo "FS hack unbreak revert applied" >> "$_where"/last_build_config.log
 	  fi
-	  if git merge-base --is-ancestor b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 HEAD; then
-	    git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 || exit 1
-	  fi
-	  if git merge-base --is-ancestor acf03ed9da0f7d3f94de9b47c44366be3ee47f8e HEAD; then
-	    git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e || exit 1
-	  fi
-	  if git merge-base --is-ancestor 914b5519b1cd96f9ae19f1eec226e94af96354b9 HEAD; then
-	    git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 || exit 1
-	  fi
-	  if git merge-base --is-ancestor 99d047724e768822d6508573cd82a5c75b30bdcb HEAD; then
-	    git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb || exit 1
-	  fi
-	  if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
-	    git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 || exit 1
-	  fi
-	  if git merge-base --is-ancestor 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 HEAD; then
-	    git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 || exit 1
-	  fi
-	  if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
-	    git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 || exit 1
-	  fi
-	  if git merge-base --is-ancestor 6dbb153ede48e77a87dddf37e5276276a701c5c3 HEAD; then
-	    git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 || exit 1
-	  fi
-	  if git merge-base --is-ancestor 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 HEAD; then
-	    git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 || exit 1
-	  fi
-	  echo "FS hack unbreak reverts applied" >> "$_where"/last_build_config.log
 	fi
 
 	# Kernelbase reverts patchset - cleanly reverting part
