@@ -16,10 +16,10 @@ if [ "$1" == "--nomakepkg" ]; then
   _nomakepkg="true"
 fi
 
-if [ "$_ispkgbuild" != "true" ]; then
-  _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
-else
+if [ "$_ispkgbuild" == "true" ]; then
   _wine_tkg_git_path="${_nowhere}/../../wine-tkg-git"
+else
+  _wine_tkg_git_path="${_nowhere}/../wine-tkg-git" # Change to wine-tkg-git path if needed
 
   # Set Steam root path
   if [ -d "$HOME/.steam/root" ]; then # typical on Arch
