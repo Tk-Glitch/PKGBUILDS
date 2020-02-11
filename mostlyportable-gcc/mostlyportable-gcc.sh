@@ -38,6 +38,11 @@ else
   source ${_nowhere}/mostlyportable-gcc.cfg && echo -e "\nUsing GCC config\n"
 fi
 
+# Load external configuration file if present. Available variable values will overwrite customization.cfg ones.
+if [ -e "$_EXT_CONFIG_PATH" ]; then
+  source "$_EXT_CONFIG_PATH" && msg2 "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
+fi
+
   user_patcher() {
   	# To patch the user because all your base are belong to us
   	local _patches=("$_nowhere"/*."${_userpatch_ext}revert")
