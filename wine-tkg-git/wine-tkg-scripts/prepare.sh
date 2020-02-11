@@ -1082,7 +1082,7 @@ EOM
 	  if git merge-base --is-ancestor 6d7828e8df68178ca662bc618f7598254afcfbe1 HEAD; then
 	    _patchname='proton-rawinput.patch' && _patchmsg="Using rawinput patchset" && nonuser_patcher
 	    if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD && cd "${srcdir}"/"${_winesrcdir}"); then # Apply staging winex11-key_translation patchset post staging-application when enabled
-	      cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-key_translation/*.patch "$_where"/ && ln -s "${srcdir}"/"${_stgsrcdir}"/patches/winex11-key_translation/*.patch "${srcdir}"/
+	      cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-key_translation/*.patch "$_where"/ && ln -s -f "${srcdir}"/"${_stgsrcdir}"/patches/winex11-key_translation/*.patch "${srcdir}"/
 	      _patchname='0001-winex11-Match-keyboard-in-Unicode.patch' && _patchmsg="Applied proton friendly winex11-Match-keyboard-in-Unicode" && nonuser_patcher
 	      _patchname='0002-winex11-Fix-more-key-translation.patch' && _patchmsg="Applied proton friendly winex11-Fix-more-key-translation" && nonuser_patcher
 	      _patchname='0003-winex11.drv-Fix-main-Russian-keyboard-layout.patch' && _patchmsg="Applied proton friendly winex11.drv-Fix-main-Russian-keyboard-layout" && nonuser_patcher
@@ -1190,7 +1190,7 @@ EOM
 	    fi
 	    if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then # Proton friendly winex11-MWM_Decorations winex11-_NET_ACTIVE_WINDOW winex11-WM_WINDOWPOSCHANGING
 	      _patchname='proton-staging_winex11-MWM_Decorations.patch' && _patchmsg="Applied proton friendly winex11-MWM_Decorations" && nonuser_patcher
-	      #cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "$_where"/ && ln -s "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "${srcdir}"/
+	      #cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "$_where"/ && ln -s -f "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "${srcdir}"/
 	      #_patchname='0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch' && _patchmsg="Applied proton friendly winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW" && nonuser_patcher
 	      #_patchname='proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' && _patchmsg="Applied staging winex11-_NET_ACTIVE_WINDOW-0002" && nonuser_patcher
 	      #_patchname='proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' && _patchmsg="Applied proton friendly winex11-WM_WINDOWPOSCHANGING" && nonuser_patcher
