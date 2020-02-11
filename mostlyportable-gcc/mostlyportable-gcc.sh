@@ -27,7 +27,7 @@ cat << 'EOM'
 
 EOM
 
-  _nowhere=$PWD
+_nowhere=$PWD
 
 echo -e "What do you want to build?"
 read -rp "`echo $'  > 1.GCC\n    2.MinGW-w64-GCC\nchoice[1-2?]: '`" _builtype;
@@ -42,6 +42,9 @@ fi
 if [ -e "$_EXT_CONFIG_PATH" ]; then
   source "$_EXT_CONFIG_PATH" && echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n"
 fi
+
+echo -e "# Last mostlyportable-gcc configuration - $(date) :\n" > "$_nowhere"/last_build_config.log
+echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override customization.cfg values.\n" >> "$_nowhere"/last_build_config.log
 
   user_patcher() {
   	# To patch the user because all your base are belong to us
@@ -178,12 +181,15 @@ fi
       chmod a+x osl-${_osl}.tar.* && tar -xvf osl-${_osl}.tar.* >/dev/null 2>&1
       chmod a+x cloog-${_cloog}.tar.* && tar -xvf cloog-${_cloog}.tar.* >/dev/null 2>&1
       chmod a+x mingw-w64-v${_mingw}.tar.* && tar -xvf mingw-w64-v${_mingw}.tar.* >/dev/null 2>&1
-      wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
-      wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
-    fi
 
-    # Make the process use our tools as they get built
-    PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}
+      if [[ "$_binutils" = 2.33* ]]; then
+        wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
+        wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
+      fi
+    else
+      # Make the process use our tools as they get built
+      export PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}
+    fi
 
     # user patches
     _userpatch_target="gcc"
@@ -277,7 +283,7 @@ fi
       for _target in $_targets; do
         echo -e "Building ${_target} cross binutils"
         mkdir -p ${_nowhere}/build/binutils-${_target} && cd ${_nowhere}/build/binutils-${_target}
-        ${_nowhere}/build/binutils-${_binutils}/configure \
+        PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH} ${_nowhere}/build/binutils-${_binutils}/configure \
           --target=${_target} \
           --enable-lto \
           --enable-plugins \
@@ -333,10 +339,14 @@ fi
       else
         _exceptions_args="--disable-dw2-exceptions"
       fi
+      #do not install libiberty
+      sed -i 's/install_to_$(INSTALL_DEST) //' ${_nowhere}/build/gcc/libiberty/Makefile.in
+      # hack! - some configure tests for header files using "$CPP $CPPFLAGS"
+      sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" ${_nowhere}/build/gcc/{libiberty,gcc}/configure
       for _target in ${_targets}; do
         echo -e "Building ${_target} GCC C compiler"
         mkdir -p ${_nowhere}/build/gcc-base-${_target} && cd ${_nowhere}/build/gcc-base-${_target}
-        ${_nowhere}/build/gcc/configure \
+        PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH} ${_nowhere}/build/gcc/configure \
           --target=${_target} \
           --enable-languages=c,lto \
           --with-system-zlib \
@@ -389,7 +399,7 @@ fi
       for _target in ${_targets}; do
         echo -e "Building ${_target} winpthreads..."
         mkdir -p ${_nowhere}/build/winpthreads-build-${_target} && cd ${_nowhere}/build/winpthreads-build-${_target}
-        ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-libraries/winpthreads/configure \
+        PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-libraries/winpthreads/configure \
           --host=${_target} \
           --prefix=${_dstdir}/${_target} \
           ${_commonconfig}
