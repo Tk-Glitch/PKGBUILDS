@@ -173,6 +173,9 @@ msg2 ''
     if [ "$_use_d9vk" == "true" ]; then
       _use_d9vk="release"
     fi
+    if [ "$_ispkgbuild" == "true" ]; then
+      _steamvr_support="false"
+    fi
   elif [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ]; then
     error "It looks like you're attempting to build a Proton version of wine-tkg-git."
     error "This special option doesn't use pacman and requires you to run 'proton-tkg.sh' script from proton-tkg dir."

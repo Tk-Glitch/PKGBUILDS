@@ -328,6 +328,13 @@ else
       cd "$_nowhere"
     fi
 
+    # Patch our makepkg version of the proton script to not create default prefix and use /tmp/dist.lock
+    if [ "$_ispkgbuild" == "true" ]; then
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
+      patch -Np1 < "$_nowhere/proton_template/makepkg_adjustments.patch" && rm -f proton.orig
+      cd "$_nowhere"
+    fi
+
     # Set Proton-tkg user_settings.py defaults
     if [ "$_proton_nvapi_disable" == "true" ]; then
       sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
