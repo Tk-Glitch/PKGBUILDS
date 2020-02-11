@@ -34,6 +34,7 @@ _exit_cleanup() {
     echo "_use_d9vk=${_use_d9vk}" >> "$_proton_tkg_path"/proton_tkg_token
     echo "_proton_pkgdest='${pkgdir}'" >> "$_proton_tkg_path"/proton_tkg_token
     echo "_steamvr_support='${_steamvr_support}'" >> "$_proton_tkg_path"/proton_tkg_token
+    echo "_NUKR='${_NUKR}'" >> "$_proton_tkg_path"/proton_tkg_token
   fi
 
   rm -f "$_where"/BIG_UGLY_FROGMINER && msg2 'Removed BIG_UGLY_FROGMINER - Ribbit' # state tracker end
