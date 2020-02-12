@@ -1037,21 +1037,7 @@ EOM
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
-	    _FS_bypass_compositor="true"
-	    for _f in "$_where"/FS_bypass_compositor.patch ; do
-	      patch ${_f} << 'EOM'
-@@ -34,7 +34,7 @@ if ((style & WS_MAXIMIZE) && (style & WS_CAPTION) == WS_CAPTION)
-              new_state |= (1 << NET_WM_STATE_MAXIMIZED);
-          else if (!(style & WS_MINIMIZE))
- +	{
--+            net_wm_bypass_compositor = 1;
-++            net_wm_bypass_compositor = 0;
-              new_state |= (1 << NET_WM_STATE_FULLSCREEN);
- +	}
-      }
-EOM
-        done
-	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch (in a disabled state)" && nonuser_patcher
+	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch" && nonuser_patcher
 	  fi
 	  if git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
 	    _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch" && nonuser_patcher
@@ -1078,6 +1064,10 @@ EOM
 	      _lastcommit="6e87235"
         fi
 	    _patchname="valve_proton_fullscreen_hack-staging-$_lastcommit.patch" && _patchmsg="Applied Proton fullscreen hack patch ($_lastcommit)" && nonuser_patcher
+	  fi
+	  if [ "$_FS_bypass_compositor" != "true" ]; then
+	    _FS_bypass_compositor="true"
+	    _patchname='FS_bypass_compositor-disabler.patch' && _patchmsg="Turned off Fullscreen compositor bypass" && nonuser_patcher
 	  fi
 	  # Legacy split realmodes patchset
 	  if $(cd "${srcdir}"/"${_stgsrcdir}" && ! git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD); then

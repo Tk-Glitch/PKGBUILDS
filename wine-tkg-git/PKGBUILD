@@ -5,7 +5,7 @@ pkgver=5.1.r13.g3f43238b
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=243
+eval pkgrel=244
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -276,6 +276,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-staging-kernelbase-reverts-fd3735c.patch'
 		# proton
 		'FS_bypass_compositor.patch' # Perf
+		'FS_bypass_compositor-disabler.patch' # Disabler for the actual bypass
 		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
 		'valve_proton_fullscreen_hack-staging-aee91dc.patch' # Proton FS hack (<aee91dc)
 		'valve_proton_fullscreen_hack-staging-7e736b5.patch' # Proton FS hack (<7e736b5)
@@ -452,6 +453,7 @@ md5sums=('SKIP'
          '634c6f10d973a1b27e0148ad35df62ce'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
+         '684d1c60aa38a659b1dd792b1d7cd8f5'
          '533e442e392c26509ca37b23d0dbdec3'
          '7fe6635805c658f5e4ed658b5f535948'
          '1faa90447591467c690063fd00073b16'
