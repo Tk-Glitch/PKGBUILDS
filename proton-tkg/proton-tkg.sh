@@ -150,7 +150,7 @@ else
     cd $_nowhere
 
     # Create required dirs and clean
-    rm -rf "proton_tkg$_protontkg_version" && mkdir "proton_tkg$_protontkg_version"
+    rm -rf "proton_tkg_$_protontkg_version" && mkdir "proton_tkg_$_protontkg_version"
     mkdir -p proton_template/share/fonts
 
     mv "$_proton_pkgdest" proton_dist_tmp
@@ -309,84 +309,84 @@ else
     echo "Packaging..."
 
     # Package
-    cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../"proton_tkg$_protontkg_version"
+    cd proton_dist_tmp && tar -zcf proton_dist.tar.gz bin/ include/ lib64/ lib/ share/ version && mv proton_dist.tar.gz ../"proton_tkg_$_protontkg_version"
     cd "$_nowhere" && rm -rf proton_dist_tmp
 
     # Grab conf template and inject version
-    echo "1552061114 proton-tkg-$_protontkg_version" > "proton_tkg$_protontkg_version/version" && cp "proton_template/conf"/* "proton_tkg$_protontkg_version"/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" "proton_tkg$_protontkg_version/compatibilitytool.vdf"
+    echo "1552061114 proton-tkg-$_protontkg_version" > "proton_tkg_$_protontkg_version/version" && cp "proton_template/conf"/* "proton_tkg_$_protontkg_version"/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" "proton_tkg_$_protontkg_version/compatibilitytool.vdf"
 
     # Patch our proton script to make use of the steam helper on 4.0+
     if [[ $_proton_branch != proton_3.* ]] && [ "$_proton_use_steamhelper" == "true" ]; then
-      cd "$_nowhere/proton_tkg$_protontkg_version"
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/steam.exe.patch" && rm -f proton.orig
       cd "$_nowhere"
     fi
 
     # Patch our proton script to allow for VR support
     if [ "$_steamvr_support" == "true" ]; then
-      cd "$_nowhere/proton_tkg$_protontkg_version"
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/vr-support.patch" && rm -f proton.orig
       cd "$_nowhere"
     fi
 
     # Patch our makepkg version of the proton script to not create default prefix and use /tmp/dist.lock
     if [ "$_ispkgbuild" == "true" ]; then
-      cd "$_nowhere/proton_tkg$_protontkg_version"
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/makepkg_adjustments.patch" && rm -f proton.orig
       cd "$_nowhere"
     fi
 
     # Set Proton-tkg user_settings.py defaults
     if [ "$_proton_nvapi_disable" == "true" ]; then
-      sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_NVAPI_DISABLE.*/     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_NVAPI_DISABLE.*/#     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_NVAPI_DISABLE.*/#     "PROTON_NVAPI_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_winedbg_disable" == "true" ]; then
-      sed -i 's/.*PROTON_WINEDBG_DISABLE.*/     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_WINEDBG_DISABLE.*/     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_WINEDBG_DISABLE.*/#     "PROTON_WINEDBG_DISABLE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_force_LAA" == "true" ]; then
-      sed -i 's/.*PROTON_DISABLE_LARGE_ADDRESS_AWARE.*/#     "PROTON_DISABLE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_DISABLE_LARGE_ADDRESS_AWARE.*/#     "PROTON_DISABLE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_DISABLE_LARGE_ADDRESS_AWARE.*/     "PROTON_DISABLE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_DISABLE_LARGE_ADDRESS_AWARE.*/     "PROTON_DISABLE_LARGE_ADDRESS_AWARE": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_pulse_lowlat" == "true" ]; then
-      sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_PULSE_LOWLATENCY.*/#     "PROTON_PULSE_LOWLATENCY": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_dxvk_async" == "true" ]; then
-      sed -i 's/.*PROTON_DXVK_ASYNC.*/     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_DXVK_ASYNC.*/     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_DXVK_ASYNC.*/#     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_DXVK_ASYNC.*/#     "PROTON_DXVK_ASYNC": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_proton_winetricks" == "true" ]; then
-      sed -i 's/.*PROTON_WINETRICKS.*/     "PROTON_WINETRICKS": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_WINETRICKS.*/     "PROTON_WINETRICKS": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_WINETRICKS.*/#     "PROTON_WINETRICKS": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_WINETRICKS.*/#     "PROTON_WINETRICKS": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ -n "$_proton_dxvk_configfile" ]; then
-      sed -i "s|.*DXVK_CONFIG_FILE.*|     \"DXVK_CONFIG_FILE\": \"${_proton_dxvk_configfile}\",|g" "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i "s|.*DXVK_CONFIG_FILE.*|     \"DXVK_CONFIG_FILE\": \"${_proton_dxvk_configfile}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ -n "$_proton_dxvk_hud" ]; then
-      sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i "s|.*DXVK_HUD.*|     \"DXVK_HUD\": \"${_proton_dxvk_hud}\",|g" "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_use_dxvk" != "false" ] && [ "$_dxvk_dxgi" != "true" ]; then
-      sed -i 's/.*PROTON_USE_WINE_DXGI.*/     "PROTON_USE_WINE_DXGI": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINE_DXGI.*/     "PROTON_USE_WINE_DXGI": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
 
     # Use the corresponding DXVK/D9VK combo options
     if [ "$_use_dxvk" != "false" ]; then
-      sed -i 's/.*PROTON_USE_WINED3D11.*/#     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINED3D11.*/#     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINED3D11.*/     "PROTON_USE_WINED3D11": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     fi
     if [ "$_use_d9vk" != "false" ]; then
-      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"
+      sed -i 's/.*PROTON_USE_WINED3D9.*/#     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"
     else
-      sed -i 's/.*PROTON_USE_WINED3D9.*/     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg$_protontkg_version/user_settings.py"    
+      sed -i 's/.*PROTON_USE_WINED3D9.*/     "PROTON_USE_WINED3D9": "1",/g' "proton_tkg_$_protontkg_version/user_settings.py"    
     fi
 
     cd $_nowhere
@@ -398,17 +398,17 @@ else
       mkdir -p "$_steampath/compatibilitytools.d"
 
       # Nuke same version if exists before copying new build
-      if [ -d "$_steampath/compatibilitytools.d/proton_tkg$_protontkg_version" ]; then
-        rm -rf "$_steampath/compatibilitytools.d/proton_tkg$_protontkg_version"
+      if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
+        rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
       fi
 
       # Get rid of the token
       rm -f proton_tkg_token
 
-      mv "proton_tkg$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
+      mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
       echo "####################################################################################################"
       echo ""
-      echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg$_protontkg_version"
+      echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
       echo ""
       echo "####################################################################################################"
       if [ "$_skip_uninstaller" != "true" ]; then

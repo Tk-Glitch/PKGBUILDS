@@ -4,17 +4,9 @@ _exit_cleanup() {
   # Proton-tkg specifics to send to token
   if [ -e "$_where"/BIG_UGLY_FROGMINER ] && [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ -n "$_proton_tkg_path" ]; then
     if [ -n "$_PROTON_NAME_ADDON" ]; then
-      if [ "$_ispkgbuild" == "true" ]; then
-        echo "_protontkg_version=.${_PROTON_NAME_ADDON}" >> "$_proton_tkg_path"/proton_tkg_token
-      else
-        echo "_protontkg_version=_${pkgver}.${_PROTON_NAME_ADDON}" >> "$_proton_tkg_path"/proton_tkg_token
-      fi
+      echo "_protontkg_version=${pkgver}.${_PROTON_NAME_ADDON}" >> "$_proton_tkg_path"/proton_tkg_token
     else
-      if [ "$_ispkgbuild" == "true" ]; then
-        echo "_protontkg_version=" >> "$_proton_tkg_path"/proton_tkg_token
-      else
-        echo "_protontkg_version=_${pkgver}" >> "$_proton_tkg_path"/proton_tkg_token
-      fi
+      echo "_protontkg_version=${pkgver}" >> "$_proton_tkg_path"/proton_tkg_token
     fi
     if [[ $pkgver = 3.* ]]; then
       echo '_proton_branch="proton_3.16"' >> "$_proton_tkg_path"/proton_tkg_token
