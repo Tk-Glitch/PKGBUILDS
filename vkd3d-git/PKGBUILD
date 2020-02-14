@@ -131,7 +131,6 @@ pkgver() {
 
 	# version string
 	printf '%s' "${_vkd3dVer#vkd3d.}"
-	cd "$_where"
 }
 
 prepare() {
