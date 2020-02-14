@@ -150,9 +150,6 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
     if [ ! -e mpc-${_mpc}.tar.gz ]; then
       wget -c ftp://ftp.gnu.org/gnu/mpc/mpc-${_mpc}.tar.gz
     fi
-    if [ ! -e elfutils-${_libelf}.tar.bz2 ]; then
-      wget -c https://sourceware.org/elfutils/ftp/${_libelf}/elfutils-${_libelf}.tar.bz2
-    fi
     if [ ! -e isl-${_isl}.tar.gz ]; then
       wget -c http://isl.gforge.inria.fr/isl-${_isl}.tar.gz
     fi
@@ -160,10 +157,18 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       wget -c https://ftp.gnu.org/gnu/binutils/binutils-${_binutils}.tar.gz
     fi
 
+    # libelf
+    if [ "$_enable_libelf" == "true" ]; then
+      if [ ! -e elfutils-${_libelf}.tar.bz2 ]; then
+        wget -c https://sourceware.org/elfutils/ftp/${_libelf}/elfutils-${_libelf}.tar.bz2
+      fi
+      _libelf_flag="--with-libelf=${_dstdir}"
+      chmod a+x elfutils-${_libelf}.tar.* && tar -xvf elfutils-${_libelf}.tar.* >/dev/null 2>&1
+    fi
+
     chmod a+x gmp-${_gmp}.tar.* && tar -xvJf gmp-${_gmp}.tar.* >/dev/null 2>&1
     chmod a+x mpfr-${_mpfr}.tar.* && tar -xvJf mpfr-${_mpfr}.tar.* >/dev/null 2>&1
     chmod a+x mpc-${_mpc}.tar.* && tar -xvf mpc-${_mpc}.tar.* >/dev/null 2>&1
-    chmod a+x elfutils-${_libelf}.tar.* && tar -xvf elfutils-${_libelf}.tar.* >/dev/null 2>&1
     chmod a+x isl-${_isl}.tar.* && tar -xvf isl-${_isl}.tar.* >/dev/null 2>&1
     chmod a+x binutils-${_binutils}.tar.* && tar -xvf binutils-${_binutils}.tar.* >/dev/null 2>&1
 
@@ -217,13 +222,15 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
     _targets="i686-w64-mingw32 x86_64-w64-mingw32"
 
     # libelf
-    cd ${_nowhere}/build/elfutils-${_libelf}
-    ./configure \
-      --prefix=${_dstdir} \
-      --program-prefix="eu-" \
-      --enable-deterministic-archives \
-      ${_commonconfig}
-    _makeandinstall || exit 1
+    if [ "$_enable_libelf" == "true" ]; then
+      cd ${_nowhere}/build/elfutils-${_libelf}
+      PATH=${_path_hack} ./configure \
+        --prefix=${_dstdir} \
+        --program-prefix="eu-" \
+        --enable-deterministic-archives \
+        ${_commonconfig}
+      _makeandinstall || exit 1
+    fi
 
     # gmp
     cd ${_nowhere}/build/gmp-${_gmp}
@@ -359,10 +366,10 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           --with-gmp=${_dstdir} \
           --with-mpfr=${_dstdir} \
           --with-mpc=${_dstdir} \
-          --with-libelf=${_dstdir} \
           --prefix=${_dstdir} \
           ${_exceptions_args} \
-          ${_commonconfig}
+          ${_commonconfig} \
+          ${_libelf_flag}
         make -j$(nproc) all-gcc || exit 1
       done
       for _target in ${_targets}; do
@@ -447,11 +454,11 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           --with-gmp=${_dstdir} \
           --with-mpfr=${_dstdir} \
           --with-mpc=${_dstdir} \
-          --with-elfutils=${_dstdir} \
           --prefix=${_dstdir} \
           ${_exceptions_args} \
           ${_fortran_args} \
-          ${_win32threads_args}
+          ${_win32threads_args} \
+          ${_libelf_flag}
         make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
@@ -544,11 +551,11 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         --with-gmp=${_dstdir} \
         --with-mpfr=${_dstdir} \
         --with-mpc=${_dstdir} \
-        --with-elfutils=${_dstdir} \
         --enable-offload-targets=nvptx-none,hsa \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --target=x86_64-linux-gnu
+        --target=x86_64-linux-gnu \
+        ${_libelf_flag}
         #--enable-libstdcxx-debug
       _makeandinstall || exit 1
       ln -s gcc ${_dstdir}/bin/cc
