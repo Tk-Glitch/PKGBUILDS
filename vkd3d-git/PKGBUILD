@@ -140,7 +140,7 @@ prepare() {
 
 	git reset --hard HEAD
 	git clean -xdf
-	git pull
+	git fetch
 
 	# Community patches
 	if [ -n "$_community_patches" ]; then
