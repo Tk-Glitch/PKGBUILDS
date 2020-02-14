@@ -191,9 +191,10 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
         wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
       fi
+      _path_hack="${_dstdir}/i686-w64-mingw32:${_dstdir}/x86_64-w64-mingw32:${_dstdir}/libexec:${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
     else
       # Make the process use our tools as they get built
-      export PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}
+      _path_hack="${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
     fi
 
     # user patches
@@ -234,14 +235,14 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
     # gmp
     cd ${_nowhere}/build/gmp-${_gmp}
-    ./configure \
+    PATH=${_path_hack} ./configure \
       --prefix=${_dstdir} \
       ${_commonconfig}
     _makeandinstall || exit 1
 
     # mpfr
     cd ${_nowhere}/build/mpfr-${_mpfr}
-    ./configure \
+    PATH=${_path_hack} ./configure \
       --with-gmp=${_dstdir} \
       --prefix=${_dstdir} \
       ${_commonconfig}
@@ -249,7 +250,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
     # mpc
     cd ${_nowhere}/build/mpc-${_mpc}
-    ./configure \
+    PATH=${_path_hack} ./configure \
       --with-gmp=${_dstdir} \
       --with-mpfr=${_dstdir} \
       --prefix=${_dstdir} \
@@ -258,7 +259,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
     # isl
     cd ${_nowhere}/build/isl-${_isl}
-    ./configure \
+    PATH=${_path_hack} ./configure \
       --prefix=${_dstdir} \
       ${_commonconfig}
     _makeandinstall || exit 1
@@ -266,7 +267,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
     if [ "$_mingwbuild" == "true" ]; then
       # osl
       cd ${_nowhere}/build/osl-${_osl}
-      ./configure \
+      PATH=${_path_hack} ./configure \
         --with-gmp=${_dstdir} \
         --prefix=${_dstdir} \
         ${_commonconfig}
@@ -274,7 +275,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
       # cloog
       cd ${_nowhere}/build/cloog-${_cloog}
-      ./configure \
+      PATH=${_path_hack} ./configure \
         --with-isl=${_dstdir} \
         --with-osl=${_dstdir} \
         --prefix=${_dstdir} \
@@ -290,7 +291,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       for _target in $_targets; do
         echo -e "Building ${_target} cross binutils"
         mkdir -p ${_nowhere}/build/binutils-${_target} && cd ${_nowhere}/build/binutils-${_target}
-        PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH} ${_nowhere}/build/binutils-${_binutils}/configure \
+        PATH=${_path_hack} ${_nowhere}/build/binutils-${_binutils}/configure \
           --target=${_target} \
           --enable-lto \
           --enable-plugins \
@@ -312,7 +313,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       for _target in ${_targets}; do
         echo -e "Configuring ${_target} headers"
         mkdir -p ${_nowhere}/build/headers-${_target} && cd ${_nowhere}/build/headers-${_target}
-        ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-headers/configure \
+        PATH=${_path_hack} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-headers/configure \
           --enable-sdk=all \
           --enable-secure-api \
           --host=${_target} \
@@ -389,7 +390,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           _crt_configure_args="--disable-lib32 --enable-lib64"
         fi
         mkdir -p ${_nowhere}/build/crt-${_target} && cd ${_nowhere}/build/crt-${_target}
-        ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-crt/configure \
+        PATH=${_path_hack} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-crt/configure \
           --host=${_target} \
           --enable-wildcard \
           ${_crt_configure_args} \
@@ -406,7 +407,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       for _target in ${_targets}; do
         echo -e "Building ${_target} winpthreads..."
         mkdir -p ${_nowhere}/build/winpthreads-build-${_target} && cd ${_nowhere}/build/winpthreads-build-${_target}
-        PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-libraries/winpthreads/configure \
+        PATH=${_path_hack} ${_nowhere}/build/mingw-w64-v${_mingw}/mingw-w64-libraries/winpthreads/configure \
           --host=${_target} \
           --prefix=${_dstdir}/${_target} \
           ${_commonconfig}
@@ -436,7 +437,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       fi
       for _target in ${_targets}; do
         mkdir -p ${_nowhere}/build/gcc-build-${_target} && cd ${_nowhere}/build/gcc-build-${_target}
-        ${_nowhere}/build/gcc/configure \
+        PATH=${_path_hack} ${_nowhere}/build/gcc/configure \
           --with-pkgversion='TkG-mostlyportable' \
           --target=${_target} \
           --libexecdir=${_dstdir}/lib \
@@ -490,7 +491,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
       mkdir -p ${_nowhere}/build/binutils-build && cd ${_nowhere}/build/binutils-build
-      ${_nowhere}/build/binutils-${_binutils}/configure \
+      PATH=${_path_hack} ${_nowhere}/build/binutils-${_binutils}/configure \
         --prefix=${_dstdir} \
         --with-lib-path=${_dstdir}/lib \
         --enable-deterministic-archives \
@@ -514,7 +515,9 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
       # gcc
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
-      ${_nowhere}/build/gcc/configure \
+      # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
+      sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/"  ${_nowhere}/build/gcc/{libiberty,gcc}/configure
+      PATH=${_path_hack} ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
         --disable-bootstrap \
         --enable-languages=c,c++,lto \
