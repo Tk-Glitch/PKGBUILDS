@@ -315,6 +315,10 @@ else
     # Grab conf template and inject version
     echo "1552061114 proton-tkg-$_protontkg_version" > "proton_tkg_$_protontkg_version/version" && cp "proton_template/conf"/* "proton_tkg_$_protontkg_version"/ && sed -i -e "s|TKGVERSION|$_protontkg_version|" "proton_tkg_$_protontkg_version/compatibilitytool.vdf"
 
+    # Patch our proton script to use the current proton tree prefix version value
+    _prefix_version=$(cat "$_nowhere/Proton/proton" | grep "CURRENT_PREFIX_VERSION=")
+    sed -i -e "s|CURRENT_PREFIX_VERSION=\"TKG\"|${_prefix_version}|" "proton_tkg_$_protontkg_version/proton"
+
     # Patch our proton script to make use of the steam helper on 4.0+
     if [[ $_proton_branch != proton_3.* ]] && [ "$_proton_use_steamhelper" == "true" ]; then
       cd "$_nowhere/proton_tkg_$_protontkg_version"
