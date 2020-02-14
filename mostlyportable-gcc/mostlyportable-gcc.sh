@@ -341,6 +341,9 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         install -Dm644 ${_nowhere}/build/dummy/pthread_unistd.h ${_dstdir}/${_target}/include/pthread_unistd.h
       done
 
+      # Use a separate src dir for mingw-w64-gcc-base
+      cp -r ${_nowhere}/build/gcc ${_nowhere}/build/gcc.base
+
       # mingw-w64-gcc-base
       if [ $_dwarf2 == "true" ]; then
         _exceptions_args="--disable-sjlj-exceptions --with-dwarf2"
@@ -348,13 +351,13 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         _exceptions_args="--disable-dw2-exceptions"
       fi
       #do not install libiberty
-      sed -i 's/install_to_$(INSTALL_DEST) //' ${_nowhere}/build/gcc/libiberty/Makefile.in
+      sed -i 's/install_to_$(INSTALL_DEST) //' ${_nowhere}/build/gcc.base/libiberty/Makefile.in
       # hack! - some configure tests for header files using "$CPP $CPPFLAGS"
-      sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" ${_nowhere}/build/gcc/{libiberty,gcc}/configure
+      sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" ${_nowhere}/build/gcc.base/{libiberty,gcc}/configure
       for _target in ${_targets}; do
         echo -e "Building ${_target} GCC C compiler"
         mkdir -p ${_nowhere}/build/gcc-base-${_target} && cd ${_nowhere}/build/gcc-base-${_target}
-        PATH=${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH} ${_nowhere}/build/gcc/configure \
+        PATH=${_path_hack} ${_nowhere}/build/gcc.base/configure \
           --target=${_target} \
           --enable-languages=c,lto \
           --with-system-zlib \
@@ -378,7 +381,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         cd ${_nowhere}/build/gcc-base-${_target}
         make install-gcc
         strip ${_dstdir}/bin/${_target}-* || true
-        strip ${_dstdir}/libexec/gcc/${_target}/${_gcc_version}/{cc1,collect2,lto*} || true
+        strip ${_dstdir}/libexec/gcc.base/${_target}/${_gcc_version}/{cc1,collect2,lto*} || true
       done
 
       # mingw-w64-crt
