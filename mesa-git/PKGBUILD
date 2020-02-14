@@ -39,7 +39,7 @@ if [ -n "$_mesa_commit" ]; then
 fi
 
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.1.0_devel.120096.286141197da
+pkgver=20.1.0_devel.120142.334788d4cc9
 pkgrel=1
 arch=('x86_64')
 makedepends=('git' 'python-mako' 'xorgproto' 'libxml2' 'libx11' 'libvdpau' 'libva' 'elfutils'
@@ -274,15 +274,21 @@ prepare() {
 }
 
 build () {
-    export CC="gcc"
-    export CXX="g++"
     if [ -n "$_custom_opt_flags" ]; then
-      export CC="${CC} ${_custom_opt_flags}"
-      export CXX="${CXX} ${_custom_opt_flags}"
+      export CFLAGS="${CFLAGS} ${_custom_opt_flags}"
+      export CPPFLAGS="${CPPFLAGS} ${_custom_opt_flags}"
+      export CXXFLAGS="${CXXFLAGS} ${_custom_opt_flags}"
+    fi
+    if [ "$_no_lto" == "true" ]; then
+      export _no_lto="-D b_lto=false"
+    else
+      export _no_lto=""
     fi
 
+    export CC="gcc"
+    export CXX="g++"
+
     arch-meson $_mesa_srcdir _build64 \
-       -D b_lto=false \
        -D b_ndebug=true \
        -D platforms=x11,wayland,drm,surfaceless \
        -D dri-drivers=${_dri_drivers} \
@@ -311,7 +317,7 @@ build () {
        -D osmesa=gallium \
        -D shared-glapi=true \
        -D opengl=true \
-       -D valgrind=true
+       -D valgrind=true $_no_lto
        
     meson configure _build64
     ninja  $NINJAFLAGS -C _build64
@@ -327,16 +333,11 @@ build () {
       cd "$srcdir"
       export CC="gcc -m32"
       export CXX="g++ -m32"
-      if [ -n "$_custom_opt_flags" ]; then
-        export CC="${CC} ${_custom_opt_flags}"
-        export CXX="${CXX} ${_custom_opt_flags}"
-      fi
       export PKG_CONFIG=/usr/bin/i686-pc-linux-gnu-pkg-config
 
       arch-meson $_mesa_srcdir _build32 \
           --native-file llvm32.native \
           --libdir=/usr/lib32 \
-          -D b_lto=false \
           -D b_ndebug=true \
           -D platforms=x11,wayland,drm,surfaceless \
           -D dri-drivers=${_dri_drivers} \
@@ -363,7 +364,7 @@ build () {
           -D lmsensors=true \
           -D osmesa=gallium \
           -D shared-glapi=true \
-          -D valgrind=false
+          -D valgrind=false $_no_lto
        
       meson configure _build32
       ninja $NINJAFLAGS -C _build32
