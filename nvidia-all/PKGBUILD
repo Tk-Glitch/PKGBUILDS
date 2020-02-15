@@ -866,7 +866,7 @@ nvidia-utils-tkg() {
 
     # Distro-specific files must be installed in /usr/share/X11/xorg.conf.d
     if [ "$_PRIME_render_offload" == "true" ]; then
-      sed -i 's/Option "PrimaryGPU" "yes"//d' "$srcdir"/10-nvidia-drm-outputclass.conf
+      sed -i '/Option "PrimaryGPU" "yes"/d' "$srcdir"/10-nvidia-drm-outputclass.conf
     fi
     install -Dm644 "$srcdir"/10-nvidia-drm-outputclass.conf "$pkgdir"/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf
 
