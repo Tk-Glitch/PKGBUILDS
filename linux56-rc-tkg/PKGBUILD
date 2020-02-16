@@ -87,7 +87,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.6
-_sub=rc1
+_sub=rc2
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 pkgdesc='Linux-tkg'
@@ -128,7 +128,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         #0012-linux-hardened.patch
         0013-tp_smapi_ec.patch
 )
-sha256sums=('90fe415a663ba182763ba0dd4153caf3aab512bdd5357a9499c7c6dc7fab27c7'
+sha256sums=('37cbd2341d7d27188ae2de4c676bf614d1d55b42467e36187189e5b21bd26dac'
             '8c06f4f3544e88662e4c12c63bf7ab8e691454459a64aa8c3b2712341630ab93'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
@@ -136,7 +136,7 @@ sha256sums=('90fe415a663ba182763ba0dd4153caf3aab512bdd5357a9499c7c6dc7fab27c7'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             'c605f638d74c61861ebdc36ebd4cb8b6475eae2f6273e1ccb2bbb3e10a2ec3fe'
             'bc69d6e5ee8172b0242c8fa72d13cfe2b8d2b6601468836908a7dfe8b78a3bbb'
-            'c47d6ac2a0003776981300fe3af3c7c6fa0f363eb2b139c0071d50515781db8e'
+            'd0509062a9939cc3a59c86b34a77b9d428dcea344a53a84e2cddd3d48a21591d'
             '62496f9ca788996181ef145f96ad26291282fcc3fb95cdc04080dcf84365be33'
             '7fd8e776209dac98627453fda754bdf9aff4a09f27cb0b3766d7983612eb3c74'
             '5255ec9387d85a1e1f50b5d7f6ac9983111b31f6e437153b7fab49bb31fdf000'
@@ -227,7 +227,7 @@ prepare() {
 
   patch -Np1 -i ../0003-glitched-base.patch
 
-  if [ "${_tp_smapi_ec}" != "false"]; then
+  if [ "${_tp_smapi_ec}" != "false" ]; then
     patch -Np1 -i ../0013-tp_smapi_ec.patch
   fi
 
