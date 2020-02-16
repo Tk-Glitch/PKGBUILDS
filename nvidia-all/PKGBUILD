@@ -257,7 +257,7 @@ prepare() {
   fi
   
   # 440.58.01 Unfrogging
-  if [[ $pkgver = 440.58.01 ]]; then# 440.58.01 Unfrogging
+  if [[ $pkgver = 440.58.01 ]]; then
     sed -i -e '/bug/d' nvidia-application-profiles-440.58.01-rc
   fi
 
