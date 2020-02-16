@@ -11322,7 +11322,7 @@ index 000000000000..cf655482df00
 +#endif /* CONFIG_CPU_FREQ */
 +
 +static __always_inline
-+unsigned int uclamp_util_with(struct rq __maybe_unused *rq, unsigned int util,
++unsigned int uclamp_rq_util_with(struct rq __maybe_unused *rq, unsigned int util,
 +			      struct task_struct __maybe_unused *p)
 +{
 +	return util;
