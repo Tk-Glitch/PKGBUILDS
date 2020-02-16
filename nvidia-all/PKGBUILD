@@ -255,6 +255,11 @@ prepare() {
   if [[ $pkgver = 440.26 ]]; then
     sed -i -e 's|$CC $CFLAGS -c conftest_headers$$.c|LC_ALL=C $CC $CFLAGS -c conftest_headers$$.c|g' kernel/conftest.sh
   fi
+  
+  # 440.58.01 Unfrogging
+  if [[ $pkgver = 440.58.01 ]]; then# 440.58.01 Unfrogging
+    sed -i -e '/bug/d' nvidia-application-profiles-440.58.01-rc
+  fi
 
   cp -a kernel kernel-dkms
   cd kernel-dkms
