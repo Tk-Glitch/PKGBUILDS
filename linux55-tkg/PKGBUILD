@@ -870,9 +870,11 @@ prepare() {
       fi
       if [ -z "$_diffconfig_name" ]; then
         echo 'No file name given, not generating config fragment.'
-      else
-        ( cd "$_where"; "${srcdir}/linux-${_basekernel}/scripts/diffconfig" -m "${srcdir}/linux-${_basekernel}/.config.orig" "${srcdir}/linux-${_basekernel}/.config" > "$_diffconfig_name" )
-      fi
+      else (
+        prev_pwd="${PWD:-$(pwd)}"
+        cd "$_where"
+        "${prev_pwd}/scripts/diffconfig" -m "${prev_pwd}/.config.orig" "${prev_pwd}/.config" > "$_diffconfig_name"
+      ) fi
     fi
     rm .config.orig
   fi
