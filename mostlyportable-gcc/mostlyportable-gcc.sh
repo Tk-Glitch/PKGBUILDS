@@ -101,11 +101,6 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
   trap _exit_cleanup EXIT
 
-  _makeandinstall() {
-    schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) || make -j$(nproc)
-    make install
-  }
-
   _init() {
     mkdir -p ${_nowhere}/build
 
@@ -214,6 +209,11 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
   }
 
+  _makeandinstall() {
+    PATH=${_path_hack} schedtool -B -n 1 -e ionice -n 1 make -j$(nproc) || PATH=${_path_hack} make -j$(nproc)
+    PATH=${_path_hack} make install
+  }
+
   _build() {
     # Clear dstdir before building
     echo -e "Cleaning up..."
@@ -301,12 +301,12 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           --disable-werror \
           --prefix=${_dstdir} \
           ${_commonconfig}
-         make -j$(nproc) || exit 1
+        PATH=${_path_hack} make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} cross binutils"
         cd ${_nowhere}/build/binutils-${_target}
-        make install
+        PATH=${_path_hack} make install
       done
 
       # mingw-w64-headers
@@ -318,12 +318,12 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           --enable-secure-api \
           --host=${_target} \
           --prefix=${_dstdir}/${_target}
-        make || exit 1
+        PATH=${_path_hack} make || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} headers"
         cd ${_nowhere}/build/headers-${_target}
-        make install
+        PATH=${_path_hack} make install
         rm ${_dstdir}/${_target}/include/pthread_signal.h
         rm ${_dstdir}/${_target}/include/pthread_time.h
         rm ${_dstdir}/${_target}/include/pthread_unistd.h
@@ -374,12 +374,12 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           ${_exceptions_args} \
           ${_commonconfig} \
           ${_libelf_flag}
-        make -j$(nproc) all-gcc || exit 1
+        PATH=${_path_hack} make -j$(nproc) all-gcc || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} GCC C compiler"
         cd ${_nowhere}/build/gcc-base-${_target}
-        make install-gcc
+        PATH=${_path_hack} make install-gcc
         strip ${_dstdir}/bin/${_target}-* || true
         strip ${_dstdir}/libexec/gcc.base/${_target}/${_gcc_version}/{cc1,collect2,lto*} || true
       done
@@ -398,12 +398,12 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           --enable-wildcard \
           ${_crt_configure_args} \
           --prefix=${_dstdir}/${_target}
-        make -j$(nproc) || exit 1
+        PATH=${_path_hack} make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
         echo -e "Installing ${_target} crt"
         cd ${_nowhere}/build/crt-${_target}
-        make install
+        PATH=${_path_hack} make install
       done
 
       # mingw-w64-winpthreads
@@ -414,11 +414,11 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
           --host=${_target} \
           --prefix=${_dstdir}/${_target} \
           ${_commonconfig}
-        make -j$(nproc) || exit 1
+        PATH=${_path_hack} make -j$(nproc) || exit 1
       done
       for _target in ${_targets}; do
         cd  ${_nowhere}/build/winpthreads-build-${_target}
-        make install
+        PATH=${_path_hack} make install
         ${_target}-strip --strip-unneeded ${_dstdir}/${_target}/bin/*.dll  || true
       done
 
@@ -467,7 +467,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       done
       for _target in ${_targets}; do
         cd ${_nowhere}/build/gcc-build-${_target}
-        make install
+        PATH=${_path_hack} make install
         ${_target}-strip ${_dstdir}/${_target}/lib/*.dll || true
         strip ${_dstdir}/bin/${_target}-*
         if [ $_fortran == "false" ]; then
