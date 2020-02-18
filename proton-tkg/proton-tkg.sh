@@ -6,6 +6,9 @@
 # It is not standalone and can be considered an addon to wine-tkg-git PKGBUILD and patchsets.
 
 # You can use the uninstall feature by calling the script with "clean" as argument : ./proton-tkg.sh clean
+# You can run the vrclient building alone with : ./proton-tkg.sh build_vrclient
+# You can run the lsteamclient building alone with : ./proton-tkg.sh build_lsteamclient
+# You can run the steamhelper building alone with : ./proton-tkg.sh build_steamhelper
 
 set -e
 
@@ -54,6 +57,97 @@ cat <<'EOF'
 Also known as "Some kind of build wrapper for wine-tkg-git"
 
 EOF
+
+function build_vrclient {
+  cd "$_nowhere"/Proton
+  git clone https://github.com/ValveSoftware/openvr.git || true # It'll complain the path already exists on subsequent builds
+  cd openvr
+  git reset --hard HEAD
+  git clean -xdf
+  git pull
+  #git checkout 52065df3d6f3af96300dac98cdf7397f26abfcd7
+  cd ..
+
+  export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -I$_nowhere/proton_dist_tmp/include/wine/"
+  export CFLAGS="-O2 -g"
+  export CXXFLAGS="-Wno-attributes -std=c++0x -O2 -g"
+  PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
+
+  mkdir -p build/vrclient.win64
+  mkdir -p build/vrclient.win32
+
+  cp -a vrclient_x64/* build/vrclient.win64
+  cp -a vrclient_x64/* build/vrclient.win32 && mv build/vrclient.win32/vrclient_x64 build/vrclient.win32/vrclient && mv build/vrclient.win32/vrclient/vrclient_x64.spec build/vrclient.win32/vrclient/vrclient.spec
+
+  cd build/vrclient.win64
+  winemaker $WINEMAKERFLAGS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" -I"$_nowhere/Proton/build/vrclient.win64/vrclient_x64/" -I"$_nowhere/Proton/build/vrclient.win64/" vrclient_x64
+  make -C "$_nowhere/Proton/build/vrclient.win64/vrclient_x64" -j$(nproc) && strip vrclient_x64/vrclient_x64.dll.so
+  winebuild --dll --fake-module -E "$_nowhere/Proton/build/vrclient.win64/vrclient_x64/vrclient_x64.spec" -o vrclient_x64.dll.fake
+  cd ../..
+
+  cd build/vrclient.win32
+  winemaker $WINEMAKERFLAGS --wine32 -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" -I"$_nowhere/Proton/build/vrclient.win32/vrclient/" -I"$_nowhere/Proton/build/vrclient.win32/" vrclient
+  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/vrclient.win32/vrclient" -j$(nproc) && strip vrclient/vrclient.dll.so
+  winebuild --dll --fake-module -E "$_nowhere/Proton/build/vrclient.win32/vrclient/vrclient.spec" -o vrclient.dll.fake
+  cd $_nowhere
+
+  # Inject vrclient & openvr libs in our wine-tkg-git build
+  cp -v Proton/build/vrclient.win64/vrclient_x64/vrclient_x64.dll.so proton_dist_tmp/lib64/wine/ && cp -v Proton/build/vrclient.win64/vrclient_x64.dll.fake proton_dist_tmp/lib64/wine/fakedlls/vrclient_x64.dll
+  cp -v Proton/build/vrclient.win32/vrclient/vrclient.dll.so proton_dist_tmp/lib/wine/ && cp -v Proton/build/vrclient.win32/vrclient.dll.fake proton_dist_tmp/lib/wine/fakedlls/vrclient.dll
+
+  cp -v Proton/openvr/bin/win32/openvr_api.dll proton_dist_tmp/lib/wine/dxvk/openvr_api_dxvk.dll
+  cp -v Proton/openvr/bin/win64/openvr_api.dll proton_dist_tmp/lib64/wine/dxvk/openvr_api_dxvk.dll
+}
+
+function build_lsteamclient {
+  cd "$_nowhere"/Proton
+  export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
+  export CFLAGS="-O2 -g"
+  export CXXFLAGS="-fpermissive -Wno-attributes -O2 -g"
+  export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
+
+  mkdir -p build/lsteamclient.win64
+  mkdir -p build/lsteamclient.win32
+
+  cp -a lsteamclient/* build/lsteamclient.win64
+  cp -a lsteamclient/* build/lsteamclient.win32
+
+  cd build/lsteamclient.win64
+  winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" .
+  make -C "$_nowhere/Proton/build/lsteamclient.win64" -j$(nproc) && strip lsteamclient.dll.so
+  cd ../..
+
+  cd build/lsteamclient.win32
+  winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" .
+  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/lsteamclient.win32" -j$(nproc) && strip lsteamclient.dll.so
+  cd $_nowhere
+
+  # Inject lsteamclient libs in our wine-tkg-git build
+  cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
+  cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
+}
+
+function build_steamhelper {
+  if [[ $_proton_branch != proton_3.* ]]; then
+    mkdir -p Proton/build/steam.win32
+    cp -a Proton/steam_helper/* Proton/build/steam.win32
+    cd Proton/build/steam.win32
+
+    if [ "$_proton_branch" == "proton_4.2" ]; then
+      export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
+    else
+      export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
+    fi
+
+    winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -lole32 -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
+    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" -j$(nproc) && strip steam.exe.so
+    cd $_nowhere
+
+    # Inject steam helper winelib and libsteam_api lib in our wine-tkg-git build
+    cp -v Proton/build/steam.win32/steam.exe.so proton_dist_tmp/lib/wine/
+    cp -v Proton/build/steam.win32/libsteam_api.so proton_dist_tmp/lib/
+  fi
+}
 
 function steam_is_running {
   if pgrep -x steam >/dev/null; then
@@ -124,6 +218,12 @@ function proton_tkg_uninstaller {
 
 if [ "$1" == "clean" ]; then
   proton_tkg_uninstaller
+elif [ "$1" == "build_vrclient" ]; then
+  build_vrclient
+elif [ "$1" == "build_lsteamclient" ]; then
+  build_lsteamclient
+elif [ "$1" == "build_steamhelper" ]; then
+  build_steamhelper
 else
   rm -rf "$_nowhere"/proton_dist_tmp
 
@@ -194,93 +294,15 @@ else
 
     # Build vrclient libs
     if [ "$_steamvr_support" == "true" ]; then
-      git clone https://github.com/ValveSoftware/openvr.git || true # It'll complain the path already exists on subsequent builds
-      cd openvr
-      git reset --hard HEAD
-      git clean -xdf
-      git pull
-      #git checkout 52065df3d6f3af96300dac98cdf7397f26abfcd7
-      cd ..
-
-      export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -I$_nowhere/proton_dist_tmp/include/wine/"
-      export CFLAGS="-O2 -g"
-      export CXXFLAGS="-Wno-attributes -std=c++0x -O2 -g"
-      PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
-
-      mkdir -p build/vrclient.win64
-      mkdir -p build/vrclient.win32
-
-      cp -a vrclient_x64/* build/vrclient.win64
-      cp -a vrclient_x64/* build/vrclient.win32 && mv build/vrclient.win32/vrclient_x64 build/vrclient.win32/vrclient && mv build/vrclient.win32/vrclient/vrclient_x64.spec build/vrclient.win32/vrclient/vrclient.spec
-
-      cd build/vrclient.win64
-      winemaker $WINEMAKERFLAGS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" -I"$_nowhere/Proton/build/vrclient.win64/vrclient_x64/" -I"$_nowhere/Proton/build/vrclient.win64/" vrclient_x64
-      make -C "$_nowhere/Proton/build/vrclient.win64/vrclient_x64" -j$(nproc) && strip vrclient_x64/vrclient_x64.dll.so
-      winebuild --dll --fake-module -E "$_nowhere/Proton/build/vrclient.win64/vrclient_x64/vrclient_x64.spec" -o vrclient_x64.dll.fake
-      cd ../..
-
-      cd build/vrclient.win32
-      winemaker $WINEMAKERFLAGS --wine32 -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" -I"$_nowhere/Proton/build/vrclient.win32/vrclient/" -I"$_nowhere/Proton/build/vrclient.win32/" vrclient
-      make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/vrclient.win32/vrclient" -j$(nproc) && strip vrclient/vrclient.dll.so
-      winebuild --dll --fake-module -E "$_nowhere/Proton/build/vrclient.win32/vrclient/vrclient.spec" -o vrclient.dll.fake
-      cd $_nowhere
-
-      # Inject vrclient & openvr libs in our wine-tkg-git build
-      cp -v Proton/build/vrclient.win64/vrclient_x64/vrclient_x64.dll.so proton_dist_tmp/lib64/wine/ && cp -v Proton/build/vrclient.win64/vrclient_x64.dll.fake proton_dist_tmp/lib64/wine/fakedlls/vrclient_x64.dll
-      cp -v Proton/build/vrclient.win32/vrclient/vrclient.dll.so proton_dist_tmp/lib/wine/ && cp -v Proton/build/vrclient.win32/vrclient.dll.fake proton_dist_tmp/lib/wine/fakedlls/vrclient.dll
-
-      cp -v Proton/openvr/bin/win32/openvr_api.dll proton_dist_tmp/lib/wine/dxvk/openvr_api_dxvk.dll
-      cp -v Proton/openvr/bin/win64/openvr_api.dll proton_dist_tmp/lib64/wine/dxvk/openvr_api_dxvk.dll
-
+      build_vrclient
       cd Proton
     fi
 
     # Build lsteamclient libs
-    export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
-    export CFLAGS="-O2 -g"
-    export CXXFLAGS="-fpermissive -Wno-attributes -O2 -g"
-    export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
-
-    mkdir -p build/lsteamclient.win64
-    mkdir -p build/lsteamclient.win32
-
-    cp -a lsteamclient/* build/lsteamclient.win64
-    cp -a lsteamclient/* build/lsteamclient.win32
-
-    cd build/lsteamclient.win64
-    winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" .
-    make -C "$_nowhere/Proton/build/lsteamclient.win64" -j$(nproc) && strip lsteamclient.dll.so
-    cd ../..
-
-    cd build/lsteamclient.win32
-    winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" .
-    make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/lsteamclient.win32" -j$(nproc) && strip lsteamclient.dll.so
-    cd $_nowhere
-
-    # Inject lsteamclient libs in our wine-tkg-git build
-    cp -v Proton/build/lsteamclient.win64/lsteamclient.dll.so proton_dist_tmp/lib64/wine/
-    cp -v Proton/build/lsteamclient.win32/lsteamclient.dll.so proton_dist_tmp/lib/wine/
+    build_lsteamclient
 
     # Build steam helper
-    if [[ $_proton_branch != proton_3.* ]]; then
-      mkdir -p Proton/build/steam.win32
-      cp -a Proton/steam_helper/* Proton/build/steam.win32
-      cd Proton/build/steam.win32
-
-      if [ "$_proton_branch" == "proton_4.2" ]; then
-        export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
-      else
-        export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
-      fi
-
-      winemaker $WINEMAKERFLAGS --guiexe -lsteam_api -lole32 -I"$_nowhere/Proton/build/lsteamclient.win32/steamworks_sdk_142/" -L"$_nowhere/Proton/steam_helper" .
-      make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/steam.win32" -j$(nproc) && strip steam.exe.so
-      cd $_nowhere
-
-      # Inject steam helper winelib and libsteam_api lib in our wine-tkg-git build
-      cp -v Proton/build/steam.win32/steam.exe.so proton_dist_tmp/lib/wine/
-      cp -v Proton/build/steam.win32/libsteam_api.so proton_dist_tmp/lib/
-    fi
+    build_steamhelper
 
     # dxvk
     if [ "$_use_dxvk" != "false" ]; then
