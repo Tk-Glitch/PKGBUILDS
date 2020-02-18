@@ -185,6 +185,9 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       if [[ "$_binutils" = 2.33* ]]; then
         wget -c -O proton_binutils1.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0001.patch
         wget -c -O proton_binutils2.binutilspatch https://raw.githubusercontent.com/ValveSoftware/Proton/3ad34a0b3f41bac60caea39c742de69cb0e50895/mingw-w64-patches/binutils-0002.patch
+        if [ "$_valve_patches" == "true" ]; then
+          mv ${_nowhere}/build/proton_binutils* ${_nowhere}/
+        fi
       fi
       _path_hack="${_dstdir}/i686-w64-mingw32:${_dstdir}/x86_64-w64-mingw32:${_dstdir}/libexec:${_dstdir}/bin:${_dstdir}/lib:${_dstdir}/include:${PATH}"
     else
@@ -197,10 +200,6 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
     _userpatch_ext="gcc"
     cd ${_nowhere}/build/gcc
     user_patcher
-
-    if [ "$_valve_patches" == "true" ]; then
-      mv ${_nowhere}/build/proton_binutils* ${_nowhere}/
-    fi
 
     _userpatch_target="binutils"
     _userpatch_ext="binutils"
