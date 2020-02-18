@@ -431,17 +431,19 @@ else
       # Get rid of the token
       rm -f proton_tkg_token
 
-      mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
-      echo "####################################################################################################"
-      echo ""
-      echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
-      echo ""
-      echo "####################################################################################################"
-      if [ "$_skip_uninstaller" != "true" ]; then
+      if [ "$_no_autoinstall" != "true" ]; then
+        mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
+        echo "####################################################################################################"
         echo ""
-        read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
-        if [ "$_ask_uninstall" == "y" ]; then
-          proton_tkg_uninstaller
+        echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
+        echo ""
+        echo "####################################################################################################"
+        if [ "$_skip_uninstaller" != "true" ]; then
+          echo ""
+          read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
+          if [ "$_ask_uninstall" == "y" ]; then
+            proton_tkg_uninstaller
+          fi
         fi
       fi
     fi
