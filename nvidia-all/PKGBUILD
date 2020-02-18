@@ -144,7 +144,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=93
+pkgrel=94
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -186,6 +186,7 @@ source=($_source_name
         'kernel-5.4-prime.diff' # 5.4+ PRIME fixing attempt
         'kernel-5.5.patch' # 5.5 workaround
         'kernel-5.6.patch' # 5.6 workaround
+        '5.6-legacy-includes.diff' # 5.6 includes needed for <440.59(stable) and <440.58.01(vk dev)
 )
 
 msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
@@ -208,7 +209,8 @@ md5sums=("$_md5sum"
          '0d9aa49647cc73a4522246cc22ae15e1'
          'e6270c2d19afd982efc92bdecd9f48f0'
          '1c1966d6ee6f3cd381ebcc92f1488c68'
-         'd87e27703e0a6d86ef6b910c68b085bc')
+         'd87e27703e0a6d86ef6b910c68b085bc'
+         '84dc2d2eff2846b2f961388b153e2a89')
 
 if [ $_autoaddpatch == "true" ]; then
   # Auto-add *.patch files from $startdir to source=()
@@ -403,6 +405,12 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     if (( $(vercmp "$_kernel" "5.6") >= 0 )); then
       _kernel56="1"
       _whitelist56=( 396* 410* 415* 418* 430* 435* 440* )
+      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.4* ]]; then
+        cd "$srcdir"/"$_pkg"/kernel-$_kernel
+        msg2 "Applying 5.6-legacy-includes.diff for $_kernel..."
+        patch -Np2 -i "$srcdir"/5.6-legacy-includes.diff
+        cd ..
+      fi
     fi
 
     # Loop patches (linux-4.15.patch, lol.patch, ...)
@@ -605,6 +613,10 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
         patch -Np1 -i "$srcdir"/kernel-5.6.patch
       else
         msg2 "Skipping kernel-5.6.patch as it doesn't apply to this driver version..."
+      fi
+      if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.4* ]]; then
+        msg2 "Applying 5.6-legacy-includes.diff for dkms..."
+        patch -Np1 -i "$srcdir"/5.6-legacy-includes.diff
       fi
     fi
 
