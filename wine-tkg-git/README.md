@@ -1,18 +1,14 @@
 # Wine to rule them all !
 
-## DO NOT REPORT BUGS ENCOUNTERED WITH CUSTOM BUILDS AT WINEHQ, REPORT HERE INSTEAD !
+## PLEASE DO NOT REPORT BUGS ENCOUNTERED WITH CUSTOM BUILDS AT WINEHQ, REPORT HERE INSTEAD !
 
-This pkgbuild allows you to create custom wine builds using an opt-in mechanism (by editing the customization.cfg file). You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about.
+Wine-tkg is a build-system aiming at easier custom wine builds creation. You can now easily get the "plain wine + pba + steam fix" build you've been dreaming about!
 
-You can now turn your wine-tkg-git builds to Steamplay compatible and use them directly from Steam! - https://github.com/Tk-Glitch/PKGBUILDS/tree/master/proton-tkg
+You can also turn your wine-tkg-git builds to Steamplay compatible and use them directly from Steam! - https://github.com/Tk-Glitch/PKGBUILDS/tree/master/proton-tkg
 
-**Since this is a -git package, wine and wine-staging sources will be pulled from latest master branches by default. You can define specific releases commit in the cfg file if needed.**
+**Since this is a -git package, wine and wine-staging sources will be pulled from latest master branches by default. You can define specific releases commit in the .cfg file if needed.**
 
-*Can be built with VKD3D for D3D12 support (using https://github.com/Tk-Glitch/PKGBUILDS/tree/master/vkd3d-git is recommended)* - https://source.winehq.org/git/vkd3d.git
-
-*Can be built with Faudio (requires both faudio and lib32-faudio packages installed)* - https://github.com/FNA-XNA/FAudio
-
-**Can also be built with your own patches - See [README in ./wine-tkg-userpatches](wine-tkg-userpatches/README.md) for instructions**
+**Can be built with your own patches - See [README in ./wine-tkg-userpatches](wine-tkg-userpatches/README.md) for instructions**
 
 Wine : https://github.com/wine-mirror/wine
 
@@ -43,11 +39,16 @@ With other patches available such as (but not limited to - see [customization.cf
 - Bypass compositor in fullscreen mode
 - Proton Fullscreen hack (Allows resolution changes for fullscreen games without changing desktop resolution)
 - Plasma 5 systray fix
+- (...)
+
+And a selection of staging, experimental and/or hacky patches [in the community-patches](https://github.com/Tk-Glitch/PKGBUILDS/tree/master/community-patches/wine-tkg-git)
 
 For Gallium 9 support, use https://github.com/iXit/wine-nine-standalone (available from winetricks and AUR) - Legacy nine support can still be turned on if you're building a 4.1 base or older.
 
 
 # Quick how-to :
+
+(for dependencies, see the [wiki page](https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git) )
 
 ## Download the source :
 
@@ -60,7 +61,7 @@ git clone https://github.com/Tk-Glitch/PKGBUILDS.git
 
 ## Building on Arch (and other pacman/makepkg distros) :
 
-From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
+ * From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
 ```
 makepkg -si
 ```
@@ -68,7 +69,7 @@ makepkg -si
 
 ## Building on other distros (experimental - see [the comments inside the script for more details](non-makepkg-build.sh) ) :
 
-From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
+ * From the `wine-tkg-git` directory (where the PKGBUILD is located), run the following command in a terminal to start the building process :
 ```
 ./non-makepkg-build.sh
 ```
