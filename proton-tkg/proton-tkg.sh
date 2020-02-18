@@ -418,20 +418,20 @@ else
     cd $_nowhere
 
     if [ "$_ispkgbuild" != "true" ]; then
-      steam_is_running
-
-      # Create custom compat tools dir if needed
-      mkdir -p "$_steampath/compatibilitytools.d"
-
-      # Nuke same version if exists before copying new build
-      if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
-        rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
-      fi
-
-      # Get rid of the token
-      rm -f proton_tkg_token
-
       if [ "$_no_autoinstall" != "true" ]; then
+        steam_is_running
+
+        # Create custom compat tools dir if needed
+        mkdir -p "$_steampath/compatibilitytools.d"
+
+        # Nuke same version if exists before copying new build
+        if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
+          rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
+        fi
+
+        # Get rid of the token
+        rm -f proton_tkg_token
+
         mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
         echo "####################################################################################################"
         echo ""
