@@ -342,6 +342,9 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
 
       # Use a separate src dir for mingw-w64-gcc-base
       cp -r ${_nowhere}/build/gcc ${_nowhere}/build/gcc.base
+      # glibc-2.31 workaround
+      sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
+      sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc.base/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
 
       # mingw-w64-gcc-base
       if [ $_dwarf2 == "true" ]; then
@@ -519,6 +522,8 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       mkdir -p ${_nowhere}/build/gcc_build && cd ${_nowhere}/build/gcc_build
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/"  ${_nowhere}/build/gcc/{libiberty,gcc}/configure
+      # glibc-2.31 workaround
+      sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
       PATH=${_path_hack} ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
         --disable-bootstrap \
