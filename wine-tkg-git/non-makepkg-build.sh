@@ -92,53 +92,55 @@ _nomakepkgsrcinit() {
     fi
   fi
 
-  $( find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "$_where" \; ) # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
-  $( find "$_where"/wine-tkg-userpatches -type f -name "*.my*" -exec cp -n {} "$_where" \; ) # copy userpatches inside the PKGBUILD's dir
+  if [ "$_NUKR" != "debug" ]; then
+    $( find "$_where"/wine-tkg-patches -type f -not -path "*hotfixes*" -exec cp -n {} "$_where" \; ) # copy patches inside the PKGBUILD's dir to preserve makepkg sourcing and md5sum checking
+    $( find "$_where"/wine-tkg-userpatches -type f -name "*.my*" -exec cp -n {} "$_where" \; ) # copy userpatches inside the PKGBUILD's dir
 
 
-  ## Handle git repos similarly to makepkg to preserve repositories when building both with and without makepkg on Arch
-  # Wine source
-  cd "$_where"
-  git clone --mirror "${_winesrctarget}" "$_winesrcdir" || true
+    ## Handle git repos similarly to makepkg to preserve repositories when building both with and without makepkg on Arch
+    # Wine source
+    cd "$_where"
+    git clone --mirror "${_winesrctarget}" "$_winesrcdir" || true
 
-  # Wine staging source
-  if [ "$_use_staging" == "true" ]; then
-    git clone --mirror https://github.com/wine-staging/wine-staging.git "$_stgsrcdir" || true
-  fi
+    # Wine staging source
+    if [ "$_use_staging" == "true" ]; then
+      git clone --mirror https://github.com/wine-staging/wine-staging.git "$_stgsrcdir" || true
+    fi
 
-  pushd "$srcdir" &>/dev/null
+    pushd "$srcdir" &>/dev/null
 
-  # Wine staging update and checkout
-  if [ "$_use_staging" == "true" ]; then
-    cd "$_where"/"${_stgsrcdir}"
-    if [[ "https://github.com/wine-staging/wine-staging.git" != "$(git config --get remote.origin.url)" ]] ; then
-      echo "${_stgsrcdir} is not a clone of ${_stgsrcdir}. Please delete ${_winesrcdir} and src dirs and try again."
+    # Wine staging update and checkout
+    if [ "$_use_staging" == "true" ]; then
+      cd "$_where"/"${_stgsrcdir}"
+      if [[ "https://github.com/wine-staging/wine-staging.git" != "$(git config --get remote.origin.url)" ]] ; then
+        echo "${_stgsrcdir} is not a clone of ${_stgsrcdir}. Please delete ${_winesrcdir} and src dirs and try again."
+        exit 1
+      fi
+      git fetch --all -p
+      rm -rf "${srcdir}/${_stgsrcdir}" && git clone "$_where"/"${_stgsrcdir}" "${srcdir}/${_stgsrcdir}"
+      cd "${srcdir}"/"${_stgsrcdir}"
+      git checkout --force --no-track -B makepkg origin/HEAD
+      if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
+        git checkout "${_staging_version}"
+      fi
+    fi
+
+    # Wine update and checkout
+    cd "$_where"/"${_winesrcdir}"
+    if [[ "${_winesrctarget}" != "$(git config --get remote.origin.url)" ]] ; then
+      echo "${_winesrcdir} is not a clone of ${_winesrcdir}. Please delete ${_winesrcdir} and src dirs and try again."
       exit 1
     fi
     git fetch --all -p
-    rm -rf "${srcdir}/${_stgsrcdir}" && git clone "$_where"/"${_stgsrcdir}" "${srcdir}/${_stgsrcdir}"
-    cd "${srcdir}"/"${_stgsrcdir}"
+    rm -rf "${srcdir}/${_winesrcdir}" && git clone "$_where"/"${_winesrcdir}" "${srcdir}/${_winesrcdir}"
+    cd "${srcdir}"/"${_winesrcdir}"
     git checkout --force --no-track -B makepkg origin/HEAD
-    if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
-      git checkout "${_staging_version}"
+    if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ]; then
+      git checkout "${_plain_version}"
     fi
-  fi
 
-  # Wine update and checkout
-  cd "$_where"/"${_winesrcdir}"
-  if [[ "${_winesrctarget}" != "$(git config --get remote.origin.url)" ]] ; then
-    echo "${_winesrcdir} is not a clone of ${_winesrcdir}. Please delete ${_winesrcdir} and src dirs and try again."
-    exit 1
+    popd &>/dev/null
   fi
-  git fetch --all -p
-  rm -rf "${srcdir}/${_winesrcdir}" && git clone "$_where"/"${_winesrcdir}" "${srcdir}/${_winesrcdir}"
-  cd "${srcdir}"/"${_winesrcdir}"
-  git checkout --force --no-track -B makepkg origin/HEAD
-  if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ]; then
-    git checkout "${_plain_version}"
-  fi
-
-  popd &>/dev/null
 }
 
 nonuser_patcher() {
