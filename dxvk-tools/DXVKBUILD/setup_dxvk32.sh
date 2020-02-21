@@ -181,14 +181,16 @@ check)
     ;;
 esac
 
-echo '[1/5] dxgi:'
+echo '[1/6] dxgi:'
 $fun dxgi
-echo '[2/5] d3d10:'
+echo '[2/6] d3d10:'
 $fun d3d10
-echo '[3/5] d3d10_1:'
+echo '[3/6] d3d10_1:'
 $fun d3d10_1
-echo '[4/5] d3d10core:'
+echo '[4/6] d3d10core:'
 $fun d3d10core
-echo '[5/5] d3d11:'
+echo '[5/6] d3d11:'
 $fun d3d11
+echo '[6/6] d3d9:'
+$fun d3d9
 exit $ret
