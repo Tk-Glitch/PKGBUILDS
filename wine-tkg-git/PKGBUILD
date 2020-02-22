@@ -5,7 +5,7 @@ pkgver=5.2.r4.g1fe141dd
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=245
+eval pkgrel=246
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -277,16 +277,17 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		# proton
 		'FS_bypass_compositor.patch' # Perf
 		'FS_bypass_compositor-disabler.patch' # Disabler for the actual bypass
-		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack
-		'valve_proton_fullscreen_hack-staging-aee91dc.patch' # Proton FS hack (<aee91dc)
-		'valve_proton_fullscreen_hack-staging-7e736b5.patch' # Proton FS hack (<7e736b5)
-		'valve_proton_fullscreen_hack-staging-938dddf.patch' # Proton FS hack (<938dddf)
-		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501)
-		'valve_proton_fullscreen_hack-staging-82c6ec3.patch' # Proton FS hack (<82c6ec3)
-		'valve_proton_fullscreen_hack-staging-7cc69d7.patch' # Proton FS hack (<7cc69d7)
-		'valve_proton_fullscreen_hack-staging-0cb79db.patch' # Proton FS hack (<0cb79db)
-		'valve_proton_fullscreen_hack-staging-a4b9460.patch' # Proton FS hack (<a4b9460)
-		'valve_proton_fullscreen_hack-staging-57bb5cc.patch' # Proton FS hack (<57bb5cc)
+		'valve_proton_fullscreen_hack.patch' # Proton FS hack
+		'valve_proton_fullscreen_hack-staging.patch' # Proton FS hack (staging)
+		'valve_proton_fullscreen_hack-staging-aee91dc.patch' # Proton FS hack (<aee91dc) (staging)
+		'valve_proton_fullscreen_hack-staging-7e736b5.patch' # Proton FS hack (<7e736b5) (staging)
+		'valve_proton_fullscreen_hack-staging-938dddf.patch' # Proton FS hack (<938dddf) (staging)
+		'valve_proton_fullscreen_hack-staging-de64501.patch' # Proton FS hack (<de64501) (staging)
+		'valve_proton_fullscreen_hack-staging-82c6ec3.patch' # Proton FS hack (<82c6ec3) (staging)
+		'valve_proton_fullscreen_hack-staging-7cc69d7.patch' # Proton FS hack (<7cc69d7) (staging)
+		'valve_proton_fullscreen_hack-staging-0cb79db.patch' # Proton FS hack (<0cb79db) (staging)
+		'valve_proton_fullscreen_hack-staging-a4b9460.patch' # Proton FS hack (<a4b9460) (staging)
+		'valve_proton_fullscreen_hack-staging-57bb5cc.patch' # Proton FS hack (<57bb5cc) (staging)
 		'valve_proton_fullscreen_hack-staging-6e87235.patch' # Proton FS hack for <=3.16 masochists (<6e87235)
 		'valve_proton_fullscreen_hack_realmodes.patch' # Real modes listing in FS hack
 		'proton_fs_hack_integer_scaling.patch' # Integer scaling for FS hack
@@ -457,6 +458,7 @@ md5sums=('SKIP'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '684d1c60aa38a659b1dd792b1d7cd8f5'
+         '071276757548cbae5c16bdd74af81dbc'
          '22db41bac3c22331b30c6012f2275b2a'
          '7fe6635805c658f5e4ed658b5f535948'
          '1faa90447591467c690063fd00073b16'
