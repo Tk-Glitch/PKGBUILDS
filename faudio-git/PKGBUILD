@@ -33,7 +33,7 @@ if [ "$_lib32" == "true" ]; then
   pkgname=("${pkgname[@]}" "lib32-${_pkgname}-git")
 fi
 
-pkgver=20.02.r1.g5c377fb
+pkgver=20.02.r2.g9c7d2d1
 pkgrel=1
 pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
 arch=('i686' 'x86_64')
@@ -107,11 +107,6 @@ user_patcher() {
 
 prepare() {
   cd "$srcdir/${_gitname}"
-
-  msg "Cleaning source code tree..."
-  git reset --hard HEAD
-  git clean -xdf
-  git pull origin master
 
   # faudio user patches
   _userpatch_target="faudio"
@@ -238,6 +233,7 @@ function exit_cleanup {
 
 if [ $_NUKR == "true" ]; then
   # Sanitization
+  rm -rf "$srcdir"/"${_gitname}"
   rm -rf "$srcdir"/64
   rm -rf "$srcdir"/32
   rm -rf "$srcdir"/*.patch

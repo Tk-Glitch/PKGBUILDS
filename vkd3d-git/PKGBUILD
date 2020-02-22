@@ -138,10 +138,6 @@ prepare() {
 	rm -fv $_where/last_build_config.log
 	cd "${srcdir}/${_vkd3dsrcdir}"
 
-	git reset --hard HEAD
-	git clean -xdf
-	git fetch
-
 	# Community patches
 	if [ -n "$_community_patches" ]; then
 	  _community_patches=($_community_patches)
