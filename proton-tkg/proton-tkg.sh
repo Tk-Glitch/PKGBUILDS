@@ -39,6 +39,8 @@ else
     _config_file="$HOME/.local/share/Steam/config/config.vdf"
   elif [ -e "$_steampath/steam/config/config.vdf" ]; then
     _config_file="$_steampath/steam/config/config.vdf"
+  elif [ -e "$_steampath/config/config.vdf" ]; then
+    _config_file="$_steampath/config/config.vdf"
   else
     echo -e "Your Steam config file path wasn't found! Exiting.."
     exit
