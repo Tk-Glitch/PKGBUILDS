@@ -5,6 +5,9 @@ Subject: [PATCH] ntdll: Partially implement JobObjectBasicAccountingInformation.
 
 Signed-off-by: Derek Lesho <dlesho at codeweavers.com>
 ---
+v2:
+  - Fix a typo breaking the patch.
+---
  dlls/kernel32/tests/process.c |  9 +++++++++
  dlls/ntdll/sync.c             | 20 +++++++++++++++++---
  server/process.c              | 14 ++++++++++++++
@@ -39,7 +42,7 @@ index 323f8092d7..421d030e63 100644
      CloseHandle(pi[0].hProcess);
      CloseHandle(pi[0].hThread);
 diff --git a/dlls/ntdll/sync.c b/dlls/ntdll/sync.c
-index 2b5b6ce44a..d6f00237a5 100644
+index 2b5b6ce44a..69d6e60888 100644
 --- a/dlls/ntdll/sync.c
 +++ b/dlls/ntdll/sync.c
 @@ -694,7 +694,9 @@ NTSTATUS WINAPI NtTerminateJobObject( HANDLE handle, NTSTATUS status )
@@ -62,7 +65,7 @@ index 2b5b6ce44a..d6f00237a5 100644
 +            SERVER_START_REQ(get_job_info)
 +            {
 +                req->handle = wine_server_obj_handle( handle );
-+                if ((ret = wine_server_call( req ) == STATUS_SUCCESS))
++                if ((ret = wine_server_call( req )) == STATUS_SUCCESS)
 +                {
 +                    memset(accounting, 0, sizeof(*accounting));
 +                    accounting->TotalProcesses = reply->total_processes;
