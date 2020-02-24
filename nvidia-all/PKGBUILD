@@ -209,7 +209,7 @@ md5sums=("$_md5sum"
          '0d9aa49647cc73a4522246cc22ae15e1'
          'e6270c2d19afd982efc92bdecd9f48f0'
          '1c1966d6ee6f3cd381ebcc92f1488c68'
-         'ef5f4f1e16a1d898ef3981cf3c32abfa'
+         '354db7163cd19c99206bc710e4aad216'
          '84dc2d2eff2846b2f961388b153e2a89')
 
 if [ $_autoaddpatch == "true" ]; then

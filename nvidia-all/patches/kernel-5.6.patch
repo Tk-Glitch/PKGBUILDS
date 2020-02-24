@@ -339,7 +339,7 @@ diff --git a/kernel-dkms/common/inc/56rc3uglyhack.h b/kernel-dkms/common/inc/56r
 new file mode 100644
 index 0000000..389d02f
 --- /dev/null
-+++ b/56rc3uglyhack.h
++++ b/kernel-dkms/common/inc/56rc3uglyhack.h
 @@ -0,0 +1,80 @@
 +
 +typedef __kernel_long_t	__kernel_time_t;
