@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=proton-tkg-git
-pkgver=5.2.r160.ge7c735b825
+pkgver=5.2.r203.gb253bd6565
 pkgrel=1
 _frogwhere=$PWD
 export BUILDDIR="${_frogwhere}" # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
@@ -136,6 +136,7 @@ prepare() {
   ln -s -f "${_frogwhere}/proton_template" "${srcdir}/"
   ln -s -f "${_frogwhere}/proton-tkg.cfg" "${srcdir}/"
   ln -s -f "${_frogwhere}/proton-tkg.sh" "${srcdir}/"
+  ln -s -f "${_frogwhere}/proton-tkg-userpatches" "${srcdir}/"
 }
 
 build() {

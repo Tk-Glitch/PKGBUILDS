@@ -151,6 +151,50 @@ function build_steamhelper {
   fi
 }
 
+proton_patcher() {
+	local _patches=("$_nowhere"/proton-tkg-userpatches/*."${_userpatch_ext}revert")
+	if [ ${#_patches[@]} -ge 2 ] || [ -e "${_patches}" ]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
+	    echo "Found ${#_patches[@]} 'to revert' userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${_patches[@]}"
+	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
+	  fi
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
+	    for _f in "${_patches[@]}"; do
+	      if [ -e "${_f}" ]; then
+	        echo "######################################################"
+	        echo ""
+	        echo "Reverting your own ${_userpatch_target} patch ${_f}"
+	        echo ""
+	        echo "######################################################"
+	        patch -Np1 -R < "${_f}"
+	      fi
+	    done
+	  fi
+	fi
+
+	_patches=("$_nowhere"/proton-tkg-userpatches/*."${_userpatch_ext}patch")
+	if [ ${#_patches[@]} -ge 2 ] || [ -e "${_patches}" ]; then
+	  if [ "$_user_patches_no_confirm" != "true" ]; then
+	    echo "Found ${#_patches[@]} userpatches for ${_userpatch_target}:"
+	    printf '%s\n' "${_patches[@]}"
+	    read -rp "Do you want to install it/them? - Be careful with that ;)"$'\n> N/y : ' _CONDITION;
+	  fi
+	  if [ "$_CONDITION" == "y" ] || [ "$_user_patches_no_confirm" == "true" ]; then
+	    for _f in "${_patches[@]}"; do
+	      if [ -e "${_f}" ]; then
+	        echo "######################################################"
+	        echo ""
+	        echo "Applying your own ${_userpatch_target} patch ${_f}"
+	        echo ""
+	        echo "######################################################"
+	        patch -Np1 < "${_f}"
+	      fi
+	    done
+	  fi
+	fi
+}
+
 function steam_is_running {
   if pgrep -x steam >/dev/null; then
     echo "###################################################"
@@ -277,6 +321,11 @@ else
       git clean -xdf
       git pull
       git checkout "$_proton_branch"
+
+      _user_patches_no_confirm="true"
+      _userpatch_target="proton"
+      _userpatch_ext="myproton"
+      proton_patcher
     else
       cd Proton
     fi
