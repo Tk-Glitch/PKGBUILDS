@@ -343,8 +343,8 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       # Use a separate src dir for mingw-w64-gcc-base
       cp -r ${_nowhere}/build/gcc ${_nowhere}/build/gcc.base
       # glibc-2.31 workaround
-      sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
-      sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc.base/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
+      #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
+      #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc.base/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
 
       # mingw-w64-gcc-base
       if [ $_dwarf2 == "true" ]; then
@@ -491,12 +491,14 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       rm -rf ${_dstdir}/share
       rm -f ${_dstdir}/lib/libcc1.*
     else
+      export PATH=${_path_hack}
+
       # binutils
       cd ${_nowhere}/build/binutils-${_binutils}
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" libiberty/configure
       mkdir -p ${_nowhere}/build/binutils-build && cd ${_nowhere}/build/binutils-build
-      PATH=${_path_hack} ${_nowhere}/build/binutils-${_binutils}/configure \
+      ${_nowhere}/build/binutils-${_binutils}/configure \
         --prefix=${_dstdir} \
         --with-lib-path=${_dstdir}/lib \
         --enable-deterministic-archives \
@@ -512,8 +514,8 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         --with-pic \
         --with-system-zlib \
         ${_commonconfig}
-        make -j$(nproc) configure-host
-        make -j$(nproc) tooldir=${_dstdir}
+        make -j$(nproc) configure-host || exit 1
+        make -j$(nproc) tooldir=${_dstdir} || exit 1
         make -j$(nproc) prefix=${_dstdir} tooldir=${_dstdir} install
         # Remove unwanted files
         rm -f ${_dstdir}/share/man/man1/{dlltool,nlmconv,windres,windmc}*
@@ -523,8 +525,8 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       # hack! - libiberty configure tests for header files using "$CPP $CPPFLAGS"
       sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/"  ${_nowhere}/build/gcc/{libiberty,gcc}/configure
       # glibc-2.31 workaround
-      sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
-      PATH=${_path_hack} ${_nowhere}/build/gcc/configure \
+      #sed -e '1161 s|^|//|' -i ${_nowhere}/build/gcc/libsanitizer/sanitizer_common/sanitizer_platform_limits_posix.cc
+      ${_nowhere}/build/gcc/configure \
         --with-pkgversion='TkG-mostlyportable' \
         --disable-bootstrap \
         --enable-languages=c,c++,lto \
@@ -567,7 +569,8 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
         --target=x86_64-linux-gnu \
         ${_libelf_flag}
         #--enable-libstdcxx-debug
-      _makeandinstall || exit 1
+      make -j$(nproc) || exit 1
+      make install
       ln -s gcc ${_dstdir}/bin/cc
 
       #libgcc
