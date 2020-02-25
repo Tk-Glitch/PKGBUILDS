@@ -135,12 +135,12 @@ index 6c44b2b43f..3956a2815d 100644
  @END
  
 +/* Retrieve information about a job */
-+ at REQ(get_job_info)
++@REQ(get_job_info)
 +    obj_handle_t handle;
-+ at REPLY
++@REPLY
 +    unsigned int total_processes;
 +    unsigned int active_processes;
-+ at END
++@END
 +
  
  /* Terminate all processes associated with the job  */
