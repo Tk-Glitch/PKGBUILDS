@@ -7,10 +7,10 @@ _prebuild_common() {
 
 	# Use custom compiler paths if defined
 	if [ -n "${CUSTOM_MINGW_PATH}" ]; then
-	  PATH=${CUSTOM_MINGW_PATH}/bin:${CUSTOM_MINGW_PATH}/lib:${CUSTOM_MINGW_PATH}/include:${PATH}
+	  PATH="${PATH}:${CUSTOM_MINGW_PATH}/bin:${CUSTOM_MINGW_PATH}/lib:${CUSTOM_MINGW_PATH}/include"
 	fi
 	if [ -n "${CUSTOM_GCC_PATH}" ]; then
-	  PATH=${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}
+	  PATH="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}"
 	fi
 
 	# compiler flags
