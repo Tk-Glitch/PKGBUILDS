@@ -21,7 +21,7 @@ Wine fsync : https://github.com/zfigura/wine/tree/fsync
 Wine-pba (Only working correctly up to 3.18 - Force disabled on newer wine bases due to regressions) : https://github.com/acomminos/wine-pba
 
 Thanks to @Firerat and @bobwya for their rebase work :
-- https://github.com/Firerat/wine-pba
+- https://gitlab.com/Firer4t/wine-pba
 - https://github.com/bobwya/gentoo-wine-pba
 
 With other patches available such as (but not limited to - see [customization.cfg for the full list and details](customization.cfg) ) :
