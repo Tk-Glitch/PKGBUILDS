@@ -936,7 +936,7 @@ _prepare() {
 
 	# Fix for Mortal Kombat 11 - Requires staging, native mfplat (win7) and a different GPU driver than RADV
 	if [ "$_mk11_fix" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 89af635b941cf450ae371395e7b28d09161f3a36 HEAD && cd "${srcdir}"/"${_winesrcdir}"); then
+	  if git merge-base --is-ancestor b1c748c85205970b97cd31b4347a751c58b2d72e HEAD; then
 	    _patchname='mk11.patch' && _patchmsg="Applied Mortal Kombat 11 fix" && nonuser_patcher
 	  else
 	    if [ "$_large_address_aware" == "true" ]; then
@@ -963,7 +963,11 @@ _prepare() {
 EOM
 	      done
 	    fi
-	    _patchname='mk11-89af635.patch' && _patchmsg="Applied Mortal Kombat 11 fix (<89af635)" && nonuser_patcher
+	    if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 89af635b941cf450ae371395e7b28d09161f3a36 HEAD && cd "${srcdir}"/"${_winesrcdir}"); then
+	      _patchname='mk11-b1c748c.patch' && _patchmsg="Applied Mortal Kombat 11 fix (<b1c748c)" && nonuser_patcher
+	    else
+	      _patchname='mk11-89af635.patch' && _patchmsg="Applied Mortal Kombat 11 fix (<89af635)" && nonuser_patcher
+	    fi
 	  fi
 	fi
 

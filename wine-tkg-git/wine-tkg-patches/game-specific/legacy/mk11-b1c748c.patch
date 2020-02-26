@@ -46,14 +46,13 @@ index 96d1e0b850..423d47bd24 100644
  };
  static const struct record_stdregprov data_stdregprov[] =
  {
-@@ -3349,11 +3355,11 @@ static enum fill_status fill_physicalmemory( struct table *table, const struct e
+@@ -3349,10 +3355,10 @@ static enum fill_status fill_physicalmemory( struct table *table, const struct e
  
      rec = (struct record_physicalmemory *)table->data;
      rec->capacity             = get_total_physical_memory();
 -    rec->configuredclockspeed = 0;
 +    rec->configuredclockspeed = 1600;
      rec->devicelocator        = dimm0W;
-     rec->formfactor           = 8; /* DIMM */
      rec->memorytype           = 9; /* RAM */
 -    rec->partnumber           = NULL;
 +    rec->partnumber           = physicalmemory_partnumberW;

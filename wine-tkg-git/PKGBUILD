@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=5.2.r5.g469cbe7e
+pkgver=5.2.r6.gd68ab574
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -197,6 +197,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'overwatch-mfstub.patch' # Overwatch mf crash workaround
 		'assettocorsa_hud_perf.patch' # Fix for Assetto Corsa performance drop when HUD elements are displayed
 		'mk11.patch' # Fix for Mortal Kombat 11
+		'mk11-b1c748c.patch' # Fix for Mortal Kombat 11 (<b1c748c)
 		'mk11-89af635.patch' # Fix for Mortal Kombat 11 (<89af635 staging)
 		# esync
 		'esync-staging-fixes-r1.patch' # For 3.10-3.16 - Untested on lower than 3.10
@@ -382,6 +383,7 @@ md5sums=('SKIP'
          '37c1daa7dc989412e5ced603f91ef3d0'
          'cf308e18ad3724e4872280ec35e25338'
          '8a6d9ad92d3becae6bd9dbb05d7d6f48'
+         'df51fc676f048a4ee04c4c74bb154a76'
          '358699ebb023e95c72249893276f0535'
          'dbaec8420ff91dcff94f9a4f32dae6e1'
          'dd993e03188c86631e6c2cbdf14113aa'
