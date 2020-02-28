@@ -28,5 +28,4 @@ WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile p
 - rockstarlauncher_install_fix.mypatch : Fix for rockstar launcher installer crashing - https://github.com/ValveSoftware/wine/commit/e485252dfad51a7e463643d56fe138129597e4b6 - Doesn't apply to proton-tkg (already included)
 - rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843
 - origin_downloads_e4ca5dbe_revert.mypatch : Workaround for Origin client game downloading issues - https://bugs.winehq.org/show_bug.cgi?id=48032
-- BCryptSecretAgreement.mypatch : Pending patchset that notably allows For Honor (no multiplayer though, that's using EAC), and Steep to connect to Ubisoft servers - https://www.winehq.org/pipermail/wine-devel/2020-January/157432.html
 - 0001-Add-some-semi-stubs-in-user32.mypatch : Fixes black/green screen when running Steep in fullscreen/windowed fullscreen mode, courtesy of Guy1524
