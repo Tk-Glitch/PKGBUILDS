@@ -187,6 +187,7 @@ source=($_source_name
         'kernel-5.5.patch' # 5.5 workaround
         'kernel-5.6.patch' # 5.6 workaround
         '5.6-legacy-includes.diff' # 5.6 includes needed for <440.59(stable) and <440.58.01(vk dev)
+        '5.6-ioremap.diff' # 5.6 additional ioremap workaround (<440.64)
 )
 
 msg2 "Selected driver integrity check behavior (md5sum or SKIP): $_md5sum" # If the driver is "known", return md5sum. If it isn't, return SKIP
@@ -209,8 +210,9 @@ md5sums=("$_md5sum"
          '0d9aa49647cc73a4522246cc22ae15e1'
          'e6270c2d19afd982efc92bdecd9f48f0'
          '1c1966d6ee6f3cd381ebcc92f1488c68'
-         '354db7163cd19c99206bc710e4aad216'
-         '84dc2d2eff2846b2f961388b153e2a89')
+         'c44e43638e1ab708fbdd6d7aa76afcf2'
+         '84dc2d2eff2846b2f961388b153e2a89'
+         '1f11f5c765e42c471b202e630e3cd407')
 
 if [ $_autoaddpatch == "true" ]; then
   # Auto-add *.patch files from $startdir to source=()
@@ -404,11 +406,18 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
     # 5.6
     if (( $(vercmp "$_kernel" "5.6") >= 0 )); then
       _kernel56="1"
-      _whitelist56=( 396* 410* 415* 418* 430* 435* 440.2* 440.3* 440.4* 440.5* )
+      _whitelist56=( 396* 410* 415* 418* 430* 435* 440.2* 440.3* 440.4* 440.5* 440.6* )
       if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.4* ]]; then
         cd "$srcdir"/"$_pkg"/kernel-$_kernel
         msg2 "Applying 5.6-legacy-includes.diff for $_kernel..."
         patch -Np2 -i "$srcdir"/5.6-legacy-includes.diff
+        msg2 "Applying 5.6-ioremap.diff for $_kernel..."
+        patch -Np2 -i "$srcdir"/5.6-ioremap.diff
+        cd ..
+      elif [[ $pkgver = 440.5* ]]; then
+        cd "$srcdir"/"$_pkg"/kernel-$_kernel
+        msg2 "Applying 5.6-ioremap.diff for $_kernel..."
+        patch -Np2 -i "$srcdir"/5.6-ioremap.diff
         cd ..
       fi
     fi
@@ -617,6 +626,11 @@ DEST_MODULE_LOCATION[3]="/kernel/drivers/video"' dkms.conf
       if [[ $pkgver = 396* ]] || [[ $pkgver = 410* ]] || [[ $pkgver = 415* ]] || [[ $pkgver = 418.* ]] || [[ $pkgver = 430.0* ]] || [[ $pkgver = 435.* ]] || [[ $pkgver = 440.2* ]] || [[ $pkgver = 440.3* ]] || [[ $pkgver = 440.4* ]]; then
         msg2 "Applying 5.6-legacy-includes.diff for dkms..."
         patch -Np1 -i "$srcdir"/5.6-legacy-includes.diff
+        msg2 "Applying 5.6-ioremap.diff for dkms..."
+        patch -Np1 -i "$srcdir"/5.6-ioremap.diff
+      elif [[ $pkgver = 440.5* ]]; then
+        msg2 "Applying 5.6-ioremap.diff for dkms..."
+        patch -Np1 -i "$srcdir"/5.6-ioremap.diff
       fi
     fi
 
