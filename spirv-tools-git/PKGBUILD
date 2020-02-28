@@ -23,7 +23,7 @@ plain '             `.-:///////:-.`'
 _NUKR="true"
 
 pkgname=('spirv-tools-tkg-git' 'lib32-spirv-tools-tkg-git')
-pkgver=2020.1.r16.gc316fb15
+pkgver=2020.1.r19.g70f88813
 pkgrel=1
 pkgdesc='API and commands for processing SPIR-V modules'
 url='https://github.com/KhronosGroup/SPIRV-Tools'
