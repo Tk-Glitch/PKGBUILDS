@@ -21,7 +21,7 @@
 _nocheck="false"
 
 pkgname=('llvm-git' 'llvm-libs-git' 'llvm-ocaml-git' 'lib32-llvm-git' 'lib32-llvm-libs-git')
-pkgver=11.0.0_r343951.f829615205f
+pkgver=11.0.0_r344039.bd9cd2fc4c9
 pkgrel=1
 arch=('x86_64')
 url="https://llvm.org/"

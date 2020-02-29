@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=proton-tkg-git
-pkgver=5.2.r312.gc6b852e3c3
+pkgver=5.3.r0.g1e478b804f
 pkgrel=1
 _frogwhere=$PWD
 export BUILDDIR="${_frogwhere}" # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
