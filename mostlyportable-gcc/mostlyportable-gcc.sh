@@ -490,6 +490,9 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       # remove unnecessary files
       rm -rf ${_dstdir}/share
       rm -f ${_dstdir}/lib/libcc1.*
+      # create lto plugin link
+      mkdir -p ${_dstdir}/lib/bfd-plugins
+      ln -sf "../gcc/x86_64-w64-mingw32/${_gcc_version}/liblto_plugin.so" ${_dstdir}/lib/bfd-plugins/liblto_plugin.so
     else
       export PATH=${_path_hack}
 
