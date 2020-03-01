@@ -417,20 +417,22 @@ index 80dbdfd88b..38b9c8c62c 100644
 
                  wined3d_resource_unmap(wined3d_buffer_get_resource(buffer->index_buffer), 0);
 
--                wined3d_device_set_stream_source(device->wined3d_device, 0,
+-                wined3d_stateblock_set_stream_source(device->state, 0,
 -                        buffer->dst_vertex_buffer, 0, sizeof(D3DTLVERTEX));
--                wined3d_device_set_vertex_declaration(device->wined3d_device,
+-                wined3d_stateblock_set_vertex_declaration(device->state,
 -                        ddraw_find_decl(device->ddraw, D3DFVF_TLVERTEX));
--                wined3d_device_set_index_buffer(device->wined3d_device, buffer->index_buffer, WINED3DFMT_R16_UINT, 0);
+-                wined3d_stateblock_set_index_buffer(device->state, buffer->index_buffer, WINED3DFMT_R16_UINT);
+-                wined3d_device_apply_stateblock(device->wined3d_device, device->state);
 -                wined3d_device_draw_indexed_primitive(device->wined3d_device, index_pos, index_count);
 +                /* Skip drawing if we're picking */
 +                if (pick_rect == NULL)
 +                {
-+                    wined3d_device_set_stream_source(device->wined3d_device, 0,
++                    wined3d_stateblock_set_stream_source(device->state, 0,
 +                            buffer->dst_vertex_buffer, 0, sizeof(D3DTLVERTEX));
-+                    wined3d_device_set_vertex_declaration(device->wined3d_device,
++                    wined3d_stateblock_set_vertex_declaration(device->state,
 +                            ddraw_find_decl(device->ddraw, D3DFVF_TLVERTEX));
-+                    wined3d_device_set_index_buffer(device->wined3d_device, buffer->index_buffer, WINED3DFMT_R16_UINT, 0);
++                    wined3d_stateblock_set_index_buffer(device->state, buffer->index_buffer, WINED3DFMT_R16_UINT);
++                    wined3d_device_apply_stateblock(device->wined3d_device, device->state);
 +                    wined3d_device_draw_indexed_primitive(device->wined3d_device, index_pos, index_count);
 +                }
 
