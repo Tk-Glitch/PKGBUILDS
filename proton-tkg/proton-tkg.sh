@@ -105,8 +105,11 @@ function build_lsteamclient {
   cd "$_nowhere"/Proton
   export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -I$_wine_tkg_git_path/src/$_winesrcdir/include/"
   export CFLAGS="-O2 -g"
-  export CXXFLAGS="-fpermissive -Wno-attributes -O2 -std=gnu++11 -g"
+  export CXXFLAGS="-fpermissive -Wno-attributes -O2 -g"
   export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
+  if [ "$_proton_branch" == "proton_5.0" ]; then
+    _cxx_addon="-std=gnu++11"
+  fi
 
   mkdir -p build/lsteamclient.win64
   mkdir -p build/lsteamclient.win32
@@ -116,12 +119,12 @@ function build_lsteamclient {
 
   cd build/lsteamclient.win64
   winemaker $WINEMAKERFLAGS -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib64/" -L"$_nowhere/proton_dist_tmp/lib64/wine/" .
-  make -C "$_nowhere/Proton/build/lsteamclient.win64" -j$(nproc) && strip lsteamclient.dll.so
+  make -e CC="winegcc -m64" CXX="wineg++ -m64 $_cxx_addon" -C "$_nowhere/Proton/build/lsteamclient.win64" -j$(nproc) && strip lsteamclient.dll.so
   cd ../..
 
   cd build/lsteamclient.win32
   winemaker $WINEMAKERFLAGS --wine32 -DSTEAM_API_EXPORTS -L"$_nowhere/proton_dist_tmp/lib/" -L"$_nowhere/proton_dist_tmp/lib/wine/" .
-  make -e CC="winegcc -m32" CXX="wineg++ -m32" -C "$_nowhere/Proton/build/lsteamclient.win32" -j$(nproc) && strip lsteamclient.dll.so
+  make -e CC="winegcc -m32" CXX="wineg++ -m32 $_cxx_addon" -C "$_nowhere/Proton/build/lsteamclient.win32" -j$(nproc) && strip lsteamclient.dll.so
   cd $_nowhere
 
   # Inject lsteamclient libs in our wine-tkg-git build
