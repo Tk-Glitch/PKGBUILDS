@@ -1493,26 +1493,3 @@ index d2fa3e9ccd97c..bd10cb02fc0ff 100644
  	if (!strcmp(str, "force"))
  		force_load = 1;
  	if (!strcmp(str, "hwp_only"))
-diff --git a/arch/x86/kvm/svm.c b/arch/x86/kvm/svm.c
-index bef0ba35f121..6e2b296be896 100644
---- a/arch/x86/kvm/svm.c
-+++ b/arch/x86/kvm/svm.c
-@@ -2197,7 +2197,7 @@ static int avic_init_vcpu(struct vcpu_svm *svm)
- {
- 	int ret;
- 
--	if (!kvm_vcpu_apicv_active(&svm->vcpu))
-+	if (!avic || !lapic_in_kernel(&svm->vcpu))
- 		return 0;
- 
- 	ret = avic_init_backing_page(&svm->vcpu);
-@@ -5232,6 +5232,9 @@ static void svm_refresh_apicv_exec_ctrl(struct kvm_vcpu *vcpu)
- 	struct vmcb *vmcb = svm->vmcb;
- 	bool activated = kvm_vcpu_apicv_active(vcpu);
- 
-+	if (!avic)
-+		return;
-+
- 	if (activated) {
- 		/**
- 		 * During AVIC temporary deactivation, guest could update
