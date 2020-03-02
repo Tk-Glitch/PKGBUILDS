@@ -103,9 +103,9 @@ function build_vrclient {
 
 function build_lsteamclient {
   cd "$_nowhere"/Proton
-  export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/"
+  export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --dll -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -I$_wine_tkg_git_path/src/$_winesrcdir/include/"
   export CFLAGS="-O2 -g"
-  export CXXFLAGS="-fpermissive -Wno-attributes -O2 -g"
+  export CXXFLAGS="-fpermissive -Wno-attributes -O2 -std=gnu++11 -g"
   export PATH="$_nowhere"/proton_dist_tmp/bin:$PATH
 
   mkdir -p build/lsteamclient.win64
@@ -135,7 +135,7 @@ function build_steamhelper {
     cp -a Proton/steam_helper/* Proton/build/steam.win32
     cd Proton/build/steam.win32
 
-    if [ "$_proton_branch" == "proton_4.2" ]; then
+    if [ "$_proton_branch" == "proton_4.2" ] || [ "$_proton_branch" == "proton_5.0" ]; then
       export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --nomsvcrt --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"
     else
       export WINEMAKERFLAGS="--nosource-fix --nolower-include --nodlls --wine32 -I$_nowhere/proton_dist_tmp/include/wine/windows/ -I$_nowhere/proton_dist_tmp/include/wine/msvcrt/ -I$_nowhere/proton_dist_tmp/include/ -L$_nowhere/proton_dist_tmp/lib/ -L$_nowhere/proton_dist_tmp/lib/wine/"

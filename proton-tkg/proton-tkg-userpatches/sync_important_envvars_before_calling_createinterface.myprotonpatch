@@ -1,35 +1,43 @@
-From b256f3dd2231f2bfb7109f03f6602a7c2e4bf3e2 Mon Sep 17 00:00:00 2001
+From a57c83f269ad59454c7763d51ce1b54ca9876542 Mon Sep 17 00:00:00 2001
 From: Derek Lesho <dlesho@codeweavers.com>
 Date: Mon, 24 Feb 2020 09:47:04 -0600
-Subject: [PATCH] Sync important environment variables before calling
- CreateInterface.
+Subject: [PATCH] lsteamclient: Sync important environment variables before
+ calling CreateInterface.
 
 ---
- lsteamclient/steamclient_main.c | 39 +++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ lsteamclient/steamclient_main.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
 diff --git a/lsteamclient/steamclient_main.c b/lsteamclient/steamclient_main.c
-index 94dc6a0..c1c193e 100644
+index be8f62c..e0eac01 100644
 --- a/lsteamclient/steamclient_main.c
 +++ b/lsteamclient/steamclient_main.c
-@@ -38,6 +38,43 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, void *reserved)
+@@ -19,6 +19,8 @@
+ 
+ #include "steamclient_private.h"
+ 
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++
+ WINE_DEFAULT_DEBUG_CHANNEL(steamclient);
+ 
+ char g_tmppath[PATH_MAX];
+@@ -41,6 +43,33 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, void *reserved)
      return TRUE;
  }
  
 +void sync_environment(void)
 +{
-+    static const char steamapi_envs[][21] =
++    static const char *steamapi_envs[] =
 +    {
 +        "SteamAppId",
 +        "IgnoreChildProcesses",
 +    };
 +
-+    for (unsigned int i = 0; i < 2; i++)
-+    {
-+        char *value;
-+        DWORD size;
++    char value[32767];
 +
-+        if (!(size = GetEnvironmentVariableA(steamapi_envs[i], NULL, 0)))
++    for (unsigned int i = 0; i < ARRAY_SIZE(steamapi_envs); i++)
++    {
++        if (!GetEnvironmentVariableA(steamapi_envs[i], value, ARRAY_SIZE(value)))
 +        {
 +            if (GetLastError() == ERROR_ENVVAR_NOT_FOUND)
 +            {
@@ -39,24 +47,15 @@ index 94dc6a0..c1c193e 100644
 +            continue;
 +        }
 +
-+        value = HeapAlloc(GetProcessHeap(), 0, size);
-+
-+        if (!(GetEnvironmentVariableA(steamapi_envs[i], value, size)))
-+        {
-+            HeapFree(GetProcessHeap(), 0, value);
-+        }
-+
 +        TRACE("setenv(\"%s\", \"%s\", 1)\n", steamapi_envs[i], value);
 +        setenv(steamapi_envs[i], value, 1);
-+
-+        HeapFree(GetProcessHeap(), 0, value);
 +    }
 +}
 +
  /* returns the number of bytes written to dst, not including the NUL terminator */
  unsigned int steamclient_unix_path_to_dos_path(bool api_result, const char *src, char *dst, uint32 dst_bytes, int is_url)
  {
-@@ -385,6 +422,8 @@ static int load_steamclient(void)
+@@ -423,6 +452,8 @@ static int load_steamclient(void)
  {
      char path[PATH_MAX], resolved_path[PATH_MAX];
  
