@@ -18,6 +18,7 @@
 - monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695
 - blackops2_unhandled_exception_fix.mypatch : Fix for the Unhandled Exception crash of Call of Duty - Black Ops 2 on start up - https://bugs.winehq.org/show_bug.cgi?id=46472
 - SW_JFO_Steam.mypatch : Fix for the Steam+Origin monster on Star Wars Jedi Fallen Order Steam version - From Guy1524 https://www.winehq.org/pipermail/wine-devel/2020-February/160431.html
+- GTA5_activation_timeout_fix.mypatch : Workaround for GTAV activation not going through, effectively preventing the game to be played since 68a01c8c6fcf2e0c493e28cd27f30fcf5f307ed8
 
 
 WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile patch](https://github.com/Tk-Glitch/PKGBUILDS/blob/master/community-patches/vkd3d-git/Support_RS_1.0_Volatile.myvkd3dpatch)** :
