@@ -159,6 +159,7 @@ prepare() {
 	# create new build dirs
 	mkdir -p "${srcdir}"/vkd3d-tkg-git
 	mkdir -p "${srcdir}"/lib32-vkd3d-tkg-git
+	cd "$_where"
 }
 
 build() {
