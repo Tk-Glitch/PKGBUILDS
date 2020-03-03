@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=proton-tkg-git
-pkgver=5.3.r23.g0959d189c8
+pkgver=5.3.r9.gf7eec766
 pkgrel=1
 _frogwhere=$PWD
 export BUILDDIR="${_frogwhere}" # Override makepkg BUILDDIR path and use PKGBUILDs dirs instead
@@ -101,7 +101,7 @@ exit_cleanup() {
 }
 
 pkgver() {
-  # ugly
+  # overcomplicated BS
   source "${_frogwhere}"/proton-tkg.cfg
   if [ -e "$_EXT_CONFIG_PATH" ]; then
     source "$_EXT_CONFIG_PATH"
@@ -118,11 +118,30 @@ pkgver() {
       _winesrcdir="wine-git"
     fi
   fi
-  if [ -e "${_frogwhere}/../wine-tkg-git/src/${_winesrcdir}/VERSION" ]; then
-    cd "${_frogwhere}/../wine-tkg-git/src/${_winesrcdir}" && git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
+
+  cd "${_frogwhere}/../wine-tkg-git"
+  _srcdirlock=$PWD
+
+  if [ "$_use_staging" == "true" ]; then
+    _stgsrcdir='wine-staging-git'
+    _pkgvertargdir="${_stgsrcdir}"
   else
-    echo ${pkgver}
+    _pkgvertargdir="${_winesrcdir}"
   fi
+
+  cd "${_srcdirlock}/${_pkgvertargdir}"
+  git fetch --all -p >/dev/null 2>&1
+  rm -rf "${_srcdirlock}/src/${_pkgvertargdir}" && git clone "${_srcdirlock}/${_pkgvertargdir}" "${_srcdirlock}/src/${_pkgvertargdir}" >/dev/null 2>&1
+  cd "${_srcdirlock}/src/${_pkgvertargdir}"
+  git checkout --force --no-track -B makepkg origin/HEAD >/dev/null 2>&1
+  if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ]; then
+    git checkout "${_plain_version}"
+  fi
+  if [ -n "$_staging_version" ] && [ "$_use_staging" == "true" ]; then
+    git checkout "${_staging_version}"
+  fi
+
+  git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\.rc/rc/;s/^wine\.//'
 }
 
 prepare() {
