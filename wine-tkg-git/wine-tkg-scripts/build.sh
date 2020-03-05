@@ -122,10 +122,15 @@ _build() {
 }
 
 _package_nomakepkg() {
-	if [ -z "$_nomakepkg_prefix_path" ]; then
-	  local _prefix="$_where/${pkgname}-${pkgver}"
+	if [ "$_nomakepkg_nover" == "true" ] ; then
+	  _nomakepkg_pkgname="${pkgname}"
 	else
-	  local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+	  _nomakepkg_pkgname="${pkgname}-${pkgver}"
+	fi
+	if [ -z "$_nomakepkg_prefix_path" ]; then
+	  local _prefix="$_where/${_nomakepkg_pkgname}"
+	else
+	  local _prefix="${_nomakepkg_prefix_path}/${_nomakepkg_pkgname}"
 	fi
 	local _lib32name="lib32"
 	local _lib64name="lib"
@@ -182,13 +187,13 @@ _package_nomakepkg() {
 	# move our build to some subfolder
 	if [ -z "$_nomakepkg_prefix_path" ]; then
 	  # if the target dir already exists, nuke it
-	  rm -rf "$_where/non-makepkg-builds/${pkgname}-${pkgver}"
+	  rm -rf "$_where/non-makepkg-builds/${_nomakepkg_pkgname}"
 
 	  mkdir -p "$_where"/non-makepkg-builds
-	  mv "$_where/${pkgname}-${pkgver}" "$_where"/non-makepkg-builds/
-	  pkgdir="$_where/non-makepkg-builds/${pkgname}-${pkgver}"
+	  mv "$_where/${_nomakepkg_pkgname}" "$_where"/non-makepkg-builds/
+	  pkgdir="$_where/non-makepkg-builds/${_nomakepkg_pkgname}"
 	else
-	  pkgdir="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+	  pkgdir="${_nomakepkg_prefix_path}/${_nomakepkg_pkgname}"
 	fi
 
 	if [ "$_use_esync" == "true" ] || [ "$_staging_esync" == "true" ]; then

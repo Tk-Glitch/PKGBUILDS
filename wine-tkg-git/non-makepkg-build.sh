@@ -177,10 +177,15 @@ build_wine_tkg() {
 
   _makedirs
 
-  if [ -z "$_nomakepkg_prefix_path" ]; then
-    local _prefix="$_where/${pkgname}-${pkgver}"
+  if [ "$_nomakepkg_nover" == "true" ] ; then
+    _nomakepkg_pkgname="${pkgname}"
   else
-    local _prefix="${_nomakepkg_prefix_path}/${pkgname}-${pkgver}"
+    _nomakepkg_pkgname="${pkgname}-${pkgver}"
+  fi
+  if [ -z "$_nomakepkg_prefix_path" ]; then
+    local _prefix="$_where/${_nomakepkg_pkgname}"
+  else
+    local _prefix="${_nomakepkg_prefix_path}/${_nomakepkg_pkgname}"
   fi
   local _lib32name="lib32"
   local _lib64name="lib"
