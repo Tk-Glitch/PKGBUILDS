@@ -1192,17 +1192,6 @@ EOM
 	  #_patchname='proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' && _patchmsg="Applied proton friendly winex11-WM_WINDOWPOSCHANGING" && nonuser_patcher
 	fi
 
-	# Enforce mscvrt Dlls to native then builtin - from Proton
-	if [ "$_msvcrt_nativebuiltin" == "true" ]; then
-	  if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
-	    _patchname='msvcrt_nativebuiltin.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
-	  elif git merge-base --is-ancestor eafb4aff5a2c322f4f156fdfada5743834996be4 HEAD; then
-	    _patchname='msvcrt_nativebuiltin-51ffea5a.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
-	  else
-	    _patchname='msvcrt_nativebuiltin-eafb4aff.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
-	  fi
-	fi
-
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
 	  if [ "$_proton_fs_hack" != "true" ] && [ "$_use_staging" == "true" ]; then
 	    _patchname='staging-winex11-key_translation.patch' && _patchmsg="Applied non-fshack friendly staging winex11-key_translation patchset" && nonuser_patcher
@@ -1325,6 +1314,16 @@ EOM
 	if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  _patchname='proton-vk-bits-4.5.patch' && _patchmsg="Enable Proton vulkan bits for 4.5+" && nonuser_patcher
 	  _patchname='proton_fs_hack_integer_scaling.patch' && _patchmsg="Enable Proton fs hack integer scaling" && nonuser_patcher
+	fi
+	# Enforce mscvrt Dlls to native then builtin - from Proton
+	if [ "$_msvcrt_nativebuiltin" == "true" ]; then
+	  if git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
+	    _patchname='msvcrt_nativebuiltin.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
+	  elif git merge-base --is-ancestor eafb4aff5a2c322f4f156fdfada5743834996be4 HEAD; then
+	    _patchname='msvcrt_nativebuiltin-51ffea5a.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
+	  else
+	    _patchname='msvcrt_nativebuiltin-eafb4aff.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches
