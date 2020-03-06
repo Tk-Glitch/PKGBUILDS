@@ -1184,7 +1184,7 @@ EOM
 	fi
 
 	# Proton/fs-hack friendly winex11-MWM_Decorations winex11-_NET_ACTIVE_WINDOW winex11-WM_WINDOWPOSCHANGING
-	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] git merge-base --is-ancestor 8000b5415d2c249176bda3d8b49f8fc9978e1623 HEAD; then
+	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 8000b5415d2c249176bda3d8b49f8fc9978e1623 HEAD; then
 	  _patchname='proton-staging_winex11-MWM_Decorations.patch' && _patchmsg="Applied proton friendly winex11-MWM_Decorations" && nonuser_patcher
 	  #cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "$_where"/ && ln -s -f "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "${srcdir}"/
 	  #_patchname='0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch' && _patchmsg="Applied proton friendly winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW" && nonuser_patcher
