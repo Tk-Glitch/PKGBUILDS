@@ -256,9 +256,12 @@ prepare() {
       user_patcher
     fi
 
-    # Community patches removal
+    # Community/prs patches removal
     for _p in ${_community_patches[@]}; do
       rm -f "$_where"/$_p
+    done
+    for _pr in ${_mesa_prs[@]}; do
+      rm -f "$_where"/$_pr.mymesapatch
     done
 
     cd "$srcdir"
