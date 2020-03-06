@@ -327,6 +327,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'proton-tkg-staging-rpc.patch' # necessary pre-patch for Proton-tkg-staging
 		'proton-tkg-steamclient-swap.patch' # Key steamclient substitution hack
+		'msvcrt_nativebuiltin_mainline.patch' # Enforce mscvrt Dlls to native then builtin - from Proton - mainline
 		'msvcrt_nativebuiltin.patch' # Enforce mscvrt Dlls to native then builtin - from Proton
 		'msvcrt_nativebuiltin-51ffea5a.patch' # Enforce mscvrt Dlls to native then builtin - from Proton (<51ffea5a)
 		'msvcrt_nativebuiltin-eafb4aff.patch' # Enforce mscvrt Dlls to native then builtin - from Proton (<eafb4aff)
@@ -509,6 +510,7 @@ md5sums=('SKIP'
          'c4d89d28cee5187b411aad830822f8e1'
          'f404adafc8648495270e01241cd0601e'
          '8681c98f6d488957a206c9c1f2f9547f'
+         '3d5518c89320a59400774a86b9a1cf2f'
          'b2b9f7bcd5666bb9913986aacbbdfcc6'
          '017e316df9b4a6aada912f3a83e16b08'
          '22d3b0b1ff7f2104312b5eb29959cb2e'
