@@ -89,7 +89,7 @@ pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.5
 _sub=8
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=21
+pkgrel=22
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -274,6 +274,10 @@ prepare() {
   sed -i -e 's/# CONFIG_CMDLINE_BOOL is not set/CONFIG_CMDLINE_BOOL=y/' ./.config
   echo "CONFIG_CMDLINE=\"${_custom_commandline}\"" >> ./.config
   echo "# CONFIG_CMDLINE_OVERRIDE is not set" >> ./.config
+
+  if [ "$_font_autoselect" != "false" ]; then
+    sed -i -e 's/CONFIG_FONT_TER16x32=y/# CONFIG_FONT_TER16x32 is not set\nCONFIG_FONT_AUTOSELECT=y/' ./.config
+  fi
 
   # Inject cpuopts options
   echo "# CONFIG_MK8SSE3 is not set" >> ./.config
