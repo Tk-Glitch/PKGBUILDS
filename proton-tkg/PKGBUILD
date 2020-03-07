@@ -161,7 +161,7 @@ prepare() {
 build() {
   warning "SteamVR support is currently disabled when using this. If you need it, please use the proton-tkg.sh script instead." && sleep 2
   cd "${srcdir}"
-  _ispkgbuild="true" ./proton-tkg.sh --nomakepkg
+  _ispkgbuild="true" ./proton-tkg.sh
 }
 
 package() {

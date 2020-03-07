@@ -13,10 +13,11 @@
 set -e
 
 _nowhere=$PWD
+_nomakepkg="true"
 
-# Enforce not using makepkg even if available with --nomakepkg
-if [ "$1" == "--nomakepkg" ]; then
-  _nomakepkg="true"
+# Enforce using makepkg when using --makepkg
+if [ "$1" == "--makepkg" ]; then
+  _nomakepkg="false"
 fi
 
 if [ "$_ispkgbuild" == "true" ]; then
@@ -45,7 +46,6 @@ else
     echo -e "Your Steam config file path wasn't found! Exiting.."
     exit
   fi
-
 fi
 
 cat <<'EOF'
