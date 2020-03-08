@@ -20,7 +20,7 @@
 - SW_JFO_Steam.mypatch : Fix for the Steam+Origin monster on Star Wars Jedi Fallen Order Steam version - From Guy1524 https://www.winehq.org/pipermail/wine-devel/2020-February/160431.html
 - GTA5_activation_timeout_fix.mypatch : Workaround for GTAV activation not going through, effectively preventing the game to be played since 68a01c8c6fcf2e0c493e28cd27f30fcf5f307ed8
 - wolcen_blobhead_workaround.mypatch : Paul Gofman's workaround for Wolcen: Lords of Mayhem main character having a blob head - !!! This is not suitable for a general build as it creates a stable memory leak !!! - https://bugs.winehq.org/show_bug.cgi?id=48700#c3
-
+- NFSWLauncherfix.mypatch : Fix for Need for Speed World's SBRW launcher - https://github.com/SoapboxRaceWorld/wine
 
 WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile patch](https://github.com/Tk-Glitch/PKGBUILDS/blob/master/community-patches/vkd3d-git/Support_RS_1.0_Volatile.myvkd3dpatch)** :
 - D3D12SerializeVersionedRootSignature.mypatch : 1/2 patch to enable WoW to run correctly in d3d12 mode - https://www.winehq.org/pipermail/wine-devel/2019-October/152356.html
