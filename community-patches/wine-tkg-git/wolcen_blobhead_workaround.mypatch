@@ -1,0 +1,23 @@
+diff --git a/dlls/ntdll/heap.c b/dlls/ntdll/heap.c
+index 94b9865afa..d6d3ecfb0b 100644
+--- a/dlls/ntdll/heap.c
++++ b/dlls/ntdll/heap.c
+@@ -1914,6 +1914,17 @@ BOOLEAN WINAPI DECLSPEC_HOTPATCH RtlFreeHeap( HANDLE heap, ULONG flags, void *pt
+     pInUse  = (ARENA_INUSE *)ptr - 1;
+     if (!validate_block_pointer( heapPtr, &subheap, pInUse )) goto error;
+ 
++    {
++        SIZE_T size;
++
++        size = RtlSizeHeap(heap, 0, ptr);
++        if (size < 125)
++        {
++            if (!(flags & HEAP_NO_SERIALIZE)) leave_critical_section( &heapPtr->critSection );
++            return TRUE;
++        }
++    }
++
+     if (!subheap)
+         free_large_block( heapPtr, flags, ptr );
+     else
+ 
