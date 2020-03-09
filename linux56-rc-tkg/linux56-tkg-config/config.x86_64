@@ -1,10 +1,10 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 5.6.0-rc1 Kernel Configuration
+# Linux/x86 5.6.0-rc5 Kernel Configuration
 #
 
 #
-# Compiler: gcc (TkG-mostlyportable) 9.2.1 20200123
+# Compiler: gcc (TkG-mostlyportable) 9.2.1 20200303
 #
 CONFIG_CC_IS_GCC=y
 CONFIG_GCC_VERSION=90201
@@ -4498,6 +4498,7 @@ CONFIG_HSI_BOARDINFO=y
 CONFIG_HSI_CHAR=m
 CONFIG_PPS=y
 # CONFIG_PPS_DEBUG is not set
+# CONFIG_NTP_PPS is not set
 
 #
 # PPS clients support
@@ -6628,6 +6629,7 @@ CONFIG_BACKLIGHT_LV5207LP=m
 CONFIG_BACKLIGHT_BD6107=m
 CONFIG_BACKLIGHT_ARCXCNN=m
 CONFIG_BACKLIGHT_RAVE_SP=m
+CONFIG_BACKLIGHT_LED=m
 # end of Backlight & LCD device support
 
 CONFIG_VIDEOMODE_HELPERS=y
