@@ -1221,7 +1221,7 @@ EOM
 	  if [ "$_steamclient_noswap" != "true" ] && git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	    _patchname='proton-tkg-steamclient-swap.patch' && _patchmsg="Applied steamclient substitution hack" && nonuser_patcher
 	  fi
-	  if git merge-base --is-ancestor 2aad95254c19df21fc0f7c4413ca3874c8d87997 HEAD; then
+	  if git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/2" && nonuser_patcher
 	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 2/2" && nonuser_patcher
@@ -1230,7 +1230,10 @@ EOM
 	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/2" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor 8000b5415d2c249176bda3d8b49f8fc9978e1623 HEAD; then
+	    if git merge-base --is-ancestor 2aad95254c19df21fc0f7c4413ca3874c8d87997 HEAD; then
+	      _lastcommit="2aad952"
+	      _rpc="1"
+	    elif git merge-base --is-ancestor 8000b5415d2c249176bda3d8b49f8fc9978e1623 HEAD; then
 	      _lastcommit="2aad952"
 	      _rpc="1"
 	    elif git merge-base --is-ancestor 51ffea5a3940bdc74b44b9303c4574dfb156efc0 HEAD; then
