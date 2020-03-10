@@ -360,6 +360,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' # Proton friendly version of that staging patchset
 		'proton-staging_winex11.drv-mouse-coorrds.patch' # FS hack friendly version of that staging patchset
 		'proton-vr.patch' # wined3d interop and friends for steamvr support
+		'proton-vr-a6d74b.patch' # wined3d interop and friends for steamvr support (<a6d74b)
 		'proton-vr-c736321.patch' # wined3d interop and friends for steamvr support (<c736321)
 		'proton-win10-default.patch' # Set default wine version to win10
 		'proton-steam-bits.patch' # Proton's steam-centric patches
@@ -549,6 +550,7 @@ md5sums=('SKIP'
          'ce109248a0e6afb2102b5afd19309e66'
          'affd3acc5eae191caa514bed8e498bab'
          '94bdbf2c29c4623edc26750c29eb7f23'
+         '64dde324c635e4b4cdc271fe11de627b'
          '5a4baa27b177b888762555c770b21f1a'
          '64dde324c635e4b4cdc271fe11de627b'
          '045aad3b7247f4ce632f6512ebfeb527'
