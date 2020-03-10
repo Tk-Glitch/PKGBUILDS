@@ -1221,13 +1221,22 @@ EOM
 	  if [ "$_steamclient_noswap" != "true" ] && git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
 	    _patchname='proton-tkg-steamclient-swap.patch' && _patchmsg="Applied steamclient substitution hack" && nonuser_patcher
 	  fi
+	fi
+
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] || [ "$_protonify" == "true" ]; then
 	  if git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
-	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/2" && nonuser_patcher
-	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 2/2" && nonuser_patcher
+	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/3" && nonuser_patcher
+	      _patchname='proton-tkg-staging.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 2/3" && nonuser_patcher
+	      if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
+	        _patchname='proton-steam-bits.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 3/3" && nonuser_patcher
+	      fi
 	    else
-	      _patchname='proton-tkg-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 1/2" && nonuser_patcher
-	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/2" && nonuser_patcher
+	      _patchname='proton-tkg-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 1/3" && nonuser_patcher
+	      _patchname='proton-tkg.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 2/3" && nonuser_patcher
+	      if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
+	        _patchname='proton-steam-bits.patch' && _patchmsg="Using Steam-specific Proton-tkg patches 3/3" && nonuser_patcher
+	      fi
 	    fi
 	  else
 	    if git merge-base --is-ancestor 2aad95254c19df21fc0f7c4413ca3874c8d87997 HEAD; then
@@ -1285,6 +1294,9 @@ EOM
 	      _patchname="proton-tkg-$_lastcommit.patch" && _patchmsg="Using Steam-specific Proton-tkg patches ($_lastcommit) 2/2" && nonuser_patcher
 	    fi
 	  fi
+	fi
+
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
 	  # SDL Joystick support - from Proton
 	  if [ "$_sdl_joy_support" == "true" ]; then
 	    _patchname='proton-sdl-joy.patch' && _patchmsg="Enable SDL Joystick support (from Proton)" && nonuser_patcher
@@ -1336,10 +1348,13 @@ EOM
 	    fi
 	  fi
 	fi
+
+	# Proton fs hack additions
 	if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
 	  _patchname='proton-vk-bits-4.5.patch' && _patchmsg="Enable Proton vulkan bits for 4.5+" && nonuser_patcher
 	  _patchname='proton_fs_hack_integer_scaling.patch' && _patchmsg="Enable Proton fs hack integer scaling" && nonuser_patcher
 	fi
+
 	# Enforce mscvrt Dlls to native then builtin - from Proton
 	if [ "$_msvcrt_nativebuiltin" == "true" ]; then
 	  if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
@@ -1355,6 +1370,16 @@ EOM
 	      _patchname='msvcrt_nativebuiltin_mainline.patch' && _patchmsg="Enforce msvcrt Dlls to native then builtin (from Proton)" && nonuser_patcher
 	    fi
 	  fi
+	fi
+
+	# Set the default wine version to win10
+	if [ "$_win10_default" == "true" ]; then
+	  _patchname='proton-win10-default.patch' && _patchmsg="Enforce win10 as default wine version" && nonuser_patcher
+	fi
+
+	# Add support for dxvk_config library to Wine's dxgi when vkd3d support is enabled
+	if [ "$_use_vkd3d" == "true" ]; then
+	  _patchname='dxvk_config_dxgi_support.patch' && _patchmsg="Add support for dxvk_config library to Wine's dxgi" && nonuser_patcher
 	fi
 
 	# wine user patches

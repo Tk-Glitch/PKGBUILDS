@@ -5,7 +5,7 @@ pkgver=5.3.r17.g69cb47fd
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=247
+eval pkgrel=248
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -359,6 +359,9 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-staging_winex11.drv-mouse-coorrds.patch' # FS hack friendly version of that staging patchset
 		'proton-vr.patch' # wined3d interop and friends for steamvr support
 		'proton-vr-c736321.patch' # wined3d interop and friends for steamvr support (<c736321)
+		'proton-win10-default.patch' # Set default wine version to win10
+		'proton-steam-bits.patch' # Proton's steam-centric patches
+		'dxvk_config_dxgi_support.patch' # Add support for dxvk_config library to Wine's dxgi
 )
 
 md5sums=('SKIP'
@@ -494,7 +497,7 @@ md5sums=('SKIP'
          'a4c2bc618f37e7fcdc5b6d32831b7271'
          '15efca22b39abeed59d1b0346f71f6e5'
          'e053c49ca8004e2ac3b546dd425634e6'
-         'f14cf23cda5cfd619ec789548fd69d96'
+         '68d737b606319f1c4c55e26b128a4c18'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
@@ -511,7 +514,7 @@ md5sums=('SKIP'
          'bc24d6098d356512b1d78cf7b562ac35'
          'a78f5acc454bbcbe352d66f47534ba70'
          'c4d89d28cee5187b411aad830822f8e1'
-         '510628c2be8d6833059ebe1561e5a619'
+         '554a30c7a02f66235bae71253eabc04e'
          'f404adafc8648495270e01241cd0601e'
          '8681c98f6d488957a206c9c1f2f9547f'
          '3d5518c89320a59400774a86b9a1cf2f'
@@ -543,7 +546,10 @@ md5sums=('SKIP'
          'affd3acc5eae191caa514bed8e498bab'
          '94bdbf2c29c4623edc26750c29eb7f23'
          '5a4baa27b177b888762555c770b21f1a'
-         '64dde324c635e4b4cdc271fe11de627b')
+         '64dde324c635e4b4cdc271fe11de627b'
+         '045aad3b7247f4ce632f6512ebfeb527'
+         '34371df6586d3814d8ee123aa4b37b50'
+         '16eeb21745eca0044c765d4d9e1e5cfa')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
