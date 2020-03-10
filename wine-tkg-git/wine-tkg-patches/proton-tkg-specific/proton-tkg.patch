@@ -4050,38 +4050,6 @@ index 1ed41bdcec5..0af6e1ded5f 100644
      *out = NULL;
  
      fimpl = CoTaskMemAlloc(sizeof(*fimpl));
-diff --git a/dlls/winegstreamer/winegstreamer_classes.idl b/dlls/winegstreamer/winegstreamer_classes.idl
-index 05a75bdb8ed..1195a0bd0f2 100644
---- a/dlls/winegstreamer/winegstreamer_classes.idl
-+++ b/dlls/winegstreamer/winegstreamer_classes.idl
-@@ -18,6 +18,27 @@
- 
- #pragma makedep register
- 
-+[
-+    helpstring("AVI Splitter"),
-+    threading(both),
-+    uuid(1b544c20-fd0b-11ce-8c63-00aa0044b51e)
-+]
-+coclass AviSplitter {}
-+
-+[
-+    helpstring("MPEG-I Stream Splitter"),
-+    threading(both),
-+    uuid(336475d0-942a-11ce-a870-00aa002feab5)
-+]
-+coclass MPEG1Splitter {}
-+
-+[
-+    helpstring("Wave Parser"),
-+    threading(both),
-+    uuid(d51bd5a1-7548-11cf-a520-0080c77ef58a)
-+]
-+coclass WAVEParser {}
-+
- [
-     threading(both),
-     uuid(88753b26-5b24-49bd-b2e7-0c445c78c982)
 From aa6ab7464758508b3348b3ce390c1524c9ce32a2 Mon Sep 17 00:00:00 2001
 From: Andrew Eikum <aeikum@codeweavers.com>
 Date: Thu, 30 Jan 2020 10:16:19 -0600
