@@ -2141,10 +2141,10 @@ index d420dcb45aa..bd3660331eb 100644
  EXTRADEFS = -D_USER32_ -D_WINABLE_
  MODULE    = user32.dll
  IMPORTLIB = user32
--IMPORTS   = gdi32 version advapi32 kernelbase
-+IMPORTS   = gdi32 version advapi32 kernelbase sechost
+-IMPORTS   = setupapi gdi32 version advapi32 kernelbase
++IMPORTS   = setupapi gdi32 version advapi32 kernelbase sechost
  EXTRAINCL = $(PNG_CFLAGS)
- DELAYIMPORTS = hid imm32 setupapi usp10
+ DELAYIMPORTS = hid imm32 usp10
  
 diff --git a/dlls/user32/misc.c b/dlls/user32/misc.c
 index 60d45dff471..8042c044059 100644
