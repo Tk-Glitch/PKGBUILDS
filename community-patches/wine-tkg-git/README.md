@@ -18,7 +18,7 @@
 - monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695
 - blackops2_unhandled_exception_fix.mypatch : Fix for the Unhandled Exception crash of Call of Duty - Black Ops 2 on start up - https://bugs.winehq.org/show_bug.cgi?id=46472
 - SW_JFO_Steam.mypatch : Fix for the Steam+Origin monster on Star Wars Jedi Fallen Order Steam version - From Guy1524 https://www.winehq.org/pipermail/wine-devel/2020-February/160431.html
-- GTA5_activation_timeout_fix.mypatch : Workaround for GTAV activation not going through, effectively preventing the game to be played since 68a01c8c6fcf2e0c493e28cd27f30fcf5f307ed8
+- GTA5_activation_timeout_fix.mypatch : Pending fix for GTAV activation not going through, effectively preventing the game to be played since 68a01c8c6fcf2e0c493e28cd27f30fcf5f307ed8 - https://www.winehq.org/pipermail/wine-devel/2020-March/161473.html
 - wolcen_blobhead_workaround.mypatch : Paul Gofman's workaround for Wolcen: Lords of Mayhem main character having a blob head - !!! This is not suitable for a general build as it creates a stable memory leak !!! - https://bugs.winehq.org/show_bug.cgi?id=48700#c3
 - NFSWLauncherfix.mypatch : Fix for Need for Speed World's SBRW launcher - https://github.com/SoapboxRaceWorld/wine
 
