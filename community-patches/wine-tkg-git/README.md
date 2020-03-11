@@ -15,9 +15,9 @@
 - FinalFantasyXVHack.mypatch : Hack enabling Final Fantasy XV Steam to run - https://github.com/ValveSoftware/Proton/issues/74#issuecomment-553084621
 - MWSE_hack.mypatch : Hack to allow Morrowind Script Extender to work - https://bugs.winehq.org/show_bug.cgi?id=47940#c24
 - detroit_BH.mypatch : Allows Detroit: Become Human to run and fix low performance - https://bugs.winehq.org/show_bug.cgi?id=48291
-- monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695
+- monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695 - Doesn't apply to proton-tkg (already included)
 - blackops2_unhandled_exception_fix.mypatch : Fix for the Unhandled Exception crash of Call of Duty - Black Ops 2 on start up - https://bugs.winehq.org/show_bug.cgi?id=46472
-- SW_JFO_Steam.mypatch : Fix for the Steam+Origin monster on Star Wars Jedi Fallen Order Steam version - From Guy1524 https://www.winehq.org/pipermail/wine-devel/2020-February/160431.html
+- SW_JFO_Steam.mypatch : Fix for the Steam+Origin monster on Star Wars Jedi Fallen Order Steam version - From Guy1524 https://www.winehq.org/pipermail/wine-devel/2020-February/160431.html - Doesn't apply to proton-tkg (already included)
 - wolcen_blobhead_workaround.mypatch : Paul Gofman's workaround for Wolcen: Lords of Mayhem main character having a blob head - rebased for use with staging - https://bugs.winehq.org/show_bug.cgi?id=48700#c17 (see link for non-staging version of the patch)
 - NFSWLauncherfix.mypatch : Fix for Need for Speed World's SBRW launcher - https://github.com/SoapboxRaceWorld/wine
 
@@ -27,7 +27,7 @@ WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile p
 
 ## Misc
 - rockstarlauncher_install_fix.mypatch : Fix for rockstar launcher installer crashing - https://github.com/ValveSoftware/wine/commit/e485252dfad51a7e463643d56fe138129597e4b6 - Doesn't apply to proton-tkg (already included)
-- rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843
+- rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843 - Doesn't apply to proton-tkg (already included)
 - origin_downloads_e4ca5dbe_revert.mypatch : Workaround for Origin client game downloading issues - https://bugs.winehq.org/show_bug.cgi?id=48032
 - 0001-Add-some-semi-stubs-in-user32.mypatch : Fixes black/green screen when running Steep in fullscreen/windowed fullscreen mode, courtesy of Guy1524
 - winevulkan_fshack_opts.mypatch : winevulkan and fshack optimizations from Josh and DadSchoorse, rebased against 1.1.130 (wine 5.1+) - Requires `_proton_fs_hack="true"` - https://github.com/Joshua-Ashton/proton-wine/tree/winevulkan-opt

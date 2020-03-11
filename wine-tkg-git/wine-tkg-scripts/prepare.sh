@@ -1118,7 +1118,6 @@ EOM
 	      _patchname='0001-winex11-Match-keyboard-in-Unicode.patch' && _patchmsg="Applied proton friendly winex11-Match-keyboard-in-Unicode" && nonuser_patcher
 	      _patchname='0002-winex11-Fix-more-key-translation.patch' && _patchmsg="Applied proton friendly winex11-Fix-more-key-translation" && nonuser_patcher
 	      _patchname='0003-winex11.drv-Fix-main-Russian-keyboard-layout.patch' && _patchmsg="Applied proton friendly winex11.drv-Fix-main-Russian-keyboard-layout" && nonuser_patcher
-	      _patchname='proton-staging_winex11.drv-mouse-coorrds.patch' && _patchmsg="Applied winex11.drv-mouse-coorrds" && nonuser_patcher
 	    fi
 	  fi
 	fi
@@ -1205,13 +1204,9 @@ EOM
 	  fi
 	fi
 
-	# Proton/fs-hack friendly winex11-MWM_Decorations winex11-_NET_ACTIVE_WINDOW winex11-WM_WINDOWPOSCHANGING
+	# Proton/fs-hack friendly winex11-MWM_Decorations
 	if [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 8000b5415d2c249176bda3d8b49f8fc9978e1623 HEAD; then
 	  _patchname='proton-staging_winex11-MWM_Decorations.patch' && _patchmsg="Applied proton friendly winex11-MWM_Decorations" && nonuser_patcher
-	  #cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "$_where"/ && ln -s -f "${srcdir}"/"${_stgsrcdir}"/patches/winex11-_NET_ACTIVE_WINDOW/0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch "${srcdir}"/
-	  #_patchname='0001-winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW.patch' && _patchmsg="Applied proton friendly winex11.drv-Add-support-for-_NET_ACTIVE_WINDOW" && nonuser_patcher
-	  #_patchname='proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' && _patchmsg="Applied staging winex11-_NET_ACTIVE_WINDOW-0002" && nonuser_patcher
-	  #_patchname='proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' && _patchmsg="Applied proton friendly winex11-WM_WINDOWPOSCHANGING" && nonuser_patcher
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
@@ -1362,7 +1357,7 @@ EOM
 	fi
 
 	# Proton fs hack additions
-	if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
+	if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && [ "$_proton_fs_hack" == "true" ]; then
 	  _patchname='proton-vk-bits-4.5.patch' && _patchmsg="Enable Proton vulkan bits for 4.5+" && nonuser_patcher
 	  _patchname='proton_fs_hack_integer_scaling.patch' && _patchmsg="Enable Proton fs hack integer scaling" && nonuser_patcher
 	fi

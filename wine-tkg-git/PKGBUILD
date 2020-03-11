@@ -1,11 +1,11 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=5.3.r17.g69cb47fd
+pkgver=5.3.r18.g789f5c7c
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=249
+eval pkgrel=250
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -356,9 +356,6 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-wined3d-additions.patch' # Proton non-vr-related wined3d additions
 		'staging-winex11-key_translation.patch' # Older version of that staging patchset specifically for proton-tkg with fs hack disabled
 		'proton-staging_winex11-MWM_Decorations.patch' # Proton friendly version of that staging patchset
-		'proton-staging_winex11-_NET_ACTIVE_WINDOW-0002.patch' # Proton friendly version of that staging patchset
-		'proton-staging_winex11-WM_WINDOWPOSCHANGING.patch' # Proton friendly version of that staging patchset
-		'proton-staging_winex11.drv-mouse-coorrds.patch' # FS hack friendly version of that staging patchset
 		'proton-vr.patch' # wined3d interop and friends for steamvr support
 		'proton-vr-a6d74b.patch' # wined3d interop and friends for steamvr support (<a6d74b)
 		'proton-vr-c736321.patch' # wined3d interop and friends for steamvr support (<c736321)
@@ -423,7 +420,7 @@ md5sums=('SKIP'
          '0c0015f8720453c05e903983ed012af3'
          '259569221964b0f2d0fc45196f114204'
          'ff418685a55dbe3d4a14dfd1c9cde41c'
-         'aa1039ed5cc87d842a5a34a0de17b84d'
+         'bffa790ed063a371d65957fa8f5a87d2'
          '0a8e5406472ae39c0687bc017edfb352'
          'c77e94d56f57d27dd26e9f99cbcd5bc3'
          'd27ec22ee6815a97b4d28ccdfc0420fe'
@@ -469,8 +466,8 @@ md5sums=('SKIP'
          '45c4ddc0b4c8e1dac0a7f5b35b683aa0'
          '5ca4ee142eafe2c8873d59b2feb51a7d'
          '684d1c60aa38a659b1dd792b1d7cd8f5'
-         '0f9d27b6cbe4c717646f90f7e81d7794'
-         '3817b66a3e2e256644620f5e92f52a34'
+         '088561d2f36294b7734c315d03f842b3'
+         'dda9f6e29289d05e06543e6529b346a5'
          '7fe6635805c658f5e4ed658b5f535948'
          '1faa90447591467c690063fd00073b16'
          '126f11c8ea4bc4bdb8a07f8724712564'
@@ -483,7 +480,7 @@ md5sums=('SKIP'
          '962fa3a5a4c5fd57b9f4715ed587fbe6'
          '4df9cd990a78606d3cd0dc0673bb141f'
          'a784c182c65c20cbb29b6473abae171d'
-         '448393ed3008a3d3b4d3405dbb8b10e0'
+         '44760f2958ab9eb3cc63349c75a8fe58'
          '15995e43af57b18bf7b45cc2d5af4f2d'
          '6f7cc6eb54f700d57006897e8c50a6a3'
          '0fecb4c7b114adaf4ea631b484939f59'
@@ -501,7 +498,7 @@ md5sums=('SKIP'
          '15efca22b39abeed59d1b0346f71f6e5'
          'e053c49ca8004e2ac3b546dd425634e6'
          '68d737b606319f1c4c55e26b128a4c18'
-         '47f19e8b11e7c21c661a5b873bd4ebd9'
+         '60057f845902f13d6a87a0d4e9be10f9'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
@@ -519,7 +516,7 @@ md5sums=('SKIP'
          'a78f5acc454bbcbe352d66f47534ba70'
          'c4d89d28cee5187b411aad830822f8e1'
          '554a30c7a02f66235bae71253eabc04e'
-         '403e57e1aaf2f0aead40940063d098cb'
+         'f47bb483a1748ef98dcb449457867146'
          'f404adafc8648495270e01241cd0601e'
          '8681c98f6d488957a206c9c1f2f9547f'
          '3d5518c89320a59400774a86b9a1cf2f'
@@ -547,9 +544,6 @@ md5sums=('SKIP'
          '6a3515ac9aef8948d8be01a110a5c066'
          'c5f18404f3317850be70751942d425c0'
          '0ff98b5896960aaac59b3977f2b869ac'
-         'ce109248a0e6afb2102b5afd19309e66'
-         'affd3acc5eae191caa514bed8e498bab'
-         '94bdbf2c29c4623edc26750c29eb7f23'
          '64dde324c635e4b4cdc271fe11de627b'
          '5a4baa27b177b888762555c770b21f1a'
          '64dde324c635e4b4cdc271fe11de627b'

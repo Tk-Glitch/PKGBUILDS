@@ -5358,10 +5358,163 @@ index 1f1a2d59e2e..b2700164a3d 100644
      mwm_hints.input_mode = 0;
      mwm_hints.status = 0;
      data->unmapnotify_serial = NextRequest( data->display );
-From 013a9b234732a9fbbd77ca370a3d66cf587a9113 Mon Sep 17 00:00:00 2001
+From 50916cd3dbac0b388a920ba01c673cdc354c7bce Mon Sep 17 00:00:00 2001
+From: Georg Lehmann <dadschoorse@gmail.com>
+Date: Tue, 25 Feb 2020 13:15:42 +0100
+Subject: [PATCH] winevulkan: Create only one fshack compute pipeline per
+ swapchain
+
+There is no need to create one pipeline per swapchain image
+---
+ dlls/winevulkan/vulkan.c         | 46 ++++++++++++++++----------------
+ dlls/winevulkan/vulkan_private.h |  2 +-
+ 2 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
+index 63665fb7a6f..8667dad9db4 100644
+--- a/dlls/winevulkan/vulkan.c
++++ b/dlls/winevulkan/vulkan.c
+@@ -1428,7 +1428,7 @@ const uint32_t blit_comp_spv[] = {
+ 	0x000100fd,0x00010038
+ };
+ 
+-static VkResult create_pipeline(VkDevice device, struct VkSwapchainKHR_T *swapchain, struct fs_hack_image *hack, VkShaderModule shaderModule)
++static VkResult create_pipeline(VkDevice device, struct VkSwapchainKHR_T *swapchain, VkShaderModule shaderModule)
+ {
+     VkResult res;
+ #if defined(USE_STRUCT_CONVERSION)
+@@ -1446,7 +1446,7 @@ static VkResult create_pipeline(VkDevice device, struct VkSwapchainKHR_T *swapch
+     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+     pipelineInfo.basePipelineIndex = -1;
+ 
+-    res = device->funcs.p_vkCreateComputePipelines(device->device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &hack->pipeline);
++    res = device->funcs.p_vkCreateComputePipelines(device->device, VK_NULL_HANDLE, 1, &pipelineInfo, NULL, &swapchain->pipeline);
+     if(res != VK_SUCCESS){
+         ERR("vkCreateComputePipelines: %d\n", res);
+         return res;
+@@ -1509,7 +1509,6 @@ static VkResult create_descriptor_set(VkDevice device, struct VkSwapchainKHR_T *
+ 
+ static void destroy_fs_hack_image(VkDevice device, struct VkSwapchainKHR_T *swapchain, struct fs_hack_image *hack)
+ {
+-    device->funcs.p_vkDestroyPipeline(device->device, hack->pipeline, NULL);
+     device->funcs.p_vkFreeDescriptorSets(device->device, swapchain->descriptor_pool, 1, &hack->descriptor_set);
+     device->funcs.p_vkDestroyImageView(device->device, hack->user_view, NULL);
+     device->funcs.p_vkDestroyImageView(device->device, hack->blit_view, NULL);
+@@ -1837,6 +1836,7 @@ void WINAPI wine_vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain
+             if(object->cmd_pools[i])
+                 device->funcs.p_vkDestroyCommandPool(device->device, object->cmd_pools[i], NULL);
+ 
++        device->funcs.p_vkDestroyPipeline(device->device, object->pipeline, NULL);
+         device->funcs.p_vkDestroyPipelineLayout(device->device, object->pipeline_layout, NULL);
+         device->funcs.p_vkDestroyDescriptorSetLayout(device->device, object->descriptor_set_layout, NULL);
+         device->funcs.p_vkDestroyDescriptorPool(device->device, object->descriptor_pool, NULL);
+@@ -2023,6 +2023,22 @@ static VkResult init_blit_images(VkDevice device, struct VkSwapchainKHR_T *swapc
+         goto fail;
+     }
+ 
++    shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
++    shaderInfo.codeSize = sizeof(blit_comp_spv);
++    shaderInfo.pCode = blit_comp_spv;
++
++    res = device->funcs.p_vkCreateShaderModule(device->device, &shaderInfo, NULL, &shaderModule);
++    if(res != VK_SUCCESS){
++        ERR("vkCreateShaderModule: %d\n", res);
++        goto fail;
++    }
++
++    res = create_pipeline(device, swapchain, shaderModule);
++    if(res != VK_SUCCESS)
++        goto fail;
++
++    device->funcs.p_vkDestroyShaderModule(device->device, shaderModule, NULL);
++
+     if(!(swapchain->surface_usage & VK_IMAGE_USAGE_STORAGE_BIT)){
+         TRACE("using intermediate blit images\n");
+         /* create intermediate blit images */
+@@ -2107,16 +2123,6 @@ static VkResult init_blit_images(VkDevice device, struct VkSwapchainKHR_T *swapc
+     }else
+         TRACE("blitting directly to swapchain images\n");
+ 
+-    shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+-    shaderInfo.codeSize = sizeof(blit_comp_spv);
+-    shaderInfo.pCode = blit_comp_spv;
+-
+-    res = device->funcs.p_vkCreateShaderModule(device->device, &shaderInfo, NULL, &shaderModule);
+-    if(res != VK_SUCCESS){
+-        ERR("vkCreateShaderModule: %d\n", res);
+-        goto fail;
+-    }
+-
+     /* create imageviews */
+     for(i = 0; i < swapchain->n_images; ++i){
+         struct fs_hack_image *hack = &swapchain->fs_hack_images[i];
+@@ -2140,23 +2146,14 @@ static VkResult init_blit_images(VkDevice device, struct VkSwapchainKHR_T *swapc
+         res = create_descriptor_set(device, swapchain, hack);
+         if(res != VK_SUCCESS)
+             goto fail;
+-
+-        res = create_pipeline(device, swapchain, hack, shaderModule);
+-        if(res != VK_SUCCESS)
+-            goto fail;
+     }
+ 
+-    device->funcs.p_vkDestroyShaderModule(device->device, shaderModule, NULL);
+-
+     return VK_SUCCESS;
+ 
+ fail:
+     for(i = 0; i < swapchain->n_images; ++i){
+         struct fs_hack_image *hack = &swapchain->fs_hack_images[i];
+ 
+-        device->funcs.p_vkDestroyPipeline(device->device, hack->pipeline, NULL);
+-        hack->pipeline = VK_NULL_HANDLE;
+-
+         device->funcs.p_vkFreeDescriptorSets(device->device, swapchain->descriptor_pool, 1, &hack->descriptor_set);
+         hack->descriptor_set = VK_NULL_HANDLE;
+ 
+@@ -2169,6 +2166,9 @@ static VkResult init_blit_images(VkDevice device, struct VkSwapchainKHR_T *swapc
+ 
+     device->funcs.p_vkDestroyShaderModule(device->device, shaderModule, NULL);
+ 
++    device->funcs.p_vkDestroyPipeline(device->device, swapchain->pipeline, NULL);
++    swapchain->pipeline = VK_NULL_HANDLE;
++
+     device->funcs.p_vkDestroyPipelineLayout(device->device, swapchain->pipeline_layout, NULL);
+     swapchain->pipeline_layout = VK_NULL_HANDLE;
+ 
+@@ -2258,7 +2258,7 @@ static VkResult record_compute_cmd(VkDevice device, struct VkSwapchainKHR_T *swa
+ 
+     /* perform blit shader */
+     device->funcs.p_vkCmdBindPipeline(hack->cmd,
+-            VK_PIPELINE_BIND_POINT_COMPUTE, hack->pipeline);
++            VK_PIPELINE_BIND_POINT_COMPUTE, swapchain->pipeline);
+ 
+     device->funcs.p_vkCmdBindDescriptorSets(hack->cmd,
+             VK_PIPELINE_BIND_POINT_COMPUTE, swapchain->pipeline_layout,
+diff --git a/dlls/winevulkan/vulkan_private.h b/dlls/winevulkan/vulkan_private.h
+index 00626eff1e3..001ce85a1fd 100644
+--- a/dlls/winevulkan/vulkan_private.h
++++ b/dlls/winevulkan/vulkan_private.h
+@@ -147,7 +147,6 @@ struct fs_hack_image
+     VkSemaphore blit_finished;
+     VkImageView user_view, blit_view;
+     VkDescriptorSet descriptor_set;
+-    VkPipeline pipeline;
+ };
+ 
+ struct VkSwapchainKHR_T
+@@ -170,6 +169,7 @@ struct VkSwapchainKHR_T
+     VkDescriptorPool descriptor_pool;
+     VkDescriptorSetLayout descriptor_set_layout;
+     VkPipelineLayout pipeline_layout;
++    VkPipeline pipeline;
+ };
+ 
+ void *wine_vk_get_device_proc_addr(const char *name) DECLSPEC_HIDDEN;
+From 76b525493429c6727f1875d556697ccf7b9fca08 Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Mon, 24 Feb 2020 17:36:49 +0000
-Subject: [PATCH 1/4] winevulkan: Cleanup barriers for fs hack
+Subject: [PATCH] winevulkan: Cleanup barriers for fs hack
 
 Removes needless GENERAL transitions for graphics presentation.
 (we can be TRANSFER_SRC for vkCmdBlitImage, no need to disable DCC with GENERAL)
@@ -5376,7 +5529,7 @@ Also fixes misc. access flag issues.
  1 file changed, 63 insertions(+), 60 deletions(-)
 
 diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
-index 63665fb7a6f..15644e4901d 100644
+index 8667dad9db4..d669b1a3c02 100644
 --- a/dlls/winevulkan/vulkan.c
 +++ b/dlls/winevulkan/vulkan.c
 @@ -2216,9 +2216,10 @@ static VkResult record_compute_cmd(VkDevice device, struct VkSwapchainKHR_T *swa
@@ -5479,7 +5632,7 @@ index 63665fb7a6f..15644e4901d 100644
 +        barriers[0].subresourceRange.baseArrayLayer = 0;
 +        barriers[0].subresourceRange.layerCount = 1;
 +        barriers[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-+        barriers[0].dstAccessMask = 0;        
++        barriers[0].dstAccessMask = 0;
 +
 +        device->funcs.p_vkCmdPipelineBarrier(
 +                hack->cmd,
@@ -5622,22 +5775,21 @@ index 63665fb7a6f..15644e4901d 100644
                              goto next;
                          }
                      }
-
-From 459239da871d87c611644b4fefcdf91f6be1dae9 Mon Sep 17 00:00:00 2001
+From 136bf78a8fc5fd8f8841b8409233d0579373c1fb Mon Sep 17 00:00:00 2001
 From: Joshua Ashton <joshua@froggi.es>
 Date: Tue, 25 Feb 2020 19:03:31 +0000
-Subject: [PATCH 2/4] winevulkan: Fix warning due to implicit different ptr
- size cast
+Subject: [PATCH] winevulkan: Fix warning due to implicit different ptr size
+ cast
 
 ---
  dlls/winevulkan/vulkan.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
-index 15644e4901d..298fa72e014 100644
+index d669b1a3c02..b11c0a81fc4 100644
 --- a/dlls/winevulkan/vulkan.c
 +++ b/dlls/winevulkan/vulkan.c
-@@ -1774,7 +1774,7 @@ VkResult WINAPI wine_vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCrea
+@@ -1773,7 +1773,7 @@ VkResult WINAPI wine_vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCrea
          result = init_blit_images(device, object);
          if(result != VK_SUCCESS){
              ERR("creating blit images failed: %d\n", result);
@@ -5646,12 +5798,10 @@ index 15644e4901d..298fa72e014 100644
              return result;
          }
      }
-
-From e8d0dc7f9afd58d5927401067c3d8734360f64de Mon Sep 17 00:00:00 2001
+From 37320358dec2b1cbff3f8f1554b8d73dfa9fd33a Mon Sep 17 00:00:00 2001
 From: Georg Lehmann <dadschoorse@gmail.com>
 Date: Mon, 2 Mar 2020 14:53:35 +0100
-Subject: [PATCH 3/4] winevulkan: fshack: don't change the transitions to
- PRESENT
+Subject: [PATCH] winevulkan: fshack: don't change the transitions to PRESENT
 
 We can't be sure that the application transitions with barriers and not with render passes.
 So we let it transition to PRESENT and change our layout changes accordingly.
@@ -5662,10 +5812,10 @@ Also fixes that the user image is created without VK_IMAGE_USAGE_TRANSFER_SRC_BI
  1 file changed, 39 insertions(+), 46 deletions(-)
 
 diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
-index 298fa72e014..0950c591d3f 100644
+index b11c0a81fc4..028eb99f7e2 100644
 --- a/dlls/winevulkan/vulkan.c
 +++ b/dlls/winevulkan/vulkan.c
-@@ -1590,7 +1590,7 @@ static VkResult init_fs_hack_images(VkDevice device, struct VkSwapchainKHR_T *sw
+@@ -1589,7 +1589,7 @@ static VkResult init_fs_hack_images(VkDevice device, struct VkSwapchainKHR_T *sw
          imageInfo.format = createinfo->imageFormat;
          imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
          imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -5830,11 +5980,10 @@ index 298fa72e014..0950c591d3f 100644
      commandBuffer->device->funcs.p_vkCmdPipelineBarrier(commandBuffer->command_buffer,
              srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount,
              pMemoryBarriers, bufferMemoryBarrierCount,
-
-From f76050cdaa3c5f803c1e2a99bb475c3850dd2568 Mon Sep 17 00:00:00 2001
+From a060b973af303139dceb6d89f71f24f22fae9197 Mon Sep 17 00:00:00 2001
 From: Georg Lehmann <dadschoorse@gmail.com>
 Date: Mon, 2 Mar 2020 18:07:15 +0100
-Subject: [PATCH 4/4] winevulkan: fshack: don't free invidual descriptor set
+Subject: [PATCH] winevulkan: fshack: don't free invidual descriptor set
 
 They get destroyed when the pool gets destroyed anyway.
 ---
@@ -5842,13 +5991,13 @@ They get destroyed when the pool gets destroyed anyway.
  1 file changed, 1 deletion(-)
 
 diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
-index 0950c591d3f..6408695f1f8 100644
+index 028eb99f7e2..bad31300df8 100644
 --- a/dlls/winevulkan/vulkan.c
 +++ b/dlls/winevulkan/vulkan.c
-@@ -1510,7 +1510,6 @@ static VkResult create_descriptor_set(VkDevice device, struct VkSwapchainKHR_T *
+@@ -1509,7 +1509,6 @@ static VkResult create_descriptor_set(VkDevice device, struct VkSwapchainKHR_T *
+ 
  static void destroy_fs_hack_image(VkDevice device, struct VkSwapchainKHR_T *swapchain, struct fs_hack_image *hack)
  {
-     device->funcs.p_vkDestroyPipeline(device->device, hack->pipeline, NULL);
 -    device->funcs.p_vkFreeDescriptorSets(device->device, swapchain->descriptor_pool, 1, &hack->descriptor_set);
      device->funcs.p_vkDestroyImageView(device->device, hack->user_view, NULL);
      device->funcs.p_vkDestroyImageView(device->device, hack->blit_view, NULL);
