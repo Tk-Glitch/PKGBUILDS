@@ -2,7 +2,7 @@
 
 _pkgbase=gamescope
 pkgname=${_pkgbase}-git
-pkgver=3.5.1.r2.g95caa5c
+pkgver=3.5.1.r13.gbeb29e2
 pkgrel=1
 _where=$PWD # track basedir as different Arch based distros are moving srcdir around
 source "$_where"/customization.cfg
@@ -17,13 +17,11 @@ url="https://github.com/Plagman/gamescope"
 license=('BSD 2-Clause "Simplified" License')
 makedepends=('git' 'meson' 'ninja' 'cmake' 'pixman' 'pkgconf' 'vulkan-headers')
 pkgdesc="gamescope: the micro-compositor formerly known as steamcompmgr"
-_depends_array=("wayland" "opengl-driver" "xorg-server-xwayland" "libdrm" "libinput"
-                "libxkbcommon" "libcap" "libxcb" "libpng" "glslang")
+_depends_array="wayland opengl-driver xorg-server-xwayland libdrm libinput libxkbcommon libcap libxcb libpng glslang"
 if [ "$_local_wlroots" != "true" ]; then
-  depends=($_depends_array)
-else
-  depends=($_depends_array "wlroots")
+  _depends_array="${_depends_array} wlroots"
 fi
+depends=(${_depends_array})
 conflicts=('gamescope')
 
 # custom commit to pass to git
