@@ -1310,8 +1310,10 @@ EOM
 	    fi
 	    # Gamepad additions - from Proton
 	    if [ "$_gamepad_additions" == "true" ] && [ "$_use_staging" == "true" ]; then
-	      if git merge-base --is-ancestor 6cb3d0fb3778f660546e581787b1734e2b1d2955 HEAD; then
+	      if git merge-base --is-ancestor da7d60bf97fb8726828e57f852e8963aacde21e9 HEAD; then
 	        _patchname='proton-gamepad-additions.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
+	      elif git merge-base --is-ancestor 6cb3d0fb3778f660546e581787b1734e2b1d2955 HEAD; then
+	        _patchname='proton-gamepad-additions-da7d60b.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
 	      elif git merge-base --is-ancestor c074966b9d75d9519e8640e87725ad439f4ffa0c HEAD; then
 	        _patchname='proton-gamepad-additions-6cb3d0f.patch' && _patchmsg="Enable xinput hacks and other gamepad additions (from Proton)" && nonuser_patcher
 	      elif git merge-base --is-ancestor aa482426dc4d6f291e6d1dd75be4701636cab31d HEAD; then
