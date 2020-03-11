@@ -393,19 +393,6 @@ index e5af028c08b4..6387c8ea9832 100644
  	return false;
  }
  
-diff --git a/include/linux/sched/task.h b/include/linux/sched/task.h
-index f1879884238e..0e961efabeb2 100644
---- a/include/linux/sched/task.h
-+++ b/include/linux/sched/task.h
-@@ -102,7 +102,7 @@ extern long kernel_wait4(pid_t, int __user *, int, struct rusage *);
- extern void free_task(struct task_struct *tsk);
- 
- /* sched_exec is called by processes performing an exec */
--#ifdef CONFIG_SMP
-+#if defined(CONFIG_SMP) && !defined(CONFIG_SCHED_BMQ)
- extern void sched_exec(void);
- #else
- #define sched_exec()   {}
 diff --git a/init/Kconfig b/init/Kconfig
 index a34064a031a5..256e555538b7 100644
 --- a/init/Kconfig
@@ -634,10 +621,10 @@ index 21fb5a5662b5..ac31239aa51a 100644
  obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 diff --git a/kernel/sched/bmq.c b/kernel/sched/bmq.c
 new file mode 100644
-index 000000000000..0439a2b97ed1
+index 000000000000..6a5ab93a30bb
 --- /dev/null
 +++ b/kernel/sched/bmq.c
-@@ -0,0 +1,5972 @@
+@@ -0,0 +1,5999 @@
 +/*
 + *  kernel/sched/bmq.c
 + *
@@ -710,7 +697,7 @@ index 000000000000..0439a2b97ed1
 +
 +static inline void print_scheduler_version(void)
 +{
-+	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.5-r2 by Alfred Chen.\n");
++	printk(KERN_INFO "bmq: BMQ CPU Scheduler 5.5-r3 by Alfred Chen.\n");
 +}
 +
 +/**
@@ -756,6 +743,7 @@ index 000000000000..0439a2b97ed1
 +
 +DEFINE_PER_CPU(cpumask_t [NR_CPU_AFFINITY_CHK_LEVEL], sched_cpu_affinity_masks);
 +DEFINE_PER_CPU(cpumask_t *, sched_cpu_affinity_end_mask);
++DEFINE_PER_CPU(cpumask_t *, sched_cpu_llc_mask);
 +
 +#ifdef CONFIG_SCHED_SMT
 +DEFINE_STATIC_KEY_FALSE(sched_smt_present);
@@ -3339,6 +3327,39 @@ index 000000000000..0439a2b97ed1
 +	return sum;
 +}
 +
++#ifdef CONFIG_SMP
++
++/*
++ * sched_exec - execve() is a valuable balancing opportunity, because at
++ * this point the task has the smallest effective memory and cache
++ * footprint.
++ */
++void sched_exec(void)
++{
++	struct task_struct *p = current;
++	int dest_cpu;
++
++	if (task_rq(p)->nr_running < 2)
++		return;
++
++	dest_cpu = cpumask_any_and(p->cpus_ptr, &sched_rq_watermark[IDLE_WM]);
++	if ( dest_cpu < nr_cpu_ids) {
++#ifdef CONFIG_SCHED_SMT
++		int smt = cpumask_any_and(p->cpus_ptr, &sched_sg_idle_mask);
++		if (smt < nr_cpu_ids)
++			dest_cpu = smt;
++#endif
++		if (likely(cpu_active(dest_cpu))) {
++			struct migration_arg arg = { p, dest_cpu };
++
++			stop_one_cpu(task_cpu(p), migration_cpu_stop, &arg);
++			return;
++		}
++	}
++}
++
++#endif
++
 +DEFINE_PER_CPU(struct kernel_stat, kstat);
 +DEFINE_PER_CPU(struct kernel_cpustat, kernel_cpustat);
 +
@@ -3461,8 +3482,12 @@ index 000000000000..0439a2b97ed1
 +	rq->active_balance = 0;
 +	/* _something_ may have changed the task, double check again */
 +	if (task_on_rq_queued(p) && task_rq(p) == rq &&
-+	    cpumask_and(&tmp, p->cpus_ptr, &sched_sg_idle_mask))
-+		rq = move_queued_task(rq, p, __best_mask_cpu(cpu_of(rq), &tmp));
++	    cpumask_and(&tmp, p->cpus_ptr, &sched_sg_idle_mask)) {
++		int cpu = cpu_of(rq);
++		int dcpu = __best_mask_cpu(cpu, &tmp,
++					   per_cpu(sched_cpu_llc_mask, cpu));
++		rq = move_queued_task(rq, p, dcpu);
++	}
 +
 +	raw_spin_unlock(&rq->lock);
 +	raw_spin_unlock(&p->pi_lock);
@@ -3473,8 +3498,9 @@ index 000000000000..0439a2b97ed1
 +}
 +
 +/* sg_balance_trigger - trigger slibing group balance for @cpu */
-+static inline int sg_balance_trigger(const int cpu, struct rq *rq)
++static inline int sg_balance_trigger(const int cpu)
 +{
++	struct rq *rq= cpu_rq(cpu);
 +	unsigned long flags;
 +	struct task_struct *curr;
 +	int res;
@@ -3510,38 +3536,25 @@ index 000000000000..0439a2b97ed1
 +		return;
 +
 +	cpu = cpu_of(rq);
-+	/* Only cpu in slibing idle group will do the checking */
-+	if (cpumask_test_cpu(cpu, &sched_sg_idle_mask)) {
-+		/* Find potential cpus which can migrate the currently running task */
-+		if (cpumask_andnot(&chk, cpu_online_mask, &sched_rq_pending_mask) &&
-+		    cpumask_andnot(&chk, &chk, &sched_rq_watermark[IDLE_WM])) {
-+			int i, tried = 0;
++	/*
++	 * Only cpu in slibing idle group will do the checking and then
++	 * find potential cpus which can migrate the current running task
++	 */
++	if (cpumask_test_cpu(cpu, &sched_sg_idle_mask) &&
++	    cpumask_andnot(&chk, cpu_online_mask, &sched_rq_pending_mask) &&
++	    cpumask_andnot(&chk, &chk, &sched_rq_watermark[IDLE_WM])) {
++		int i, tried = 0;
 +
-+			for_each_cpu_wrap(i, &chk, cpu) {
-+				/* skip the cpu which has idle slibing cpu */
-+				if (cpumask_intersects(cpu_smt_mask(i),
-+						       &sched_rq_watermark[IDLE_WM]))
-+					continue;
-+				if (cpumask_intersects(cpu_smt_mask(i),
-+						       &sched_rq_pending_mask))
-+					continue;
-+				if (sg_balance_trigger(i, cpu_rq(i)))
++		for_each_cpu_wrap(i, &chk, cpu) {
++			if (cpumask_subset(cpu_smt_mask(i), &chk)) {
++				if (sg_balance_trigger(i))
 +					return;
 +				if (tried)
 +					return;
 +				tried++;
 +			}
 +		}
-+		return;
 +	}
-+
-+	if (1 != rq->nr_running)
-+		return;
-+
-+	if (cpumask_andnot(&chk, cpu_smt_mask(cpu), &sched_rq_pending_mask) &&
-+	    cpumask_andnot(&chk, &chk, &sched_rq_watermark[IDLE_WM]) &&
-+	    cpumask_equal(&chk, cpu_smt_mask(cpu)))
-+		sg_balance_trigger(cpu, rq);
 +}
 +#endif /* CONFIG_SCHED_SMT */
 +
@@ -6122,10 +6135,22 @@ index 000000000000..0439a2b97ed1
 +			cpumask_copy(tmp, cpu_possible_mask);
 +			cpumask_clear_cpu(cpu, tmp);
 +		}
++		per_cpu(sched_cpu_llc_mask, cpu) =
++			&(per_cpu(sched_cpu_affinity_masks, cpu)[0]);
 +		per_cpu(sched_cpu_affinity_end_mask, cpu) =
 +			&(per_cpu(sched_cpu_affinity_masks, cpu)[1]);
++		per_cpu(sd_llc_id, cpu) = cpu;
 +	}
 +}
++
++#define TOPOLOGY_CPUMASK(name, func) \
++	if (cpumask_and(chk, chk, func(cpu))) {					\
++		per_cpu(sched_cpu_llc_mask, cpu) = chk;				\
++		per_cpu(sd_llc_id, cpu) = cpumask_first(func(cpu));		\
++		printk(KERN_INFO "bmq: cpu#%d affinity mask - "#name" 0x%08lx",	\
++		       cpu, (chk++)->bits[0]);					\
++	}									\
++	cpumask_complement(chk, func(cpu))
 +
 +static void sched_init_topology_cpumask(void)
 +{
@@ -6137,34 +6162,23 @@ index 000000000000..0439a2b97ed1
 +
 +		cpumask_complement(chk, cpumask_of(cpu));
 +#ifdef CONFIG_SCHED_SMT
-+		if (cpumask_and(chk, chk, topology_sibling_cpumask(cpu)))
-+			printk(KERN_INFO "bmq: cpu #%d affinity mask - smt 0x%08lx",
-+			       cpu, (chk++)->bits[0]);
-+		cpumask_complement(chk, topology_sibling_cpumask(cpu));
++		TOPOLOGY_CPUMASK(smt, topology_sibling_cpumask);
 +#endif
-+		/* Set up sd_llc_id per CPU */
-+		per_cpu(sd_llc_id, cpu) =
 +#ifdef CONFIG_SCHED_MC
-+			cpumask_first(cpu_coregroup_mask(cpu));
-+
-+		if (cpumask_and(chk, chk, cpu_coregroup_mask(cpu)))
-+			printk(KERN_INFO "bmq: cpu #%d affinity mask - coregroup 0x%08lx",
-+			       cpu, (chk++)->bits[0]);
-+		cpumask_complement(chk, cpu_coregroup_mask(cpu));
-+#else
-+			cpumask_first(topology_core_cpumask(cpu));
++		TOPOLOGY_CPUMASK(coregroup, cpu_coregroup_mask);
 +#endif
 +
-+		if (cpumask_and(chk, chk, topology_core_cpumask(cpu)))
-+			printk(KERN_INFO "bmq: cpu #%d affinity mask - core 0x%08lx",
-+			       cpu, (chk++)->bits[0]);
-+		cpumask_complement(chk, topology_core_cpumask(cpu));
++		TOPOLOGY_CPUMASK(core, topology_core_cpumask);
 +
 +		if (cpumask_and(chk, chk, cpu_online_mask))
-+			printk(KERN_INFO "bmq: cpu #%d affinity mask - others 0x%08lx",
++			printk(KERN_INFO "bmq: cpu#%d affinity mask - others 0x%08lx",
 +			       cpu, (chk++)->bits[0]);
 +
 +		per_cpu(sched_cpu_affinity_end_mask, cpu) = chk;
++		printk(KERN_INFO "bmq: cpu#%d llc_id = %d, llc_mask idx = %ld\n",
++		       cpu, per_cpu(sd_llc_id, cpu),
++		       per_cpu(sched_cpu_llc_mask, cpu) -
++		       &(per_cpu(sched_cpu_affinity_masks, cpu)[0]));
 +	}
 +}
 +#endif
@@ -6649,10 +6663,10 @@ index 000000000000..375a1a805d86
 +{}
 diff --git a/kernel/sched/bmq_sched.h b/kernel/sched/bmq_sched.h
 new file mode 100644
-index 000000000000..f1c57e28cf60
+index 000000000000..449d6b54a253
 --- /dev/null
 +++ b/kernel/sched/bmq_sched.h
-@@ -0,0 +1,508 @@
+@@ -0,0 +1,509 @@
 +#ifndef BMQ_SCHED_H
 +#define BMQ_SCHED_H
 +
@@ -6863,9 +6877,9 @@ index 000000000000..f1c57e28cf60
 +
 +DECLARE_PER_CPU(cpumask_t [NR_CPU_AFFINITY_CHK_LEVEL], sched_cpu_affinity_masks);
 +
-+static inline int __best_mask_cpu(int cpu, const cpumask_t *cpumask)
++static inline int __best_mask_cpu(int cpu, const cpumask_t *cpumask,
++				  const cpumask_t *mask)
 +{
-+	cpumask_t *mask = &(per_cpu(sched_cpu_affinity_masks, cpu)[0]);
 +	while ((cpu = cpumask_any_and(cpumask, mask)) >= nr_cpu_ids)
 +		mask++;
 +	return cpu;
@@ -6873,7 +6887,8 @@ index 000000000000..f1c57e28cf60
 +
 +static inline int best_mask_cpu(int cpu, const cpumask_t *cpumask)
 +{
-+	return cpumask_test_cpu(cpu, cpumask)? cpu:__best_mask_cpu(cpu, cpumask);
++	return cpumask_test_cpu(cpu, cpumask)? cpu :
++		__best_mask_cpu(cpu, cpumask, &(per_cpu(sched_cpu_affinity_masks, cpu)[0]));
 +}
 +
 +#endif /* CONFIG_SMP */
