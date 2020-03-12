@@ -122,7 +122,7 @@ echo -e "External configuration file $_EXT_CONFIG_PATH will be used to override 
       fi
       git reset --hard HEAD
       git clean -xdf
-      _gcc_sub="-$(git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//')"
+      _gcc_sub="-$(git describe --long --tags --always | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//;s/\//-/')"
     else
       cd ${_nowhere}/build
       wget -c ftp://ftp.gnu.org/gnu/gcc/gcc-${_gcc_version}/gcc-${_gcc_version}.tar.xz && chmod a+x gcc-${_gcc_version}.tar.* && tar -xvJf gcc-${_gcc_version}.tar.* >/dev/null 2>&1
