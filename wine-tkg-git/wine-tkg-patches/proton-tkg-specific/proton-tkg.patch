@@ -3484,54 +3484,6 @@ index 868f898bbbb..95f498123ea 100644
      }
  
      if (TRACE_ON( bcrypt ))
-From 24a8f709ec8fcf8fa4fcc349a7885c02cc184d74 Mon Sep 17 00:00:00 2001
-From: Derek Lesho <dlesho@codeweavers.com>
-Date: Wed, 26 Feb 2020 13:09:48 -0600
-Subject: [PATCH] ntdll: Don't support reading/writing debug registers
-
-Monster Hunter World continually retrieves these registers, so fast-path
-this code. This will break setting debug registers on other threads.
----
- dlls/ntdll/signal_x86_64.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/dlls/ntdll/signal_x86_64.c b/dlls/ntdll/signal_x86_64.c
-index 04f3854388c..9752c3889b6 100644
---- a/dlls/ntdll/signal_x86_64.c
-+++ b/dlls/ntdll/signal_x86_64.c
-@@ -2115,13 +2115,13 @@ NTSTATUS WINAPI NtSetContextThread( HANDLE handle, const CONTEXT *context )
-     BOOL self = (handle == GetCurrentThread());
- 
-     /* debug registers require a server call */
--    if (self && (context->ContextFlags & (CONTEXT_DEBUG_REGISTERS & ~CONTEXT_AMD64)))
-+    /*if (self && (context->ContextFlags & (CONTEXT_DEBUG_REGISTERS & ~CONTEXT_AMD64)))
-         self = (amd64_thread_data()->dr0 == context->Dr0 &&
-                 amd64_thread_data()->dr1 == context->Dr1 &&
-                 amd64_thread_data()->dr2 == context->Dr2 &&
-                 amd64_thread_data()->dr3 == context->Dr3 &&
-                 amd64_thread_data()->dr6 == context->Dr6 &&
--                amd64_thread_data()->dr7 == context->Dr7);
-+                amd64_thread_data()->dr7 == context->Dr7);*/
- 
-     if (!self)
-     {
-@@ -2149,7 +2149,15 @@ NTSTATUS WINAPI NtGetContextThread( HANDLE handle, CONTEXT *context )
-     needed_flags = context->ContextFlags;
- 
-     /* debug registers require a server call */
--    if (context->ContextFlags & (CONTEXT_DEBUG_REGISTERS & ~CONTEXT_AMD64)) self = FALSE;
-+    if (context->ContextFlags & (CONTEXT_DEBUG_REGISTERS & ~CONTEXT_AMD64)) //self = FALSE;
-+    {
-+        context->Dr0 = amd64_thread_data()->dr0;
-+        context->Dr1 = amd64_thread_data()->dr1;
-+        context->Dr2 = amd64_thread_data()->dr2;
-+        context->Dr3 = amd64_thread_data()->dr3;
-+        context->Dr6 = amd64_thread_data()->dr6;
-+        context->Dr7 = amd64_thread_data()->dr7;
-+    }
- 
-     if (!self)
-     {
 From f70d26ade963aab370f80ca33744ca258f839b25 Mon Sep 17 00:00:00 2001
 From: Derek Lesho <dlesho@codeweavers.com>
 Date: Mon, 24 Feb 2020 13:32:38 -0600
