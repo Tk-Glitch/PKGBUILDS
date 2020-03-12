@@ -1388,7 +1388,11 @@ EOM
 
 	# Add support for dxvk_config library to Wine's dxgi when vkd3d support is enabled
 	if [ "$_use_vkd3d" == "true" ]; then
-	  _patchname='dxvk_config_dxgi_support.patch' && _patchmsg="Add support for dxvk_config library to Wine's dxgi" && nonuser_patcher
+	  if git merge-base --is-ancestor 591068cec06257f3d5ed23e19ee4ad055ad978aa HEAD; then
+	    _patchname='dxvk_config_dxgi_support.patch' && _patchmsg="Add support for dxvk_config library to Wine's dxgi" && nonuser_patcher
+	  else
+	    _patchname='dxvk_config_dxgi_support-591068c.patch' && _patchmsg="Add support for dxvk_config library to Wine's dxgi" && nonuser_patcher
+	  fi
 	fi
 
 	# wine user patches

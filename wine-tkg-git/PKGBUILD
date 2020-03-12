@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=5.3.r18.g789f5c7c
+pkgver=5.3.r19.gd14250ab
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -362,6 +362,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-vr-c736321.patch' # wined3d interop and friends for steamvr support (<c736321)
 		'proton-win10-default.patch' # Set default wine version to win10
 		'proton-steam-bits.patch' # Proton's steam-centric patches
+		'dxvk_config_dxgi_support-591068c.patch' # Add support for dxvk_config library to Wine's dxgi (<591068c)
 		'dxvk_config_dxgi_support.patch' # Add support for dxvk_config library to Wine's dxgi
 )
 
@@ -551,7 +552,8 @@ md5sums=('SKIP'
          '64dde324c635e4b4cdc271fe11de627b'
          '045aad3b7247f4ce632f6512ebfeb527'
          '34371df6586d3814d8ee123aa4b37b50'
-         '16eeb21745eca0044c765d4d9e1e5cfa')
+         '16eeb21745eca0044c765d4d9e1e5cfa'
+         '87eb77f746f8c29bc8cff1d4dfce4bdc')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
