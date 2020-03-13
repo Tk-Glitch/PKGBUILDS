@@ -1,7 +1,7 @@
 # Created by: Tk-Glitch <ti3nou at gmail dot com>
 
 pkgname=wine-tkg-git
-pkgver=5.3.r19.gd14250ab
+pkgver=5.3.r21.gc896e5cb
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
@@ -310,6 +310,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-2aad952.patch' # Proton-tkg (<2aad952)
 		'proton-tkg-74dc0c5.patch' # Proton-tkg (<74dc0c5)
 		'proton-tkg-50aeb5e.patch' # Proton-tkg (<50aeb5e)
+		'proton-tkg-56a6bc8.patch' # Proton-tkg (<56a6bc8)
 		'proton-tkg.patch' # Proton-tkg
 		'proton-tkg-rpc.patch' # necessary pre-patch for Proton-tkg
 		'proton-tkg-staging-8d25965.patch' # Proton-tkg-staging (<8d25965)
@@ -328,6 +329,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-staging-2aad952.patch' # Proton-tkg-staging (<2aad952)
 		'proton-tkg-staging-74dc0c5.patch' # Proton-tkg-staging (<74dc0c5)
 		'proton-tkg-staging-50aeb5e.patch' # Proton-tkg-staging (<50aeb5e)
+		'proton-tkg-staging-56a6bc8.patch' # Proton-tkg-staging (<56a6bc8)
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'proton-tkg-staging-rpc.patch' # necessary pre-patch for Proton-tkg-staging
 		'proton-tkg-steamclient-swap.patch' # Key steamclient substitution hack
@@ -501,6 +503,7 @@ md5sums=('SKIP'
          'e053c49ca8004e2ac3b546dd425634e6'
          '68d737b606319f1c4c55e26b128a4c18'
          'fbc63c3d9c499b5952a2fcf8b5fe283f'
+         '6c025b80b1146f0f05e89559c139f21c'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
@@ -519,6 +522,7 @@ md5sums=('SKIP'
          'c4d89d28cee5187b411aad830822f8e1'
          '554a30c7a02f66235bae71253eabc04e'
          'dda3a74b697305a70347b2e527d9197c'
+         '763ab0413b5565968a2bb7dc2d0d7907'
          'f404adafc8648495270e01241cd0601e'
          '8681c98f6d488957a206c9c1f2f9547f'
          '3d5518c89320a59400774a86b9a1cf2f'
