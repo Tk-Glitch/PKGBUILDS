@@ -1057,7 +1057,7 @@ EOM
 	  else
 	    echo "Fsync forcefully disabled due to incompatible tree" >> "$_where"/last_build_config.log
 	  fi
-	  if [ "$_fsync_spincounts" == "true" ]; then
+	  if [ "$_fsync_spincounts" == "true" ] && [ "$_use_staging" == "true" ]; then # Temporarily only allow on staging
 	    _patchname='fsync-spincounts.patch' && _patchmsg="Add a configurable spin count to fsync" && nonuser_patcher
 	  fi
 	fi
@@ -1068,10 +1068,12 @@ EOM
 	    _patchname='FS_bypass_compositor.patch' && _patchmsg="Applied Fullscreen compositor bypass patch" && nonuser_patcher
 	  fi
 	  if [ "$_use_staging" == "true" ]; then
-	    if git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
+	    if git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD; then
 	      _patchname='valve_proton_fullscreen_hack-staging.patch' && _patchmsg="Applied Proton fullscreen hack patch (staging)" && nonuser_patcher
 	    else
-	      if git merge-base --is-ancestor 7e736b5903d3d078bbf7bb6a509536a942f6b9a0 HEAD; then
+	      if git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
+	        _lastcommit="74dc0c5"
+	      elif git merge-base --is-ancestor 7e736b5903d3d078bbf7bb6a509536a942f6b9a0 HEAD; then
 	        _lastcommit="aee91dc"
 	      elif $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 734918298c4a6eb1cb23f31e21481f2ef58a0970 HEAD && cd "${srcdir}"/"${_winesrcdir}"); then
 	        _lastcommit="7e736b5"
@@ -1095,8 +1097,10 @@ EOM
 	      _patchname="valve_proton_fullscreen_hack-staging-$_lastcommit.patch" && _patchmsg="Applied Proton fullscreen hack patch ($_lastcommit)" && nonuser_patcher
 	    fi
 	  else
-	    if git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
+	    if git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD; then
 	      _patchname='valve_proton_fullscreen_hack.patch' && _patchmsg="Applied Proton fullscreen hack patch (mainline)" && nonuser_patcher
+	    elif git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
+	      _patchname='valve_proton_fullscreen_hack-74dc0c5.patch' && _patchmsg="Applied Proton fullscreen hack patch (mainline <74dc0c5)" && nonuser_patcher
 	    fi
 	  fi
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
@@ -1110,15 +1114,17 @@ EOM
 	fi
 
 	# Proton compatible rawinput patchset
-	if [ "$_proton_rawinput" == "true" ] && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ]; then
-	  if git merge-base --is-ancestor 6d7828e8df68178ca662bc618f7598254afcfbe1 HEAD; then
+	if [ "$_proton_rawinput" == "true" ] && [ "$_proton_fs_hack" == "true" ] && [ "$_use_staging" == "true" ] && git merge-base --is-ancestor 6d7828e8df68178ca662bc618f7598254afcfbe1 HEAD; then
+	  if git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD; then
 	    _patchname='proton-rawinput.patch' && _patchmsg="Using rawinput patchset" && nonuser_patcher
-	    if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD && cd "${srcdir}"/"${_winesrcdir}"); then # Apply staging winex11-key_translation patchset post staging-application when enabled
+	  else
+	    _patchname='proton-rawinput-74dc0c5.patch' && _patchmsg="Using rawinput patchset (<74dc0c5)" && nonuser_patcher
+	  fi
+	  if $(cd "${srcdir}"/"${_stgsrcdir}" && git merge-base --is-ancestor 8218a789558bf074bd26a9adf3bbf05bdb9cb88e HEAD && cd "${srcdir}"/"${_winesrcdir}"); then # Apply staging winex11-key_translation patchset post staging-application when enabled
 	      cp -u "${srcdir}"/"${_stgsrcdir}"/patches/winex11-key_translation/*.patch "$_where"/ && ln -s -f "${srcdir}"/"${_stgsrcdir}"/patches/winex11-key_translation/*.patch "${srcdir}"/
 	      _patchname='0001-winex11-Match-keyboard-in-Unicode.patch' && _patchmsg="Applied proton friendly winex11-Match-keyboard-in-Unicode" && nonuser_patcher
 	      _patchname='0002-winex11-Fix-more-key-translation.patch' && _patchmsg="Applied proton friendly winex11-Fix-more-key-translation" && nonuser_patcher
 	      _patchname='0003-winex11.drv-Fix-main-Russian-keyboard-layout.patch' && _patchmsg="Applied proton friendly winex11.drv-Fix-main-Russian-keyboard-layout" && nonuser_patcher
-	    fi
 	  fi
 	fi
 
@@ -1218,7 +1224,7 @@ EOM
 	  fi
 	fi
 
-	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] || [ "$_protonify" == "true" ]; then
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] || ([ "$_protonify" == "true" ] && git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD); then
 	  if git merge-base --is-ancestor 56a6bc87acbbbee74fb6cd8e77ae61828e274c2d HEAD; then
 	    if [ "$_use_staging" == "true" ]; then
 	      _patchname='proton-tkg-staging-rpc.patch' && _patchmsg="Using Steam-specific Proton-tkg patches (staging) 1/3" && nonuser_patcher
