@@ -89,9 +89,9 @@ EOM
     #no fortran
     patch PKGBUILD << 'EOM'
 @@ -45,7 +45,7 @@
- 
-     "$srcdir"/gcc/configure --prefix=/usr --libexecdir=/usr/lib \
-         --target=${_target} \
+         --target=${_arch} \
+         --with-pkgversion="Arch Linux $pkgver-$pkgrel" \
+         --with-bugurl=https://bugs.archlinux.org/ \
 -        --enable-languages=c,lto,c++,objc,obj-c++,fortran,ada \
 +        --enable-languages=c,lto,c++,objc,obj-c++,ada \
          --enable-shared --enable-static \
@@ -99,13 +99,13 @@ EOM
          --enable-libstdcxx-time=yes --enable-libstdcxx-filesystem-ts=yes \
 @@ -62,7 +62,7 @@
      make DESTDIR="$pkgdir" install
-     ${_target}-strip "$pkgdir"/usr/${_target}/lib/*.dll
-     strip "$pkgdir"/usr/bin/${_target}-*
--    strip "$pkgdir"/usr/lib/gcc/${_target}/${pkgver:0:5}/{cc1*,collect2,gnat1,f951,lto*}
-+    strip "$pkgdir"/usr/lib/gcc/${_target}/${pkgver:0:5}/{cc1*,collect2,gnat1,lto*}
-     ln -s ${_target}-gcc "$pkgdir"/usr/bin/${_target}-cc
+     ${_arch}-strip "$pkgdir"/usr/${_arch}/lib/*.dll
+     strip "$pkgdir"/usr/bin/${_arch}-*
+-    strip "$pkgdir"/usr/lib/gcc/${_arch}/${pkgver:0:5}/{cc1*,collect2,gnat1,f951,lto*}
++    strip "$pkgdir"/usr/lib/gcc/${_arch}/${pkgver:0:5}/{cc1*,collect2,gnat1,lto*}
+     ln -s ${_arch}-gcc "$pkgdir"/usr/bin/${_arch}-cc
      # mv dlls
-     mkdir -p "$pkgdir"/usr/${_target}/bin/
+     mkdir -p "$pkgdir"/usr/${_arch}/bin/
 EOM
   fi
   if [ "$_AURPKGNAME" == "mingw-w64-gcc" ] && [ $_dwarf2 == "true" ]; then
