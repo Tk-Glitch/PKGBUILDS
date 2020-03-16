@@ -87,9 +87,9 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.6
-_sub=rc5
+_sub=rc6
 pkgver="${_basekernel}"."${_sub}"
-pkgrel=2
+pkgrel=1
 pkgdesc='Linux-tkg'
 arch=('x86_64') # no i686 in here
 url="http://www.kernel.org/"
@@ -128,11 +128,11 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         #0012-linux-hardened.patch
         0013-tp_smapi_ec.patch
 )
-sha256sums=('19724240b49466f85dbef60807ca9ee8bd2bbcd7c606ad32d43bb91c76e3447b'
+sha256sums=('d37d25c7de5dc40a7cd6823fff57c7fc5fe098563b195b3708acd577e5e40248'
             '1f2c39041b00ad8cddc3a17b589ccdcd4e9e4524bd47cf9f6292e2bbc105398b'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
-            '78f03f8e0e5da58a24de8ca3b16d4ebafad338e54915efa975f45eccba006ff6'
+            'dd5236f4109193dc518cf6e0a490600ae613c24232011f59d4069ce48ece32bd'
             '7058e57fd68367b029adc77f2a82928f1433daaf02c8c279cb2d13556c8804d7'
             'c605f638d74c61861ebdc36ebd4cb8b6475eae2f6273e1ccb2bbb3e10a2ec3fe'
             'bc69d6e5ee8172b0242c8fa72d13cfe2b8d2b6601468836908a7dfe8b78a3bbb'
