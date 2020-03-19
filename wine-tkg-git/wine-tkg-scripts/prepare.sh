@@ -348,6 +348,9 @@ _prepare() {
 	# grabs userdefined staging args if any
 	_staging_args+=($_staging_userargs)
 
+	# holds extra configure arguments, if applicable
+	_configure_args=()
+
 	source "$_where"/wine-tkg-patches/hotfixes/hotfixer
 
 	# Community patches
