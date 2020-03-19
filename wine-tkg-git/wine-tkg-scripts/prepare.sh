@@ -453,6 +453,9 @@ _prepare() {
 	if [ "$_use_vkd3d" == "true" ]; then
 	  _configure_args+=(--with-vkd3d)
 	  echo "Using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
+	else
+	  _configure_args+=(--without-vkd3d)
+	  echo "NOT using VKD3D for d3d12 translation" >> "$_where"/last_build_config.log
 	fi
 
 	echo "" >> "$_where"/last_build_config.log
