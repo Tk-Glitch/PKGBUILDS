@@ -101,6 +101,8 @@ exit_cleanup() {
 }
 
 pkgver() {
+  warning "This step might take some time, please be patient..."
+
   # overcomplicated BS
   source "${_frogwhere}"/proton-tkg.cfg
   if [ -e "$_EXT_CONFIG_PATH" ]; then
@@ -114,16 +116,22 @@ pkgver() {
   else
     if [ "$_plain_mirrorsrc" == "true" ]; then
       _winesrcdir="wine-mirror-git"
+      _winesrctarget="https://github.com/wine-mirror/wine.git"
     else
       _winesrcdir="wine-git"
+      _winesrctarget="git://source.winehq.org/git/wine.git"
     fi
   fi
 
   cd "${_frogwhere}/../wine-tkg-git"
+  # Empty clone failsafe
+  git clone --mirror "${_winesrctarget}" "$_winesrcdir" >/dev/null 2>&1 || true
   _srcdirlock=$PWD
 
   if [ "$_use_staging" == "true" ]; then
     _stgsrcdir='wine-staging-git'
+    # Empty clone failsafe
+    git clone --mirror https://github.com/wine-staging/wine-staging.git "$_stgsrcdir" >/dev/null 2>&1 || true
     _pkgvertargdir="${_stgsrcdir}"
   else
     _pkgvertargdir="${_winesrcdir}"
