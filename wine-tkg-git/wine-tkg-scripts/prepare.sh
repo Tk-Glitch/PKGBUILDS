@@ -1431,6 +1431,7 @@ EOM
 	  _patchname='wine-tkg.patch' && _patchmsg="Please don't report bugs about this wine build on winehq.org and use https://github.com/Tk-Glitch/PKGBUILDS/issues instead." && nonuser_patcher
 	fi
 
+	dlls/winevulkan/make_vulkan
 	tools/make_requests
 	autoreconf -f
 
