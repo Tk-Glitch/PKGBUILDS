@@ -1517,7 +1517,7 @@ index a75ca9768d9..441238177a2 100644
 @@ -1,7 +1,7 @@
  MODULE    = ntoskrnl.exe
  IMPORTLIB = ntoskrnl
- IMPORTS   = advapi32 hal
+ IMPORTS   = advapi32 hal msvcrt
 -DELAYIMPORTS = setupapi user32
 +DELAYIMPORTS = setupapi user32 rpcrt4
  
