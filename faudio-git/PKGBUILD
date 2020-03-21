@@ -33,7 +33,7 @@ if [ "$_lib32" == "true" ]; then
   pkgname=("${pkgname[@]}" "lib32-${_pkgname}-git")
 fi
 
-pkgver=20.03.r4.ga44f228
+pkgver=20.03.r5.ga0f859c
 pkgrel=1
 pkgdesc="Accuracy-focused XAudio reimplementation for open platforms"
 arch=('i686' 'x86_64')
