@@ -34,7 +34,18 @@ index 811de5e..7aacb34 100755
  class CompatData:
      def __init__(self, compatdata):
          self.base_dir = compatdata + "/"
-@@ -292,8 +292,6 @@ class CompatData:
+@@ -295,15 +285,17 @@ class CompatData:
+             if os.path.exists(self.version_file):
+                 with open(self.version_file, "r") as f:
+                     self.upgrade_pfx(f.readline().strip())
++                    g_session.run_proc([g_proton.wine_bin, "wineboot"])
++                    g_session.run_proc([g_proton.wineserver_bin, "-w"])
+             else:
+                 self.upgrade_pfx(None)
++                g_session.run_proc([g_proton.wine_bin, "wineboot"])
++                g_session.run_proc([g_proton.wineserver_bin, "-w"])
+ 
+             if not os.path.exists(self.prefix_dir):
                  makedirs(self.prefix_dir + "/drive_c")
                  set_dir_casefold_bit(self.prefix_dir + "/drive_c")
  
