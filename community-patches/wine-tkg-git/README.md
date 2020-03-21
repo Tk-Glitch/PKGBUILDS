@@ -30,5 +30,5 @@ WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile p
 - rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843 - Doesn't apply to proton-tkg (already included)
 - origin_downloads_e4ca5dbe_revert.mypatch : Workaround for Origin client game downloading issues - https://bugs.winehq.org/show_bug.cgi?id=48032
 - 0001-Add-some-semi-stubs-in-user32.mypatch : Fixes black/green screen when running Steep in fullscreen/windowed fullscreen mode, courtesy of Guy1524
-- winevulkan_fshack_opts.mypatch : winevulkan and fshack optimizations from Josh and DadSchoorse, rebased against 1.1.130 (wine 5.1+) - Requires `_proton_fs_hack="true"` - https://github.com/Joshua-Ashton/proton-wine/tree/winevulkan-opt
+- winevulkan_fshack_opts.mypatch : winevulkan and fshack optimizations from Josh and DadSchoorse, rebased against 1.1.130 (wine 5.1+) - Requires `_proton_fs_hack="true"` - https://github.com/Joshua-Ashton/proton-wine/tree/winevulkan-opt - Notably needed by DOOM Eternal and RDR2 (requires vulkan loader/headers 1.2.135 or newer)
 - winevulkan_nofshack_opts.mypatch : winevulkan optimizations from Josh - Requires `_proton_fs_hack="false"` - https://github.com/Joshua-Ashton/wine/commits/winevulkan-opt-mainline
