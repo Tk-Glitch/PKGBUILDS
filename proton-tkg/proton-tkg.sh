@@ -71,7 +71,7 @@ function build_vrclient {
   cd openvr
   git reset --hard HEAD
   git clean -xdf
-  git pull
+  git pull origin master
   #git checkout 52065df3d6f3af96300dac98cdf7397f26abfcd7
   cd ..
 
