@@ -384,10 +384,10 @@ else
       fi
       # Remove d3d10.dll and d3d10_1.dll when using a 5.3 base or newer - https://github.com/doitsujin/dxvk/releases/tag/v1.6
       if [ "$_dxvk_minimald3d10" == "true" ]; then
-        rm dxvk/x64/d3d10.dll
-        rm dxvk/x64/d3d10_1.dll
-        rm dxvk/x32/d3d10.dll
-        rm dxvk/x32/d3d10_1.dll
+        rm dxvk/x64/d3d10.dll || true
+        rm dxvk/x64/d3d10_1.dll || true
+        rm dxvk/x32/d3d10.dll || true
+        rm dxvk/x32/d3d10_1.dll || true
       fi
       cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
       cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
