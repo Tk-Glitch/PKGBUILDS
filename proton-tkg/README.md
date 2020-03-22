@@ -60,9 +60,9 @@ proton-tkg
 ## Special options and builtin features :
 
 Proton-tkg builds are coming with special additional features you can enable/disable post install in the `user_settings.py` file found in your build's folder (`~/.steam/root/compatibilitytools.d/proton_tkg_*`), such as:
-- `PROTON_NVAPI_DISABLE` - Enabled by default, it'll set nvapi and nvapi64 dlls to disabled. It is a common fix for many games.
-- `PROTON_WINEDBG_DISABLE` - Enabled by default, it'll set winedbg.exe to disabled. It's a known fix for GTA V online.
-- `PROTON_PULSE_LOWLATENCY` - Enabled by default, it'll set Pulseaudio latency to 60ms. This usually helps with audio crackling issues on some setups.
+- `PROTON_NVAPI_DISABLE` - Option disabled by default, it'll set nvapi and nvapi64 dlls to disabled. It is a common fix for many games.
+- `PROTON_WINEDBG_DISABLE` - Option disabled by default, it'll set winedbg.exe to disabled. It's a known fix for GTA V online.
+- `PROTON_PULSE_LOWLATENCY` - Option disabled by default, it'll set Pulseaudio latency to 60ms. This usually helps with audio crackling issues on some setups.
 - `PROTON_DXVK_ASYNC` - Disabled by default, it'll enable DXVK's async pipecompiler on a compatible DXVK build (official/default DXVK build doesn't support it). Known as the "poe hack", that option *could* be unsafe for anticheats, so beware.
 - `PROTON_USE_CUSTOMD3D9` - Disabled by default, it'll enable you to use a custom d3d9 lib that's not already available in proton-tkg (namely d9vk and wined3d), like Gallium9 for example.
 - `PROTON_WINETRICKS` - Enabled by default, the built-in winetricks integration will show a popup on game launch asking if you want to run winetricks (against your game's prefix). It requires that you have both the `winetricks` and `tk` (`python3-tk` on some distros) packages installed.
