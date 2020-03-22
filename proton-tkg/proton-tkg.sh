@@ -377,6 +377,13 @@ else
         rm -f dxvk-*.tar.*
         mv "$_nowhere"/dxvk-* "$_nowhere"/dxvk
       fi
+      # Remove d3d10.dll and d3d10_1.dll when using a 5.3 base or newer - https://github.com/doitsujin/dxvk/releases/tag/v1.6
+      if [ "$_dxvk_minimald3d10" == "true" ]; then
+        rm dxvk/x64/d3d10.dll
+        rm dxvk/x64/d3d10_1.dll
+        rm dxvk/x32/d3d10.dll
+        rm dxvk/x32/d3d10_1.dll
+      fi
       cp -v dxvk/x64/* proton_dist_tmp/lib64/wine/dxvk/
       cp -v dxvk/x32/* proton_dist_tmp/lib/wine/dxvk/
     fi
@@ -406,6 +413,13 @@ else
     if [ "$_steamvr_support" == "true" ]; then
       cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/vr-support.patch" && rm -f proton.orig
+      cd "$_nowhere"
+    fi
+
+    # Patch our proton script to handle minimal d3d10 implementation for dxvk on Wine 5.3+
+    if [ "$_dxvk_minimald3d10" == "true" ]; then
+      cd "$_nowhere/proton_tkg_$_protontkg_version"
+      patch -Np1 < "$_nowhere/proton_template/dxvk_minimald3d10.patch" && rm -f proton.orig
       cd "$_nowhere"
     fi
 
