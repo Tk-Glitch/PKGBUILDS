@@ -14,6 +14,7 @@ set -e
 
 _nowhere=$PWD
 _nomakepkg="true"
+_no_steampath="false"
 
 # Enforce using makepkg when using --makepkg
 if [ "$1" == "--makepkg" ]; then
@@ -31,20 +32,24 @@ else
   elif [ -e "$HOME/.steam/steam.sh" ]; then # typical on Ubuntu
     _steampath="$HOME/.steam"
   else
-    echo -e "Your Steam install wasn't found! Exiting.."
-    exit
+    read -rp "Your Steam install wasn't found! Do you want to continue anyway? N/y: " _no_steampath;
+    if [ "$_no_steampath" != "y" ]; then
+      exit
+    fi
   fi
 
-  # Set Steam config file path
-  if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]; then
-    _config_file="$HOME/.local/share/Steam/config/config.vdf"
-  elif [ -e "$_steampath/steam/config/config.vdf" ]; then
-    _config_file="$_steampath/steam/config/config.vdf"
-  elif [ -e "$_steampath/config/config.vdf" ]; then
-    _config_file="$_steampath/config/config.vdf"
-  else
-    echo -e "Your Steam config file path wasn't found! Exiting.."
-    exit
+  if [ "$_no_steampath" != "y" ]; then
+    # Set Steam config file path
+    if [ -e "$HOME/.local/share/Steam/config/config.vdf" ]; then
+      _config_file="$HOME/.local/share/Steam/config/config.vdf"
+    elif [ -e "$_steampath/steam/config/config.vdf" ]; then
+      _config_file="$_steampath/steam/config/config.vdf"
+    elif [ -e "$_steampath/config/config.vdf" ]; then
+      _config_file="$_steampath/config/config.vdf"
+    else
+      echo -e "Your Steam config file path wasn't found! Exiting.."
+      exit
+    fi
   fi
 fi
 
@@ -279,7 +284,7 @@ else
   cd "$_nowhere"
 
   # We'll need a token to register to wine-tkg-git - keep one for us to steal wine-tkg-git options later
-  echo "_proton_tkg_path='${_nowhere}'" > proton_tkg_token && cp proton_tkg_token "${_wine_tkg_git_path}/"
+  echo -e "_proton_tkg_path='${_nowhere}'\n_no_steampath='${_no_steampath}'" > proton_tkg_token && cp proton_tkg_token "${_wine_tkg_git_path}/"
 
   # Now let's build
   cd "$_wine_tkg_git_path"
@@ -486,38 +491,45 @@ else
     cd $_nowhere
 
     if [ "$_ispkgbuild" != "true" ]; then
-      if [ "$_no_autoinstall" != "true" ]; then
-        steam_is_running
+      if [ "$_no_steampath" != "y" ]; then
+        if [ "$_no_autoinstall" != "true" ] ; then
+          steam_is_running
 
-        # Create custom compat tools dir if needed
-        mkdir -p "$_steampath/compatibilitytools.d"
+          # Create custom compat tools dir if needed
+          mkdir -p "$_steampath/compatibilitytools.d"
 
-        # Nuke same version if exists before copying new build
-        if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
-          rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
-        fi
+          # Nuke same version if exists before copying new build
+          if [ -d "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version" ]; then
+            rm -rf "$_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
+          fi
 
-        # Get rid of the token
-        rm -f proton_tkg_token
+          # Get rid of the token
+          rm -f proton_tkg_token
 
-        mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
-        echo "####################################################################################################"
-        echo ""
-        echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
-        echo ""
-        echo "####################################################################################################"
-        if [ "$_skip_uninstaller" != "true" ]; then
+          mv "proton_tkg_$_protontkg_version" "$_steampath/compatibilitytools.d"/ && echo "" &&
+          echo "####################################################################################################"
           echo ""
-          read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
-          if [ "$_ask_uninstall" == "y" ]; then
-            proton_tkg_uninstaller
+          echo " Proton-tkg build installed to $_steampath/compatibilitytools.d/proton_tkg_$_protontkg_version"
+          echo ""
+          echo "####################################################################################################"
+          if [ "$_skip_uninstaller" != "true" ]; then
+            echo ""
+            read -rp "Do you want to run the uninstaller to remove previous/superfluous builds? N/y: " _ask_uninstall;
+            if [ "$_ask_uninstall" == "y" ]; then
+              proton_tkg_uninstaller
+            fi
           fi
         fi
+      else
+        echo "####################################################################################################"
+        echo ""
+        echo " Your Proton-tkg build is now available in $_nowhere/proton_tkg_$_protontkg_version"
+        echo ""
+        echo "####################################################################################################"
       fi
     fi
   else
     rm $_nowhere/proton_tkg_token
     echo "The required initial proton_dist build is missing! Wine-tkg-git compilation may have failed."
   fi
-
 fi
