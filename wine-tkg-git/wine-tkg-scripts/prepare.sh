@@ -1322,11 +1322,6 @@ EOM
 	      fi
 	    fi
 	  fi
-	  if [ "$_proton_fs_hack" == "true" ]; then
-	    _patchname='proton-winevulkan.patch' && _patchmsg="Using Proton winevulkan patches" && nonuser_patcher
-	  else
-	    _patchname='proton-winevulkan-nofshack.patch' && _patchmsg="Using Proton winevulkan patches (nofshack)" && nonuser_patcher
-	  fi
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then
@@ -1390,6 +1385,13 @@ EOM
 	if git merge-base --is-ancestor 3e4189e3ada939ff3873c6d76b17fb4b858330a8 HEAD && [ "$_proton_fs_hack" == "true" ]; then
 	  _patchname='proton-vk-bits-4.5.patch' && _patchmsg="Enable Proton vulkan bits for 4.5+" && nonuser_patcher
 	  _patchname='proton_fs_hack_integer_scaling.patch' && _patchmsg="Enable Proton fs hack integer scaling" && nonuser_patcher
+	fi
+	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] || ([ "$_protonify" == "true" ] && git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD); then
+	  if [ "$_proton_fs_hack" == "true" ]; then
+	    _patchname='proton-winevulkan.patch' && _patchmsg="Using Proton winevulkan patches" && nonuser_patcher
+	  else
+	    _patchname='proton-winevulkan-nofshack.patch' && _patchmsg="Using Proton winevulkan patches (nofshack)" && nonuser_patcher
+	  fi
 	fi
 
 	# Enforce mscvrt Dlls to native then builtin - from Proton

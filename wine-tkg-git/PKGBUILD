@@ -570,8 +570,8 @@ md5sums=('SKIP'
          '3623b9008e3bdac6daac8a6d1559e7fc'
          '16eeb21745eca0044c765d4d9e1e5cfa'
          '87eb77f746f8c29bc8cff1d4dfce4bdc'
-         '1acb711576410d29edd170c19711d293'
-         'f6a99540d52dbec50e83d6cf18f42738')
+         'ce595b50367e0a11e54587b204da69e3'
+         'dfda79f2fc402d976c35c979aa3da221')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
