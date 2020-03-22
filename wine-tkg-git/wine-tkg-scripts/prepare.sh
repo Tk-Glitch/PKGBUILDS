@@ -1319,6 +1319,11 @@ EOM
 	      fi
 	    fi
 	  fi
+	  if [ "$_proton_fs_hack" == "true" ]; then
+	    _patchname='proton-winevulkan.patch' && _patchmsg="Using Proton winevulkan patches" && nonuser_patcher
+	  else
+	    _patchname='proton-winevulkan-nofshack.patch' && _patchmsg="Using Proton winevulkan patches (nofshack)" && nonuser_patcher
+	  fi
 	fi
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ]; then

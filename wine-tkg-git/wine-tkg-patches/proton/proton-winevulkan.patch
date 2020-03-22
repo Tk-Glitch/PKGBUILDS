@@ -1,0 +1,485 @@
+From fecce5878241cf5d1accd8e6760a33f9be42c794 Mon Sep 17 00:00:00 2001
+From: Joshua Ashton <joshua@froggi.es>
+Date: Thu, 12 Mar 2020 23:40:38 +0000
+Subject: [PATCH] winevulkan: Implement VK_KHR_get_surface_capabilities2
+ and fake support for VK_EXT_full_screen_exclusive
+
+---
+ dlls/winevulkan/make_vulkan      |  50 +++++++++++--
+ dlls/winevulkan/vulkan.c         | 125 +++++++++++++++++++++++++++++++
+ dlls/winevulkan/vulkan_private.h |   4 +
+ dlls/winex11.drv/vulkan.c        |  34 +++++++++
+ 4 files changed, 208 insertions(+), 5 deletions(-)
+
+diff --git a/dlls/winevulkan/make_vulkan b/dlls/winevulkan/make_vulkan
+index b58ca9301cc..e6291d87efa
+--- a/dlls/winevulkan/make_vulkan
++++ b/dlls/winevulkan/make_vulkan
+@@ -95,14 +95,12 @@ BLACKLISTED_EXTENSIONS = [
+     "VK_EXT_validation_features",
+     "VK_EXT_validation_flags",
+     "VK_KHR_display", # Needs WSI work.
+-    "VK_KHR_get_surface_capabilities2",
+     "VK_KHR_surface_protected_capabilities",
+ 
+     # Device extensions
+     "VK_AMD_display_native_hdr",
+     "VK_EXT_calibrated_timestamps",
+     "VK_EXT_display_control", # Requires VK_EXT_display_surface_counter
+-    "VK_EXT_full_screen_exclusive",
+     "VK_EXT_hdr_metadata", # Needs WSI work.
+     "VK_EXT_pipeline_creation_feedback",
+     "VK_GOOGLE_display_timing",
+@@ -133,12 +131,17 @@ CORE_EXTENSIONS = [
+     "VK_KHR_surface",
+     "VK_KHR_swapchain",
+     "VK_KHR_win32_surface",
++    "VK_KHR_get_surface_capabilities2",
++]
++
++FAKED_EXTENSIONS = [
++    {"name": "VK_EXT_full_screen_exclusive", "version": 4}
+ ]
+ 
+ # Functions part of our winevulkan graphics driver interface.
+ # DRIVER_VERSION should be bumped on any change to driver interface
+ # in FUNCTION_OVERRIDES
+-DRIVER_VERSION = 7
++DRIVER_VERSION = 8
+ 
+ # Table of functions for which we have a special implementation.
+ # These are regular device / instance functions for which we need
+@@ -183,7 +186,7 @@ FUNCTION_OVERRIDES = {
+     "vkGetPhysicalDeviceSurfaceSupportKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+     "vkGetPhysicalDeviceSurfaceCapabilitiesKHR" : {"dispatch" : True, "driver" : True, "thunk" : False, "private_thunk" : True},
+     "vkGetPhysicalDeviceSurfaceFormatsKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+-    "vkGetPhysicalDeviceSurfacePresentModesKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
++    "vkGetPhysicalDeviceSurfacePresentModesKHR" : {"dispatch" : True, "driver" : True, "thunk" : True, "private_thunk" : True},
+ 
+     # VK_KHR_win32_surface
+     "vkCreateWin32SurfaceKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
+@@ -210,8 +213,18 @@ FUNCTION_OVERRIDES = {
+     "vkEnumeratePhysicalDeviceGroupsKHR" : {"dispatch" : True, "driver" : False, "thunk" : False},
+ 
+     # VK_KHR_device_group
+-    "vkGetDeviceGroupSurfacePresentModesKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
++    "vkGetDeviceGroupSurfacePresentModesKHR" : {"dispatch" : True, "driver" : True, "thunk" : True, "private_thunk": True},
+     "vkGetPhysicalDevicePresentRectanglesKHR" : {"dispatch" : True, "driver" : True, "thunk" : True},
++
++    # VK_KHR_get_surface_capabilities2
++    "vkGetPhysicalDeviceSurfaceCapabilities2KHR" : {"dispatch" : True, "driver" : True, "thunk" : False, "private_thunk" : True},
++    "vkGetPhysicalDeviceSurfaceFormats2KHR" : {"dispatch" : True, "driver" : True, "thunk" : False, "private_thunk" : True},
++
++    # VK_EXT_full_screen_exclusive
++    "vkGetPhysicalDeviceSurfacePresentModes2EXT" : {"dispatch" : True, "driver" : False, "thunk" : False},
++    "vkGetDeviceGroupSurfacePresentModes2EXT" : {"dispatch" : True, "driver" : False, "thunk" : False},
++    "vkAcquireFullScreenExclusiveModeEXT" : {"dispatch" : True, "driver" : False, "thunk" : False},
++    "vkReleaseFullScreenExclusiveModeEXT" : {"dispatch" : True, "driver" : False, "thunk" : False},
+ }
+ 
+ STRUCT_CHAIN_CONVERSIONS = [
+@@ -2241,6 +2254,12 @@ class VkGenerator(object):
+             f.write("    \"{0}\",\n".format(ext["name"]))
+         f.write("};\n\n")
+ 
++        # Create array of faked device extensions.
++        f.write("static const VkExtensionProperties vk_device_extension_discards[] =\n{\n")
++        for ext in FAKED_EXTENSIONS:
++            f.write("    {{\"{0}\", {1}}},\n".format(ext["name"], ext["version"]))
++        f.write("};\n\n")
++
+         # Create array of instance extensions.
+         f.write("static const char * const vk_instance_extensions[] =\n{\n")
+         for ext in self.registry.extensions:
+@@ -2261,6 +2280,27 @@ class VkGenerator(object):
+         f.write("    return FALSE;\n")
+         f.write("}\n\n")
+ 
++        f.write("BOOL wine_vk_device_extension_faked(const char *name)\n")
++        f.write("{\n")
++        f.write("    unsigned int i;\n")
++        f.write("    for (i = 0; i < ARRAY_SIZE(vk_device_extension_discards); i++)\n")
++        f.write("    {\n")
++        f.write("        if (strcmp(vk_device_extension_discards[i].extensionName, name) == 0)\n")
++        f.write("            return TRUE;\n")
++        f.write("    }\n")
++        f.write("    return FALSE;\n")
++        f.write("}\n\n")
++
++        f.write("unsigned int wine_vk_device_extension_faked_count(void)\n")
++        f.write("{\n")
++        f.write("    return ARRAY_SIZE(vk_device_extension_discards);\n")
++        f.write("}\n\n")
++
++        f.write("const VkExtensionProperties* wine_vk_device_extension_faked_idx(unsigned int idx)\n")
++        f.write("{\n")
++        f.write("    return &vk_device_extension_discards[idx];\n")
++        f.write("}\n\n")
++
+         f.write("BOOL wine_vk_instance_extension_supported(const char *name)\n")
+         f.write("{\n")
+         f.write("    unsigned int i;\n")
+diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
+index e2991c2dc47..1e730a415bc 100644
+--- a/dlls/winevulkan/vulkan.c
++++ b/dlls/winevulkan/vulkan.c
+@@ -121,6 +121,8 @@ static struct VkPhysicalDevice_T *wine_vk_physical_device_alloc(struct VkInstanc
+         }
+     }
+ 
++    num_properties += wine_vk_device_extension_faked_count();
++
+     TRACE("Host supported extensions %u, Wine supported extensions %u\n", num_host_properties, num_properties);
+ 
+     if (!(object->extensions = heap_calloc(num_properties, sizeof(*object->extensions))))
+@@ -137,6 +139,13 @@ static struct VkPhysicalDevice_T *wine_vk_physical_device_alloc(struct VkInstanc
+             j++;
+         }
+     }
++
++    for (i = 0; i < wine_vk_device_extension_faked_count(); i++)
++    {
++        object->extensions[j] = *wine_vk_device_extension_faked_idx(i);
++        j++;
++    }
++
+     object->extension_count = num_properties;
+ 
+     heap_free(host_properties);
+@@ -217,6 +226,8 @@ static void wine_vk_device_free_create_info(VkDeviceCreateInfo *create_info)
+         heap_free((void *)group_info->pPhysicalDevices);
+     }
+ 
++    heap_free((void *)create_info->ppEnabledExtensionNames);
++
+     free_VkDeviceCreateInfo_struct_chain(create_info);
+ }
+ 
+@@ -226,6 +237,7 @@ static VkResult wine_vk_device_convert_create_info(const VkDeviceCreateInfo *src
+     VkDeviceGroupDeviceCreateInfo *group_info;
+     unsigned int i;
+     VkResult res;
++    const char** extensions;
+ 
+     *dst = *src;
+ 
+@@ -252,6 +264,18 @@ static VkResult wine_vk_device_convert_create_info(const VkDeviceCreateInfo *src
+         group_info->pPhysicalDevices = physical_devices;
+     }
+ 
++    extensions = heap_alloc(sizeof(const char*) * src->enabledExtensionCount);
++    dst->ppEnabledExtensionNames = extensions;
++    dst->enabledExtensionCount = 0;
++    for (i = 0; i < src->enabledExtensionCount; i++) {
++        const char *extension_name = src->ppEnabledExtensionNames[i];
++
++        if (!wine_vk_device_extension_faked(extension_name)) {
++            extensions[dst->enabledExtensionCount] = extension_name;
++            dst->enabledExtensionCount++;
++        }
++    }
++
+     /* Should be filtered out by loader as ICDs don't support layers. */
+     dst->enabledLayerCount = 0;
+     dst->ppEnabledLayerNames = NULL;
+@@ -2693,6 +2717,107 @@ VkResult WINAPI wine_vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR *pP
+ 
+ }
+ 
++/* VK_KHR_get_surface_capabilities2 */
++ 
++VkResult WINAPI wine_vkGetPhysicalDeviceSurfaceCapabilities2KHR(
++    VkPhysicalDevice                            physicalDevice,
++    const VkPhysicalDeviceSurfaceInfo2KHR*      pSurfaceInfo,
++    VkSurfaceCapabilities2KHR*                  pSurfaceCapabilities)
++{
++    VkResult res;
++    VkSurfaceCapabilitiesFullScreenExclusiveEXT* full_screen_exclusive_caps;
++
++    /* Toss out VkSurfaceFullScreenExclusiveInfoEXT
++     * and VkSurfaceFullScreenExclusiveWin32InfoEXT */
++    VkPhysicalDeviceSurfaceInfo2KHR surface_info;
++    surface_info.sType   = pSurfaceInfo->sType;
++    surface_info.pNext   = NULL;
++    surface_info.surface = pSurfaceInfo->surface;
++
++    TRACE("%p, %p, %p\n", physicalDevice, pSurfaceInfo, pSurfaceCapabilities);
++
++    res = thunk_vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice, &surface_info, pSurfaceCapabilities);
++
++    /* lie and say we support this.... */
++    if ((full_screen_exclusive_caps = wine_vk_find_struct(pSurfaceInfo, SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT)))
++    {
++        full_screen_exclusive_caps->fullScreenExclusiveSupported = VK_TRUE;
++    }
++
++    return res;
++}
++
++VkResult WINAPI wine_vkGetPhysicalDeviceSurfaceFormats2KHR(
++    VkPhysicalDevice                            physicalDevice,
++    const VkPhysicalDeviceSurfaceInfo2KHR*      pSurfaceInfo,
++    uint32_t*                                   pSurfaceFormatCount,
++    VkSurfaceFormat2KHR*                        pSurfaceFormats)
++{
++    /* Toss out VkSurfaceFullScreenExclusiveInfoEXT
++     * and VkSurfaceFullScreenExclusiveWin32InfoEXT */
++    VkPhysicalDeviceSurfaceInfo2KHR surface_info;
++    surface_info.sType   = pSurfaceInfo->sType;
++    surface_info.pNext   = NULL;
++    surface_info.surface = pSurfaceInfo->surface;
++
++    TRACE("%p, %p, %p, %p\n", physicalDevice, pSurfaceInfo, pSurfaceFormatCount, pSurfaceFormats);
++
++    return thunk_vkGetPhysicalDeviceSurfaceFormats2KHR(physicalDevice, &surface_info, pSurfaceFormatCount, pSurfaceFormats);
++}
++
++/* VK_EXT_full_screen_exclusive */
++
++VkResult WINAPI wine_vkGetPhysicalDeviceSurfacePresentModes2EXT(
++    VkPhysicalDevice                            physicalDevice,
++    const VkPhysicalDeviceSurfaceInfo2KHR*      pSurfaceInfo,
++    uint32_t*                                   pPresentModeCount,
++    VkPresentModeKHR*                           pPresentModes)
++{
++    TRACE("%p, %p, %p, %p", physicalDevice, pSurfaceInfo, pPresentModeCount, pPresentModes);
++    return thunk_vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, pSurfaceInfo->surface, pPresentModeCount, pPresentModes);
++}
++
++VkResult WINAPI wine_vkGetDeviceGroupSurfacePresentModes2EXT(
++    VkDevice                                    device,
++    const VkPhysicalDeviceSurfaceInfo2KHR*      pSurfaceInfo,
++    VkDeviceGroupPresentModeFlagsKHR*           pModes)
++{
++    TRACE("%p, %p, %p", device, pSurfaceInfo, pModes);
++    return thunk_vkGetDeviceGroupSurfacePresentModesKHR(device, pSurfaceInfo->surface, pModes);
++}
++
++VkResult WINAPI wine_vkAcquireFullScreenExclusiveModeEXT(
++    VkDevice                                    device,
++    VkSwapchainKHR                              swapchain)
++{
++    /* don't care */
++    TRACE("%p, %s", device, wine_dbgstr_longlong(swapchain));
++
++    return VK_SUCCESS;
++}
++
++VkResult WINAPI wine_vkReleaseFullScreenExclusiveModeEXT(
++    VkDevice                                    device,
++    VkSwapchainKHR                              swapchain)
++{
++    /* don't care */
++    TRACE("%p, %s", device, wine_dbgstr_longlong(swapchain));
++
++    return VK_SUCCESS;
++}
++
++/* extra crap we moved to private thunks */
++
++VkResult WINAPI wine_vkGetDeviceGroupSurfacePresentModesKHR(VkDevice device, VkSurfaceKHR surface, VkDeviceGroupPresentModeFlagsKHR *pModes)
++{
++    return thunk_vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes);
++}
++
++VkResult WINAPI wine_vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t *pPresentModeCount, VkPresentModeKHR *pPresentModes)
++{
++    return thunk_vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, pPresentModes);
++}
++
+ VkDevice WINAPI __wine_get_native_VkDevice(VkDevice device)
+ {
+     return device->device;
+diff --git a/dlls/winevulkan/vulkan_private.h b/dlls/winevulkan/vulkan_private.h
+index 001ce85a1fd..0d9c9b9dc23 100644
+--- a/dlls/winevulkan/vulkan_private.h
++++ b/dlls/winevulkan/vulkan_private.h
+@@ -175,6 +175,10 @@ struct VkSwapchainKHR_T
+ void *wine_vk_get_device_proc_addr(const char *name) DECLSPEC_HIDDEN;
+ void *wine_vk_get_instance_proc_addr(const char *name) DECLSPEC_HIDDEN;
+ 
++BOOL wine_vk_device_extension_faked(const char *name) DECLSPEC_HIDDEN;
++unsigned int wine_vk_device_extension_faked_count(void) DECLSPEC_HIDDEN;
++const VkExtensionProperties* wine_vk_device_extension_faked_idx(unsigned int idx) DECLSPEC_HIDDEN;
++
+ BOOL wine_vk_device_extension_supported(const char *name) DECLSPEC_HIDDEN;
+ BOOL wine_vk_instance_extension_supported(const char *name) DECLSPEC_HIDDEN;
+ 
+diff --git a/dlls/winex11.drv/vulkan.c b/dlls/winex11.drv/vulkan.c
+index 7b4c39bee31..9bb33339af5 100644
+--- a/dlls/winex11.drv/vulkan.c
++++ b/dlls/winex11.drv/vulkan.c
+@@ -85,7 +85,9 @@ static VkResult (*pvkGetDeviceGroupSurfacePresentModesKHR)(VkDevice, VkSurfaceKH
+ static void * (*pvkGetDeviceProcAddr)(VkDevice, const char *);
+ static void * (*pvkGetInstanceProcAddr)(VkInstance, const char *);
+ static VkResult (*pvkGetPhysicalDevicePresentRectanglesKHR)(VkPhysicalDevice, VkSurfaceKHR, uint32_t *, VkRect2D *);
++static VkResult (*pvkGetPhysicalDeviceSurfaceCapabilities2KHR)(VkPhysicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR *, VkSurfaceCapabilities2KHR *);
+ static VkResult (*pvkGetPhysicalDeviceSurfaceCapabilitiesKHR)(VkPhysicalDevice, VkSurfaceKHR, VkSurfaceCapabilitiesKHR *);
++static VkResult (*pvkGetPhysicalDeviceSurfaceFormats2KHR)(VkPhysicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR *, uint32_t *, VkSurfaceFormat2KHR *);
+ static VkResult (*pvkGetPhysicalDeviceSurfaceFormatsKHR)(VkPhysicalDevice, VkSurfaceKHR, uint32_t *, VkSurfaceFormatKHR *);
+ static VkResult (*pvkGetPhysicalDeviceSurfacePresentModesKHR)(VkPhysicalDevice, VkSurfaceKHR, uint32_t *, VkPresentModeKHR *);
+ static VkResult (*pvkGetPhysicalDeviceSurfaceSupportKHR)(VkPhysicalDevice, uint32_t, VkSurfaceKHR, VkBool32 *);
+@@ -122,7 +124,9 @@ static BOOL WINAPI wine_vk_init(INIT_ONCE *once, void *param, void **context)
+     LOAD_FUNCPTR(vkEnumerateInstanceExtensionProperties)
+     LOAD_FUNCPTR(vkGetDeviceProcAddr)
+     LOAD_FUNCPTR(vkGetInstanceProcAddr)
++    LOAD_FUNCPTR(vkGetPhysicalDeviceSurfaceCapabilities2KHR)
+     LOAD_FUNCPTR(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
++    LOAD_FUNCPTR(vkGetPhysicalDeviceSurfaceFormats2KHR)
+     LOAD_FUNCPTR(vkGetPhysicalDeviceSurfaceFormatsKHR)
+     LOAD_FUNCPTR(vkGetPhysicalDeviceSurfacePresentModesKHR)
+     LOAD_FUNCPTR(vkGetPhysicalDeviceSurfaceSupportKHR)
+@@ -486,6 +490,34 @@ static VkResult X11DRV_vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevic
+     return pvkGetPhysicalDeviceSurfacePresentModesKHR(phys_dev, x11_surface->surface, count, modes);
+ }
+ 
++static VkResult X11DRV_vkGetPhysicalDeviceSurfaceCapabilities2KHR(VkPhysicalDevice phys_dev,
++        const VkPhysicalDeviceSurfaceInfo2KHR* surface_info, VkSurfaceCapabilities2KHR *capabilities)
++{
++    struct wine_vk_surface *x11_surface = surface_from_handle(surface_info->surface);
++    VkPhysicalDeviceSurfaceInfo2KHR x11_surface_info;
++    x11_surface_info.sType   = surface_info->sType;
++    x11_surface_info.pNext   = surface_info->pNext;
++    x11_surface_info.surface = x11_surface->surface;
++
++    TRACE("%p, %p, %p\n", phys_dev, surface_info, capabilities);
++
++    return pvkGetPhysicalDeviceSurfaceCapabilities2KHR(phys_dev, &x11_surface_info, capabilities);
++}
++
++static VkResult X11DRV_vkGetPhysicalDeviceSurfaceFormats2KHR(VkPhysicalDevice phys_dev,
++        const VkPhysicalDeviceSurfaceInfo2KHR* surface_info, uint32_t *count, VkSurfaceFormat2KHR *formats)
++{
++    struct wine_vk_surface *x11_surface = surface_from_handle(surface_info->surface);
++    VkPhysicalDeviceSurfaceInfo2KHR x11_surface_info;
++    x11_surface_info.sType   = surface_info->sType;
++    x11_surface_info.pNext   = surface_info->pNext;
++    x11_surface_info.surface = x11_surface->surface;
++
++    TRACE("%p, %p, %p, %p\n", phys_dev, surface_info, count, formats);
++
++    return pvkGetPhysicalDeviceSurfaceFormats2KHR(phys_dev, &x11_surface_info, count, formats);
++}
++
+ static VkResult X11DRV_vkGetPhysicalDeviceSurfaceSupportKHR(VkPhysicalDevice phys_dev,
+         uint32_t index, VkSurfaceKHR surface, VkBool32 *supported)
+ {
+@@ -593,7 +625,9 @@ static const struct vulkan_funcs vulkan_funcs =
+     X11DRV_vkGetDeviceProcAddr,
+     X11DRV_vkGetInstanceProcAddr,
+     X11DRV_vkGetPhysicalDevicePresentRectanglesKHR,
++    X11DRV_vkGetPhysicalDeviceSurfaceCapabilities2KHR,
+     X11DRV_vkGetPhysicalDeviceSurfaceCapabilitiesKHR,
++    X11DRV_vkGetPhysicalDeviceSurfaceFormats2KHR,
+     X11DRV_vkGetPhysicalDeviceSurfaceFormatsKHR,
+     X11DRV_vkGetPhysicalDeviceSurfacePresentModesKHR,
+     X11DRV_vkGetPhysicalDeviceSurfaceSupportKHR,
+
+From 26aac31031d97668b76f618f1c8ff9fc2d120d57 Mon Sep 17 00:00:00 2001
+From: Andrew Eikum <aeikum@codeweavers.com>
+Date: Wed, 18 Mar 2020 13:50:53 -0500
+Subject: [PATCH] winevulkan: Make VK_KHR_get_surface_capabilities2 and
+ VK_EXT_full_screen_exclusive optional
+
+---
+ dlls/winevulkan/vulkan.c  | 33 +++++++++++++++++++++++++++------
+ dlls/winex11.drv/vulkan.c | 11 ++++++++++-
+ 2 files changed, 37 insertions(+), 7 deletions(-)
+
+diff --git a/dlls/winevulkan/vulkan.c b/dlls/winevulkan/vulkan.c
+index 1e730a415bc..f36315534b9 100644
+--- a/dlls/winevulkan/vulkan.c
++++ b/dlls/winevulkan/vulkan.c
+@@ -142,11 +142,19 @@ static struct VkPhysicalDevice_T *wine_vk_physical_device_alloc(struct VkInstanc
+ 
+     for (i = 0; i < wine_vk_device_extension_faked_count(); i++)
+     {
+-        object->extensions[j] = *wine_vk_device_extension_faked_idx(i);
+-        j++;
++        const VkExtensionProperties *e = wine_vk_device_extension_faked_idx(i);
++
++        if(!strcmp(e->extensionName, "VK_EXT_full_screen_exclusive") &&
++                (!vk_funcs->p_vkGetPhysicalDeviceSurfaceCapabilities2KHR ||
++                 !vk_funcs->p_vkGetPhysicalDeviceSurfaceFormats2KHR)){
++            /* ignore */
++        }else{
++            object->extensions[j] = *e;
++            j++;
++        }
+     }
+ 
+-    object->extension_count = num_properties;
++    object->extension_count = j;
+ 
+     heap_free(host_properties);
+     return object;
+@@ -807,7 +815,14 @@ VkResult WINAPI wine_vkEnumerateInstanceExtensionProperties(const char *layer_na
+     for (i = 0; i < num_host_properties; i++)
+     {
+         if (wine_vk_instance_extension_supported(host_properties[i].extensionName))
+-            num_properties++;
++        {
++            if(!strcmp(host_properties[i].extensionName, "VK_KHR_get_physical_device_properties2") &&
++                    (!vk_funcs->p_vkGetPhysicalDeviceSurfaceCapabilities2KHR ||
++                     !vk_funcs->p_vkGetPhysicalDeviceSurfaceFormats2KHR)){
++                /* ignore - outdated vulkan loader */
++            }else
++                num_properties++;
++        }
+         else
+             TRACE("Instance extension '%s' is not supported.\n", host_properties[i].extensionName);
+     }
+@@ -824,8 +839,14 @@ VkResult WINAPI wine_vkEnumerateInstanceExtensionProperties(const char *layer_na
+     {
+         if (wine_vk_instance_extension_supported(host_properties[i].extensionName))
+         {
+-            TRACE("Enabling extension '%s'.\n", host_properties[i].extensionName);
+-            properties[j++] = host_properties[i];
++            if(!strcmp(host_properties[i].extensionName, "VK_KHR_get_physical_device_properties2") &&
++                    (!vk_funcs->p_vkGetPhysicalDeviceSurfaceCapabilities2KHR ||
++                     !vk_funcs->p_vkGetPhysicalDeviceSurfaceFormats2KHR)){
++                /* ignore - outdated vulkan loader */
++            }else{
++                TRACE("Enabling extension '%s'.\n", host_properties[i].extensionName);
++                properties[j++] = host_properties[i];
++            }
+         }
+     }
+     *count = min(*count, num_properties);
+diff --git a/dlls/winex11.drv/vulkan.c b/dlls/winex11.drv/vulkan.c
+index 0b3c00e981e..8f08ac19a2a 100644
+--- a/dlls/winex11.drv/vulkan.c
++++ b/dlls/winex11.drv/vulkan.c
+@@ -56,6 +56,8 @@ static CRITICAL_SECTION context_section = { &critsect_debug, -1, 0, 0, 0, 0 };
+ 
+ static XContext vulkan_hwnd_context;
+ 
++static struct vulkan_funcs vulkan_funcs;
++
+ #define VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR 1000004000
+ 
+ struct wine_vk_surface
+@@ -135,6 +137,13 @@ static BOOL WINAPI wine_vk_init(INIT_ONCE *once, void *param, void **context)
+     LOAD_FUNCPTR(vkQueuePresentKHR)
+     LOAD_OPTIONAL_FUNCPTR(vkGetDeviceGroupSurfacePresentModesKHR)
+     LOAD_OPTIONAL_FUNCPTR(vkGetPhysicalDevicePresentRectanglesKHR)
++
++    if(!pvkGetPhysicalDeviceSurfaceCapabilities2KHR){
++        vulkan_funcs.p_vkGetPhysicalDeviceSurfaceCapabilities2KHR = NULL;
++    }
++    if(!pvkGetPhysicalDeviceSurfaceFormats2KHR){
++        vulkan_funcs.p_vkGetPhysicalDeviceSurfaceFormats2KHR = NULL;
++    }
+ #undef LOAD_FUNCPTR
+ #undef LOAD_OPTIONAL_FUNCPTR
+ 
+@@ -612,7 +621,7 @@ static VkBool32 X11DRV_query_fs_hack(VkExtent2D *real_sz, VkExtent2D *user_sz,
+     return VK_FALSE;
+ }
+ 
+-static const struct vulkan_funcs vulkan_funcs =
++static struct vulkan_funcs vulkan_funcs =
+ {
+     X11DRV_vkCreateInstance,
+     X11DRV_vkCreateSwapchainKHR,
+ 

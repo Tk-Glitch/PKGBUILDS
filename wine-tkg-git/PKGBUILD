@@ -5,7 +5,7 @@ pkgver=5.4.r10.g7c7868f4
 
 # workaround for pkgrel overwritten on regen
 pkgrel=1
-eval pkgrel=253
+eval pkgrel=254
 
 _stgsrcdir='wine-staging-git'
 _esyncsrcdir='esync'
@@ -371,6 +371,8 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-steam-bits.patch' # Proton's steam-centric patches
 		'dxvk_config_dxgi_support-591068c.patch' # Add support for dxvk_config library to Wine's dxgi (<591068c)
 		'dxvk_config_dxgi_support.patch' # Add support for dxvk_config library to Wine's dxgi
+		'proton-winevulkan.patch' # Winevulkan-specific patches
+		'proton-winevulkan-nofshack.patch' # Winevulkan-specific patches - for FS hack disabled
 )
 
 md5sums=('SKIP'
@@ -567,7 +569,9 @@ md5sums=('SKIP'
          '045aad3b7247f4ce632f6512ebfeb527'
          '3623b9008e3bdac6daac8a6d1559e7fc'
          '16eeb21745eca0044c765d4d9e1e5cfa'
-         '87eb77f746f8c29bc8cff1d4dfce4bdc')
+         '87eb77f746f8c29bc8cff1d4dfce4bdc'
+         '1acb711576410d29edd170c19711d293'
+         'f6a99540d52dbec50e83d6cf18f42738')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(
