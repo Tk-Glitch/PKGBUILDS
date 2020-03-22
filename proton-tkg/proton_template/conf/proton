@@ -516,6 +516,14 @@ class CompatData:
 #                        self.prefix_dir + "drive_c/windows/syswow64/" + f + ".dll")
 #                g_session.dlloverrides[f] = "n"
 
+def comma_escaped(s):
+    escaped = False
+    idx = -1
+    while s[idx] == '\\':
+        escaped = not escaped
+        idx = idx - 1
+    return escaped
+
 class Session:
     def __init__(self):
         self.log_file = None
@@ -523,10 +531,23 @@ class Session:
         self.dlloverrides = {
                 "mfplay": "n" #disable built-in mfplay
         }
+
+        self.compat_config = set()
+        self.cmdlineappend = []
+
         if "STEAM_COMPAT_CONFIG" in os.environ:
-            self.compat_config = set(os.environ["STEAM_COMPAT_CONFIG"].split(","))
-        else:
-            self.compat_config = set()
+            config = os.environ["STEAM_COMPAT_CONFIG"]
+
+            while config:
+                (cur, sep, config) = config.partition(',')
+                if cur.startswith("cmdlineappend:"):
+                    while comma_escaped(cur):
+                        (a, b, c) = config.partition(',')
+                        cur = cur[:-1] + ',' + a
+                        config = c
+                    self.cmdlineappend.append(cur[14:].replace('\\\\','\\'))
+                else:
+                    self.compat_config.add(cur)
 
     def init_wine(self):
         if "HOST_LC_ALL" in self.env and len(self.env["HOST_LC_ALL"]) > 0:
@@ -648,7 +669,7 @@ class Session:
                 with open(g_proton.version_file, "r") as f:
                     self.log_file.write("Proton: " + f.readline().strip() + "\n")
                 self.log_file.write("SteamGameId: " + self.env["SteamGameId"] + "\n")
-                self.log_file.write("Command: " + str(sys.argv[2:]) + "\n")
+                self.log_file.write("Command: " + str(sys.argv[2:] + self.cmdlineappend) + "\n")
                 self.log_file.write("Options: " + str(self.compat_config) + "\n")
                 self.log_file.write("======================\n")
                 self.log_file.flush()
@@ -709,8 +730,6 @@ class Session:
             f.write("\tSteamGameId=\"" + self.env["SteamGameId"] + "\" \\\n")
         if "SteamAppId" in self.env:
             f.write("\tSteamAppId=\"" + self.env["SteamAppId"] + "\" \\\n")
-        if "PROTON_VR_RUNTIME" in self.env:
-            f.write("\tPROTON_VR_RUNTIME=\"" + self.env["PROTON_VR_RUNTIME"] + "\" \\\n")
         if "WINEDLLOVERRIDES" in self.env:
             f.write("\tWINEDLLOVERRIDES=\"" + self.env["WINEDLLOVERRIDES"] + "\" \\\n")
         if "STEAM_COMPAT_CLIENT_INSTALL_PATH" in self.env:
@@ -818,7 +837,7 @@ class Session:
                 comfile = open(comfile_path, "w")
                 comfile.write("Command: " + str(sys.argv[2:]) + "\n")
                 comfile.close()
-        commandtorun=[g_proton.wine_bin] + sys.argv[2:]
+        commandtorun=[g_proton.wine_bin] + sys.argv[2:] + self.cmdlineappend
         if "winetricks" in self.compat_config:
             if os.path.exists(os.environ["STEAM_COMPAT_DATA_PATH"]):
                 tricksfile_path = os.environ["STEAM_COMPAT_DATA_PATH"] + "/tricks"
@@ -839,7 +858,7 @@ class Session:
                                     root.destroy()
                                     open(tricksfile_path, "w+").close()
                     except ImportError:
-                        commandtorun=[g_proton.wine_bin] + sys.argv[2:]
+                        commandtorun=[g_proton.wine_bin] + sys.argv[2:] + self.cmdlineappend
         self.run_proc(commandtorun)
 
 
