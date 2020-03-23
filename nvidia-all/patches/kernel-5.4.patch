@@ -37,14 +37,6 @@ diff --git a/kernel-dkms/nvidia-drm/nvidia-drm-drv.c b/kernel-dkms/nvidia-drm/nv
 index bc31de7..7eefe95 100644
 --- a/kernel-dkms/nvidia-drm/nvidia-drm-drv.c
 +++ b/kernel-dkms/nvidia-drm/nvidia-drm-drv.c
-@@ -40,6 +40,7 @@
- #include "nvidia-drm-ioctl.h"
- 
- #include <drm/drmP.h>
-+#include <linux/version.h>
- 
- /*
-  * Commit fcd70cd36b9b ("drm: Split out drm_probe_helper.h")
 @@ -659,7 +660,11 @@ static const struct drm_ioctl_desc nv_drm_ioctls[] = {
  
  static struct drm_driver nv_drm_driver = {

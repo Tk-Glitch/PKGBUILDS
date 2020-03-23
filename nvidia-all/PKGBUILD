@@ -144,7 +144,7 @@ fi
 
 pkgname=("${_pkgname_array[@]}")
 pkgver=$_driver_version
-pkgrel=99
+pkgrel=100
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom:NVIDIA')
@@ -206,7 +206,7 @@ md5sums=("$_md5sum"
          'a3ce8ebab6506f556f4b222e2372ce87'
          '98b67a671ece0a796f9767793c209c93'
          '6f9a62ef76ac86f299b0174f44488987'
-         '97298693767cd1223792e7505da7ac26'
+         '8bf41d705afdf9aad7d934be06a7b12b'
          '0d9aa49647cc73a4522246cc22ae15e1'
          'e6270c2d19afd982efc92bdecd9f48f0'
          '1c1966d6ee6f3cd381ebcc92f1488c68'
