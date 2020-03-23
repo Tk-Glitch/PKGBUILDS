@@ -426,6 +426,12 @@ else
       cd "$_nowhere/proton_tkg_$_protontkg_version"
       patch -Np1 < "$_nowhere/proton_template/dxvk_minimald3d10.patch" && rm -f proton.orig
       cd "$_nowhere"
+      # Patch our proton script to handle dxvk_config lib
+      if [ -e "$_nowhere"/dxvk/x64/dxvk_config.dll ]; then
+        cd "$_nowhere/proton_tkg_$_protontkg_version"
+        patch -Np1 < "$_nowhere/proton_template/dxvk_config_support.patch" && rm -f proton.orig
+        cd "$_nowhere"
+      fi
     fi
 
     # Patch our makepkg version of the proton script to not create default prefix and use /tmp/dist.lock
