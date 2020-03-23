@@ -1,0 +1,13 @@
+diff --git a/src/amd/vulkan/radv_device.c b/src/amd/vulkan/radv_device.c
+index 1391456e8df2c44b612e6e5fa4c4cbe13c906901..50c6f14bbcbff0bb32ad1e76cd5abf374e53fd6f 100644
+--- a/src/amd/vulkan/radv_device.c
++++ b/src/amd/vulkan/radv_device.c
+@@ -1483,7 +1483,7 @@ radv_get_physical_device_properties_1_1(struct radv_physical_device *pdevice,
+ 	if (pdevice->rad_info.chip_class == GFX8 ||
+ 	    pdevice->rad_info.chip_class == GFX9) {
+ 	    pdevice->rad_info.chip_class == GFX9 ||
+-	    (pdevice->rad_info.chip_class == GFX10 && pdevice->use_aco)) {
++	    (pdevice->rad_info.chip_class == GFX10)) {
+ 		p->subgroupSupportedOperations |= VK_SUBGROUP_FEATURE_SHUFFLE_BIT |
+ 						  VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT;
+ 	}
