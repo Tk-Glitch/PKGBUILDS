@@ -87,7 +87,7 @@ else
 fi
 pkgname=("${pkgbase}" "${pkgbase}-headers")
 _basekernel=5.6
-_sub=rc6
+_sub=rc7
 pkgver="${_basekernel}"."${_sub}"
 pkgrel=1
 pkgdesc='Linux-tkg'
@@ -128,7 +128,7 @@ source=("https://git.kernel.org/torvalds/t/linux-${_basekernel}-${_sub}.tar.gz"
         #0012-linux-hardened.patch
         0013-tp_smapi_ec.patch
 )
-sha256sums=('d37d25c7de5dc40a7cd6823fff57c7fc5fe098563b195b3708acd577e5e40248'
+sha256sums=('d18c846ef07a699561d3884a34f10941aed4e079c5f2a6fc151e9c54dd8d6373'
             '1f2c39041b00ad8cddc3a17b589ccdcd4e9e4524bd47cf9f6292e2bbc105398b'
             '31dc68e84aecfb7d069efb1305049122c65694676be8b955634abcf0675922a2'
             'd02bf5ca08fd610394b9d3a0c3b176d74af206f897dee826e5cbaec97bb4a4aa'
