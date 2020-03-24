@@ -17,7 +17,6 @@
 - detroit_BH.mypatch : Allows Detroit: Become Human to run and fix low performance - https://bugs.winehq.org/show_bug.cgi?id=48291
 - monster_hunter_world_hacky_fix.mypatch : Hacky fix for the terrible performance introduced with patch VU10.12.00 - May affect other games and apps negatively, so use at your own risk - From Guy1524 https://github.com/ValveSoftware/Proton/issues/175#issuecomment-574365695
 - blackops2_unhandled_exception_fix.mypatch : Fix for the Unhandled Exception crash of Call of Duty - Black Ops 2 on start up - https://bugs.winehq.org/show_bug.cgi?id=46472
-- SW_JFO_Steam.mypatch : Fix for the Steam+Origin monster on Star Wars Jedi Fallen Order Steam version - From Guy1524 https://www.winehq.org/pipermail/wine-devel/2020-February/160431.html - Doesn't apply to proton-tkg (already included)
 - wolcen_blobhead_workaround.mypatch : Paul Gofman's workaround for Wolcen: Lords of Mayhem main character having a blob head - rebased for use with staging - https://bugs.winehq.org/show_bug.cgi?id=48700#c17 (see link for non-staging version of the patch)
 - NFSWLauncherfix.mypatch : Fix for Need for Speed World's SBRW launcher - https://github.com/SoapboxRaceWorld/wine
 
