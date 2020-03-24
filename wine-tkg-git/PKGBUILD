@@ -315,6 +315,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-50aeb5e.patch' # Proton-tkg (<50aeb5e)
 		'proton-tkg-56a6bc8.patch' # Proton-tkg (<56a6bc8)
 		'proton-tkg-14df018.patch' # Proton-tkg (<14df018)
+		'proton-tkg-9d38c48.patch' # Proton-tkg (<9d38c48)
 		'proton-tkg.patch' # Proton-tkg
 		'proton-tkg-rpc.patch' # necessary pre-patch for Proton-tkg
 		'proton-tkg-staging-8d25965.patch' # Proton-tkg-staging (<8d25965)
@@ -335,6 +336,7 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-tkg-staging-50aeb5e.patch' # Proton-tkg-staging (<50aeb5e)
 		'proton-tkg-staging-56a6bc8.patch' # Proton-tkg-staging (<56a6bc8)
 		'proton-tkg-staging-14df018.patch' # Proton-tkg-staging (<14df018)
+		'proton-tkg-staging-9d38c48.patch' # Proton-tkg-staging (<9d38c48)
 		'proton-tkg-staging.patch' # Proton-tkg-staging
 		'proton-tkg-staging-rpc.patch' # necessary pre-patch for Proton-tkg-staging
 		'proton-tkg-steamclient-swap.patch' # Key steamclient substitution hack
@@ -515,6 +517,7 @@ md5sums=('SKIP'
          'fbc63c3d9c499b5952a2fcf8b5fe283f'
          '0c27485d909e3dfc81ab3e456dcfdb14'
          '33707b2d692412a3ebee6a1d86a12cd0'
+         '466211e827d7b0204e18221a4100a1ff'
          '7d9a7cf523c7283c64266148707b8bac'
          'fbc02256e0e85668be75e0275637d6c1'
          '4aa05580e78d36fdbd80f2ef2f46a6b3'
@@ -535,6 +538,7 @@ md5sums=('SKIP'
          'dda3a74b697305a70347b2e527d9197c'
          'e14e56831e4ee5473019afc1bea8938d'
          'cfe4c618793d7e4f6ddd6ed06e7eef91'
+         'b7190c8daab744307618e304bec0abcf'
          'f404adafc8648495270e01241cd0601e'
          '8681c98f6d488957a206c9c1f2f9547f'
          '3d5518c89320a59400774a86b9a1cf2f'
