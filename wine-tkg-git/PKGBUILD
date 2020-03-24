@@ -373,7 +373,9 @@ source=("$_winesrcdir"::"${_winesrctarget}${_plain_commit}"
 		'proton-steam-bits.patch' # Proton's steam-centric patches
 		'dxvk_config_dxgi_support-591068c.patch' # Add support for dxvk_config library to Wine's dxgi (<591068c)
 		'dxvk_config_dxgi_support.patch' # Add support for dxvk_config library to Wine's dxgi
+		'proton-winevulkan-7b1622d.patch' # Winevulkan-specific patches (<7b1622d)
 		'proton-winevulkan.patch' # Winevulkan-specific patches
+		'proton-winevulkan-nofshack-7b1622d.patch' # Winevulkan-specific patches - for FS hack disabled (<7b1622d)
 		'proton-winevulkan-nofshack.patch' # Winevulkan-specific patches - for FS hack disabled
 )
 
@@ -575,7 +577,9 @@ md5sums=('SKIP'
          '16eeb21745eca0044c765d4d9e1e5cfa'
          '87eb77f746f8c29bc8cff1d4dfce4bdc'
          'ce595b50367e0a11e54587b204da69e3'
-         'dfda79f2fc402d976c35c979aa3da221')
+         '9e1256bea5a24059dbd62d41c386d6cd'
+         'dfda79f2fc402d976c35c979aa3da221'
+         'b3b4a54457186f85b9471dbb44f0628d')
 
 if [ "$_EXTERNAL_INSTALL" == "true" ]; then
   provides=(

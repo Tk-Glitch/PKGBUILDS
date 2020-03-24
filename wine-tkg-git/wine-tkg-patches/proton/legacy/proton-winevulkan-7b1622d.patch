@@ -1138,8 +1138,8 @@ index ea9e8262d83..ae68cdeccc8 100644
      convert_VkMemoryRequirements_host_to_win(&in->memoryRequirements, &out->memoryRequirements);
  }
  
--static inline void convert_VkBufferDeviceAddressInfo_win_to_host(const VkBufferDeviceAddressInfo *in, VkBufferDeviceAddressInfo_host *out)
-+static WINEVULKAN_FORCEINLINE void convert_VkBufferDeviceAddressInfo_win_to_host(const VkBufferDeviceAddressInfo *in, VkBufferDeviceAddressInfo_host *out)
+-static inline void convert_VkBufferDeviceAddressInfoKHR_win_to_host(const VkBufferDeviceAddressInfoKHR *in, VkBufferDeviceAddressInfoKHR_host *out)
++static WINEVULKAN_FORCEINLINE void convert_VkBufferDeviceAddressInfoKHR_win_to_host(const VkBufferDeviceAddressInfoKHR *in, VkBufferDeviceAddressInfoKHR_host *out)
  {
      if (!in) return;
  
@@ -1488,8 +1488,8 @@ index ea9e8262d83..ae68cdeccc8 100644
 -    heap_free(in);
 -}
 -
--static inline void convert_VkSemaphoreSignalInfo_win_to_host(const VkSemaphoreSignalInfo *in, VkSemaphoreSignalInfo_host *out)
-+static WINEVULKAN_FORCEINLINE void convert_VkSemaphoreSignalInfo_win_to_host(const VkSemaphoreSignalInfo *in, VkSemaphoreSignalInfo_host *out)
+-static inline void convert_VkSemaphoreSignalInfoKHR_win_to_host(const VkSemaphoreSignalInfoKHR *in, VkSemaphoreSignalInfoKHR_host *out)
++static WINEVULKAN_FORCEINLINE void convert_VkSemaphoreSignalInfoKHR_win_to_host(const VkSemaphoreSignalInfoKHR *in, VkSemaphoreSignalInfoKHR_host *out)
  {
      if (!in) return;
  
@@ -2807,9 +2807,9 @@ index 7bf6a0a07f8..0f8de3d21c2 100644
  typedef enum VkResult
  {
 +    VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT = -1000255000,
-     VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS = -1000257000,
+     VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS_KHR = -1000244000,
      VK_ERROR_NOT_PERMITTED_EXT = -1000174001,
-     VK_ERROR_FRAGMENTATION = -1000161000,
+     VK_ERROR_FRAGMENTATION_EXT = -1000161000,
 @@ -2276,6 +2290,9 @@ typedef enum VkStructureType
      VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO = 1000117001,
      VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO = 1000117002,
@@ -2823,42 +2823,14 @@ index 7bf6a0a07f8..0f8de3d21c2 100644
 @@ -2411,6 +2428,9 @@ typedef enum VkStructureType
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT = 1000251000,
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT = 1000252000,
-     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES = 1000253000,
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES_KHR = 1000253000,
 +    VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT = 1000255000,
 +    VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT = 1000255001,
 +    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT = 1000255002,
      VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT = 1000256000,
-     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES = 1000257000,
-     VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO = 1000257002,
-@@ -4477,6 +4497,13 @@ typedef struct VkPhysicalDeviceSubgroupSizeControlFeaturesEXT
-     VkBool32 computeFullSubgroups;
- } VkPhysicalDeviceSubgroupSizeControlFeaturesEXT;
- 
-+typedef struct VkPhysicalDeviceSurfaceInfo2KHR
-+{
-+    VkStructureType sType;
-+    const void *pNext;
-+    VkSurfaceKHR WINE_VK_ALIGN(8) surface;
-+} VkPhysicalDeviceSurfaceInfo2KHR;
-+
- typedef struct VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT
- {
-     VkStructureType sType;
-@@ -4546,6 +4543,13 @@ typedef struct VkVertexInputAttributeDescription
-     uint32_t offset;
- } VkVertexInputAttributeDescription;
- 
-+typedef struct VkSurfaceFullScreenExclusiveInfoEXT
-+{
-+    VkStructureType sType;
-+    void *pNext;
-+    VkFullScreenExclusiveEXT fullScreenExclusive;
-+} VkSurfaceFullScreenExclusiveInfoEXT;
-+
- typedef struct VkVertexInputBindingDivisorDescriptionEXT
- {
-     uint32_t binding;
-@@ -5106,6 +5133,26 @@ typedef struct VkSubresourceLayout
+     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT = 1000259000,
+     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT = 1000259001,
+@@ -3806,6 +3833,26 @@ typedef struct VkSubresourceLayout
      VkDeviceSize WINE_VK_ALIGN(8) depthPitch;
  } VkSubresourceLayout;
  
@@ -2885,27 +2857,7 @@ index 7bf6a0a07f8..0f8de3d21c2 100644
  typedef struct VkSurfaceCapabilitiesKHR
  {
      uint32_t minImageCount;
-@@ -5228,15 +5228,12 @@ typedef struct VkSwapchainCreateInfoKHR
-     VkSwapchainKHR WINE_VK_ALIGN(8) oldSwapchain;
- } VkSwapchainCreateInfoKHR;
- 
--typedef struct VkTimelineSemaphoreSubmitInfo
-+typedef struct VkSurfaceCapabilities2KHR
- {
-     VkStructureType sType;
--    const void *pNext;
--    uint32_t waitSemaphoreValueCount;
--    const uint64_t *pWaitSemaphoreValues;
--    uint32_t signalSemaphoreValueCount;
--    const uint64_t *pSignalSemaphoreValues;
--} VkTimelineSemaphoreSubmitInfo;
-+    void *pNext;
-+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-+} VkSurfaceCapabilities2KHR;
- 
- typedef struct VkWriteDescriptorSetInlineUniformBlockEXT
- {
-@@ -5447,11 +6194,12 @@ typedef struct VkSubpassDescription
+@@ -4147,11 +5194,12 @@ typedef struct VkSubpassDescription
      VkBool32 fullScreenExclusiveSupported;
  } VkSurfaceCapabilitiesFullScreenExclusiveEXT;
  
@@ -2922,12 +2874,46 @@ index 7bf6a0a07f8..0f8de3d21c2 100644
  
  typedef struct VkSurfaceFullScreenExclusiveWin32InfoEXT
  {
-@@ -6056,19 +6060,15 @@ typedef struct VkViewport
+@@ -5028,15 +5028,12 @@ typedef struct VkSwapchainCreateInfoKHR
+     VkSwapchainKHR WINE_VK_ALIGN(8) oldSwapchain;
+ } VkSwapchainCreateInfoKHR;
+ 
+-typedef struct VkTimelineSemaphoreSubmitInfoKHR
++typedef struct VkSurfaceCapabilities2KHR
+ {
+     VkStructureType sType;
+-    const void *pNext;
+-    uint32_t waitSemaphoreValueCount;
+-    const uint64_t *pWaitSemaphoreValues;
+-    uint32_t signalSemaphoreValueCount;
+-    const uint64_t *pSignalSemaphoreValues;
+-} VkTimelineSemaphoreSubmitInfoKHR;
++    void *pNext;
++    VkSurfaceCapabilitiesKHR surfaceCapabilities;
++} VkSurfaceCapabilities2KHR;
+ 
+ typedef struct VkVertexInputAttributeDescription
+ {
+@@ -5046,6 +5043,13 @@ typedef struct VkVertexInputAttributeDescription
+     uint32_t offset;
+ } VkVertexInputAttributeDescription;
+ 
++typedef struct VkSurfaceFullScreenExclusiveInfoEXT
++{
++    VkStructureType sType;
++    void *pNext;
++    VkFullScreenExclusiveEXT fullScreenExclusive;
++} VkSurfaceFullScreenExclusiveInfoEXT;
++
+ typedef struct VkViewport
+ {
+     float x;
+@@ -5056,19 +5060,15 @@ typedef struct VkViewport
      float maxDepth;
  } VkViewport;
  
 -typedef struct VkWriteDescriptorSet
-+typedef struct VkTimelineSemaphoreSubmitInfo
++typedef struct VkTimelineSemaphoreSubmitInfoKHR
  {
      VkStructureType sType;
      const void *pNext;
@@ -2944,10 +2930,24 @@ index 7bf6a0a07f8..0f8de3d21c2 100644
 +    const uint64_t *pWaitSemaphoreValues;
 +    uint32_t signalSemaphoreValueCount;
 +    const uint64_t *pSignalSemaphoreValues;
-+} VkTimelineSemaphoreSubmitInfo;
++} VkTimelineSemaphoreSubmitInfoKHR;
  
  typedef struct VkAllocationCallbacks
  {
+@@ -5477,6 +5497,13 @@ typedef struct VkPhysicalDeviceSubgroupSizeControlFeaturesEXT
+     VkBool32 computeFullSubgroups;
+ } VkPhysicalDeviceSubgroupSizeControlFeaturesEXT;
+ 
++typedef struct VkPhysicalDeviceSurfaceInfo2KHR
++{
++    VkStructureType sType;
++    const void *pNext;
++    VkSurfaceKHR WINE_VK_ALIGN(8) surface;
++} VkPhysicalDeviceSurfaceInfo2KHR;
++
+ typedef struct VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT
+ {
+     VkStructureType sType;
 @@ -6966,6 +7014,20 @@ typedef struct VkRenderPassCreateInfo2KHR
      const uint32_t *pCorrelatedViewMasks;
  } VkRenderPassCreateInfo2KHR;

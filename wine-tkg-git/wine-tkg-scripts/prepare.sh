@@ -1391,10 +1391,18 @@ EOM
 	  _patchname='proton_fs_hack_integer_scaling.patch' && _patchmsg="Enable Proton fs hack integer scaling" && nonuser_patcher
 	fi
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] || ([ "$_protonify" == "true" ] && git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD); then
-	  if [ "$_proton_fs_hack" == "true" ]; then
-	    _patchname='proton-winevulkan.patch' && _patchmsg="Using Proton winevulkan patches" && nonuser_patcher
+	  if git merge-base --is-ancestor 7b1622d1ab90f01fdb3a2bc24e12ab4990f07f68 HEAD; then
+	    if [ "$_proton_fs_hack" == "true" ]; then
+	      _patchname='proton-winevulkan.patch' && _patchmsg="Using Proton winevulkan patches" && nonuser_patcher
+	    else
+	      _patchname='proton-winevulkan-nofshack.patch' && _patchmsg="Using Proton winevulkan patches (nofshack)" && nonuser_patcher
+	    fi
 	  else
-	    _patchname='proton-winevulkan-nofshack.patch' && _patchmsg="Using Proton winevulkan patches (nofshack)" && nonuser_patcher
+	    if [ "$_proton_fs_hack" == "true" ]; then
+	      _patchname='proton-winevulkan-7b1622d.patch' && _patchmsg="Using Proton winevulkan patches" && nonuser_patcher
+	    else
+	      _patchname='proton-winevulkan-nofshack-7b1622d.patch' && _patchmsg="Using Proton winevulkan patches (nofshack)" && nonuser_patcher
+	    fi
 	  fi
 	fi
 
