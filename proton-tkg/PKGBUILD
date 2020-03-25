@@ -105,6 +105,7 @@ pkgver() {
 
   # overcomplicated BS
   source "${_frogwhere}"/proton-tkg.cfg
+  source "${_frogwhere}"/proton-tkg-profiles/advanced-customization.cfg
   if [ -e "$_EXT_CONFIG_PATH" ]; then
     source "$_EXT_CONFIG_PATH"
   fi
@@ -164,6 +165,7 @@ prepare() {
   ln -s -f "${_frogwhere}/proton-tkg.cfg" "${srcdir}/"
   ln -s -f "${_frogwhere}/proton-tkg.sh" "${srcdir}/"
   ln -s -f "${_frogwhere}/proton-tkg-userpatches" "${srcdir}/"
+  ln -s -f "${_frogwhere}/proton-tkg-profiles" "${srcdir}/"
 }
 
 build() {

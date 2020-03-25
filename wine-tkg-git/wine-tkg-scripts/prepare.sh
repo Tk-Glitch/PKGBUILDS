@@ -114,8 +114,10 @@ msg2 ''
   if [ -e "$_where"/proton_tkg_token ]; then
     source "$_where"/proton_tkg_token
     source "$_proton_tkg_path"/proton-tkg.cfg
+    source "$_proton_tkg_path"/proton-tkg-profiles/advanced-customization.cfg
   else
     source "$_where"/customization.cfg
+    source "$_where"/wine-tkg-profiles/advanced-customization.cfg
     _EXTERNAL_INSTALL_TYPE="opt"
   fi
 
@@ -164,8 +166,10 @@ msg2 ''
         # load default configuration from file again, in case of change
         if [ -e "$_proton_tkg_path"/proton_tkg_token ]; then
           source "$_proton_tkg_path"/proton-tkg.cfg
+          source "$_proton_tkg_path"/proton-tkg-profiles/advanced-customization.cfg
         else
           source "$_where"/customization.cfg
+          source "$_where"/wine-tkg-profiles/advanced-customization.cfg
         fi
       fi
     fi
@@ -391,7 +395,7 @@ _prepare() {
 	elif [ -n "$_EXT_CONFIG_PATH" ] && [ -e "$_EXT_CONFIG_PATH" ]; then
 	  _cfgstringin="$_EXT_CONFIG_PATH" && _cfgstring && echo "External configuration file $_cfgstringout used" >> "$_where"/last_build_config.log
 	else
-	  echo "Local customization.cfg file used" >> "$_where"/last_build_config.log
+	  echo "Local cfg files used" >> "$_where"/last_build_config.log
 	fi
 
 	if [ "$_nomakepkg_midbuild_prompt" == "true" ]; then
