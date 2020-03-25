@@ -244,6 +244,10 @@ elif [ "$1" == "--deps32" ]; then
   ./configure
   msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
 else
+  # If $1 contains a path, and it exists, use it as default for config
+  if [ -e "$1" ]; then
+    sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=$1|" "$_where"/wine-tkg-profiles/advanced-customization.cfg
+  fi
   build_wine_tkg
 fi
 
