@@ -145,7 +145,7 @@ _nomakepkgsrcinit() {
 
 nonuser_patcher() {
   if [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW1" == "y" ]; then
-    msg2 "Applying ${_patchname}" && patch -Np1 < "$_where"/"$_patchname" && echo "${_patchmsg}" >> "$_where"/last_build_config.log
+    msg2 "Applying ${_patchname}" && patch -Np1 < "$_where"/"$_patchname" && echo -e "${_patchmsg} - ( ${_patchname} )" >> "$_where"/last_build_config.log
   fi
 }
 

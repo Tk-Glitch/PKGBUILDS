@@ -8,10 +8,14 @@ _prebuild_common() {
 	# Use custom compiler paths if defined
 	if [ -n "${CUSTOM_MINGW_PATH}" ]; then
 	  PATH="${PATH}:${CUSTOM_MINGW_PATH}/bin:${CUSTOM_MINGW_PATH}/lib:${CUSTOM_MINGW_PATH}/include"
+	  echo -e "CUSTOM_MINGW_PATH = ${CUSTOM_MINGW_PATH##*/}" >> "$_where"/last_build_config.log
 	fi
 	if [ -n "${CUSTOM_GCC_PATH}" ]; then
 	  PATH="${CUSTOM_GCC_PATH}/bin:${CUSTOM_GCC_PATH}/lib:${CUSTOM_GCC_PATH}/include:${PATH}"
+	  echo -e "CUSTOM_GCC_PATH = ${CUSTOM_GCC_PATH##*/}" >> "$_where"/last_build_config.log
 	fi
+
+	echo "" >> "$_where"/last_build_config.log
 
 	# compiler flags
 	if [ "$_LOCAL_OPTIMIZED" == "true" ]; then
@@ -45,11 +49,11 @@ _build() {
 	  # build wine 64-bit
 	  # (according to the wine wiki, this 64-bit/32-bit building order is mandatory)
 	  if [[ ! ${_makepkg_options[*]} =~ "ccache" ]] && [ -e /usr/bin/ccache ]; then
-	    export CC="ccache gcc"
-	    export CXX="ccache g++"
+	    export CC="ccache gcc" && echo "CC = ${CC}" >> "$_where"/last_build_config.log
+	    export CXX="ccache g++" && echo "CXX = ${CXX}" >> "$_where"/last_build_config.log
 	  fi
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
-	    export CROSSCC="ccache x86_64-w64-mingw32-gcc"
+	    export CROSSCC="ccache x86_64-w64-mingw32-gcc" && echo "CROSSCC64 = ${CROSSCC}" >> "$_where"/last_build_config.log
 	  fi
 	  # If /usr/lib32 doesn't exist (such as on Fedora), make sure we're using /usr/lib64 for 64-bit pkgconfig path
 	  if [ ! -d '/usr/lib32' ]; then
@@ -85,7 +89,7 @@ _build() {
 	    export CXX="ccache g++"
 	  fi
 	  if [ -e /usr/bin/ccache ] && [ "$_NOMINGW" != "true" ]; then
-	    export CROSSCC="ccache i686-w64-mingw32-gcc"
+	    export CROSSCC="ccache i686-w64-mingw32-gcc" && echo "CROSSCC32 = ${CROSSCC}" >> "$_where"/last_build_config.log
 	  fi
 	  # build wine 32-bit
 	  if [ -d '/usr/lib32/pkgconfig' ]; then # Typical Arch path

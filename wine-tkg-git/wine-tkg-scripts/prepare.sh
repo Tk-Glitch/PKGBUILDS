@@ -288,7 +288,7 @@ user_patcher() {
 	        msg2 ""
 	        msg2 "######################################################"
 	        patch -Np1 -R < "${_f}"
-	        echo "Reverted your own patch ${_f}" >> "$_where"/last_build_config.log
+	        echo -e "Reverted your own patch ${_f##*/}" >> "$_where"/last_build_config.log
 	      fi
 	    done
 	  fi
@@ -310,7 +310,7 @@ user_patcher() {
 	        msg2 ""
 	        msg2 "######################################################"
 	        patch -Np1 < "${_f}"
-	        echo "Applied your own patch ${_f}" >> "$_where"/last_build_config.log
+	        echo -e "Applied your own patch ${_f##*/}" >> "$_where"/last_build_config.log
 	      fi
 	    done
 	  fi
@@ -409,6 +409,8 @@ _prepare() {
 	  cd "${srcdir}"/"${_winesrcdir}"
 	fi
 
+	echo "" >> "$_where"/last_build_config.log
+
 	# Disable local Esync on 553986f
 	if [ "$_use_staging" == "true" ]; then
 	  cd "${srcdir}"/"${_stgsrcdir}"
@@ -473,74 +475,44 @@ _prepare() {
 	fi
 
 	# Reverts for commits known to break specific versions of the FS hack
+	nonuser_reverter() {
+	  if git merge-base --is-ancestor $_committorevert HEAD; then
+	    $(git revert -n --no-edit $_committorevert && echo "$_committorevert reverted" >> "$_where"/last_build_config.log) || exit 1
+	  fi
+	}
+
 	if [ "$_proton_fs_hack" == "true" ]; then
 	  if ! git merge-base --is-ancestor aee91dc4ac08428e74fbd21f97438db38f84dbe5 HEAD; then
-	    if git merge-base --is-ancestor 427152ec7b4ee85631617b693dbf1deea763c0ba HEAD; then
-	      git revert -n --no-edit 427152ec7b4ee85631617b693dbf1deea763c0ba || exit 1
-	    fi
-	    if git merge-base --is-ancestor b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 HEAD; then
-	      git revert -n --no-edit b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 || exit 1
-	    fi
-	    if git merge-base --is-ancestor acf03ed9da0f7d3f94de9b47c44366be3ee47f8e HEAD; then
-	      git revert -n --no-edit acf03ed9da0f7d3f94de9b47c44366be3ee47f8e || exit 1
-	    fi
-	    if git merge-base --is-ancestor 914b5519b1cd96f9ae19f1eec226e94af96354b9 HEAD; then
-	      git revert -n --no-edit 914b5519b1cd96f9ae19f1eec226e94af96354b9 || exit 1
-	    fi
-	    if git merge-base --is-ancestor 99d047724e768822d6508573cd82a5c75b30bdcb HEAD; then
-	      git revert -n --no-edit 99d047724e768822d6508573cd82a5c75b30bdcb || exit 1
-	    fi
-	    if git merge-base --is-ancestor 413aad39135b0b0f8255500b85fcc05337a5f138 HEAD; then
-	      git revert -n --no-edit 413aad39135b0b0f8255500b85fcc05337a5f138 || exit 1
-	    fi
-	    if git merge-base --is-ancestor 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 HEAD; then
-	      git revert -n --no-edit 9ae8da6bb4a8f66d55975fa0f14e5e413756d324 || exit 1
-	    fi
-	    if git merge-base --is-ancestor de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 HEAD; then
-	      git revert -n --no-edit de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 || exit 1
-	    fi
-	    if git merge-base --is-ancestor 6dbb153ede48e77a87dddf37e5276276a701c5c3 HEAD; then
-	      git revert -n --no-edit 6dbb153ede48e77a87dddf37e5276276a701c5c3 || exit 1
-	    fi
-	    if git merge-base --is-ancestor 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 HEAD; then
-	      git revert -n --no-edit 81f8b6e8c215dc04a19438e4369fcba8f7f4f333 || exit 1
-	    fi
-	    echo "FS hack unbreak reverts applied" >> "$_where"/last_build_config.log
+	    _committorevert=427152ec7b4ee85631617b693dbf1deea763c0ba && nonuser_reverter
+	    _committorevert=b7b4bacaf99661e07c2f07a0260680b4e8bed4f8 && nonuser_reverter
+	    _committorevert=acf03ed9da0f7d3f94de9b47c44366be3ee47f8e && nonuser_reverter
+	    _committorevert=914b5519b1cd96f9ae19f1eec226e94af96354b9 && nonuser_reverter
+	    _committorevert=99d047724e768822d6508573cd82a5c75b30bdcb && nonuser_reverter
+	    _committorevert=413aad39135b0b0f8255500b85fcc05337a5f138 && nonuser_reverter
+	    _committorevert=9ae8da6bb4a8f66d55975fa0f14e5e413756d324 && nonuser_reverter
+	    _committorevert=de94cfa775f9f41d1d65cbd8e7bf861cd7f9a871 && nonuser_reverter
+	    _committorevert=6dbb153ede48e77a87dddf37e5276276a701c5c3 && nonuser_reverter
+	    _committorevert=81f8b6e8c215dc04a19438e4369fcba8f7f4f333 && nonuser_reverter
+	    echo -e "FS hack unbreak reverts applied )\n" >> "$_where"/last_build_config.log
 	  elif git merge-base --is-ancestor 2538b0100fbbe1223e7c18a52bade5cfe5f8d3e3 HEAD; then
-	    git revert -n --no-edit 2538b0100fbbe1223e7c18a52bade5cfe5f8d3e3 || exit 1
-	    echo "FS hack unbreak revert applied" >> "$_where"/last_build_config.log
+	    _committorevert=2538b0100fbbe1223e7c18a52bade5cfe5f8d3e3 && nonuser_reverter
+	    echo -e "( FS hack unbreak revert applied )\n" >> "$_where"/last_build_config.log
 	  fi
 	fi
 
 	# Kernelbase reverts patchset - cleanly reverting part
 	if [ "$_kernelbase_reverts" == "true" ] || [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] && ! git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
-	  if git merge-base --is-ancestor b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 HEAD; then
-	    git revert -n --no-edit b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 || exit 1
-	  fi
-	  if git merge-base --is-ancestor 608d086f1b1bb7168e9322c65224c23f34e75f29 HEAD; then
-	    git revert -n --no-edit 608d086f1b1bb7168e9322c65224c23f34e75f29 || exit 1
-	  fi
-	  if git merge-base --is-ancestor b7db0b52cee65a008f503ce727befcad3ba8d28a HEAD; then
-	    git revert -n --no-edit b7db0b52cee65a008f503ce727befcad3ba8d28a || exit 1
-	  fi
-	  if git merge-base --is-ancestor 3ede217e5cd80b18f709339aea281356579756cb HEAD; then
-	    git revert -n --no-edit 3ede217e5cd80b18f709339aea281356579756cb || exit 1
-	  fi
-	  if git merge-base --is-ancestor 87307de2173ee813daca9bd93ec750f17d3eda94 HEAD; then
-	    git revert -n --no-edit 87307de2173ee813daca9bd93ec750f17d3eda94 || exit 1
-	  fi
+	  _committorevert=b0199ea2fe8f9b77aee7ab4f68c9ae1755442586 && nonuser_reverter
+	  _committorevert=608d086f1b1bb7168e9322c65224c23f34e75f29 && nonuser_reverter
+	  _committorevert=b7db0b52cee65a008f503ce727befcad3ba8d28a && nonuser_reverter
+	  _committorevert=3ede217e5cd80b18f709339aea281356579756cb && nonuser_reverter
+	  _committorevert=87307de2173ee813daca9bd93ec750f17d3eda94 && nonuser_reverter
 	  if [ "$_use_staging" != "true" ]; then
-	    if git merge-base --is-ancestor 3dadd980bfbb2fb05a1a695decd06a429ddda97c HEAD; then
-	      git revert -n --no-edit 3dadd980bfbb2fb05a1a695decd06a429ddda97c || exit 1
-	    fi
+	    _committorevert=3dadd980bfbb2fb05a1a695decd06a429ddda97c && nonuser_reverter
 	  fi
-	  if git merge-base --is-ancestor e5354008f46bc0e345c06ac06a7a7780faa9398b HEAD; then
-	    git revert -n --no-edit e5354008f46bc0e345c06ac06a7a7780faa9398b || exit 1
-	  fi
-	  if git merge-base --is-ancestor 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a HEAD; then
-	    git revert -n --no-edit 461b5e56f95eb095d97e4af1cb1c5fd64bb2862a || exit 1
-	  fi
-	  echo "Kernelbase reverts clean reverts applied" >> "$_where"/last_build_config.log
+	  _committorevert=e5354008f46bc0e345c06ac06a7a7780faa9398b && nonuser_reverter
+	  _committorevert=461b5e56f95eb095d97e4af1cb1c5fd64bb2862a && nonuser_reverter
+	  echo -e "( Kernelbase reverts clean reverts applied )\n" >> "$_where"/last_build_config.log
 	fi
 
 	# Update winevulkan
@@ -768,7 +740,7 @@ _prepare() {
 	fi
 
 	if [ "$_use_staging" == "true" ] && [ "$_NUKR" != "debug" ] || [ "$_DEBUGANSW2" == "y" ]; then
-	  msg2 "Applying wine-staging patches..." && echo "Staging overrides, if any: ${_staging_args[@]}" >> "$_where"/last_build_config.log
+	  msg2 "Applying wine-staging patches..." && echo -e "\nStaging overrides, if any: ${_staging_args[@]}\n" >> "$_where"/last_build_config.log
 	  "${srcdir}"/"${_stgsrcdir}"/patches/patchinstall.sh DESTDIR="${srcdir}/${_winesrcdir}" --all "${_staging_args[@]}"
 
 	  # Remove staging version tag
@@ -1071,6 +1043,8 @@ EOM
 	  fi
 	fi
 
+	echo -e "" >> "$_where"/last_build_config.log
+
 	# Proton Fullscreen patch - Allows resolution changes for fullscreen games without changing desktop resolution
 	if [ "$_proton_fs_hack" == "true" ]; then
 	  if [ "$_FS_bypass_compositor" != "true" ]; then
@@ -1232,6 +1206,8 @@ EOM
 	    _patchname='proton-tkg-steamclient-swap.patch' && _patchmsg="Applied steamclient substitution hack" && nonuser_patcher
 	  fi
 	fi
+
+	echo -e "" >> "$_where"/last_build_config.log
 
 	if [ "$_EXTERNAL_INSTALL" == "true" ] && [ "$_EXTERNAL_INSTALL_TYPE" == "proton" ] && [ "$_unfrog" != "true" ] || ([ "$_protonify" == "true" ] && git merge-base --is-ancestor 74dc0c5df9c3094352caedda8ebe14ed2dfd615e HEAD); then
 	  if git merge-base --is-ancestor 9d38c4864c4800313812feef2c3bc6ca6551ce57 HEAD; then
@@ -1436,6 +1412,8 @@ EOM
 	    _patchname='dxvk_config_dxgi_support-591068c.patch' && _patchmsg="Add support for dxvk_config library to Wine's dxgi" && nonuser_patcher
 	  fi
 	fi
+
+	echo -e "" >> "$_where"/last_build_config.log
 
 	# wine user patches
 	if [ "$_user_patches" == "true" ]; then
