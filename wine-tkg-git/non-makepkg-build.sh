@@ -248,6 +248,7 @@ else
   if [ -e "$1" ]; then
     sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=$1|" "$_where"/wine-tkg-profiles/advanced-customization.cfg
   fi
+
   build_wine_tkg
 fi
 
