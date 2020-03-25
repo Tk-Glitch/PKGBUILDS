@@ -179,8 +179,8 @@ package() {
   cd "${srcdir}"
   rm -f proton_tkg_token
   mkdir -p "${pkgdir}/usr/share/steam/compatibilitytools.d"
-  mv "proton_tkg_"* "${pkgdir}/usr/share/steam/compatibilitytools.d/"
-  cd "${pkgdir}/usr/share/steam/compatibilitytools.d/proton_tkg_"*
+  mv proton_tkg_* "${pkgdir}/usr/share/steam/compatibilitytools.d/"
+  cd ${pkgdir}/usr/share/steam/compatibilitytools.d/proton_tkg_*
 
   mkdir -p dist
   tar -xf proton_dist.tar.gz -C dist
