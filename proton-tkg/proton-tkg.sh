@@ -281,7 +281,7 @@ elif [ "$1" == "build_steamhelper" ]; then
 else
   # If $1 contains a path, and it exists, use it as default for config
   if [ -e "$1" ]; then
-    sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=$1|" "$_nowhere"/proton-tkg-profiles/advanced-customization.cfg
+    sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=$(readlink -m $1)|" "$_nowhere"/proton-tkg-profiles/advanced-customization.cfg
   fi
 
   rm -rf "$_nowhere"/proton_dist_tmp
