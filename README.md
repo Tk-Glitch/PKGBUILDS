@@ -3,6 +3,7 @@
 <p align="center">
   <img src="https://cdn.discordapp.com/attachments/472158720399245323/501778941913202708/tkgfrogu.png">
 </p>
+Thanks to Kassin for the meme-worthy banner
 
 ## How-to use that mess :
 
@@ -11,7 +12,7 @@
 
  * Clone the whole thing (that enables you to use `git pull` to get updates) :
 ```
-git clone https://github.com/Tk-Glitch/PKGBUILDS.git
+git clone --recurse-submodules https://github.com/Tk-Glitch/PKGBUILDS.git
 ```
 
  * Build packages :
@@ -26,19 +27,13 @@ That will grab the required dependencies, build, then install the newly created 
  * For bash scripts, just run them from their respective directory - You might find additional details in the readme dedicated to the tool you want to build.
 
 
- * You can also clone a single folder from the repo (you need to have the `subversion` package installed) but it might break inter-dependencies :
-```
-svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/folder_name
-```
-*For example, in case you want to clone the nvidia-dev-all folder, the command would be :* `svn export https://github.com/Tk-Glitch/PKGBUILDS/trunk/nvidia-dev-all`
-
-
 ## Why aren't the PKGBUILDs on AUR ?! :
 
 While some are already available there without userpatches or lib32 support, the most interesting ones aren't (namely linux kernels, nvidia-all and wine-tkg-git) because of the way they are working. You're prompted for options or even config file editing to get the package customized the way you want it to be. For nvidia-all, there's no way around it so I'd consider that non-AUR compliant by default. For linux kernels and wine-tkg-git, I could indeed provide a fixed preset and remove all prompts. That would work. But then, are these still as interesting without customization? I strongly believe they aren't.
 
+### All submodules can be found here separately: https://github.com/Frogging-Family
 
-### Some daily builds (pacman packages) are available on chaotic-aur (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
+### Daily builds (pacman packages) for most packages are available on chaotic-aur (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
 - http://lonewolf-builder.duckdns.org/chaotic-aur - Thanks Pedro !
 - Mirror (Germany) : http://chaotic.bangl.de/chaotic-aur/x86_64/ - Thanks to BangL
 
@@ -48,7 +43,7 @@ For the current stable mainline kernel version, you can find per-arch optimized 
 
 **If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch**
 
-## Thanks to Hans-Kristian, Anisan, Jonny Teronni, Zs. Cs. Sz., JudgeVanadium, Lutris, Oli, Fábio, Bill, Kristoffer, Typhoon, Ole Erik, Stephan and all my anonymous Patrons and supporters! Much frog love to you guys <3
+## Thanks to Hans-Kristian, Anisan, Jonny Teronni, Zs. Cs. Sz., JudgeVanadium, Lutris, Oli, Fábio, Bill, Kristoffer, Typhoon, Ole Erik, Stephan, contributors, and all anonymous Patrons, supporters and curious minds! You're giving driving energy and purpose to my work. Much frog love to all of you guys <3
 
 
 **You can also donate to me via https://www.paypal.me/TkGlitch**
