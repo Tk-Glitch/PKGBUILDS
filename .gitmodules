@@ -43,3 +43,9 @@
 [submodule "amdgpu-pro-vulkan-only"]
 	path = amdgpu-pro-vulkan-only
 	url = git@github.com:Frogging-Family/amdgpu-pro-vulkan-only.git
+[submodule "wine-tkg-git"]
+	path = wine-tkg-git
+	url = git@github.com:Frogging-Family/wine-tkg-git.git
+[submodule "gst-libav"]
+	path = gst-libav
+	url = git@github.com:Frogging-Family/gst-libav.git
