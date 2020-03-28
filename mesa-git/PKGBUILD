@@ -274,6 +274,7 @@ prepare() {
     if [  -d _build32 ]; then
         rm -rf _build32
     fi
+    cd "$_where"
 }
 
 build () {
