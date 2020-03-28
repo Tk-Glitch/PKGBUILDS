@@ -2,7 +2,7 @@
 # Modified by Tk-Glitch <ti3nou at gmail dot com> to target git instead of tagged releases
 
 pkgname=vulkan-headers-tkg-git
-pkgver=1.2.135.r0.gfb7f9c9
+pkgver=1.2.136.r0.g0e78ffd
 pkgrel=1
 pkgdesc="Vulkan header files"
 arch=(any)

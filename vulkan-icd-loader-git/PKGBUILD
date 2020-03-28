@@ -23,7 +23,7 @@ plain '             `.-:///////:-.`'
 _NUKR="true"
 
 pkgname=('vulkan-icd-loader-git' 'lib32-vulkan-icd-loader-git')
-pkgver=1.2.135.r3.gacbf31604
+pkgver=1.2.135.r6.gb0c27ce32
 pkgrel=1
 arch=(x86_64)
 pkgdesc="Vulkan Installable Client Driver (ICD) Loader"
