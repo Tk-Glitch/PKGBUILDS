@@ -1,3 +1,8 @@
+# This branch is archived.
+# Further work will now be found here: https://github.com/Tk-Glitch/PKGBUILDS/tree/frogging-family
+
+------------------------------------------------------------
+
 # PKGBUILDS and other scripts made for random people & frogs
 
 <p align="center">
