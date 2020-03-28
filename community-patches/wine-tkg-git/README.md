@@ -26,3 +26,4 @@ WoW d3d12 fixes - **Requires using vkd3d patched with [Support_RS_1.0_Volatile p
 - rockstarlauncher_downloads.mypatch : Hack to workaround failing downloads with rockstar launcher - https://bugs.winehq.org/show_bug.cgi?id=47843 - Doesn't apply to proton-tkg (already included)
 - origin_downloads_e4ca5dbe_revert.mypatch : Workaround for Origin client game downloading issues - https://bugs.winehq.org/show_bug.cgi?id=48032
 - 0001-Add-some-semi-stubs-in-user32.mypatch : Fixes black/green screen when running Steep in fullscreen/windowed fullscreen mode, courtesy of Guy1524
+- Do_not_fail_if_LDR_MODULE.Flags_is_modified.mypatch : Fixes Module_InitDLL failing if LDR_MODULE.Flags was modified, which is needed by some code protection systems - https://bugs.winehq.org/show_bug.cgi?id=48817
