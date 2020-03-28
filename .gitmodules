@@ -1,51 +1,51 @@
 [submodule "community-patches"]
 	path = community-patches
-	url = git@github.com:Frogging-Family/community-patches.git
+	url = https://github.com/Frogging-Family/community-patches.git
 [submodule "mesa-git"]
 	path = mesa-git
-	url = git@github.com:Frogging-Family/mesa-git.git
+	url = https://github.com/Frogging-Family/mesa-git.git
 [submodule "llvm-git"]
 	path = llvm-git
-	url = git@github.com:Frogging-Family/llvm-git.git
+	url = https://github.com/Frogging-Family/llvm-git.git
 [submodule "dxvk-tools"]
 	path = dxvk-tools
-	url = git@github.com:Frogging-Family/dxvk-tools.git
+	url = https://github.com/Frogging-Family/dxvk-tools.git
 [submodule "spirv-tools-git"]
 	path = spirv-tools-git
-	url = git@github.com:Frogging-Family/spirv-tools-git.git
+	url = https://github.com/Frogging-Family/spirv-tools-git.git
 [submodule "vulkan-icd-loader-git"]
 	path = vulkan-icd-loader-git
-	url = git@github.com:Frogging-Family/vulkan-icd-loader-git.git
+	url = https://github.com/Frogging-Family/vulkan-icd-loader-git.git
 [submodule "vulkan-headers-git"]
 	path = vulkan-headers-git
-	url = git@github.com:Frogging-Family/vulkan-headers-git.git
+	url = https://github.com/Frogging-Family/vulkan-headers-git.git
 [submodule "vkd3d-git"]
 	path = vkd3d-git
-	url = git@github.com:Frogging-Family/vkd3d-git.git
+	url = https://github.com/Frogging-Family/vkd3d-git.git
 [submodule "gamescope-git"]
 	path = gamescope-git
-	url = git@github.com:Frogging-Family/gamescope-git.git
+	url = https://github.com/Frogging-Family/gamescope-git.git
 [submodule "nvidia-all"]
 	path = nvidia-all
-	url = git@github.com:Frogging-Family/nvidia-all.git
+	url = https://github.com/Frogging-Family/nvidia-all.git
 [submodule "mostlyportable-gcc"]
 	path = mostlyportable-gcc
-	url = git@github.com:Frogging-Family/mostlyportable-gcc.git
+	url = https://github.com/Frogging-Family/mostlyportable-gcc.git
 [submodule "mingw-on-arch-automator"]
 	path = mingw-on-arch-automator
-	url = git@github.com:Frogging-Family/mingw-on-arch-automator.git
+	url = https://github.com/Frogging-Family/mingw-on-arch-automator.git
 [submodule "linux-tkg"]
 	path = linux-tkg
-	url = git@github.com:Frogging-Family/linux-tkg.git
+	url = https://github.com/Frogging-Family/linux-tkg.git
 [submodule "faudio-git"]
 	path = faudio-git
-	url = git@github.com:Frogging-Family/faudio-git.git
+	url = https://github.com/Frogging-Family/faudio-git.git
 [submodule "amdgpu-pro-vulkan-only"]
 	path = amdgpu-pro-vulkan-only
-	url = git@github.com:Frogging-Family/amdgpu-pro-vulkan-only.git
+	url = https://github.com/Frogging-Family/amdgpu-pro-vulkan-only.git
 [submodule "wine-tkg-git"]
 	path = wine-tkg-git
-	url = git@github.com:Frogging-Family/wine-tkg-git.git
+	url = https://github.com/Frogging-Family/wine-tkg-git.git
 [submodule "gst-libav"]
 	path = gst-libav
-	url = git@github.com:Frogging-Family/gst-libav.git
+	url = https://github.com/Frogging-Family/gst-libav.git
