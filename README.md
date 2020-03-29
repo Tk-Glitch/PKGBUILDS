@@ -43,7 +43,7 @@ For the current stable mainline kernel version, you can find per-arch optimized 
 
 **If you like my work, consider visiting my patreon page : https://www.patreon.com/tkglitch**
 
-## Thanks to Hans-Kristian, Anisan, Jonny Teronni, Zs. Cs. Sz., JudgeVanadium, Lutris, Oli, Fábio, Bill, Kristoffer, Typhoon, Ole Erik, Stephan, contributors, and all anonymous Patrons, supporters and curious minds! You're giving driving energy and purpose to my work. Much frog love to all of you guys <3
+## Thanks to Glorious Eggroll, Hans-Kristian, Anisan, Jonny Teronni, Zs. Cs. Sz., JudgeVanadium, Lutris, Oli, Fábio, Bill, Kristoffer, Typhoon, Ole Erik, Stephan, contributors, and all anonymous Patrons, supporters and curious minds! You're giving driving energy and purpose to my work. Much frog love to all of you guys <3
 
 
 **You can also donate to me via https://www.paypal.me/TkGlitch**
