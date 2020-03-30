@@ -1,51 +1,68 @@
 [submodule "community-patches"]
 	path = community-patches
 	url = https://github.com/Frogging-Family/community-patches.git
+	branch = master
 [submodule "mesa-git"]
 	path = mesa-git
 	url = https://github.com/Frogging-Family/mesa-git.git
+	branch = master
 [submodule "llvm-git"]
 	path = llvm-git
 	url = https://github.com/Frogging-Family/llvm-git.git
+	branch = master
 [submodule "dxvk-tools"]
 	path = dxvk-tools
 	url = https://github.com/Frogging-Family/dxvk-tools.git
+	branch = master
 [submodule "spirv-tools-git"]
 	path = spirv-tools-git
 	url = https://github.com/Frogging-Family/spirv-tools-git.git
+	branch = master
 [submodule "vulkan-icd-loader-git"]
 	path = vulkan-icd-loader-git
 	url = https://github.com/Frogging-Family/vulkan-icd-loader-git.git
+	branch = master
 [submodule "vulkan-headers-git"]
 	path = vulkan-headers-git
 	url = https://github.com/Frogging-Family/vulkan-headers-git.git
+	branch = master
 [submodule "vkd3d-git"]
 	path = vkd3d-git
 	url = https://github.com/Frogging-Family/vkd3d-git.git
+	branch = master
 [submodule "gamescope-git"]
 	path = gamescope-git
 	url = https://github.com/Frogging-Family/gamescope-git.git
+	branch = master
 [submodule "nvidia-all"]
 	path = nvidia-all
 	url = https://github.com/Frogging-Family/nvidia-all.git
+	branch = master
 [submodule "mostlyportable-gcc"]
 	path = mostlyportable-gcc
 	url = https://github.com/Frogging-Family/mostlyportable-gcc.git
+	branch = master
 [submodule "mingw-on-arch-automator"]
 	path = mingw-on-arch-automator
 	url = https://github.com/Frogging-Family/mingw-on-arch-automator.git
+	branch = master
 [submodule "linux-tkg"]
 	path = linux-tkg
 	url = https://github.com/Frogging-Family/linux-tkg.git
+	branch = master
 [submodule "faudio-git"]
 	path = faudio-git
 	url = https://github.com/Frogging-Family/faudio-git.git
+	branch = master
 [submodule "amdgpu-pro-vulkan-only"]
 	path = amdgpu-pro-vulkan-only
 	url = https://github.com/Frogging-Family/amdgpu-pro-vulkan-only.git
+	branch = master
 [submodule "wine-tkg-git"]
 	path = wine-tkg-git
 	url = https://github.com/Frogging-Family/wine-tkg-git.git
+	branch = master
 [submodule "gst-libav"]
 	path = gst-libav
 	url = https://github.com/Frogging-Family/gst-libav.git
+	branch = master
