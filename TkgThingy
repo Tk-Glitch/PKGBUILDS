@@ -25,7 +25,7 @@ _cfg_loop() {
     if [ -e "$_config_file_path"/"$_config_file_basename" ] && [ ! -e "$_EXT_CONFIG_PATH"/"$_config_file_targname" ]; then
         cp -v "$_config_file_path"/"$_config_file_basename" "$_EXT_CONFIG_PATH"/"$_config_file_targname"
     else
-        echo "$_EXT_CONFIG_PATH/$_config_file_targname" already exists. Skipping...
+        echo "$_EXT_CONFIG_PATH/$_config_file_targname already exists. Skipping..."
     fi
 }
 
