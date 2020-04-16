@@ -5,22 +5,6 @@
 # Path to create the external config files in - Default is ~/.config/frogminer
 _EXT_CONFIG_PATH=~/.config/frogminer
 
-# List of the tools for which config files will be created
-# Set to whatever value other than "true" to disable entries you don't want
-dxvk_tools="true"
-gamescope="true"
-linux54_tkg="true"
-linux55_tkg="true"
-linux56_tkg="true"
-linux57_rc_tkg="true"
-mesa_git="true"
-mostlyportable_gcc="true"
-mostlyportable_mingw="true"
-nvidia_all="true"
-vkd3d_git="true"
-proton_tkg="true"
-wine_tkg="true"
-
 _cfg_loop() {
     if [ -e "$_config_file_path"/"$_config_file_basename" ] && [ ! -e "$_EXT_CONFIG_PATH"/"$_config_file_targname" ]; then
         cp -v "$_config_file_path"/"$_config_file_basename" "$_EXT_CONFIG_PATH"/"$_config_file_targname"
@@ -35,6 +19,7 @@ _external_cfg() {
         _config_file_path=dxvk-tools
         _config_file_basename=updxvk.cfg
         _config_file_targname=updxvk.cfg
+        unset dxvk_tools
         _cfg_loop
     fi
 
@@ -43,6 +28,7 @@ _external_cfg() {
         _config_file_path=gamescope-git
         _config_file_basename=customization.cfg
         _config_file_targname=gamescope-git.cfg
+        unset gamescope
         _cfg_loop
     fi
 
@@ -51,6 +37,7 @@ _external_cfg() {
         _config_file_path=linux-tkg/linux54-tkg
         _config_file_basename=customization.cfg
         _config_file_targname=linux54-tkg.cfg
+        unset linux54_tkg
         _cfg_loop
     fi
 
@@ -59,6 +46,7 @@ _external_cfg() {
         _config_file_path=linux-tkg/linux55-tkg
         _config_file_basename=customization.cfg
         _config_file_targname=linux55-tkg.cfg
+        unset linux55_tkg
         _cfg_loop
     fi
 
@@ -67,6 +55,7 @@ _external_cfg() {
         _config_file_path=linux-tkg/linux56-tkg
         _config_file_basename=customization.cfg
         _config_file_targname=linux56-tkg.cfg
+        unset linux56_tkg
         _cfg_loop
     fi
 
@@ -75,6 +64,7 @@ _external_cfg() {
         _config_file_path=linux-tkg/linux57-rc-tkg
         _config_file_basename=customization.cfg
         _config_file_targname=linux57-tkg.cfg
+        unset linux57_rc_tkg
         _cfg_loop
     fi
 
@@ -83,6 +73,7 @@ _external_cfg() {
         _config_file_path=mesa-git
         _config_file_basename=customization.cfg
         _config_file_targname=mesa-git.cfg
+        unset mesa_git
         _cfg_loop
     fi
 
@@ -91,6 +82,7 @@ _external_cfg() {
         _config_file_path=mostlyportable-gcc
         _config_file_basename=mostlyportable-gcc.cfg
         _config_file_targname=mostlyportable-gcc.cfg
+        unset mostlyportable_gcc
         _cfg_loop
     fi
 
@@ -99,6 +91,7 @@ _external_cfg() {
         _config_file_path=mostlyportable-gcc
         _config_file_basename=mostlyportable-mingw.cfg
         _config_file_targname=mostlyportable-mingw.cfg
+        unset mostlyportable_mingw
         _cfg_loop
     fi
 
@@ -107,6 +100,7 @@ _external_cfg() {
         _config_file_path=nvidia-all
         _config_file_basename=customization.cfg
         _config_file_targname=nvidia-all.cfg
+        unset nvidia_all
         _cfg_loop
     fi
 
@@ -115,6 +109,7 @@ _external_cfg() {
         _config_file_path=vkd3d-git
         _config_file_basename=customization.cfg
         _config_file_targname=vkd3d-git.cfg
+        unset vkd3d_git
         _cfg_loop
     fi
 
@@ -123,6 +118,7 @@ _external_cfg() {
         _config_file_path=wine-tkg-git/proton-tkg/proton-tkg-profiles
         _config_file_basename=sample-external-config.cfg
         _config_file_targname=proton-tkg.cfg
+        unset proton_tkg
         _cfg_loop
     fi
 
@@ -131,8 +127,86 @@ _external_cfg() {
         _config_file_path=wine-tkg-git/wine-tkg-git/wine-tkg-profiles
         _config_file_basename=sample-external-config.cfg
         _config_file_targname=wine-tkg.cfg
+        unset wine_tkg
         _cfg_loop
     fi
+}
+
+_main_loop() {
+    echo -e "What do you want to do?"
+    read -rp "`echo $'  > 1.Create missing external config files\n    2.Update submodules\n    3.Exit\nchoice[1-3?]: '`" _choice;
+    if [ "$_choice" == "2" ]; then
+        git submodule update --remote
+    elif [ "$_choice" == "3" ]; then
+        exit 0
+    else
+        echo -e "\nPlease select which tool you want to create external config files for (or all of them with option #1) :"
+        select tkg_tools in "all" "dxvk_tools" "gamescope" "linux54_tkg" "linux55_tkg" "linux56_tkg" "linux57_rc_tkg" "mesa_git" "mostlyportable_gcc" "mostlyportable_mingw" "nvidia_all" "vkd3d_git" "proton_tkg" "wine_tkg"
+        do
+            case $tkg_tools in
+                "all")
+                    dxvk_tools="true"
+                    gamescope="true"
+                    linux54_tkg="true"
+                    linux55_tkg="true"
+                    linux56_tkg="true"
+                    linux57_rc_tkg="true"
+                    mesa_git="true"
+                    mostlyportable_gcc="true"
+                    mostlyportable_mingw="true"
+                    nvidia_all="true"
+                    vkd3d_git="true"
+                    proton_tkg="true"
+                    wine_tkg="true"
+                    ;;
+                "dxvk_tools")
+                    dxvk_tools="true"
+                    ;;
+                "gamescope")
+                    gamescope="true"
+                    ;;
+                "linux54_tkg")
+                    linux54_tkg="true"
+                    ;;
+                "linux55_tkg")
+                    linux55_tkg="true"
+                    ;;
+                "linux56_tkg")
+                    linux56_tkg="true"
+                    ;;
+                "linux57_rc_tkg")
+                    linux57_rc_tkg="true"
+                    ;;
+                "mesa_git")
+                    mesa_git="true"
+                    ;;
+                "mostlyportable_gcc")
+                    mostlyportable_gcc="true"
+                    ;;
+                "mostlyportable_mingw")
+                    mostlyportable_mingw="true"
+                    ;;
+                "nvidia_all")
+                    nvidia_all="true"
+                    ;;
+                "vkd3d_git")
+                    vkd3d_git="true"
+                    ;;
+                "proton_tkg")
+                    proton_tkg="true"
+                    ;;
+                "wine_tkg")
+                    wine_tkg="true"
+                    ;;
+                *)
+            esac
+            break
+        done
+        echo ""
+        _external_cfg
+        echo ""
+    fi
+    _main_loop
 }
 
 cat << 'EOM'
@@ -161,9 +235,4 @@ echo -e "This script can create external configuration files for all -tkg packag
 
 echo -e "Current external config path is set to $_EXT_CONFIG_PATH \n"
 
-read -rp "`echo $'  > 1.Create missing external config files\n    2.Update submodules\nchoice[1-2?]: '`" _choice;
-    if [ "$_choice" == "2" ]; then
-        git submodule update --remote
-    else
-        _external_cfg
-    fi
+_main_loop
