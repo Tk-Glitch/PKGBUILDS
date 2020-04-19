@@ -140,6 +140,7 @@ _main_loop() {
     elif [ "$_choice" == "3" ]; then
         exit 0
     else
+        mkdir -p "$_EXT_CONFIG_PATH"
         echo -e "\nPlease select which tool you want to create external config files for (or all of them with option #1) :"
         select tkg_tools in "all" "dxvk_tools" "gamescope" "linux54_tkg" "linux55_tkg" "linux56_tkg" "linux57_rc_tkg" "mesa_git" "mostlyportable_gcc" "mostlyportable_mingw" "nvidia_all" "vkd3d_git" "proton_tkg" "wine_tkg"
         do
