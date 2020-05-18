@@ -28,6 +28,8 @@ That will grab the required dependencies, build, then install the newly created 
 
  * For bash scripts, just run them from their respective directory - You might find additional details in the readme dedicated to the tool you want to build.
 
+ * For your convenience, a script is available in the root of PKGBUILDS to pull updates and create external configuration files easily: `./TkgThingy`
+
 
 ## Why aren't the PKGBUILDs on AUR ?! :
 
