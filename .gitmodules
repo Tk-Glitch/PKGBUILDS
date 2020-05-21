@@ -66,3 +66,6 @@
 	path = gst-libav
 	url = https://github.com/Frogging-Family/gst-libav.git
 	branch = master
+[submodule "amdvlk-opt"]
+	path = amdvlk-opt
+	url = git@github.com:Frogging-Family/amdvlk-opt.git
