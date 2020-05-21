@@ -68,4 +68,4 @@
 	branch = master
 [submodule "amdvlk-opt"]
 	path = amdvlk-opt
-	url = git@github.com:Frogging-Family/amdvlk-opt.git
+	url = https://github.com/Frogging-Family/amdvlk-opt.git
