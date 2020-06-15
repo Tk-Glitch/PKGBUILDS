@@ -41,15 +41,6 @@ _external_cfg() {
         _cfg_loop
     fi
 
-    # linux55-tkg
-    if [ "$linux55_tkg" == "true" ]; then
-        _config_file_path=linux-tkg/linux55-tkg
-        _config_file_basename=customization.cfg
-        _config_file_targname=linux55-tkg.cfg
-        unset linux55_tkg
-        _cfg_loop
-    fi
-
     # linux56-tkg
     if [ "$linux56_tkg" == "true" ]; then
         _config_file_path=linux-tkg/linux56-tkg
@@ -59,12 +50,21 @@ _external_cfg() {
         _cfg_loop
     fi
 
-    # linux57-rc-tkg
-    if [ "$linux57_rc_tkg" == "true" ]; then
-        _config_file_path=linux-tkg/linux57-rc-tkg
+    # linux57-tkg
+    if [ "$linux57_tkg" == "true" ]; then
+        _config_file_path=linux-tkg/linux57-tkg
         _config_file_basename=customization.cfg
         _config_file_targname=linux57-tkg.cfg
-        unset linux57_rc_tkg
+        unset linux57_tkg
+        _cfg_loop
+    fi
+
+    # linux58-rc-tkg
+    if [ "$linux58_rc_tkg" == "true" ]; then
+        _config_file_path=linux-tkg/linux58-rc-tkg
+        _config_file_basename=customization.cfg
+        _config_file_targname=linux58-tkg.cfg
+        unset linux58_rc_tkg
         _cfg_loop
     fi
 
@@ -142,16 +142,16 @@ _main_loop() {
     else
         mkdir -p "$_EXT_CONFIG_PATH"
         echo -e "\nPlease select which tool you want to create external config files for (or all of them with option #1) :"
-        select tkg_tools in "all" "dxvk_tools" "gamescope" "linux54_tkg" "linux55_tkg" "linux56_tkg" "linux57_rc_tkg" "mesa_git" "mostlyportable_gcc" "mostlyportable_mingw" "nvidia_all" "vkd3d_git" "proton_tkg" "wine_tkg"
+        select tkg_tools in "all" "dxvk_tools" "gamescope" "linux54_tkg" "linux56_tkg" "linux57_tkg" "linux58_rc_tkg" "mesa_git" "mostlyportable_gcc" "mostlyportable_mingw" "nvidia_all" "vkd3d_git" "proton_tkg" "wine_tkg"
         do
             case $tkg_tools in
                 "all")
                     dxvk_tools="true"
                     gamescope="true"
                     linux54_tkg="true"
-                    linux55_tkg="true"
                     linux56_tkg="true"
-                    linux57_rc_tkg="true"
+                    linux57_tkg="true"
+                    linux58_rc_tkg="true"
                     mesa_git="true"
                     mostlyportable_gcc="true"
                     mostlyportable_mingw="true"
@@ -169,13 +169,13 @@ _main_loop() {
                 "linux54_tkg")
                     linux54_tkg="true"
                     ;;
-                "linux55_tkg")
-                    linux55_tkg="true"
-                    ;;
                 "linux56_tkg")
                     linux56_tkg="true"
                     ;;
-                "linux57_rc_tkg")
+                "linux57_tkg")
+                    linux57_rc_tkg="true"
+                    ;;
+                "linux58_rc_tkg")
                     linux57_rc_tkg="true"
                     ;;
                 "mesa_git")
