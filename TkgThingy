@@ -176,7 +176,7 @@ _main_loop() {
                     linux57_rc_tkg="true"
                     ;;
                 "linux58_rc_tkg")
-                    linux57_rc_tkg="true"
+                    linux58_rc_tkg="true"
                     ;;
                 "mesa_git")
                     mesa_git="true"
