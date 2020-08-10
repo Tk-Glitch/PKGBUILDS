@@ -42,10 +42,6 @@
 	path = mostlyportable-gcc
 	url = https://github.com/Frogging-Family/mostlyportable-gcc.git
 	branch = master
-[submodule "mingw-on-arch-automator"]
-	path = mingw-on-arch-automator
-	url = https://github.com/Frogging-Family/mingw-on-arch-automator.git
-	branch = master
 [submodule "linux-tkg"]
 	path = linux-tkg
 	url = https://github.com/Frogging-Family/linux-tkg.git
