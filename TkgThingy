@@ -59,12 +59,12 @@ _external_cfg() {
         _cfg_loop
     fi
 
-    # linux59_rc-tkg
-    if [ "$linux59_rc_tkg" == "true" ]; then
-        _config_file_path=linux-tkg/linux59-rc-tkg
+    # linux59-tkg
+    if [ "$linux59_tkg" == "true" ]; then
+        _config_file_path=linux-tkg/linux59-tkg
         _config_file_basename=customization.cfg
         _config_file_targname=linux59-tkg.cfg
-        unset linux59_rc_tkg
+        unset linux59_tkg
         _cfg_loop
     fi
 
@@ -147,7 +147,7 @@ _main_loop() {
     else
         mkdir -p "$_EXT_CONFIG_PATH"
         echo -e "\nPlease select which tool you want to create external config files for (or all of them with option #1) :"
-        select tkg_tools in "all" "dxvk_tools" "gamescope" "linux54_tkg" "linux57_tkg" "linux58_tkg" "linux59_rc_tkg" "mesa_git" "mostlyportable_gcc" "mostlyportable_mingw" "nvidia_all" "vkd3d_git" "proton_tkg" "wine_tkg"
+        select tkg_tools in "all" "dxvk_tools" "gamescope" "linux54_tkg" "linux57_tkg" "linux58_tkg" "linux59_tkg" "mesa_git" "mostlyportable_gcc" "mostlyportable_mingw" "nvidia_all" "vkd3d_git" "proton_tkg" "wine_tkg"
         do
             case $tkg_tools in
                 "all")
@@ -180,8 +180,8 @@ _main_loop() {
                 "linux58_tkg")
                     linux58_tkg="true"
                     ;;
-                "linux59_rc_tkg")
-                    linux59_rc_tkg="true"
+                "linux59_tkg")
+                    linux59_tkg="true"
                     ;;
                 "mesa_git")
                     mesa_git="true"
