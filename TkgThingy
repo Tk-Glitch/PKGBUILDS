@@ -107,7 +107,7 @@ _external_cfg() {
 
 _main_loop() {
     echo -e "What do you want to do?"
-    read -rp "`echo $'  > 1.Create missing external config files\n    2.Update submodules\n    3.Exit\nchoice[1-3?]: '`" _choice;
+    read -rp "`echo $'  > 1.Create missing external config files\n    2.Update submodules\n    3.Reset & update submodules (for conflict fixing - ! will wipe any change vs remote !)\n    4.Exit\nchoice[1-4?]: '`" _choice;
     if [ "$_choice" == "2" ]; then
         #git submodule update --remote
         for _tkg_tools in */; do
@@ -116,6 +116,12 @@ _main_loop() {
           fi
         done
     elif [ "$_choice" == "3" ]; then
+        for _tkg_tools in */; do
+          if [ "$_tkg_tools" != ".git" ]; then
+            ( cd "$_tkg_tools" && git config pull.rebase false && git reset --hard && git checkout master && git pull origin master )
+          fi
+        done
+    elif [ "$_choice" == "4" ]; then
         exit 0
     else
         mkdir -p "$_EXT_CONFIG_PATH"
