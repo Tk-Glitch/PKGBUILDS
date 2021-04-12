@@ -118,7 +118,7 @@ _main_loop() {
     elif [ "$_choice" == "3" ]; then
         for _tkg_tools in */; do
           if [ "$_tkg_tools" != ".git" ]; then
-            ( cd "$_tkg_tools" && git config pull.rebase false && git reset --hard && git checkout master && git pull origin master )
+            ( cd "$_tkg_tools" && git config pull.rebase false && git clean  -d  -f . && git reset --hard && git checkout master && git pull origin master )
           fi
         done
     elif [ "$_choice" == "4" ]; then
