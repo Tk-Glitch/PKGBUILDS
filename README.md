@@ -37,9 +37,8 @@ While some are already available there without userpatches or lib32 support, the
 
 
 ### Daily builds (pacman packages) for most packages are available at Chaotic-AUR (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
-- https://aur.chaotic.cx - Thanks Pedro !
-- An always updated mirrorlist can be found [here](https://aur.chaotic.cx/mirrorlist.txt)
-- Chaotic keys are available [here](https://aur.chaotic.cx/chaotic.gpg)
+- Always up to date instructions on how to add Chaotic-AUR as repo can be found at [https://aur.chaotic.cx](https://aur.chaotic.cx) - Thanks Pedro !
+
 
 **Wanna talk about it? Need help? Feel free to join the Frogging Family discord server : https://discord.gg/jRy3Nxk**
 
