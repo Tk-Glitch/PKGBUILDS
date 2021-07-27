@@ -36,10 +36,9 @@ That will grab the required dependencies, build, then install the newly created 
 While some are already available there without userpatches or lib32 support, the most interesting ones aren't (namely linux kernels, nvidia-all and wine-tkg-git) because of the way they are working. You're prompted for options or even config file editing to get the package customized the way you want it to be. For nvidia-all, there's no way around it so I'd consider that non-AUR compliant by default. For linux kernels and wine-tkg-git, I could indeed provide a fixed preset and remove all prompts. That would work. But then, are these still as interesting without customization? I strongly believe they aren't.
 
 
-### Daily builds (pacman packages) for most packages are available on chaotic-aur (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
-- http://lonewolf-builder.duckdns.org/chaotic-aur - Thanks Pedro !
-- Mirror (Germany) : http://chaotic.bangl.de/chaotic-aur/x86_64/ - Thanks to BangL
-- Mirror (USA) : https://repo.kitsuna.net/ - Thanks to LordKitsuna
+### Daily builds (pacman packages) for most packages are available at Chaotic-AUR (https://wiki.archlinux.org/index.php/Unofficial_user_repositories#chaotic-aur):
+- Always up to date instructions on how to add Chaotic-AUR as repo can be found at [https://aur.chaotic.cx](https://aur.chaotic.cx) - Thanks Pedro !
+
 
 **Wanna talk about it? Need help? Feel free to join the Frogging Family discord server : https://discord.gg/jRy3Nxk**
 
