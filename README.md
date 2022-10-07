@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-Banner made with 🐸 by @kassindornelles - This image uses frog emojis from the <a href="https://github.com/Riesi/frog_emojis">frog_emojis repository</a> <a href="https://github.com/Riesi/frog_emojis#license">(License)</a> </p>
+Banner made with 🐸 by <a href="https://github.com/kassindornelles">Kassin Dornelles</a> - Uses frog emojis from the <a href="https://github.com/Riesi/frog_emojis">frog_emojis repository</a> <a href="https://github.com/Riesi/frog_emojis#license">(License)</a> </p>
 
 
 ## How-to use this mess :
