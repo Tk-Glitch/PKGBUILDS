@@ -1,14 +1,15 @@
 # PKGBUILDS and other scripts made for random people & frogs
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/40970965/194467710-457b06e3-930e-4dc8-8b5e-1b93c20735be.png">
+  <img src="https://user-images.githubusercontent.com/40970965/194487089-f7ff8dd3-331b-42ab-b1c0-54ece2eaebd5.png">
 </p>
 
 <p align="center">
-Banner by @kassindornelles
+Banner made with 🐸 by @kassindornelles and frog_emojis from https://github.com/Riesi/frog_emojis
   </p>
 
-## How-to use that mess :
+
+## How-to use this mess :
 
 ### While some of the scripts might work fine on any distro, the PKGBUILDs will only work on distros with access to pacman and makepkg.
 **If you need to access pacman and makepkg outside of Arch-linux and distros based on it (like Antergos or Manjaro), you can "hijack" your current distro with Bedrock Linux at your own risk: https://bedrocklinux.org**  
