@@ -1,9 +1,12 @@
 # PKGBUILDS and other scripts made for random people & frogs
 
 <p align="center">
-  <img src="https://cdn.discordapp.com/attachments/472158720399245323/501778941913202708/tkgfrogu.png">
+  <img src="https://user-images.githubusercontent.com/40970965/194467710-457b06e3-930e-4dc8-8b5e-1b93c20735be.png">
 </p>
-Thanks to Kassin for the meme-worthy banner
+
+<p align="center">
+Banner by @kassindornelles
+  </p>
 
 ## How-to use that mess :
 
