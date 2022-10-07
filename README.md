@@ -1,10 +1,5 @@
 # PKGBUILDS and other scripts made for random people & frogs
 
-<p align="center">
-  <img src="https://cdn.discordapp.com/attachments/472158720399245323/501778941913202708/tkgfrogu.png">
-</p>
-Thanks to Kassin for the meme-worthy banner
-
 ## How-to use that mess :
 
 ### While some of the scripts might work fine on any distro, the PKGBUILDs will only work on distros with access to pacman and makepkg.
